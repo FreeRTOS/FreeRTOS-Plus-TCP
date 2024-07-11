@@ -116,11 +116,11 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
     if( pxNetworkBuffer != NULL )
     {
-        pxNetworkBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes + ipBUFFER_PADDING + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
 
         if( pxNetworkBuffer->pucEthernetBuffer == NULL )
         {
@@ -129,7 +129,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         }
         else
         {
-            pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer ) + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer ) + ipBUFFER_PADDING + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
         }
     }
@@ -137,11 +137,116 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return pxNetworkBuffer;
 }
 
+/*
+ * In this function, it only allocates network buffer by pxGetNetworkBufferWithDescriptor
+ * stub function above here. In this case, we should free both network buffer descriptor and pucEthernetBuffer.
+ */
+void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "Precondition: pxNetworkBuffer != NULL" );
+
+    free( pxNetworkBuffer->pucEthernetBuffer - ( ipUDP_PAYLOAD_IP_TYPE_OFFSET + ipBUFFER_PADDING ) );
+    free( pxNetworkBuffer );
+}
+
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
     Socket_t xSock = safeMalloc( sizeof( struct xSOCKET ) );
 
     return xSock;
+}
+
+void DNS_CloseSocket( Socket_t xDNSSocket )
+{
+    __CPROVER_assert( xDNSSocket != NULL, "The xDNSSocket cannot be NULL." );
+    free( xDNSSocket );
+}
+
+/****************************************************************
+* Abstract  DNS_BindSocket
+*
+* We stub out this function with return constraint of true or false
+*
+****************************************************************/
+BaseType_t DNS_BindSocket( Socket_t xSocket,
+                           uint16_t usPort )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
+
+    return xReturn;
+}
+
+/****************************************************************
+* Abstract  DNS_SendRequest
+*
+* We stub out this function with return constraint of true or false
+*
+****************************************************************/
+uint32_t DNS_SendRequest( Socket_t xDNSSocket,
+                          struct freertos_sockaddr * xAddress,
+                          struct xDNSBuffer * pxDNSBuf )
+{
+    uint32_t ret;
+
+    __CPROVER_assume( ret >= 0 );
+    __CPROVER_assume( ret <= 1 );
+
+    return ret;
+}
+
+/****************************************************************
+* Abstract DNS_ReadReply
+*
+* We stub out this function which returned a dns_buffer filled with random data
+*
+****************************************************************/
+BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
+                          struct freertos_sockaddr * xAddress,
+                          struct xDNSBuffer * pxDNSBuf )
+{
+    BaseType_t ret;
+    int len;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    __CPROVER_assume( ( len > sizeof( DNSMessage_t ) ) && ( len < ipconfigNETWORK_MTU ) );
+
+    if( nondet_bool() )
+    {
+        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len, 0 );
+        __CPROVER_assume( pxNetworkBuffer != NULL );
+
+        pxDNSBuf->pucPayloadBuffer = pxNetworkBuffer->pucEthernetBuffer;
+        pxDNSBuf->uxPayloadLength = len;
+        __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
+
+        __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadLength );
+
+        ret = len;
+    }
+    else
+    {
+        __CPROVER_assume( ret < 0 );
+    }
+
+    return ret;
+}
+
+/* Function xDNSSetCallBack is proven to be correct separately. */
+BaseType_t xDNSSetCallBack( const char * pcHostName,
+                            void * pvSearchID,
+                            FOnDNSEvent pCallbackFunction,
+                            TickType_t xTimeout,
+                            TickType_t xIdentifier,
+                            BaseType_t xIsIPv6 )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
+
+    return xReturn;
 }
 
 uint32_t Prepare_CacheLookup( const char * pcHostName,

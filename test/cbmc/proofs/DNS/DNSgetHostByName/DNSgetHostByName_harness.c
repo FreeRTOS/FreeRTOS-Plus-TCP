@@ -97,6 +97,22 @@ uint32_t DNS_SendRequest( Socket_t xDNSSocket,
 }
 
 /****************************************************************
+* Abstract  DNS_BindSocket
+*
+* We stub out this function with return constraint of true or false
+*
+****************************************************************/
+BaseType_t DNS_BindSocket( Socket_t xSocket,
+                           uint16_t usPort )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
+
+    return xReturn;
+}
+
+/****************************************************************
 * Abstract DNS_ReadReply
 *
 * We stub out this function which returned a dns_buffer filled with random data
@@ -182,11 +198,11 @@ size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDP
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
     if( pxNetworkBuffer != NULL )
     {
-        pxNetworkBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
 
         if( pxNetworkBuffer->pucEthernetBuffer == NULL )
         {
@@ -201,6 +217,35 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     }
 
     return pxNetworkBuffer;
+}
+
+/*
+ * In this function, it only allocates network buffer by pxGetNetworkBufferWithDescriptor
+ * stub function above here. In this case, we should free both network buffer descriptor and pucEthernetBuffer.
+ */
+void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "Precondition: pxNetworkBuffer != NULL" );
+
+    free( pxNetworkBuffer->pucEthernetBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET );
+    free( pxNetworkBuffer );
+}
+
+/* FreeRTOS_ReleaseUDPPayloadBuffer is mocked here and the memory
+ * is not freed as the buffer allocated by the FreeRTOS_recvfrom is static
+ * memory */
+void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
+{
+    __CPROVER_assert( pvBuffer != NULL,
+                      "FreeRTOS precondition: pvBuffer != NULL" );
+}
+
+uint32_t Prepare_CacheLookup( const char * pcHostName,
+                              BaseType_t xFamily,
+                              struct freertos_addrinfo ** ppxAddressInfo )
+{
+    return nondet_uint32();
 }
 
 /****************************************************************

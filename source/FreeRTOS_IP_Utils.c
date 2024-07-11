@@ -747,32 +747,32 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
          * for a IPv6 packet, pucIPType will point to the first byte of the IP-header: 'ucVersionTrafficClass'. */
         ucIPType = pucIPType[ 0 ] & 0xf0U;
 
-        /* To help the translation from a UDP payload pointer to a networkBuffer,
-         * a byte was stored at a certain negative offset (-48 bytes).
-         * It must have a value of either 0x4x or 0x6x. */
-        configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
-
         switch( ucIPType ) /* LCOV_EXCL_BR_LINE */
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case ipTYPE_IPv6:
-                    uxOffset = sizeof( UDPPacket_IPv6_t );
-                    break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            /* For Rx path, it's possible to receive packets that is disabled. We should be able to get the network
+             * descriptor to free that network buffer correctly. */
+            case ipTYPE_IPv6:
+                uxOffset = sizeof( UDPPacket_IPv6_t );
+                break;
 
-            #if ( ipconfigUSE_IPv4 != 0 )
-                case ipTYPE_IPv4:
-                    uxOffset = sizeof( UDPPacket_t );
-                    break;
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+            case ipTYPE_IPv4:
+                uxOffset = sizeof( UDPPacket_t );
+                break;
 
             default:
                 FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined ucIPType \n" ) );
-                uxOffset = sizeof( UDPPacket_t );
+                uxOffset = 0;
                 break;
         }
 
-        pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
+        if( uxOffset != 0 )
+        {
+            pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
+        }
+        else
+        {
+            pxResult = NULL;
+        }
     }
 
     return pxResult;
