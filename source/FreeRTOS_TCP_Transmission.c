@@ -452,8 +452,9 @@
  *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
  *       Size (MSS).
  */
-    void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
+    BaseType_t prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
     {
+        BaseType_t xReturn;
         uint32_t ulRxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxRxWinSize;
         uint32_t ulTxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxTxWinSize;
 
@@ -466,13 +467,15 @@
                                      ( unsigned ) pxSocket->u.xTCP.uxRxStreamSize ) );
         }
 
-        vTCPWindowCreate(
+        xReturn = xTCPWindowCreate(
             &pxSocket->u.xTCP.xTCPWindow,
             ulRxWindowSize * ipconfigTCP_MSS,
             ulTxWindowSize * ipconfigTCP_MSS,
             pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber,
             pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber,
             ( uint32_t ) pxSocket->u.xTCP.usMSS );
+
+        return xReturn;
     }
     /*-----------------------------------------------------------*/
 

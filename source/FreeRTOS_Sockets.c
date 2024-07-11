@@ -2893,6 +2893,8 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* The type cast of the pointer expression "A" to
                          * type "B" removes const qualifier from the pointed to type. */
 
+                        ipconfigISO_STRICTNESS_VIOLATION_START;
+
                         /* MISRA Ref 11.8.1 [Function pointer and use of const pointer] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-118 */
 
@@ -2901,7 +2903,6 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
                         /* coverity[misra_c_2012_rule_11_1_violation] */
-                        ipconfigISO_STRICTNESS_VIOLATION_START;
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
                         ipconfigISO_STRICTNESS_VIOLATION_END;
                         xReturn = 0;
@@ -3891,6 +3892,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             if( pxParentSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
             {
                 pxClientSocket = pxParentSocket->u.xTCP.pxPeerSocket;
+
+                if( pxClientSocket != NULL )
+                {
+                    FreeRTOS_printf( ( "prvAcceptWaitClient: client %p parent %p\n",
+                                       ( void * ) pxClientSocket, ( void * ) pxParentSocket ) );
+                }
             }
             else
             {
@@ -3899,11 +3906,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( pxClientSocket != NULL )
             {
-                pxParentSocket->u.xTCP.pxPeerSocket = NULL;
-
                 /* Is it still not taken ? */
                 if( pxClientSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED )
                 {
+                    if( pxParentSocket->u.xTCP.pxPeerSocket != NULL )
+                    {
+                        pxParentSocket->u.xTCP.pxPeerSocket = NULL;
+                    }
+
                     pxClientSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
                 }
                 else

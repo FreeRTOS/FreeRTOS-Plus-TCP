@@ -274,6 +274,40 @@
     }
     /*-----------------------------------------------------------*/
 
+    static BaseType_t vTCPRemoveTCPChild( const FreeRTOS_Socket_t * pxChildSocket )
+    {
+        BaseType_t xReturn = pdFALSE;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const ListItem_t * pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
+
+        while( pxIterator != pxEnd )
+        {
+            FreeRTOS_Socket_t * pxSocket;
+            pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
+            pxIterator = ( ListItem_t * ) listGET_NEXT( pxIterator );
+
+            if( ( pxSocket != pxChildSocket ) && ( pxSocket->usLocalPort == pxChildSocket->usLocalPort ) )
+            {
+                if( pxSocket->u.xTCP.pxPeerSocket == pxChildSocket ) /**< for server socket: child, for child socket: parent */
+                {
+                    pxSocket->u.xTCP.pxPeerSocket = NULL;
+                    xReturn = pdTRUE;
+                    break;
+                }
+            }
+        }
+
+        return xReturn;
+    }
+
 /**
  * @brief Changing to a new state. Centralised here to do specific actions such as
  *        resetting the alive timer, calling the user's OnConnect handler to notify
@@ -440,8 +474,33 @@
         if( ( eTCPState == eCLOSED ) ||
             ( eTCPState == eCLOSE_WAIT ) )
         {
+            BaseType_t xMustClear = pdFALSE;
+            BaseType_t xHasCleared = pdFALSE;
+
+            if( ( xParent == pxSocket ) && ( pxSocket->u.xTCP.pxPeerSocket != NULL ) )
+            {
+                xParent = pxSocket->u.xTCP.pxPeerSocket;
+            }
+
+            if( ( xParent->u.xTCP.pxPeerSocket != NULL ) &&
+                ( xParent->u.xTCP.pxPeerSocket == pxSocket ) )
+            {
+                xMustClear = pdTRUE;
+                ( void ) xMustClear;
+            }
+
             /* Socket goes to status eCLOSED because of a RST.
              * When nobody owns the socket yet, delete it. */
+            FreeRTOS_printf( ( "vTCPStateChange: Closing (Queued %d, Accept %d Reuse %d)\n",
+                               pxSocket->u.xTCP.bits.bPassQueued,
+                               pxSocket->u.xTCP.bits.bPassAccept,
+                               pxSocket->u.xTCP.bits.bReuseSocket ) );
+            FreeRTOS_printf( ( "vTCPStateChange: me %p parent %p peer %p clear %d\n",
+                               ( void * ) pxSocket,
+                               ( void * ) xParent,
+                               xParent ? ( void * ) xParent->u.xTCP.pxPeerSocket : NULL,
+                               ( int ) xMustClear ) );
+
             vTaskSuspendAll();
             {
                 if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
@@ -449,25 +508,19 @@
                 {
                     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                     {
+                        xHasCleared = vTCPRemoveTCPChild( pxSocket );
+                        ( void ) xHasCleared;
+
                         pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
                         pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
-                    }
-
-                    ( void ) xTaskResumeAll();
-
-                    FreeRTOS_printf( ( "vTCPStateChange: Closing socket\n" ) );
-
-                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
-                    {
                         configASSERT( xIsCallingFromIPTask() != pdFALSE );
                         vSocketCloseNextTime( pxSocket );
                     }
                 }
-                else
-                {
-                    ( void ) xTaskResumeAll();
-                }
             }
+            ( void ) xTaskResumeAll();
+            FreeRTOS_printf( ( "vTCPStateChange: xHasCleared = %d\n",
+                               ( int ) xHasCleared ) );
         }
 
         if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
@@ -578,7 +631,14 @@
                  * active connect(). */
                 if( pxSocket->u.xTCP.ucRepCount < 3U )
                 {
-                    ulDelayMs = ( ( ( uint32_t ) 3000U ) << ( pxSocket->u.xTCP.ucRepCount - 1U ) );
+                    if( pxSocket->u.xTCP.ucRepCount == 0U )
+                    {
+                        ulDelayMs = 0U;
+                    }
+                    else
+                    {
+                        ulDelayMs = ( ( uint32_t ) 3000U ) << ( pxSocket->u.xTCP.ucRepCount - 1U );
+                    }
                 }
                 else
                 {

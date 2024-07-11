@@ -787,7 +787,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
 
         #if ( ipconfigUSE_MDNS == ipconfigENABLE )
         {
-            prvAddAllowedMACAddress( pxInterface, xMDNS_MACAddressIPv6.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MacAddressIPv6.ucBytes );
         }
         #endif /* ipconfigUSE_MDNS */
     }
