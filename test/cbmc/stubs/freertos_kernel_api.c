@@ -99,6 +99,20 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
 /****************************************************************/
 
 /****************************************************************
+* Abstract uxQueueMessagesWaiting
+****************************************************************/
+UBaseType_t uxQueueMessagesWaiting( const QueueHandle_t xQueue )
+{
+    UBaseType_t uxReturn;
+
+    __CPROVER_assume( uxReturn <= 2 );
+
+    return uxReturn;
+}
+
+/****************************************************************/
+
+/****************************************************************
 * Abstract vTaskSetTimeOutState
 ****************************************************************/
 void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
