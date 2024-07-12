@@ -1194,7 +1194,7 @@ static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle,
     #endif
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-        prvAddAllowedMACAddress( pxInterface, pcLOCAL_ALL_NODES_MULTICAST_MAC.ucBytes );
+        prvAddAllowedMACAddress( pxInterface, pcLOCAL_ALL_NODES_MULTICAST_MAC );
         #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
             prvAddAllowedMACAddress( pxInterface, xMDNS_MacAddressIPv6.ucBytes );
         #endif
