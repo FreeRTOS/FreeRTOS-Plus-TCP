@@ -82,6 +82,26 @@ EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
 /****************************************************************/
 
 /****************************************************************
+* Abstract xEventGroupSetBits
+****************************************************************/
+void vEventGroupDelete( EventGroupHandle_t xEventGroup )
+{
+}
+
+/****************************************************************/
+
+/****************************************************************
+* Abstract xEventGroupSetBits
+****************************************************************/
+EventGroupHandle_t xEventGroupCreate( void )
+{
+    EventGroupHandle_t xReturn;
+    return xReturn;
+}
+
+/****************************************************************/
+
+/****************************************************************
 * Abstract xQueueGenericSend
 ****************************************************************/
 BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
