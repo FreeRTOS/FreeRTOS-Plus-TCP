@@ -39,6 +39,16 @@
 #include "../../utility/memory_assignments.c"
 #include "cbmc.h"
 
+/* Abstraction of xIsIPv6Loopback returns either true or false. */
+BaseType_t xIsIPv6Loopback( const IPv6_Address_t * pxAddress )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
+
+    return xReturn;
+}
+
 void harness()
 {
     NetworkInterface_t * pxNetworkInterface = safeMalloc( sizeof( NetworkInterface_t ) );
