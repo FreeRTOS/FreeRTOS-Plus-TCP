@@ -1,5 +1,8 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.2.2 and V4.2.1 released July 12, 2024
+    + Update version information in public header file
+
 Changes between FreeRTOS-plus-TCP V4.2.1 and V4.2.0 released June 27, 2024
     + Update version information in source files.
 
