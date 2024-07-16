@@ -3,10 +3,10 @@ FreeRTOS-Plus-TCP is a lightweight TCP/IP stack for FreeRTOS. It provides a fami
 
 This library has undergone static code analysis and checks for compliance with the [MISRA coding standard](https://www.misra.org.uk/). Any deviations from the MISRA C:2012 guidelines are documented under [MISRA Deviations](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md). The library is validated for memory safety and data structure invariance through the [CBMC automated reasoning tool](https://www.cprover.org/cbmc/) for the functions that parse data originating from the network. The library is also protocol tested using Maxwell protocol tester for both IPv4 and IPv6.
 
-**FreeRTOS-Plus-TCP Library V4.2.1
-[source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V4.2.1/source)
+**FreeRTOS-Plus-TCP Library V4.2.2
+[source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V4.2.2/source)
 is part of the
-[FreeRTOS 202406.00 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202406.00-LTS)
+[FreeRTOS 202406.01 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202406.01-LTS)
 release.**
 
 ## Getting started
