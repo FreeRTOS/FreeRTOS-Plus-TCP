@@ -41,6 +41,7 @@ void vListInitialise( List_t * const pxList )
 UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove )
 {
     List_t * const pxList = pxItemToRemove->pxContainer;
+
     pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
     pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
 
