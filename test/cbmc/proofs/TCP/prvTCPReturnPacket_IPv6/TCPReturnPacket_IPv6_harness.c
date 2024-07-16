@@ -75,6 +75,7 @@ FreeRTOS_Socket_t * ensure_FreeRTOS_Socket_t_is_allocated()
     pxSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
     pxSocket->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
     pxSocket->u.xTCP.pxAckMessage = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+
     if( pxSocket->u.xTCP.pxAckMessage != NULL )
     {
         __CPROVER_assume( ( buf_size > ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( TCPHeader_t ) ) ) && ( buf_size < ipconfigNETWORK_MTU ) );
@@ -190,6 +191,7 @@ void harness()
     EthernetHeader_t * pxHeader;
 
     pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+
     if( pxSocket != NULL )
     {
         /* In this test case, we only focus on IPv6. */

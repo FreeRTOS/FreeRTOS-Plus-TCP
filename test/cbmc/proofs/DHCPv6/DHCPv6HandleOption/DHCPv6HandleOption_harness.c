@@ -76,12 +76,12 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_subOption( uint16_t 
 
 uint16_t usBitConfig_read_16( BitConfig_t * pxConfig )
 {
-    return (uint16_t) nondet_uint32();
+    return ( uint16_t ) nondet_uint32();
 }
 
 uint8_t ucBitConfig_read_8( BitConfig_t * pxConfig )
 {
-    return (uint8_t) nondet_uint32();
+    return ( uint8_t ) nondet_uint32();
 }
 
 BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,

@@ -1042,6 +1042,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
     NetworkBufferDescriptor_t * pxBuffer;
 
     pxBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer );
+
     if( pxBuffer != NULL )
     {
         vReleaseNetworkBufferAndDescriptor( pxBuffer );

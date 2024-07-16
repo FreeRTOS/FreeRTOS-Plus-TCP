@@ -59,7 +59,7 @@ int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
 {
     __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
     __CPROVER_assert( *ppxNetworkBuffer != NULL, "*ppxNetworkBuffer cannot be NULL" );
-    __CPROVER_assert( __CPROVER_r_ok( (*ppxNetworkBuffer)->pucEthernetBuffer, (*ppxNetworkBuffer)->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
+    __CPROVER_assert( __CPROVER_r_ok( ( *ppxNetworkBuffer )->pucEthernetBuffer, ( *ppxNetworkBuffer )->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
 
     return nondet_int32();
 }
@@ -70,7 +70,7 @@ BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
 {
     __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
     __CPROVER_assert( *ppxNetworkBuffer != NULL, "*ppxNetworkBuffer cannot be NULL" );
-    __CPROVER_assert( __CPROVER_r_ok( (*ppxNetworkBuffer)->pucEthernetBuffer, (*ppxNetworkBuffer)->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
+    __CPROVER_assert( __CPROVER_r_ok( ( *ppxNetworkBuffer )->pucEthernetBuffer, ( *ppxNetworkBuffer )->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
 
     return nondet_basetype();
 }

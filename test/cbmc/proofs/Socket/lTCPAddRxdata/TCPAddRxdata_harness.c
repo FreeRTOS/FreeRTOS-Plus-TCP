@@ -37,6 +37,7 @@ void * pvPortMallocLarge( size_t xWantedSize )
 size_t uxStreamBufferFrontSpace( const StreamBuffer_t * const pxBuffer )
 {
     size_t uxReturn;
+
     return uxReturn;
 }
 

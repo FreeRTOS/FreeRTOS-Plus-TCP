@@ -96,6 +96,7 @@ void vEventGroupDelete( EventGroupHandle_t xEventGroup )
 EventGroupHandle_t xEventGroupCreate( void )
 {
     EventGroupHandle_t xReturn;
+
     return xReturn;
 }
 

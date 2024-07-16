@@ -45,7 +45,7 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
 BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xReturn;
-    
+
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
 }
@@ -82,7 +82,7 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
 eFrameProcessingResult_t ProcessICMPPacket( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t xReturn;
-    
+
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxEndPoint cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
 
@@ -93,7 +93,7 @@ eFrameProcessingResult_t ProcessICMPPacket( const NetworkBufferDescriptor_t * co
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t xReturn;
-    
+
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxEndPoint cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
 

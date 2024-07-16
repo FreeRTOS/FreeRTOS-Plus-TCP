@@ -127,7 +127,7 @@ NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterfac
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     size_t uxResult;
-    
+
     __CPROVER_assume( ( uxResult == ipSIZE_OF_IPv4_HEADER ) || ( uxResult == ipSIZE_OF_IPv6_HEADER ) );
 
     return uxResult;
@@ -137,11 +137,11 @@ void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     uint32_t ulLen;
-    NetworkBufferDescriptor_t *pxLocalARPWaitingNetworkBuffer;
+    NetworkBufferDescriptor_t * pxLocalARPWaitingNetworkBuffer;
     uint16_t usEthernetBufferSize;
 
     __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
-    
+
     pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ulLen, 0 );
 
     /* The code does not expect pxNetworkBuffer to be NULL. */

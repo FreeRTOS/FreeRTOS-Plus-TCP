@@ -56,6 +56,7 @@ FreeRTOS_Socket_t * ensure_FreeRTOS_Socket_t_is_allocated()
     pxSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
     pxSocket->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
     pxSocket->u.xTCP.pxAckMessage = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+
     if( pxSocket->u.xTCP.pxAckMessage != NULL )
     {
         __CPROVER_assume( ( buf_size > ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( TCPHeader_t ) ) ) && ( buf_size < ipconfigNETWORK_MTU ) );
@@ -90,6 +91,7 @@ uint32_t ulTCPWindowTxGet( TCPWindow_t * pxWindow,
                            int32_t * plPosition )
 {
     uint32_t ulReturn = nondet_uint32();
+
     __CPROVER_assert( pxWindow != NULL, "pxWindow cannot be NULL" );
     __CPROVER_assert( plPosition != NULL, "plPosition cannot be NULL" );
 

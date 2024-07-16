@@ -88,6 +88,7 @@ FreeRTOS_Socket_t * ensure_FreeRTOS_Socket_t_is_allocated()
     pxSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
     pxSocket->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
     pxSocket->u.xTCP.pxAckMessage = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+
     if( pxSocket->u.xTCP.pxAckMessage != NULL )
     {
         __CPROVER_assume( ( buf_size > ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( TCPHeader_t ) ) ) && ( buf_size < ipconfigNETWORK_MTU ) );
@@ -140,7 +141,7 @@ int32_t lTCPWindowRxCheck( TCPWindow_t * pxWindow,
     __CPROVER_assert( pxWindow != NULL, "pxWindow cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( pxWindow, sizeof( TCPWindow_t ) ), "pxWindow must be readable" );
     *pulSkipCount = nondet_uint32();
-    
+
     return nondet_int32();
 }
 
@@ -245,6 +246,7 @@ void harness()
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
     __CPROVER_assume( pxSocket != NULL );
+
     /* ucOptionLength is the number of valid bytes in ulOptionsData[].
      * ulOptionsData[] is initialized as uint32_t ulOptionsData[ipSIZE_TCP_OPTIONS/sizeof(uint32_t)].
      * This assumption is required for a memcpy function that copies uxOptionsLength

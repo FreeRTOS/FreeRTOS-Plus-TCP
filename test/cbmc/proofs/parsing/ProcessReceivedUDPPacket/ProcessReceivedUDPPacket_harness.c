@@ -95,7 +95,7 @@ void harness()
     /* The network buffer must not be NULL, checked in prvProcessEthernetPacket. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
-    
+
     pxNetworkBuffer->pxEndPoint = &xEndpoint;
 
     /* In this test case, we only focus on IPv4. */

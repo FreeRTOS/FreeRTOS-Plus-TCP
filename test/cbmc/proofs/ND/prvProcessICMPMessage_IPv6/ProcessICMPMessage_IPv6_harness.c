@@ -124,7 +124,7 @@ NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterfac
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     size_t uxResult;
-    
+
     __CPROVER_assume( ( uxResult == ipSIZE_OF_IPv4_HEADER ) || ( uxResult == ipSIZE_OF_IPv6_HEADER ) );
 
     return uxResult;

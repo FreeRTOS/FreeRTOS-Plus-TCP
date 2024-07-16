@@ -409,7 +409,6 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 ****************************************************************/
 void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 {
-
 }
 
 /****************************************************************/
