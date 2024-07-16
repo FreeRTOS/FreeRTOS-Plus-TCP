@@ -50,6 +50,21 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 }
 
 /****************************************************************
+* Abstract FreeRTOS_socket.
+* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/socket.html
+*
+* We stub out this function to do nothing but allocate space for a
+* socket containing unconstrained data or return an error.
+****************************************************************/
+
+BaseType_t FreeRTOS_listen( Socket_t xSocket,
+                            BaseType_t xBacklog )
+{
+    __CPROVER_assert( xSocket != NULL, "Socket cannot be NULL" );
+    return nondet_BaseType();
+}
+
+/****************************************************************
 * Abstract FreeRTOS_setsockopt.
 * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/setsockopt.html
 ****************************************************************/
@@ -412,6 +427,19 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 
     /* Return some random value. */
     return xReturn;
+}
+
+/****************************************************************/
+
+/****************************************************************
+* Abstract vIPSetARPResolutionTimerEnableState
+****************************************************************/
+uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
+                                             uint16_t usSourcePort,
+                                             uint32_t ulDestinationAddress,
+                                             uint16_t usDestinationPort )
+{
+    return nondet_uint32();
 }
 
 /****************************************************************/
