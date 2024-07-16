@@ -4,20 +4,25 @@
 	# This configuration flag sets callback to 1. It also sets MAX_HOSTNAME_LEN to 10 for performance issues.
   # According to the specification MAX_HOST_NAME is upto 255.
   "callback": 1,
-  "MAX_HOSTNAME_LEN": 10,
+  "MAX_HOSTNAME_LEN": 3,
   "HOSTNAME_UNWIND": "__eval {MAX_HOSTNAME_LEN} + 1",
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset prvProcessDNSCache.0:5,strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},vDNSCheckCallBack.0:2,strcpy.0:{HOSTNAME_UNWIND}",
-    "--nondet-static"
+    "--unwindset strlen.0:{HOSTNAME_UNWIND}",
+    "--unwindset strncpy.0:{HOSTNAME_UNWIND}",
+    "--unwindset vDNSCheckCallBack.0:2"
   ],
   "OBJS":
   [
-    "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_kernel_api.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/cbmc.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Timers.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto",
-    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto",
-    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Callback.goto",
+    "$(ENTRY)_harness.goto"
   ],
   "DEF":
   [
