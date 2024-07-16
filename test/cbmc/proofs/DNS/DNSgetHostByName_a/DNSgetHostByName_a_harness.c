@@ -17,7 +17,10 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
+/* CBMC includes. */
 #include "cbmc.h"
+
+uintptr_t __CPROVER_file_local_FreeRTOS_IP_Utils_c_void_ptr_to_uintptr( const void * pvPointer );
 
 /****************************************************************
 * We abstract:
@@ -36,6 +39,54 @@
 * MAX_HOSTNAME_LEN.  We have to bound this length because we have to
 * bound the iterations of strcmp.
 ****************************************************************/
+
+/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
+/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
+                                                              TickType_t xBlockTimeTicks )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+
+    if( pxNetworkBuffer != NULL )
+    {
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes + ipBUFFER_PADDING + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
+
+        if( pxNetworkBuffer->pucEthernetBuffer == NULL )
+        {
+            free( pxNetworkBuffer );
+            pxNetworkBuffer = NULL;
+        }
+        else
+        {
+            pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer ) + ipBUFFER_PADDING + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
+        }
+    }
+
+    return pxNetworkBuffer;
+}
+
+/*
+ * In this function, it only allocates network buffer by pxGetNetworkBufferWithDescriptor
+ * stub function above here. In this case, we should free both network buffer descriptor and pucEthernetBuffer.
+ */
+void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "Precondition: pxNetworkBuffer != NULL" );
+
+    free( pxNetworkBuffer->pucEthernetBuffer - ( ipUDP_PAYLOAD_IP_TYPE_OFFSET + ipBUFFER_PADDING ) );
+    free( pxNetworkBuffer );
+}
+
+/* FreeRTOS_ReleaseUDPPayloadBuffer is mocked here and the memory
+ * is not freed as the buffer allocated by the FreeRTOS_recvfrom is static
+ * memory */
+void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
+{
+    __CPROVER_assert( pvBuffer != NULL,
+                      "FreeRTOS precondition: pvBuffer != NULL" );
+}
 
 /****************************************************************
 * Abstract DNS_ParseDNSReply proved memory safe in ParseDNSReply.
@@ -111,45 +162,6 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
     return ret;
 }
 
-/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
-/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
-{
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
-
-    if( pxNetworkBuffer != NULL )
-    {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes + ipBUFFER_PADDING + ipUDP_PAYLOAD_IP_TYPE_OFFSET );
-
-        if( pxNetworkBuffer->pucEthernetBuffer == NULL )
-        {
-            free( pxNetworkBuffer );
-            pxNetworkBuffer = NULL;
-        }
-        else
-        {
-            pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer ) + ipBUFFER_PADDING + ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-            pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
-        }
-    }
-
-    return pxNetworkBuffer;
-}
-
-/*
- * In this function, it only allocates network buffer by pxGetNetworkBufferWithDescriptor
- * stub function above here. In this case, we should free both network buffer descriptor and pucEthernetBuffer.
- */
-void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
-{
-    __CPROVER_assert( pxNetworkBuffer != NULL,
-                      "Precondition: pxNetworkBuffer != NULL" );
-
-    free( pxNetworkBuffer->pucEthernetBuffer - ( ipUDP_PAYLOAD_IP_TYPE_OFFSET + ipBUFFER_PADDING ) );
-    free( pxNetworkBuffer );
-}
-
 Socket_t DNS_CreateSocket( TickType_t uxReadTimeout_ticks )
 {
     Socket_t xSock = safeMalloc( sizeof( struct xSOCKET ) );
@@ -207,31 +219,21 @@ BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
                           struct freertos_sockaddr * xAddress,
                           struct xDNSBuffer * pxDNSBuf )
 {
-    BaseType_t ret;
     int len;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
 
     __CPROVER_assume( ( len > sizeof( DNSMessage_t ) ) && ( len < ipconfigNETWORK_MTU ) );
 
-    if( nondet_bool() )
-    {
-        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len, 0 );
-        __CPROVER_assume( pxNetworkBuffer != NULL );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len, 0 );
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-        pxDNSBuf->pucPayloadBuffer = pxNetworkBuffer->pucEthernetBuffer;
-        pxDNSBuf->uxPayloadLength = len;
-        __CPROVER_assume( pxDNSBuf->pucPayloadBuffer != NULL );
+    pxDNSBuf->pucPayloadBuffer = pxNetworkBuffer->pucEthernetBuffer;
+    pxDNSBuf->uxPayloadLength = len;
 
-        __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadLength );
+    __CPROVER_havoc_slice( pxDNSBuf->pucPayloadBuffer, pxDNSBuf->uxPayloadLength );
 
-        ret = len;
-    }
-    else
-    {
-        __CPROVER_assume( ret < 0 );
-    }
-
-    return ret;
+    return nondet_basetype();
 }
 
 /* Function xDNSSetCallBack is proven to be correct separately. */

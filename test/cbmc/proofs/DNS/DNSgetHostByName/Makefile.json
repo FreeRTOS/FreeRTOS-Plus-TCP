@@ -31,7 +31,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Routing.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Routing.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto",
