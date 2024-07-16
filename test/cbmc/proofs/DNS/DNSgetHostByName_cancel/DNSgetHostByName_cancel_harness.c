@@ -8,11 +8,11 @@
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_IP_Private.h"
 
-/* CBMC includes. */
-#include "cbmc.h"
 
 /* This proof assumes the length of pcHostName is bounded by MAX_HOSTNAME_LEN. This also abstracts the concurrency. */
+
 void vDNSInitialise( void );
+
 BaseType_t xDNSSetCallBack( const char * pcHostName,
                             void * pvSearchID,
                             FOnDNSEvent pCallbackFunction,
@@ -20,18 +20,33 @@ BaseType_t xDNSSetCallBack( const char * pcHostName,
                             TickType_t xIdentifier,
                             BaseType_t xIsIPv6 );
 
+void * safeMalloc( size_t xWantedSize ) /* Returns a NULL pointer if the wanted size is 0. */
+{
+    if( xWantedSize == 0 )
+    {
+        return NULL;
+    }
+
+    uint8_t byte;
+
+    return byte ? malloc( xWantedSize ) : NULL;
+}
+
+/* Abstraction of xTaskCheckForTimeOut from task pool. This also abstracts the concurrency. */
+BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
+                                 TickType_t * const pxTicksToWait )
+{
+}
+
+/* Abstraction of xTaskResumeAll from task pool. This also abstracts the concurrency. */
+BaseType_t xTaskResumeAll( void )
+{
+}
+
 /* The function func mimics the callback function.*/
 void func( const char * pcHostName,
            void * pvSearchID,
            uint32_t ulIPAddress )
-{
-}
-
-void vDNSTimerReload( uint32_t ulCheckTime )
-{
-}
-
-void vIPSetDNSTimerEnableState( BaseType_t xEnableState )
 {
 }
 
@@ -46,13 +61,11 @@ void harness()
     size_t len;
     BaseType_t xReturn;
 
-    __CPROVER_assume( len > 0 && len <= MAX_HOSTNAME_LEN );
+    __CPROVER_assume( len >= 0 && len <= MAX_HOSTNAME_LEN );
     char * pcHostName = safeMalloc( len );
-    __CPROVER_assume( pcHostName != NULL );
 
     if( len && pcHostName )
     {
-        __CPROVER_havoc_slice( pcHostName, len - 1 );
         pcHostName[ len - 1 ] = NULL;
     }
 
