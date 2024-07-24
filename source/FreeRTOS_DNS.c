@@ -150,7 +150,7 @@
  * The MAC-addresses are provided here in case a network
  * interface needs it.
  */
-        const MACAddress_t xMDNS_MACAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
+        const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
     #endif /* ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
 
 
@@ -608,6 +608,10 @@
         BaseType_t xHasRandom = pdFALSE;
         TickType_t uxIdentifier = 0U;
 
+        #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+            BaseType_t xReturnSetCallback = pdPASS;
+        #endif
+
         #if ( ipconfigUSE_DNS_CACHE != 0 )
             BaseType_t xLengthOk = pdFALSE;
         #endif
@@ -656,7 +660,7 @@
                     if( ulIPAddress != 0UL )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            if( ( ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
+                            if( ( ppxAddressInfo != NULL ) && ( *ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
                                                    pcHostName, ( void * ) ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
@@ -690,12 +694,12 @@
                         if( xHasRandom != pdFALSE )
                         {
                             uxReadTimeOut_ticks = 0U;
-                            vDNSSetCallBack( pcHostName,
-                                             pvSearchID,
-                                             pCallbackFunction,
-                                             uxTimeout,
-                                             ( TickType_t ) uxIdentifier,
-                                             ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
+                            xReturnSetCallback = xDNSSetCallBack( pcHostName,
+                                                                  pvSearchID,
+                                                                  pCallbackFunction,
+                                                                  uxTimeout,
+                                                                  ( TickType_t ) uxIdentifier,
+                                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                         }
                     }
                     else     /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
@@ -707,7 +711,13 @@
             }
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
-            if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
+            if( ( ulIPAddress == 0U ) &&
+
+                #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                    ( xReturnSetCallback == pdPASS ) &&
+                #endif
+
+                ( xHasRandom != pdFALSE ) )
             {
                 ulIPAddress = prvGetHostByName( pcHostName,
                                                 uxIdentifier,
@@ -1507,7 +1517,7 @@
         uxIndex = uxStart + 1U;
 
         /* Copy in the host name. */
-        ( void ) strcpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName );
+        ( void ) strncpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName, strlen( pcHostName ) + 1U );
 
         /* Walk through the string to replace the '.' characters with byte
          * counts.  pucStart holds the address of the byte count.  Walking the

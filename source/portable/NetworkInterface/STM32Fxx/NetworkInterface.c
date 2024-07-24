@@ -537,7 +537,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             #endif
             #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             {
-                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv6.ucBytes );
+                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MacAddressIPv6.ucBytes );
                 xMACEntry += 8;
             }
             #endif

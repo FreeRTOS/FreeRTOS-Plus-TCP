@@ -38,27 +38,56 @@ jobs:
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
+      # Separate builds for sanitizers and coverage:
+      # These can currently not be combined without branch coverage dilution.
       - env:
-          stepName: Build Unit Tests
+          stepName: Build Unit Tests (aubsan build)
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S test/unit-test -B test/unit-test/build/ -G Ninja
-          cmake --build test/unit-test/build/ --target all
+          cmake --fresh -G Ninja -S test/unit-test -B test/unit-test/build/ -DSANITIZE=address,undefined
+          ninja -C test/unit-test/build/
 
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
       - env:
-          stepName: Run Unit Tests
+          stepName: Run Unit Tests (aubsan build)
         name: ${{ env.stepName }}
         shell: bash
         run: |
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
+          env ASAN_OPTIONS=detect_odr_violation=0 ctest --test-dir test/unit-test/build/ -E system --output-on-failure
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build Unit Tests (coverage build)
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake --fresh -G Ninja -S test/unit-test -B test/unit-test/build/ -DSANITIZE=
+          ninja -C test/unit-test/build/
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Run Unit Tests (coverage build)
+        name: ${{ env.stepName }}
+        shell: bash
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          find test/unit-test/build/ -name '*.gcda' -delete
           ctest --test-dir test/unit-test/build/ -E system --output-on-failure
 
           echo "::endgroup::"
@@ -377,7 +406,7 @@ jobs:
       - name: Set up CBMC runner
         uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@main
         with:
-          cbmc_version: "5.61.0"
+          cbmc_version: "5.95.1"
 
       - env:
           stepName: Install Dependencies

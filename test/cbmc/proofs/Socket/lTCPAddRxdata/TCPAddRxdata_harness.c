@@ -36,7 +36,7 @@ void * pvPortMallocLarge( size_t xWantedSize )
 
 void harness()
 {
-    FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated( sizeof( FreeRTOS_Socket_t ) );
+    FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
     size_t uxOffset;
     const uint8_t * pcData;
     uint32_t ulByteCount;

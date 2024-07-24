@@ -468,7 +468,10 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
         /* The initial sequence numbers at our side are known.  Later
          * vTCPWindowInit() will be called to fill in the peer's sequence numbers, but
          * first wait for a SYN+ACK reply. */
-        prvTCPCreateWindow( pxSocket );
+        if( prvTCPCreateWindow( pxSocket ) != pdTRUE )
+        {
+            xReturn = pdFAIL;
+        }
     }
     else
     {

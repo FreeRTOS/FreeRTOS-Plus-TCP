@@ -13,12 +13,12 @@
 
 void vDNSInitialise( void );
 
-void vDNSSetCallBack( const char * pcHostName,
-                      void * pvSearchID,
-                      FOnDNSEvent pCallbackFunction,
-                      TickType_t xTimeout,
-                      TickType_t xIdentifier,
-                      BaseType_t xIsIPv6 );
+BaseType_t xDNSSetCallBack( const char * pcHostName,
+                            void * pvSearchID,
+                            FOnDNSEvent pCallbackFunction,
+                            TickType_t xTimeout,
+                            TickType_t xIdentifier,
+                            BaseType_t xIsIPv6 );
 
 void * safeMalloc( size_t xWantedSize ) /* Returns a NULL pointer if the wanted size is 0. */
 {
@@ -59,6 +59,7 @@ void harness()
     TickType_t xIdentifier;
     BaseType_t xIsIPv6;
     size_t len;
+    BaseType_t xReturn;
 
     __CPROVER_assume( len >= 0 && len <= MAX_HOSTNAME_LEN );
     char * pcHostName = safeMalloc( len );
@@ -68,6 +69,6 @@ void harness()
         pcHostName[ len - 1 ] = NULL;
     }
 
-    vDNSSetCallBack( pcHostName, &pvSearchID, pCallback, xTimeout, xIdentifier, xIsIPv6 ); /* Add an item to be able to check the cancel function if the list is non-empty. */
+    xReturn = xDNSSetCallBack( pcHostName, &pvSearchID, pCallback, xTimeout, xIdentifier, xIsIPv6 ); /* Add an item to be able to check the cancel function if the list is non-empty. */
     FreeRTOS_gethostbyname_cancel( &pvSearchID );
 }

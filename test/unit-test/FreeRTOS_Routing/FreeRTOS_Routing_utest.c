@@ -2369,8 +2369,8 @@ void test_pcEndpointName_IPv4_HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
-    char cIPString[] = "192.168.123.223";
-    int lNameSize = sizeof( cIPString ) + 1;
+    static const char cIPString[] = "192.168.123.223";
+    uint32_t lNameSize = sizeof( cIPString );
     char cName[ lNameSize ];
     const char * pcName = NULL;
 
@@ -2378,7 +2378,7 @@ void test_pcEndpointName_IPv4_HappyPath()
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
     xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
 
-    memset( &cName, 0, sizeof( cName ) );
+    memset( cName, 0, sizeof( cName ) );
 
     xStubFreeRTOS_inet_ntop_TargetFamily = FREERTOS_AF_INET4;
     pvStubFreeRTOS_inet_ntop_TargetSource = &( xEndPoint.ipv4_settings.ulIPAddress );
@@ -2497,8 +2497,8 @@ void test_pcEndpointName_IPv6_HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
-    const char cIPString[] = "2001::1";
-    int lNameSize = sizeof( cIPString ) + 1;
+    static const char cIPString[] = "2001::1";
+    uint32_t lNameSize = sizeof( cIPString );
     char cName[ lNameSize ];
     const char * pcName;
 
@@ -2507,7 +2507,7 @@ void test_pcEndpointName_IPv6_HappyPath()
     xEndPoint.bits.bIPv6 = pdTRUE;
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
 
-    memset( &cName, 0, sizeof( cName ) );
+    memset( cName, 0, sizeof( cName ) );
 
     xStubFreeRTOS_inet_ntop_TargetFamily = FREERTOS_AF_INET6;
     pvStubFreeRTOS_inet_ntop_TargetSource = xEndPoint.ipv6_settings.xIPAddress.ucBytes;
