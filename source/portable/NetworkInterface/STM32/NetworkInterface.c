@@ -1570,7 +1570,7 @@ static BaseType_t prvSetNewDestMACAddrMatch( ETH_TypeDef * const pxEthInstance,
         if( ucAddrHashCounters[ ucHashIndex ] == 0U )
         {
             prvHAL_ETH_SetDestMACAddrMatch( pxEthInstance, uxMACEntryIndex, pucMACAddr );
-            ucSrcMatchCounters[ uxMACEntryIndex ] = 1U;
+            ucSrcMatchCounters[ uxMACEntryIndex++ ] = 1U;
             xResult = pdTRUE;
         }
     }
