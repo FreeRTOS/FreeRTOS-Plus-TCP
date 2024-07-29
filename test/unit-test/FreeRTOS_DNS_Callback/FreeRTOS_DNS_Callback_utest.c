@@ -213,7 +213,7 @@ void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
     DNSMessage_t xDNSMessageHeader;
     char pc_name[] = "test";
     uint8_t dnsCallbackMemory[ sizeof( DNSCallback_t ) + ipconfigDNS_CACHE_NAME_LENGTH ];
-    DNSCallback_t *pxDnsCallback = ( DNSCallback_t * ) &dnsCallbackMemory;
+    DNSCallback_t * pxDnsCallback = ( DNSCallback_t * ) &dnsCallbackMemory;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
     pxSet.usPortNumber = FreeRTOS_htons( ipMDNS_PORT );
@@ -259,7 +259,7 @@ void test_xDNSDoCallback_fail_equal_port_number_not_equal_name( void )
     char pc_name[] = "test";
     strcpy( pxSet.pcName, pc_name );
     dnsCallback->pCallbackFunction = dns_callback;
-    dnsCallback->pcName[0] = '\0';
+    dnsCallback->pcName[ 0 ] = '\0';
 
     /* Expectations */
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );

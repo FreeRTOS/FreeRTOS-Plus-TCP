@@ -1986,7 +1986,7 @@ void test_eConsiderFrameForProcessing_ArpBoardcastMacMatch( void )
 /**
  * @brief test_eConsiderFrameForProcessing_UnknownFrameType
  * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type
- * is Unknwon.
+ * is unknown.
  */
 void test_eConsiderFrameForProcessing_UnknownFrameType( void )
 {
