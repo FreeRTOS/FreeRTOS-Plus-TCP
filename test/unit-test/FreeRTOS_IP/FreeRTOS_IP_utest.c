@@ -267,7 +267,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig( void )
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
-    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = 0;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
@@ -291,7 +291,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeLessThanConfig( void )
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
-    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = 0;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
@@ -316,7 +316,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig( void )
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
-    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = 0;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS, pxNetworkBuffer );
@@ -2093,10 +2093,12 @@ void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
@@ -2121,10 +2123,12 @@ void test_prvProcessEthernetPacket_ARPFrameType_SmallerDataLength( void )
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = sizeof( EthernetHeader_t );
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
@@ -2149,10 +2153,12 @@ void test_prvProcessEthernetPacket_IPv4FrameType_LessData( void )
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = sizeof( EthernetHeader_t );
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
@@ -2174,17 +2180,17 @@ void test_prvProcessEthernetPacket_IPv4FrameType_AptData( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
-    uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
     EthernetHeader_t * pxEthernetHeader;
     IPPacket_t * pxIPPacket;
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
-
-    memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
@@ -2207,16 +2213,14 @@ void test_prvProcessEthernetPacket_InterfaceNull( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
-    uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
     EthernetHeader_t * pxEthernetHeader;
     IPPacket_t * pxIPPacket;
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
-
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxInterface = NULL;
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -2325,15 +2329,13 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->pxInterface = &xInterface;
 
     /* Initialize ethernet layer. */
@@ -2362,15 +2364,13 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
     /* Initialize ethernet layer. */
@@ -2403,15 +2403,13 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2445,15 +2443,13 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPProcess( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2487,16 +2483,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPZeroLength( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2532,16 +2526,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader( 
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2577,16 +2569,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPHappyPath( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
     UDPPacket_t * pxUDPPacket;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2622,16 +2612,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2670,17 +2658,15 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2723,17 +2709,15 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2774,16 +2758,15 @@ void test_prvProcessIPPacket_TCP( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2818,17 +2801,15 @@ void test_prvProcessIPPacket_TCPProcessFail( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
     NetworkEndPoint_t xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2863,15 +2844,13 @@ void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2903,15 +2882,13 @@ void test_prvProcessIPPacket_UDP_GreaterLoopbackAddress( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = 0;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2943,15 +2920,13 @@ void test_prvProcessIPPacket_UDP_LessLoopbackAddress( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = 0;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -2983,15 +2958,13 @@ void test_prvProcessIPPacket_UDP_IPHeaderLengthTooLarge( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -3019,17 +2992,15 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_IPv6_t * pxIPHeader;
     UDPPacket_IPv6_t * pxUDPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -3066,17 +3037,15 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_IPv6_t * pxIPHeader;
     UDPPacket_IPv6_t * pxUDPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -3121,16 +3090,14 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_IPv6_t * pxIPHeader;
     UDPPacket_IPv6_t * pxUDPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -3172,16 +3139,14 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_IPv6_t * pxIPHeader;
     TCPPacket_IPv6_t * pxTCPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -3224,16 +3189,14 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_IPv6_t * pxIPHeader;
     TCPPacket_IPv6_t * pxTCPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -3273,16 +3236,14 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_IPv6_t * pxIPHeader;
     ICMPPacket_IPv6_t * pxICMPPacket;
     BaseType_t xReturnValue = pdTRUE;
     struct xNetworkInterface xInterface;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pxInterface = &xInterface;
 
@@ -3324,15 +3285,13 @@ void test_prvProcessIPPacket_IPv6_LessPacketSize( void )
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer[ ipIP_TYPE_OFFSET + ipconfigTCP_MSS ] = { 0 };
     IPHeader_IPv6_t * pxIPHeader;
     struct xNetworkInterface xInterface;
     BaseType_t xReturnValue = pdTRUE;
 
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = sizeof( IPPacket_IPv6_t ) - 1;
     pxNetworkBuffer->pxInterface = &xInterface;
 

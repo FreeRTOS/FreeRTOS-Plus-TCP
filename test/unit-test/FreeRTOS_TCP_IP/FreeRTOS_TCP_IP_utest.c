@@ -34,15 +34,14 @@
 #include <string.h>
 #include <stdint.h>
 
-/*#include "mock_task.h" */
-#include "mock_TCP_IP_list_macros.h"
+#include "mock_task.h"
+#include "mock_list.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
+#include "mock_TCP_IP_list_macros.h"
 #include "mock_queue.h"
-#include "mock_task.h"
 #include "mock_event_groups.h"
-#include "mock_list.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Utils.h"
@@ -55,7 +54,6 @@
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_TCP_Transmission.h"
 #include "mock_FreeRTOS_TCP_Reception.h"
-#include "mock_TCP_IP_list_macros.h"
 
 #include "catch_assert.h"
 
@@ -81,6 +79,11 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
     0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
     0xc3, 0x17
 };
+
+static void test_Helper_ListInitialise( List_t * const pxList );
+
+static void test_Helper_ListInsertEnd( List_t * const pxList,
+                                       ListItem_t * const pxNewListItem );
 
 /* ============================== Test Cases ============================== */
 
@@ -693,6 +696,103 @@ void test_vTCPStateChange_ClosedState( void )
 }
 
 /**
+ * @brief Test functionality when the state to be reached and the
+ *        current state equal to closed state, with child socket.
+ */
+void test_vTCPStateChange_ClosedState_ChildSocket( void )
+{
+    FreeRTOS_Socket_t xSocket = { 0 };
+    FreeRTOS_Socket_t xChildSocket = { 0 };
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSED;
+    xSocket.u.xTCP.pxPeerSocket = &xChildSocket;
+    xChildSocket.u.xTCP.pxPeerSocket = &xSocket;
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    vSocketWakeUpUser_Expect( &xChildSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/**
+ * @brief Test functionality when the state to be reached and the
+ *        current state equal to closed state, with child socket.
+ */
+void test_vTCPStateChange_EstablishedState_ChildSocket2( void )
+{
+    FreeRTOS_Socket_t xSocket = { 0 };
+    FreeRTOS_Socket_t xSocketParent2 = { 0 };
+    FreeRTOS_Socket_t xChildSocket = { 0 };
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSED;
+    xSocket.u.xTCP.pxPeerSocket = &xChildSocket;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
+    xChildSocket.u.xTCP.pxPeerSocket = &xSocketParent2;
+    xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+    xSocket.u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xSocket2;
+
+    memset( &xSocket2, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    vSocketClose_ExpectAnyArgsAndReturn( NULL );
+
+    xTaskResumeAll_ExpectAndReturn( 0 );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    vSocketWakeUpUser_Expect( &xChildSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+}
+
+/**
  * @brief Test functionality when the state to be reached is closed wait
  *        and current state is equal to connect syn.
  */
@@ -956,8 +1056,33 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask( void )
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
 
     vTaskSuspendAll_Expect();
-    xTaskResumeAll_ExpectAndReturn( 0 );
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xSocket2;
+
+    memset( &xSocket2, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
+
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    /* FIXME: Different behaviour with -fsanitize=address,undefined. */
+    if( xSocketToClose != &xSocket )
+    {
+        vSocketClose_ExpectAnyArgsAndReturn( NULL );
+    }
+
+    xTaskResumeAll_ExpectAndReturn( 0 );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -993,8 +1118,25 @@ void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask( void )
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
 
     vTaskSuspendAll_Expect();
-    xTaskResumeAll_ExpectAndReturn( 0 );
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xSocket2;
+
+    memset( &xSocket2, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
 
     catch_assert( vTCPStateChange( &xSocket, eTCPState ) );
 }
@@ -1017,8 +1159,32 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask1( void )
     xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
 
     vTaskSuspendAll_Expect();
-    xTaskResumeAll_ExpectAndReturn( 0 );
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xSocket2;
+
+    memset( &xSocket2, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    /* FIXME: Different behaviour with -fsanitize=address,undefined. */
+    if( xSocketToClose != &xSocket )
+    {
+        vSocketClose_ExpectAnyArgsAndReturn( NULL );
+    }
+
+    xTaskResumeAll_ExpectAndReturn( 0 );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -1052,7 +1218,23 @@ void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask1( void )
     xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
 
     vTaskSuspendAll_Expect();
-    xTaskResumeAll_ExpectAndReturn( 0 );
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xSocket2;
+
+    memset( &xSocket2, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
     catch_assert( vTCPStateChange( &xSocket, eTCPState ) );
@@ -1438,7 +1620,6 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_Pare
     TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
     TEST_ASSERT_EQUAL( eSOCKET_ACCEPT, xParentSock.xEventBits );
     TEST_ASSERT_EQUAL( &xSocket, xParentSock.u.xTCP.pxPeerSocket );
-    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
 }
@@ -1491,7 +1672,6 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
     TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
     TEST_ASSERT_EQUAL( eSOCKET_ACCEPT, xParentSock.xEventBits );
     TEST_ASSERT_EQUAL( &xSocket, xParentSock.u.xTCP.pxPeerSocket );
-    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
 }
@@ -1546,7 +1726,6 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
     TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
     TEST_ASSERT_EQUAL( eSOCKET_ACCEPT, xParentSock.xEventBits );
     TEST_ASSERT_EQUAL( &xSocket, xParentSock.u.xTCP.pxPeerSocket );
-    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
 }
@@ -1597,7 +1776,6 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_Paren
     TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
     TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
     TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
-    TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
     TEST_ASSERT_EQUAL( eSOCKET_ACCEPT | ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
@@ -1642,17 +1820,18 @@ void test_xProcessReceivedTCPPacket_Null_Buffer( void )
 void test_xProcessReceivedTCPPacket_IPv6_FrameType( void )
 {
     BaseType_t Return = pdFALSE;
-    EthernetHeader_t xEthHeader;
+    uint8_t xEthBuffer[ 1500 ] = { 0 };
+
+    ( ( EthernetHeader_t * ) xEthBuffer )->usFrameType = ipIPv6_FRAME_TYPE;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xEthHeader;
-
-    xEthHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxNetworkBuffer->pucEthernetBuffer = xEthBuffer;
 
     pxNetworkBuffer->xDataLength = 100;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( NULL );
+    prvTCPSendReset_ExpectAnyArgsAndReturn( pdTRUE );
 
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
 
@@ -2443,4 +2622,103 @@ void test_xTCPCheckNewClient_Found( void )
     Return = xTCPCheckNewClient( pxSocket );
     TEST_ASSERT_EQUAL( pdTRUE, Return );
     TEST_ASSERT_EQUAL_PTR( pxSocket, pxSocket->u.xTCP.pxPeerSocket );
+}
+
+/**
+ * @brief This function validates the case when the child socket is found in
+ * the bounded socket list.
+ */
+void test_vTCPRemoveTCPChild_ChildSocketFound( void )
+{
+    BaseType_t Return = pdFALSE;
+
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xChildSocket;
+
+    memset( &xChildSocket, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+    pxSocket->u.xTCP.pxPeerSocket = &xChildSocket;
+
+    xChildSocket.usLocalPort = FreeRTOS_ntohs( 40000 );
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
+    pxSocket->usLocalPort = FreeRTOS_ntohs( 40000 );
+    Return = vTCPRemoveTCPChild( &xChildSocket );
+    TEST_ASSERT_EQUAL( pdTRUE, Return );
+}
+
+/**
+ * @brief This function validates the case when the child socket is found in
+ * the bounded socket list but non matching port number.
+ */
+void test_vTCPRemoveTCPChild_ChildSocketFound_DifferentPortNumber( void )
+{
+    BaseType_t Return = pdFALSE;
+
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xChildSocket;
+
+    memset( &xChildSocket, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+    pxSocket->u.xTCP.pxPeerSocket = &xChildSocket;
+
+    xChildSocket.usLocalPort = FreeRTOS_ntohs( 80000 );
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
+    pxSocket->usLocalPort = FreeRTOS_ntohs( 40000 );
+    Return = vTCPRemoveTCPChild( &xChildSocket );
+    TEST_ASSERT_EQUAL( pdFALSE, Return );
+}
+
+/**
+ * @brief This function validates the case when no child socket is found in
+ * the bounded socket list but matching port number is present.
+ */
+void test_vTCPRemoveTCPChild_NoChildSocketFound_MatchingPortNumber( void )
+{
+    BaseType_t Return = pdFALSE;
+
+    ListItem_t xLocalListItem;
+    FreeRTOS_Socket_t xChildSocket;
+
+    memset( &xChildSocket, 0, sizeof( xSocket ) );
+
+    pxSocket = &xSocket;
+    List_t * pSocketList = &xBoundTCPSocketsList;
+    ListItem_t NewEntry;
+
+    pxSocket->xBoundSocketListItem.xItemValue = 40000;
+    pxSocket->xBoundSocketListItem.pvOwner = pxSocket;
+    pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
+    pxSocket->u.xTCP.pxPeerSocket = NULL;
+
+    xChildSocket.usLocalPort = FreeRTOS_ntohs( 40000 );
+
+    test_Helper_ListInitialise( pSocketList );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+
+    pxSocket->usLocalPort = FreeRTOS_ntohs( 40000 );
+    Return = vTCPRemoveTCPChild( &xChildSocket );
+    TEST_ASSERT_EQUAL( pdFALSE, Return );
 }

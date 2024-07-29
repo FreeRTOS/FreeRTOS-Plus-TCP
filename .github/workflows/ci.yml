@@ -38,27 +38,56 @@ jobs:
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
+      # Separate builds for sanitizers and coverage:
+      # These can currently not be combined without branch coverage dilution.
       - env:
-          stepName: Build Unit Tests
+          stepName: Build Unit Tests (aubsan build)
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S test/unit-test -B test/unit-test/build/ -G Ninja
-          cmake --build test/unit-test/build/ --target all
+          cmake --fresh -G Ninja -S test/unit-test -B test/unit-test/build/ -DSANITIZE=address,undefined
+          ninja -C test/unit-test/build/
 
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
       - env:
-          stepName: Run Unit Tests
+          stepName: Run Unit Tests (aubsan build)
         name: ${{ env.stepName }}
         shell: bash
         run: |
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
+          env ASAN_OPTIONS=detect_odr_violation=0 ctest --test-dir test/unit-test/build/ -E system --output-on-failure
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build Unit Tests (coverage build)
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake --fresh -G Ninja -S test/unit-test -B test/unit-test/build/ -DSANITIZE=
+          ninja -C test/unit-test/build/
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Run Unit Tests (coverage build)
+        name: ${{ env.stepName }}
+        shell: bash
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          find test/unit-test/build/ -name '*.gcda' -delete
           ctest --test-dir test/unit-test/build/ -E system --output-on-failure
 
           echo "::endgroup::"
@@ -170,7 +199,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
           cmake --build build --target freertos_plus_tcp_build_test
 
           echo "::endgroup::"
@@ -183,7 +212,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
 
@@ -197,7 +226,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6
           cmake --build build --target freertos_plus_tcp_build_test
 
           echo "::endgroup::"
@@ -210,7 +239,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_IPV6
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_IPV6
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
 
@@ -224,7 +253,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_TCP
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_TCP
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
 
@@ -238,7 +267,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6_TCP
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6_TCP
           cmake --build build --target freertos_plus_tcp_build_test
 
           echo "::endgroup::"
@@ -251,7 +280,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
 
@@ -265,7 +294,7 @@ jobs:
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DEFAULT_CONF
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DEFAULT_CONF
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
 
@@ -276,7 +305,7 @@ jobs:
           stepName: Build checks (Header Self Contain)
         shell: bash
         run: |
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=HEADER_SELF_CONTAIN
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=HEADER_SELF_CONTAIN
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DHCP
           cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DNS
@@ -377,7 +406,7 @@ jobs:
       - name: Set up CBMC runner
         uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@main
         with:
-          cbmc_version: "5.61.0"
+          cbmc_version: "5.95.1"
 
       - env:
           stepName: Install Dependencies

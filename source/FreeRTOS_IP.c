@@ -2046,7 +2046,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 }
             }
 
-            if( eReturn != eWaitingARPResolution ) /*TODO eReturn != eReleaseBuffer */
+            if( eReturn != eWaitingARPResolution )
             {
                 switch( ucProtocol )
                 {

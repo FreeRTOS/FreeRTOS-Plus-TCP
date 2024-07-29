@@ -72,13 +72,6 @@ void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
 }
 
 /*
- * Initialise the data structures which keep track of the TCP windowing system.
- */
-void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
-{
-}
-
-/*
  * Return or send a packet to the other party.
  */
 void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,

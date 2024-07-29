@@ -12,6 +12,11 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+#define prvROUND_UP_TO( SIZE, ALIGNMENT )    ( ( ( SIZE ) + ( ALIGNMENT ) -1 ) / ( ALIGNMENT ) *( ALIGNMENT ) )
+
+/* FIXME: Consider instead fixing ipBUFFER_PADDING if it's supposed to be pointer aligned. */
+#define prvALIGNED_BUFFER_PADDING    prvROUND_UP_TO( ipBUFFER_PADDING, sizeof( void * ) )
+
 struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
 
 NetworkInterface_t xInterfaces[ 1 ];
@@ -129,7 +134,7 @@ void vApplicationDaemonTaskStartupHook( void )
 }
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      StackType_t ** ppxTimerTaskStackBuffer,
-                                     uint32_t * pulTimerTaskStackSize )
+                                     configSTACK_DEPTH_TYPE * puxTimerTaskStackSize )
 {
 }
 void vPortDeleteThread( void * pvTaskToDelete )
@@ -176,7 +181,7 @@ void vPortCloseRunningThread( void * pvTaskToDelete,
 }
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
-                                    uint32_t * pulIdleTaskStackSize )
+                                    configSTACK_DEPTH_TYPE * puxIdleTaskStackSize )
 {
 }
 void vConfigureTimerForRunTimeStats( void )
@@ -212,9 +217,9 @@ static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
                                                      long unsigned int xTimeToBlock,
                                                      int callbacks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) + ipBUFFER_PADDING ) + ipBUFFER_PADDING;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) + prvALIGNED_BUFFER_PADDING ) + prvALIGNED_BUFFER_PADDING;
 
-    pxNetworkBuffer->pucEthernetBuffer = malloc( SizeOfEthBuf + ipBUFFER_PADDING ) + ipBUFFER_PADDING;
+    pxNetworkBuffer->pucEthernetBuffer = malloc( SizeOfEthBuf + prvALIGNED_BUFFER_PADDING ) + prvALIGNED_BUFFER_PADDING;
 
     /* Ignore the callback count. */
     ( void ) callbacks;
@@ -230,9 +235,9 @@ static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
 static void ReleaseNetworkBuffer( void )
 {
     /* Free the ethernet buffer. */
-    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer ) - ipBUFFER_PADDING );
+    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer ) - prvALIGNED_BUFFER_PADDING );
     /* Free the network buffer. */
-    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ GlobalBufferCounter ] ) - ipBUFFER_PADDING );
+    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ GlobalBufferCounter ] ) - prvALIGNED_BUFFER_PADDING );
 }
 
 static void ReleaseUDPBuffer( const void * temp,
@@ -289,18 +294,18 @@ static int32_t FreeRTOS_recvfrom_Generic( const ConstSocket_t xSocket,
     return ulGenericLength;
 }
 
-static int32_t FreeRTOS_recvfrom_Generic_NullBuffer( const ConstSocket_t xSocket,
-                                                     void * pvBuffer,
-                                                     size_t uxBufferLength,
-                                                     BaseType_t xFlags,
-                                                     struct freertos_sockaddr * pxSourceAddress,
-                                                     socklen_t * pxSourceAddressLength,
-                                                     int callbacks )
+static int32_t FreeRTOS_recvfrom_Small_NullBuffer( const ConstSocket_t xSocket,
+                                                   void * pvBuffer,
+                                                   size_t uxBufferLength,
+                                                   BaseType_t xFlags,
+                                                   struct freertos_sockaddr * pxSourceAddress,
+                                                   socklen_t * pxSourceAddressLength,
+                                                   int callbacks )
 {
-    pvBuffer = NULL;
-    return xSizeofUDPBuffer;
+    /* Admittedly, returning a (NULL, 1) slice is contrived, but coverage speaks. */
+    *( ( uint8_t ** ) pvBuffer ) = NULL;
+    return 1;
 }
-
 
 static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout( const ConstSocket_t xSocket,
                                                                           void * pvBuffer,
@@ -336,7 +341,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
         pxIterator = pxIterator->pxNext;
     }
 
-    if( xFlags == FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK )
+    if( ( xFlags & FREERTOS_ZERO_COPY ) != 0 )
     {
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }

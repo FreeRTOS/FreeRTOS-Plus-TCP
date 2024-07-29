@@ -288,7 +288,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
 
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddress.ucBytes );
-            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MACAddressIPv6.ucBytes );
+            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddressIPv6.ucBytes );
         #endif
 
         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint );

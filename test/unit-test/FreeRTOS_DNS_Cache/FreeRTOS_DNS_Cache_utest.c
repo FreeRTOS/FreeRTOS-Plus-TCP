@@ -495,15 +495,12 @@ void test_prepare_DNSLookup( void )
 
 void test_prepare_DNSLookup2( void )
 {
-    BaseType_t x = 0U;
-    BaseType_t xFamily;
+    BaseType_t x;
     struct freertos_addrinfo * pxAddressInfo = NULL;
-    struct freertos_addrinfo ** ppxAddressInfo;
     IPv46_Address_t xAddress;
 
-    xFamily = FREERTOS_AF_INET;
     xAddress.xIs_IPv6 = pdFALSE;
-    ppxAddressInfo = &pxAddressInfo;
+    xAddress.xIPAddress.ulIP_IPv4 = ~0U;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -516,7 +513,7 @@ void test_prepare_DNSLookup2( void )
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
+    x = Prepare_CacheLookup( "helloman", FREERTOS_AF_INET, &pxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
 }
 
@@ -525,13 +522,11 @@ void test_prepare_DNSLookup2( void )
  */
 void test_prepare_DNSLookup3( void )
 {
-    BaseType_t x = 0U;
-    BaseType_t xFamily;
-    struct freertos_addrinfo ** ppxAddressInfo = NULL;
+    BaseType_t x;
     IPv46_Address_t xAddress;
 
-    xFamily = FREERTOS_AF_INET;
     xAddress.xIs_IPv6 = pdFALSE;
+    xAddress.xIPAddress.ulIP_IPv4 = ~0U;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -543,7 +538,7 @@ void test_prepare_DNSLookup3( void )
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
+    x = Prepare_CacheLookup( "helloman", FREERTOS_AF_INET, NULL );
     TEST_ASSERT_EQUAL( 0, x );
 }
 
@@ -552,13 +547,11 @@ void test_prepare_DNSLookup3( void )
  */
 void test_prepare_DNSLookup4( void )
 {
-    BaseType_t x = 0U;
-    BaseType_t xFamily;
-    struct freertos_addrinfo ** ppxAddressInfo = NULL;
+    BaseType_t x;
     IPv46_Address_t xAddress;
 
-    xFamily = FREERTOS_AF_INET;
     xAddress.xIs_IPv6 = pdFALSE;
+    xAddress.xIPAddress.ulIP_IPv4 = ~0U;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -570,7 +563,7 @@ void test_prepare_DNSLookup4( void )
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
+    x = Prepare_CacheLookup( "hello", FREERTOS_AF_INET, NULL );
     TEST_ASSERT_EQUAL( 0, x );
 }
 
@@ -629,14 +622,14 @@ void test_prepare_DNSLookup6( void )
  */
 void test_prepare_DNSLookup_IPv6( void )
 {
-    BaseType_t x = 0U;
-    BaseType_t xFamily;
+    BaseType_t x;
+    BaseType_t xFamily = FREERTOS_AF_INET6;
     struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
-    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pucAddrBuffer;
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pxAddressInfo;
     IPv46_Address_t xAddress;
 
-    xFamily = FREERTOS_AF_INET6;
     xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, "great ip address", 16 );
 
     *ppxAddressInfo = pxAddressInfo;
 
@@ -680,6 +673,7 @@ void test_prepare_DNSLookup2_IPv6( void )
 
     xFamily = FREERTOS_AF_INET6;
     xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, "great ip address", 16 );
     ppxAddressInfo = &pxAddressInfo;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
@@ -709,6 +703,7 @@ void test_prepare_DNSLookup3_IPv6( void )
 
     xFamily = FREERTOS_AF_INET6;
     xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, "great ip address", 16 );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -737,6 +732,7 @@ void test_prepare_DNSLookup4_IPv6( void )
 
     xFamily = FREERTOS_AF_INET6;
     xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, "great ip address", 16 );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );

@@ -2034,29 +2034,34 @@ void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
     eARPLookupResult_t eResult;
     MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
     int i;
-    struct xNetworkInterface * xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+    NetworkInterface_t xInterface, * pxInterface = NULL;
+
+    xNetworkEndPoint.pxNetworkInterface = &xInterface;
 
     /* =================================================== */
     /* Make sure one entry matches. */
     for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
     {
         xARPCache[ i ].ulIPAddress = 0xAABBCCDD;
+        xARPCache[ i ].pxEndPoint = &xNetworkEndPoint;
         memset( xARPCache[ i ].xMACAddress.ucBytes, 0x11, sizeof( xMACAddress.ucBytes ) );
     }
 
     ulEntryToTest = 1;
     memset( xARPCache[ ulEntryToTest ].xMACAddress.ucBytes, 0x22, sizeof( xMACAddress.ucBytes ) );
     xARPCache[ ulEntryToTest ].ulIPAddress = 0xAABBCCEE;
-    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
+    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &pxInterface );
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
+    TEST_ASSERT_EQUAL( &xInterface, pxInterface );
     /* =================================================== */
     eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, NULL );
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */
     xARPCache[ ulEntryToTest ].pxEndPoint = NULL;
-    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
+    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &pxInterface );
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */
@@ -2172,9 +2177,6 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     TEST_ASSERT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
 }
-
-/* TODO: _TJ_: For the time being test_eARPGetCacheEntry_LocalIPIsZero and test_eARPGetCacheEntry_LocalIPMatchesReceivedIP */
-/*             test cases are removed as we need to reevaluate if those cases are required for IPv6 */
 
 void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
 {
@@ -2308,6 +2310,7 @@ void test_eARPGetCacheEntry_NoCacheHit( void )
     {
         xARPCache[ i ].ulIPAddress = 0;
         xARPCache[ i ].ucValid = ( uint8_t ) pdTRUE;
+        xARPCache[ i ].pxEndPoint = NULL;
     }
 
     ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;

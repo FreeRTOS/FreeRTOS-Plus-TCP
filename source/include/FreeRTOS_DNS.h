@@ -59,6 +59,12 @@ extern const MACAddress_t xMDNS_MACAddressIPv6;
 /* The MDNS IPv6 address is ff02::1:3 */
 extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
 
+/* This type-name was formally "misspelled" as
+ * xMDNS_MACAddressIPv6 with "MAC": */
+extern const MACAddress_t xMDNS_MacAddressIPv6;
+/* Guarantee backward compatibility. */
+#define xMDNS_MACAddressIPv6    xMDNS_MacAddressIPv6
+
 /** @brief While doing integration tests, it is necessary to influence the choice
  * between DNS/IPv4 and DNS/IPv4.  Depending on this, a DNS server will be
  * addressed via IPv4 or IPv6 messages. */
@@ -143,6 +149,10 @@ BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* Th
  * FreeRTOS_freeaddrinfo().
  */
 void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo );
+
+/* Sets the DNS IP preference while doing DNS lookup to indicate the preference
+ * for a DNS server: either IPv4 or IPv6. Defaults to xPreferenceIPv4 */
+BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference );
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 

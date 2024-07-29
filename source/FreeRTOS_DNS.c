@@ -141,7 +141,6 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
 
 /** @brief This global variable is being used to indicate to the driver which IP type
  *         is preferred for name service lookup, either IPv6 or IPv4. */
-/* TODO: Fix IPv6 DNS query in Windows Simulator. */
     IPPreference_t xDNS_IP_Preference = xPreferenceIPv4;
 
 /*-----------------------------------------------------------*/
@@ -589,6 +588,10 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         BaseType_t xHasRandom = pdFALSE;
         TickType_t uxIdentifier = 0U;
 
+        #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+            BaseType_t xReturnSetCallback = pdPASS;
+        #endif
+
         #if ( ipconfigUSE_DNS_CACHE != 0 )
             BaseType_t xLengthOk = pdFALSE;
         #endif
@@ -637,7 +640,7 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
                     if( ulIPAddress != 0UL )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            if( ( ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
+                            if( ( ppxAddressInfo != NULL ) && ( *ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
                                                    pcHostName, ( void * ) ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
@@ -671,12 +674,12 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
                         if( xHasRandom != pdFALSE )
                         {
                             uxReadTimeOut_ticks = 0U;
-                            vDNSSetCallBack( pcHostName,
-                                             pvSearchID,
-                                             pCallbackFunction,
-                                             uxTimeout,
-                                             ( TickType_t ) uxIdentifier,
-                                             ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
+                            xReturnSetCallback = xDNSSetCallBack( pcHostName,
+                                                                  pvSearchID,
+                                                                  pCallbackFunction,
+                                                                  uxTimeout,
+                                                                  ( TickType_t ) uxIdentifier,
+                                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                         }
                     }
                     else     /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
@@ -688,7 +691,13 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
             }
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
-            if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
+            if( ( ulIPAddress == 0U ) &&
+
+                #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                    ( xReturnSetCallback == pdPASS ) &&
+                #endif
+
+                ( xHasRandom != pdFALSE ) )
             {
                 ulIPAddress = prvGetHostByName( pcHostName,
                                                 uxIdentifier,
@@ -1230,17 +1239,6 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         /* Make sure all fields of the 'sockaddr' are cleared. */
         ( void ) memset( ( void * ) &xAddress, 0, sizeof( xAddress ) );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-            if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
-            {
-                xDNS_IP_Preference = xPreferenceIPv6;
-            }
-            else
-            {
-                xDNS_IP_Preference = xPreferenceIPv4;
-            }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 
         if( pxEndPoint != NULL )
@@ -1499,7 +1497,7 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         uxIndex = uxStart + 1U;
 
         /* Copy in the host name. */
-        ( void ) strcpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName );
+        ( void ) strncpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName, strlen( pcHostName ) + 1U );
 
         /* Walk through the string to replace the '.' characters with byte
          * counts.  pucStart holds the address of the byte count.  Walking the
@@ -1626,6 +1624,42 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         }
 
     #endif /* ipconfigUSE_NBNS */
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Sets the DNS IP preference while doing DNS lookup to indicate the preference
+ * for a DNS server: either IPv4 or IPv6. Defaults to xPreferenceIPv4
+ * @param[in] eIPPreference IP preference, can be either xPreferenceIPv4 or
+ * xPreferenceIPv6
+ * @return pdPASS on success and pdFAIL on failure.
+ */
+    BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference )
+    {
+        BaseType_t xReturn = pdPASS;
+
+        switch( eIPPreference )
+        {
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case xPreferenceIPv4:
+                    xDNS_IP_Preference = xPreferenceIPv4;
+                    break;
+            #endif
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case xPreferenceIPv6:
+                    xDNS_IP_Preference = xPreferenceIPv6;
+                    break;
+            #endif
+
+            default:
+                xReturn = pdFAIL;
+                FreeRTOS_printf( ( "Invalid DNS IPPreference_t\n" ) );
+                break;
+        }
+
+        return xReturn;
+    }
 
 /*-----------------------------------------------------------*/
 
