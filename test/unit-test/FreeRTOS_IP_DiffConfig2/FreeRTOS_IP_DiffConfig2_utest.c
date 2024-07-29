@@ -143,3 +143,115 @@ void test_FreeRTOS_IPInit_HappyPathDHCP( void )
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL( IPInItHappyPath_xTaskHandleToSet, FreeRTOS_GetIPTaskHandle() );
 }
+
+/**
+ * @brief test_eConsiderFrameForProcessing_LLMNR_IPv4_MACMatch_But_Disabled
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the MAC address in packet
+ * matches LLMNR MAC address and the frame type is valid but any of ipconfigUSE_DNS, ipconfigUSE_LLMNR
+ * or ipconfigUSE_IPv4 is disabled.
+ */
+void test_eConsiderFrameForProcessing_LLMNR_IPv4_MACMatch_But_Disabled( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigNETWORK_MTU );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_eConsiderFrameForProcessing_LLMNR_IPv6_MACMatch_But_Disabled
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the MAC address in packet
+ * matches LLMNR MAC address and the frame type is valid but any of ipconfigUSE_DNS, ipconfigUSE_LLMNR
+ * or ipconfigUSE_IPv6 is disabled.
+ */
+void test_eConsiderFrameForProcessing_LLMNR_IPv6_MACMatch_But_Disabled( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigNETWORK_MTU );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAddressIPv6.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_eConsiderFrameForProcessing_MDNS_IPv6_MACMatch_But_Disabled
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the MAC address in packet
+ * matches MDNS MAC address and the frame type is valid but any of ipconfigUSE_DNS, ipconfigUSE_MDNS
+ * or ipconfigUSE_IPv6 is disabled.
+ */
+void test_eConsiderFrameForProcessing_MDNS_IPv6_MACMatch_But_Disabled( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigNETWORK_MTU );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xMDNS_MACAddressIPv6.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_eConsiderFrameForProcessing_MDNS_IPv4_MACMatch_But_Disabled
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the MAC address in packet
+ * matches MDNS MAC address and the frame type is valid but any of ipconfigUSE_DNS, ipconfigUSE_MDNS
+ * or ipconfigUSE_IPv4 is disabled.
+ */
+void test_eConsiderFrameForProcessing_MDNS_IPv4_MACMatch_But_Disabled( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigNETWORK_MTU );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xMDNS_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
