@@ -36,30 +36,35 @@
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_Stream_Buffer.h"
 
-#include "../../utility/memory_assignments.c"
+/* CBMC includes. */
+#include "cbmc.h"
 
 /* This proof assumes that pxGetNetworkBufferWithDescriptor is implemented correctly. */
 int32_t publicTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                               UBaseType_t uxOptionsLength );
 
-/* Abstraction of pxGetNetworkBufferWithDescriptor. It creates a buffer. */
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+/* Memory assignment for FreeRTOS_Socket_t */
+FreeRTOS_Socket_t * ensure_FreeRTOS_Socket_t_is_allocated()
 {
-    NetworkBufferDescriptor_t * pxBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
-    size_t bufferSize = sizeof( NetworkBufferDescriptor_t );
+    size_t buf_size; /* Give buffer_size an unconstrained value */
+    FreeRTOS_Socket_t * pxSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) + sizeof( IPTCPSocket_t ) );
 
-    if( ensure_memory_is_valid( pxBuffer, bufferSize ) )
+    __CPROVER_assume( pxSocket != NULL );
+    pxSocket->u.xTCP.rxStream = safeMalloc( sizeof( StreamBuffer_t ) );
+    pxSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
+    pxSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    pxSocket->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxSocket->u.xTCP.pxAckMessage = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+
+    if( pxSocket->u.xTCP.pxAckMessage != NULL )
     {
-        /* The code does not expect pucEthernetBuffer to be equal to NULL if
-         * pxBuffer is not NULL. */
-        pxBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes );
-        __CPROVER_assume( pxBuffer->pucEthernetBuffer != NULL );
-        pxBuffer->xDataLength = xRequestedSizeBytes;
+        __CPROVER_assume( ( buf_size > ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( TCPHeader_t ) ) ) && ( buf_size < ipconfigNETWORK_MTU ) );
+        pxSocket->u.xTCP.pxAckMessage->pucEthernetBuffer = safeMalloc( buf_size );
+        __CPROVER_assume( pxSocket->u.xTCP.pxAckMessage->pucEthernetBuffer != NULL );
     }
 
-    return pxBuffer;
+    return pxSocket;
 }
 
 /* Get rid of configASSERT in FreeRTOS_TCP_IP.c */
@@ -68,37 +73,94 @@ BaseType_t xIsCallingFromIPTask( void )
     return pdTRUE;
 }
 
+/* Mock FreeRTOS_TCP_State_Handling.h APIs */
+BaseType_t prvTCPSocketIsActive( eIPTCPState_t eStatus )
+{
+    return nondet_BaseType();
+}
+
+/* Mock FreeRTOS_TCP_WIN.h APIs */
+BaseType_t xTCPWindowTxDone( const TCPWindow_t * pxWindow )
+{
+    __CPROVER_assert( pxWindow != NULL, "pxWindow cannot be NULL" );
+    return nondet_uint32();
+}
+
+uint32_t ulTCPWindowTxGet( TCPWindow_t * pxWindow,
+                           uint32_t ulWindowSize,
+                           int32_t * plPosition )
+{
+    uint32_t ulReturn = nondet_uint32();
+
+    __CPROVER_assert( pxWindow != NULL, "pxWindow cannot be NULL" );
+    __CPROVER_assert( plPosition != NULL, "plPosition cannot be NULL" );
+
+    /* This function returns the data length of next sending window, which is never larger than network MTU. */
+    __CPROVER_assume( ulReturn < ipconfigNETWORK_MTU );
+    return ulReturn;
+}
+
+/* Mock FreeRTOS_Stream_Buffers.h APIs */
+size_t uxStreamBufferDistance( const StreamBuffer_t * const pxBuffer,
+                               size_t uxLower,
+                               size_t uxUpper )
+{
+    __CPROVER_assert( pxBuffer != NULL, "pxBuffer cannot be NULL" );
+    return nondet_sizet();
+}
+
+size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
+                          size_t uxOffset,
+                          uint8_t * const pucData,
+                          size_t uxMaxCount,
+                          BaseType_t xPeek )
+{
+    __CPROVER_assert( pxBuffer != NULL, "pxBuffer cannot be NULL" );
+    return nondet_sizet();
+}
+
+void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "Closing socket cannot be NULL." );
+
+    return NULL;
+}
+
+void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "Closing socket cannot be NULL." );
+
+    return NULL;
+}
+
 void harness()
 {
-    FreeRTOS_Socket_t * pxSocket = malloc( sizeof( FreeRTOS_Socket_t ) );
-
-    __CPROVER_assume( pxSocket != NULL );
-    pxSocket->u.xTCP.rxStream = malloc( sizeof( StreamBuffer_t ) );
-    pxSocket->u.xTCP.txStream = malloc( sizeof( StreamBuffer_t ) );
-    pxSocket->u.xTCP.pxPeerSocket = malloc( sizeof( FreeRTOS_Socket_t ) );
-
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    FreeRTOS_Socket_t * pxSocket;
     size_t socketSize = sizeof( FreeRTOS_Socket_t );
     /* Allocates min. buffer size required for the proof */
-    size_t bufferSize = sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket );
+    size_t bufferSize;
 
-    if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
+    pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+    __CPROVER_assume( pxSocket != NULL );
+
+    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE )
     {
-        pxNetworkBuffer->xDataLength = bufferSize;
-
-        /* The code does not expect pucEthernetBuffer to be equal to NULL if
-         * pxNetworkBuffer is not NULL. */
-        pxNetworkBuffer->pucEthernetBuffer = malloc( bufferSize );
-        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+        /* Make sure we have parent socket if reuse is set to FALSE to avoid assertion in vTCPStateChange(). */
+        __CPROVER_assume( pxSocket->u.xTCP.pxPeerSocket != NULL );
     }
 
-    UBaseType_t uxOptionsLength;
+    bufferSize = sizeof( TCPPacket_t ) + ipSIZE_OF_IPv6_HEADER;
+
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( bufferSize, 0 );
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Call to init the socket list. */
     vListInitialise( &xBoundTCPSocketsList );
 
     if( pxSocket )
     {
-        publicTCPPrepareSend( pxSocket, &pxNetworkBuffer, uxOptionsLength );
+        publicTCPPrepareSend( pxSocket, &pxNetworkBuffer, 0 );
     }
 }

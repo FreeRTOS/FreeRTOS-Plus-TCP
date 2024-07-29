@@ -33,6 +33,12 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
     return 0;
 }
 
+
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "The Endpoint cannot be NULL." );
+}
+
 void harness()
 {
     /*

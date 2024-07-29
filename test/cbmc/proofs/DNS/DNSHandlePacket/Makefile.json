@@ -4,7 +4,8 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto"
   ],
   "DEF":
   [
