@@ -12,6 +12,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_RA.goto"
 
   ],

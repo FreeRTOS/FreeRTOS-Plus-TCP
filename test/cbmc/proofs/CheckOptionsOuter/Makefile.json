@@ -12,6 +12,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Reception.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_WIN.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Stream_Buffer.goto",
@@ -20,5 +21,6 @@
   ],
   "DEF":
   [
+    "ipconfigNETWORK_MTU=586"
   ]
 }

@@ -36,7 +36,7 @@
 #include "FreeRTOS_TCP_IP.h"
 
 /* CBMC includes. */
-#include "../../utility/memory_assignments.c"
+#include "cbmc.h"
 
 /****************************************************************
 * Declare the IP Header Size external to the harness so it can be
@@ -52,15 +52,75 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     return uxIPHeaderSizePacket_uxResult;
 }
 
+void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
+                         NetworkBufferDescriptor_t * pxDescriptor,
+                         uint32_t ulLen,
+                         BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket should not be NULL" );
+    __CPROVER_assert( pxDescriptor != NULL, "pxDescriptor should not be NULL" );
+    __CPROVER_assert( pxDescriptor->pucEthernetBuffer != NULL, "pucEthernetBuffer should not be NULL" );
+}
+
+void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t * pxDescriptor,
+                              uint32_t ulLen,
+                              BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket should not be NULL" );
+    __CPROVER_assert( pxDescriptor != NULL, "pxDescriptor should not be NULL" );
+    __CPROVER_assert( pxDescriptor->pucEthernetBuffer != NULL, "pucEthernetBuffer should not be NULL" );
+}
+
+/* Memory assignment for FreeRTOS_Socket_t */
+FreeRTOS_Socket_t * ensure_FreeRTOS_Socket_t_is_allocated()
+{
+    size_t buf_size; /* Give buffer_size an unconstrained value */
+    FreeRTOS_Socket_t * pxSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+
+    __CPROVER_assume( pxSocket != NULL );
+    pxSocket->u.xTCP.rxStream = safeMalloc( sizeof( StreamBuffer_t ) );
+    pxSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
+    pxSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    pxSocket->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxSocket->u.xTCP.pxAckMessage = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+
+    if( pxSocket->u.xTCP.pxAckMessage != NULL )
+    {
+        __CPROVER_assume( ( buf_size > ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( TCPHeader_t ) ) ) && ( buf_size < ipconfigNETWORK_MTU ) );
+        pxSocket->u.xTCP.pxAckMessage->pucEthernetBuffer = safeMalloc( buf_size );
+        __CPROVER_assume( pxSocket->u.xTCP.pxAckMessage->pucEthernetBuffer != NULL );
+    }
+
+    return pxSocket;
+}
+
+/*
+ * In this function, it only allocates network buffer by harness.
+ */
+void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "Precondition: pxNetworkBuffer != NULL" );
+
+    if( pxNetworkBuffer->pucEthernetBuffer != NULL )
+    {
+        free( pxNetworkBuffer->pucEthernetBuffer );
+    }
+
+    free( pxNetworkBuffer );
+}
+
 void harness()
 {
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
     uint32_t ulReceiveLength;
     BaseType_t xByteCount;
     size_t buf_size; /* Give buffer_size an unconstrained value */
 
     /* The code does not expect pxSocket/pxNetworkBuffer to be equal to NULL. */
+    pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
@@ -73,7 +133,7 @@ void harness()
         uxIPHeaderSizePacket_uxResult = ipSIZE_OF_IPv4_HEADER;
     }
 
-    __CPROVER_assume( buf_size > ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket_uxResult + sizeof( TCPHeader_t ) ) );
+    __CPROVER_assume( ( buf_size > ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket_uxResult + sizeof( TCPHeader_t ) ) ) && ( buf_size < ipconfigNETWORK_MTU ) );
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( buf_size );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
