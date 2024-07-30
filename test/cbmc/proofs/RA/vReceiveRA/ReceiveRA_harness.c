@@ -37,13 +37,17 @@
 #include "FreeRTOS_ND.h"
 
 /* CBMC includes. */
-#include "../../utility/memory_assignments.c"
 #include "cbmc.h"
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     ICMPPrefixOption_IPv6_t * pxPrefixOption = safeMalloc( sizeof( ICMPPrefixOption_IPv6_t ) );
+
+    if( pxPrefixOption )
+    {
+        __CPROVER_assume( ( pxPrefixOption->ucPrefixLength > 0U ) && ( pxPrefixOption->ucPrefixLength <= ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
+    }
 
     return pxPrefixOption;
 }
@@ -75,30 +79,56 @@ void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
     __CPROVER_assert( pxIPAddress != NULL, "The pxIPAddress cannot be NULL." );
 }
 
+/* The checksum generation is stubbed out since the actual checksum
+ * does not matter. The stub will return an indeterminate value each time. */
+uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket )
+{
+    __CPROVER_assert( pucEthernetBuffer != NULL, "Ethernet buffer cannot be NULL" );
+
+    /* Return an indeterminate value. */
+    return ( uint16_t ) nondet_uint32();
+}
+
+/* vReturnEthernetFrame() is proved separately */
+void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                           BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL, "xNetworkBuffer != NULL" );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "pxNetworkBuffer->pucEthernetBuffer != NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data must be valid" );
+}
+
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
     NetworkInterface_t * pxInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
     uint32_t ulLen;
-
-    /* The code does not expect pxNetworkBuffer to be NULL. */
-    __CPROVER_assume( pxNetworkBuffer != NULL );
-
-    __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen );
-    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
-
-    pxNetworkBuffer->pxInterface = safeMalloc( sizeof( NetworkInterface_t ) );
-    __CPROVER_assume( pxNetworkBuffer->pxInterface != NULL );
-
-    pxNetworkBuffer->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
 
     /* Initialize global Endpoint variable  */
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxInterface;
+    pxNetworkEndPoints->pxNetworkInterface = safeMalloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
     pxNetworkEndPoints->pxNext = NULL;
+
+    /* Initialize network buffer. */
+    __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
+
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ulLen, 0 );
+
+    /* The code does not expect pxNetworkBuffer to be NULL. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+    __CPROVER_havoc_slice( pxNetworkBuffer->pucEthernetBuffer, ulLen );
+
+    pxNetworkBuffer->pxInterface = pxNetworkEndPoints->pxNetworkInterface;
+    pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints;
+
+    /* The prefix length must be equal to or less than 128 to avoid assertion in FreeRTOS_CreateIPv6Address(). */
+    __CPROVER_assume( ( pxNetworkEndPoints->ipv6_settings.uxPrefixLength > 0U ) && ( pxNetworkEndPoints->ipv6_settings.uxPrefixLength <= ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
 
     vReceiveRA( pxNetworkBuffer );
 }

@@ -77,6 +77,18 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     return pxSocket;
 }
 
+void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "Endpoint cannot be NULL" );
+}
+
+void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "Closing socket cannot be NULL." );
+
+    return NULL;
+}
+
 /**
  * For the purpose of this proof we assume that xSocketValid returns true always.
  * This has to do with assertions in the source code that checks for socket being invalid.

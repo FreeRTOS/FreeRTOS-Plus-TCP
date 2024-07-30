@@ -5,12 +5,6 @@
       "--unwind 2",
       "--nondet-static --flush"
     ],
-    "INSTFLAGS":
-    [
-        "--remove-function-body usBitConfig_read_16",
-        "--remove-function-body xBitConfig_read_uc",
-        "--remove-function-body ucBitConfig_read_8"
-    ],
     "OPT":
     [
       "--export-file-local-symbols"

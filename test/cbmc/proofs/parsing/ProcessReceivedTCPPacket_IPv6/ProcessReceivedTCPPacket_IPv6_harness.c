@@ -99,20 +99,18 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
     EthernetHeader_t * pxEthernetHeader;
 
-    /* To avoid asserting on the network buffer being NULL. */
-    __CPROVER_assume( pxNetworkBuffer != NULL );
-
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_IPv6_t ) );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( TCPPacket_IPv6_t ), 0 );
 
     /* To avoid asserting on the ethernet buffer being NULL. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    /* Ethernet frame type is checked before calling xProcessReceivedTCPPacket_IPV6. */
+    /* In this test case, we focus on IPv6 packets. */
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     __CPROVER_assume( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE );
 
-    xProcessReceivedTCPPacket_IPV6( pxNetworkBuffer );
+    xProcessReceivedTCPPacket( pxNetworkBuffer );
 }

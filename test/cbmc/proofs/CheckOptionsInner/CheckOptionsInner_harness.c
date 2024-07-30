@@ -87,7 +87,7 @@ void harness()
     /* Preconditions */
 
     /* CBMC model of pointers limits the size of the buffer */
-    __CPROVER_assume( buffer_size < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( buffer_size < ipconfigNETWORK_MTU );
 
     /* Both preconditions are required to avoid integer overflow in the */
     /* pointer offset of the pointer pucPtr + uxIndex + 8 */

@@ -42,14 +42,103 @@
 #include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_DHCPv6.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_BitConfig.h"
 
 /* CBMC includes. */
 #include "cbmc.h"
 
-
-
 void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint );
 
+BaseType_t xBitConfig_init( BitConfig_t * pxConfig,
+                            const uint8_t * pucData,
+                            size_t uxSize )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assert( pxConfig != NULL, "pxConfig cannot be NULL" );
+
+    if( nondet_bool() )
+    {
+        xReturn = pdTRUE;
+
+        pxConfig->ucContents = safeMalloc( uxSize );
+        __CPROVER_assume( pxConfig->ucContents != NULL );
+    }
+    else
+    {
+        xReturn = pdFALSE;
+    }
+
+    return xReturn;
+}
+
+BaseType_t pucBitConfig_peek_last_index_uc( BitConfig_t * pxConfig,
+                                            uint8_t * pucData,
+                                            size_t uxSize )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assert( pxConfig != NULL, "pxConfig cannot be NULL" );
+    __CPROVER_assert( pucData != NULL, "pucData cannot be NULL" );
+
+    __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
+
+    return xReturn;
+}
+
+void vBitConfig_write_uc( BitConfig_t * pxConfig,
+                          const uint8_t * pucData,
+                          size_t uxSize )
+{
+    __CPROVER_assert( pxConfig != NULL, "pxConfig cannot be NULL" );
+    __CPROVER_assert( pucData != NULL, "pucData cannot be NULL" );
+}
+
+void vBitConfig_write_8( BitConfig_t * pxConfig,
+                         uint8_t ucValue )
+{
+    __CPROVER_assert( pxConfig != NULL, "pxConfig cannot be NULL" );
+}
+
+void vBitConfig_write_16( BitConfig_t * pxConfig,
+                          uint16_t usValue )
+{
+    __CPROVER_assert( pxConfig != NULL, "pxConfig cannot be NULL" );
+}
+
+void vBitConfig_write_32( BitConfig_t * pxConfig,
+                          uint32_t ulValue )
+{
+    __CPROVER_assert( pxConfig != NULL, "pxConfig cannot be NULL" );
+}
+
+void vBitConfig_release( BitConfig_t * pxConfig )
+{
+    __CPROVER_assert( pxConfig != NULL, "pxConfig cannot be NULL" );
+
+    if( pxConfig->ucContents != NULL )
+    {
+        free( pxConfig->ucContents );
+    }
+}
+
+BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
+                                void * pvDestination )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assert( pcSource != NULL, "pcSource cannot be NULL" );
+    __CPROVER_assert( pvDestination != NULL, "pvDestination cannot be NULL" );
+
+    __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
+
+    return xReturn;
+}
+
+uint32_t ulApplicationTimeHook( void )
+{
+    return nondet_uint32();
+}
 
 void harness()
 {
