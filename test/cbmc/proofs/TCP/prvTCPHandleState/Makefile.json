@@ -45,18 +45,21 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Reception.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Timers.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Timers.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/cbmc.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_api.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_kernel_api.goto"
   ],
   "DEF":
   [
+    "ipconfigUSE_TCP=1",
     "ipconfigZERO_COPY_TX_DRIVER={TX_DRIVER}",
     "ipconfigUSE_LINKED_RX_MESSAGES={RX_MESSAGES}",
-    "FREERTOS_TCP_ENABLE_VERIFICATION"
+    "FREERTOS_TCP_ENABLE_VERIFICATION",
+    "ipconfigNETWORK_MTU=586"
   ],
   "INSTFLAGS":
   [
-    "--remove-function-body prvTCPPrepareSend",
-    "--remove-function-body prvTCPReturnPacket"
   ],
   "INC":
   [

@@ -14,7 +14,9 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Routing.goto",
     "$(FREERTOS_PLUS_TCP)/source/portable/BufferManagement/BufferAllocation_2.goto",
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto",
-    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/queue.goto"
+    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/queue.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_kernel_api.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/proofs/CBMCStubLibrary/tasksStubs.goto"
   ],
   "DEF":
   [

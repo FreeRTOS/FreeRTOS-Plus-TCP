@@ -1,5 +1,3 @@
-#include "cbmc.h"
-
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -10,8 +8,37 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_Routing.h"
 
+/* CBMC includes. */
+#include "cbmc.h"
+
 /* This pointer is maintained by the IP-task. Defined in FreeRTOS_IP.c */
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+NetworkEndPoint_t * pxNetworkEndPoint_Temp;
+
+/* Stub FreeRTOS_FindEndPointOnNetMask_IPv6 as its not relevant to the
+ * correctness of the proof */
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
+{
+    __CPROVER_assert( pxIPv6Address != NULL, "Precondition: pxIPv6Address != NULL" );
+
+    /* Assume at least one end-point is available */
+    return pxNetworkEndPoint_Temp;
+}
+
+/* Stub FreeRTOS_FindEndPointOnNetMask_IPv6 as its not relevant to the
+ * correctness of the proof */
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
+                                                    uint32_t ulWhere )
+{
+    /* Assume at least one end-point is available */
+    return pxNetworkEndPoint_Temp;
+}
+
+/* Get rid of configASSERT in FreeRTOS_TCP_IP.c */
+BaseType_t xIsCallingFromIPTask( void )
+{
+    return pdTRUE;
+}
 
 /* This is an output function and need not be tested with this proof. */
 void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
@@ -36,8 +63,18 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
 void harness()
 {
-    NetworkBufferDescriptor_t xLocalBuffer;
+    NetworkBufferDescriptor_t * pxLocalBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer2;
+    TickType_t xBlockTimeTicks;
     uint16_t usEthernetBufferSize;
+
+    /*
+     * The assumption made here is that the buffer pointed by pucEthernetBuffer
+     * is at least allocated to sizeof(ARPPacket_t) size but eventually an even larger buffer.
+     * This is not checked inside eARPProcessPacket.
+     */
+    uint8_t ucBUFFER_SIZE;
+
 
     /* Non deterministically determine whether the pxARPWaitingNetworkBuffer will
      * point to some valid data or will it be NULL. */
@@ -47,48 +84,34 @@ void harness()
          * checked in the function as the pointer is stored by the IP-task itself
          * and therefore it will always be of the required size. */
         __CPROVER_assume( usEthernetBufferSize >= sizeof( IPPacket_t ) );
-
-        /* Add matching data length to the network buffer descriptor. */
-        __CPROVER_assume( xLocalBuffer.xDataLength == usEthernetBufferSize );
-
-        xLocalBuffer.pucEthernetBuffer = malloc( usEthernetBufferSize );
+        pxLocalBuffer = pxGetNetworkBufferWithDescriptor( usEthernetBufferSize, xBlockTimeTicks );
 
         /* Since this pointer is maintained by the IP-task, either the pointer
-         * pxARPWaitingNetworkBuffer will be NULL or xLocalBuffer.pucEthernetBuffer
+         * pxARPWaitingNetworkBuffer will be NULL or pxLocalBuffer->pucEthernetBuffer
          * will be non-NULL. */
-        __CPROVER_assume( xLocalBuffer.pucEthernetBuffer != NULL );
+        __CPROVER_assume( pxLocalBuffer != NULL );
+        __CPROVER_assume( pxLocalBuffer->pucEthernetBuffer != NULL );
+        __CPROVER_assume( pxLocalBuffer->xDataLength == usEthernetBufferSize );
 
-        pxARPWaitingNetworkBuffer = &xLocalBuffer;
+        pxARPWaitingNetworkBuffer = pxLocalBuffer;
     }
     else
     {
         pxARPWaitingNetworkBuffer = NULL;
     }
 
-    /*
-     * The assumption made here is that the buffer pointed by pucEthernetBuffer
-     * is at least allocated to sizeof(ARPPacket_t) size but eventually an even larger buffer.
-     * This is not checked inside eARPProcessPacket.
-     */
-    uint8_t ucBUFFER_SIZE;
-
-    void * xBuffer = malloc( ucBUFFER_SIZE + sizeof( ARPPacket_t ) );
-
-    __CPROVER_assume( xBuffer != NULL );
-
-    NetworkBufferDescriptor_t xNetworkBuffer2;
-
-    xNetworkBuffer2.pucEthernetBuffer = xBuffer;
-    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE + sizeof( ARPPacket_t );
+    pxNetworkBuffer2 = pxGetNetworkBufferWithDescriptor( ucBUFFER_SIZE + sizeof( ARPPacket_t ), xBlockTimeTicks );
+    __CPROVER_assume( pxNetworkBuffer2 != NULL );
+    __CPROVER_assume( pxNetworkBuffer2->pucEthernetBuffer != NULL );
 
     /*
      * This proof assumes one end point is present.
      */
-    xNetworkBuffer2.pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
-    __CPROVER_assume( xNetworkBuffer2.pxEndPoint != NULL );
-    xNetworkBuffer2.pxEndPoint->pxNext = NULL;
+    pxNetworkBuffer2->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkBuffer2->pxEndPoint != NULL );
+    pxNetworkBuffer2->pxEndPoint->pxNext = NULL;
 
     /* eARPProcessPacket will be called in the source code only after checking if
-     * xNetworkBuffer2.pucEthernetBuffer is not NULL, hence, __CPROVER_assume( xBuffer != NULL );   */
-    eARPProcessPacket( &xNetworkBuffer2 );
+     * pxNetworkBuffer2->pucEthernetBuffer is not NULL, hence, __CPROVER_assume( xBuffer != NULL );   */
+    eARPProcessPacket( pxNetworkBuffer2 );
 }

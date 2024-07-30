@@ -36,6 +36,8 @@
   [
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Timers.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_kernel_api.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_api.goto"
   ]
 }
