@@ -1658,8 +1658,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointFound()
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
 
     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 0, pxEndPoint );
-    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxEndPoint );
 
     vARPGenerateRequestPacket_Expect( pxNetworkBuffer );
 
@@ -1691,8 +1690,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointNotFound()
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
 
     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 0, NULL );
-    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );

@@ -65,8 +65,7 @@ void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
     __CPROVER_assert( pxEndPoint != NULL, "pxEndPoint cannot be NULL" );
 }
 
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
-                                                    uint32_t ulWhere )
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress )
 {
     NetworkEndPoint_t * pxEndpoint = NULL;
 
