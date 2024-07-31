@@ -1748,7 +1748,7 @@ void test_eConsiderFrameForProcessing_MDNS_IPv6_MACMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xMDNS_MACAddressIPv6.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xMDNS_MacAddressIPv6.ucBytes, sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );

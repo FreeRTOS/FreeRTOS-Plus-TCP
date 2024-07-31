@@ -82,7 +82,7 @@ const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
 const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
 
 /** @brief The IPv6 multicast DNS MAC address. */
-const MACAddress_t xMDNS_MACAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
+const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
 
 /** @brief multicast DNS IPv6 address */
 const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =

@@ -1559,7 +1559,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
                 /* DNS, MDNS, and IPv4 are enabled - Continue filter checks. */
             #endif
         }
-        else if( memcmp( xMDNS_MACAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        else if( memcmp( xMDNS_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
         {
             /* The packet is a request for MDNS using IPv6 */
             #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_MDNS ) || ipconfigIS_DISABLED( ipconfigUSE_IPv6 ) )
