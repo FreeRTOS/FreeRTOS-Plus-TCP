@@ -140,12 +140,6 @@ struct xIPv6_Couple
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
-    #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-        RoutingStats_t xRoutingStatistics;
-    #endif
-
-/*-----------------------------------------------------------*/
-
 /**
  * @brief Add a network interface to the list of interfaces.  Check if the interface was
  *        already added in an earlier call.
@@ -379,28 +373,12 @@ struct xIPv6_Couple
  * @brief Find the end-point which has a given IPv4 address.
  *
  * @param[in] ulIPAddress The IP-address of interest, or 0 if any IPv4 end-point may be returned.
- * @param[in] ulWhere For maintaining routing statistics ulWhere acts as an index to the data structure
- *                     that keep track of the number of times 'FreeRTOS_FindEndPointOnIP_IPv4()'
- *                     has been called from a particular location. Used only if
- *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return The end-point found or NULL.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere )
+    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress )
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP[ 0 ] ) );
-
-            xRoutingStatistics.ulOnIp++;
-
-            if( ulWhere < ulLocationCount )
-            {
-                xRoutingStatistics.ulLocationsIP[ ulWhere ]++;
-            }
-        #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
         while( pxEndPoint != NULL )
         {
@@ -456,12 +434,6 @@ struct xIPv6_Couple
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
-        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-        {
-            xRoutingStatistics.ulOnMAC++;
-        }
-        #endif
-
         /* If input MAC address is NULL, return NULL. */
         if( pxMACAddress == NULL )
         {
@@ -495,18 +467,12 @@ struct xIPv6_Couple
  * @brief Find an end-point that handles a given IPv4-address.
  *
  * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
- * @param[in] ulWhere For maintaining routing statistics ulWhere acts as an index to the data structure
- *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()'
- *                     has been called from a particular location. Used only if
- *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere )
+    NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress )
     {
-        /* The 'ulWhere' parameter is only for debugging purposes. */
-        return FreeRTOS_InterfaceEndPointOnNetMask( NULL, ulIPAddress, ulWhere );
+        return FreeRTOS_InterfaceEndPointOnNetMask( NULL, ulIPAddress );
     }
 /*-----------------------------------------------------------*/
 
@@ -517,29 +483,12 @@ struct xIPv6_Couple
  *                         pxInterface is NULL.
  * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
  *
- * @param[in] ulWhere For maintaining routing statistics ulWhere acts as an index to the data structure
- *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()'
- *                     has been called from a particular location. Used only if
- *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
- *
  * @return An end-point that has the same network mask as the given IP-address.
  */
     NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( const NetworkInterface_t * pxInterface,
-                                                             uint32_t ulIPAddress,
-                                                             uint32_t ulWhere )
+                                                             uint32_t ulIPAddress )
     {
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-            uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocations ) / sizeof( xRoutingStatistics.ulLocations[ 0 ] ) );
-
-            xRoutingStatistics.ulOnNetMask++;
-
-            if( ulWhere < ulLocationCount )
-            {
-                xRoutingStatistics.ulLocations[ ulWhere ]++;
-            }
-        #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
         /* Find the best fitting end-point to reach a given IP-address. */
 
@@ -572,8 +521,8 @@ struct xIPv6_Couple
         /* This was only for debugging. */
         if( pxEndPoint == NULL )
         {
-            FreeRTOS_debug_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
-                                     ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
+            FreeRTOS_debug_printf( ( "FreeRTOS_FindEndPointOnNetMask: No match for %xip\n",
+                                     ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
         }
 
         return pxEndPoint;
@@ -930,12 +879,6 @@ struct xIPv6_Couple
          * defined end-point has the best match.
          */
 
-        #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-        {
-            /* Some stats while developing. */
-            xRoutingStatistics.ulMatching++;
-        }
-        #endif
         {
             uint16_t usFrameType = pxPacket->xUDPPacket.xEthernetHeader.usFrameType;
             IP_Address_t xIPAddressFrom;
@@ -1216,13 +1159,11 @@ struct xIPv6_Couple
  *
  * @return The end-point found or NULL.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere )
+    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress )
     {
         NetworkEndPoint_t * pxResult = NULL;
 
         ( void ) ulIPAddress;
-        ( void ) ulWhere;
 
         if( ( ulIPAddress == 0U ) || ( pxNetworkEndPoints->ipv4_settings.ulIPAddress == ulIPAddress ) )
         {
@@ -1265,10 +1206,9 @@ struct xIPv6_Couple
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-                                                        uint32_t ulWhere )
+    NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress )
     {
-        return FreeRTOS_InterfaceEndPointOnNetMask( NULL, ulIPAddress, ulWhere );
+        return FreeRTOS_InterfaceEndPointOnNetMask( NULL, ulIPAddress );
     }
 /*-----------------------------------------------------------*/
 
@@ -1337,13 +1277,11 @@ struct xIPv6_Couple
  * @return An end-point that has the same network mask as the given IP-address.
  */
     NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask( const NetworkInterface_t * pxInterface,
-                                                             uint32_t ulIPAddress,
-                                                             uint32_t ulWhere )
+                                                             uint32_t ulIPAddress )
     {
         NetworkEndPoint_t * pxResult = NULL;
 
         ( void ) pxInterface;
-        ( void ) ulWhere;
 
         if( ( ( ulIPAddress ^ pxNetworkEndPoints->ipv4_settings.ulIPAddress ) & pxNetworkEndPoints->ipv4_settings.ulNetMask ) == 0U )
         {
