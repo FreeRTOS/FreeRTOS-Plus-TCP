@@ -92,6 +92,12 @@
     #endif
 #endif
 
+/** @brief The frame type field in the Ethernet header must have a value greater than 0x0600.
+ * If the configuration option ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is enabled, the stack
+ * will discard packets with a frame type value less than or equal to 0x0600.
+ * However, if this option is disabled, the stack will continue to process these packets. */
+#define ipIS_ETHERNET_FRAME_TYPE_INVALID( usFrameType )    ( ( usFrameType ) <= 0x0600U )
+
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 static void prvIPTask_Initialise( void );
@@ -1460,7 +1466,8 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         usFrameType = pxEthernetHeader->usFrameType;
 
         /* Second, filter based on ethernet frame type. */
-        if( FreeRTOS_ntohs( usFrameType ) <= 0x0600U )
+        /* The frame type field in the Ethernet header must have a value greater than 0x0600. */
+        if( ipIS_ETHERNET_FRAME_TYPE_INVALID( FreeRTOS_ntohs( usFrameType ) ) )
         {
             /* The packet was not an Ethernet II frame */
             #if ipconfigIS_ENABLED( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES )
