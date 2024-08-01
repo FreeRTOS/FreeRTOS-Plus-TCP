@@ -24,54 +24,14 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
+#ifndef LIST_MACRO_H
+#define LIST_MACRO_H
 
+#include <FreeRTOS.h>
+#include <FreeRTOS_IP.h>
+#include <portmacro.h>
+#include <list.h>
 
-/* Include Unity header */
-#include <unity.h>
+BaseType_t prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
 
-/* Include standard libraries */
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
-
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
-
-NetworkInterface_t xInterfaces[ 1 ];
-
-volatile BaseType_t xInsideInterrupt = pdFALSE;
-
-BaseType_t xNetworkUp;
-
-struct xNetworkInterface * pxNetworkInterfaces = NULL;
-
-/** @brief A list of all network end-points.  Each element has a next pointer. */
-struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
-
-const MACAddress_t xLLMNR_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
-
-const MACAddress_t xLLMNR_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
-
-const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
-
-const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
-
-void vPortEnterCritical( void )
-{
-}
-void vPortExitCritical( void )
-{
-}
-
-void * pvPortMalloc( size_t xNeeded )
-{
-    return malloc( xNeeded );
-}
-
-void vPortFree( void * ptr )
-{
-    free( ptr );
-}
+#endif /* ifndef LIST_MACRO_H */

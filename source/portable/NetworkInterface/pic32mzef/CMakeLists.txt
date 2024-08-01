@@ -6,7 +6,7 @@ endif()
 #------------------------------------------------------------------------------
 add_library( freertos_plus_tcp_network_if STATIC )
 
-# TODO What about BufferAllocation_2.c here?
+# What about BufferAllocation_2.c here?
 target_sources( freertos_plus_tcp_network_if
   PRIVATE
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_NETWORK_IF},PIC32MZEF_ETH>:NetworkInterface_eth.c>

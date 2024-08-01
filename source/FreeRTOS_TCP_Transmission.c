@@ -448,8 +448,9 @@
  *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
  *       Size (MSS).
  */
-    void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
+    BaseType_t prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
     {
+        BaseType_t xReturn;
         uint32_t ulRxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxRxWinSize;
         uint32_t ulTxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxTxWinSize;
 
@@ -462,13 +463,15 @@
                                      ( unsigned ) pxSocket->u.xTCP.uxRxStreamSize ) );
         }
 
-        vTCPWindowCreate(
+        xReturn = xTCPWindowCreate(
             &pxSocket->u.xTCP.xTCPWindow,
             ulRxWindowSize * ipconfigTCP_MSS,
             ulTxWindowSize * ipconfigTCP_MSS,
             pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber,
             pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber,
             ( uint32_t ) pxSocket->u.xTCP.usMSS );
+
+        return xReturn;
     }
     /*-----------------------------------------------------------*/
 
@@ -751,7 +754,7 @@
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
                         pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
+                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress );
 
                         if( pxNetworkBuffer->pxEndPoint == NULL )
                         {

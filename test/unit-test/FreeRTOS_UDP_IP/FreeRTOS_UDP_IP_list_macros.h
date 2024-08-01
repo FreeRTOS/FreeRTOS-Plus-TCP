@@ -86,6 +86,6 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                                            uint16_t usPort,
                                            BaseType_t * pxIsWaitingForARPResolution );
 
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-                                                    uint32_t ulWhere );
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress );
+
 #endif /* ifndef LIST_MACRO_H */

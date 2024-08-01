@@ -250,7 +250,6 @@
  *         An error code (dnsPARSE_ERROR) if there was an error in the DNS response.
  *         0 if xExpected set to pdFALSE.
  */
-/* TODO cross check again */
     uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                 size_t uxBufferLength,
                                 struct freertos_addrinfo ** ppxAddressInfo,
@@ -296,21 +295,53 @@
             {
                 size_t uxBytesRead = 0U;
                 size_t uxResult;
+                BaseType_t xIsResponse = pdFALSE;
 
                 /* Start at the first byte after the header. */
                 xSet.pucUDPPayloadBuffer = pucUDPPayloadBuffer;
+                /* Skip 12-byte header. */
                 xSet.pucByte = &( pucUDPPayloadBuffer[ sizeof( DNSMessage_t ) ] );
                 xSet.uxSourceBytesRemaining -= sizeof( DNSMessage_t );
 
-                /* Skip any question records. */
+                /* The number of questions supplied. */
                 xSet.usQuestions = FreeRTOS_ntohs( xSet.pxDNSMessageHeader->usQuestions );
+                /* The number of answer records. */
+                xSet.usAnswers = FreeRTOS_ntohs( xSet.pxDNSMessageHeader->usAnswers );
 
-                if( xSet.usQuestions == 0U )
+                if( ( xSet.pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK ) == dnsEXPECTED_RX_FLAGS )
                 {
-                    /* The IP-stack will only accept DNS replies that have a copy
-                     * of the questions. */
-                    xReturn = pdFALSE;
-                    break;
+                    xIsResponse = pdTRUE;
+
+                    if( xSet.usAnswers == 0U )
+                    {
+                        /* This is a response that does not include answers. */
+                        xReturn = pdFALSE;
+                        break;
+                    }
+
+                    if( xSet.usQuestions == 0U )
+                    {
+                        #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+                        {
+                            xSet.pcRequestedName = ( char * ) xSet.pucByte;
+                        }
+                        #endif
+
+                        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                            uxResult = DNS_ReadNameField( &xSet,
+                                                          sizeof( xSet.pcName ) );
+                            ( void ) uxResult;
+                        #endif
+                    }
+                }
+                else
+                {
+                    if( xSet.usQuestions == 0U )
+                    {
+                        /* This is a query that does not include any question. */
+                        xReturn = pdFALSE;
+                        break;
+                    }
                 }
 
                 for( x = 0U; x < xSet.usQuestions; x++ )
@@ -329,6 +360,7 @@
                         {
                             uxResult = DNS_ReadNameField( &xSet,
                                                           sizeof( xSet.pcName ) );
+                            ( void ) uxResult;
                         }
                         else
                     #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
@@ -377,13 +409,9 @@
                     break;
                 }
 
-                /* Search through the answer records. */
-                xSet.pxDNSMessageHeader->usAnswers =
-                    FreeRTOS_ntohs( xSet.pxDNSMessageHeader->usAnswers );
-
-                if( ( xSet.pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK )
-                    == dnsEXPECTED_RX_FLAGS )
+                if( xIsResponse == pdTRUE )
                 {
+                    /* Search through the answer records. */
                     ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo, &uxBytesRead );
                 }
 
@@ -589,7 +617,7 @@
     }
 
 /**
- * @brief perform a dns lookup in the local cache {TODO WRONG}
+ * @brief Process DNS answer field in a DNS response packet from a DNS server.
  * @param[in] pxSet a set of variables that are shared among the helper functions.
  * @param[out] ppxAddressInfo a linked list storing the DNS answers.
  * @param[out] uxBytesRead total bytes consumed by the function
@@ -609,7 +637,7 @@
 
         struct freertos_addrinfo * pxNewAddress = NULL;
 
-        for( x = 0U; x < pxSet->pxDNSMessageHeader->usAnswers; x++ )
+        for( x = 0U; x < pxSet->usAnswers; x++ )
         {
             BaseType_t xDoAccept = pdFALSE;
 
@@ -620,7 +648,7 @@
             }
 
             uxResult = DNS_SkipNameField( pxSet->pucByte,
-                                          sizeof( pxSet->pcName ) );
+                                          pxSet->uxSourceBytesRemaining );
 
             /* Check for a malformed response. */
             if( uxResult == 0U )
@@ -658,7 +686,7 @@
             }
             else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
             {
-                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS; /*TODO check if fine */
+                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
 
                 if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
                 {

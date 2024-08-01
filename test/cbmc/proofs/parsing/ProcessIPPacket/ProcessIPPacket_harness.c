@@ -9,8 +9,95 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
+NetworkEndPoint_t xEndpoint;
+
 eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( const IPPacket_t * pxIPPacket,
                                                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/* Check if input is a valid extension header ID. */
+BaseType_t xIsExtensionHeader( uint8_t ucCurrentHeader )
+{
+    BaseType_t xReturn = pdFALSE;
+
+    switch( ucCurrentHeader )
+    {
+        case ipIPv6_EXT_HEADER_HOP_BY_HOP:
+        case ipIPv6_EXT_HEADER_DESTINATION_OPTIONS:
+        case ipIPv6_EXT_HEADER_ROUTING_HEADER:
+        case ipIPv6_EXT_HEADER_FRAGMENT_HEADER:
+        case ipIPv6_EXT_HEADER_AUTHEN_HEADER:
+        case ipIPv6_EXT_HEADER_SECURE_PAYLOAD:
+        case ipIPv6_EXT_HEADER_MOBILITY_HEADER:
+            xReturn = pdTRUE;
+            break;
+    }
+
+    return xReturn;
+}
+
+/* Abstraction of xGetExtensionOrder. To ensure the result of prepared extension headers is same. */
+BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+                               uint8_t ucNextHeader )
+{
+    return xIsExtensionHeader( ucProtocol );
+}
+
+BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
+}
+
+void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                               const uint32_t ulIPAddress )
+{
+    __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
+}
+
+void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
+                           const IPv6_Address_t * pxIPAddress,
+                           NetworkEndPoint_t * pxEndPoint )
+{
+    __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
+    __CPROVER_assert( pxIPAddress != NULL, "pxIPAddress cannot be NULL" );
+    __CPROVER_assert( pxEndPoint != NULL, "pxEndPoint cannot be NULL" );
+}
+
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress )
+{
+    NetworkEndPoint_t * pxEndpoint = NULL;
+
+    if( nondet_bool() )
+    {
+        pxEndpoint = pxNetworkEndPoints;
+    }
+
+    return pxEndpoint;
+}
+
+/* proof is done separately */
+eFrameProcessingResult_t ProcessICMPPacket( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    eFrameProcessingResult_t xReturn;
+
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxEndPoint cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
+
+    return xReturn;
+}
+
+/* proof is done separately */
+eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    eFrameProcessingResult_t xReturn;
+
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxEndPoint cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
+
+    return xReturn;
+}
 
 /* proof is done separately */
 BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -67,6 +154,7 @@ void harness()
 {
     NetworkBufferDescriptor_t * const pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
     uint8_t * pucEthernetBuffer = ( uint8_t * ) safeMalloc( ipTOTAL_ETHERNET_FRAME_SIZE + ipIP_TYPE_OFFSET );
+    EthernetHeader_t * pxHeader;
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pucEthernetBuffer != NULL );
@@ -83,7 +171,10 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
 
-    IPPacket_t * const pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    /* In this test case, we only focus on IPv4. */
+    pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    __CPROVER_assume( pxHeader->usFrameType != ipIPv6_FRAME_TYPE );
 
+    IPPacket_t * const pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 }

@@ -29,8 +29,12 @@
 #define LIST_MACRO_H
 
 #include <FreeRTOS.h>
+#include <FreeRTOS_IP.h>
 #include <portmacro.h>
 #include <list.h>
+
+#undef listGET_HEAD_ENTRY
+ListItem_t * listGET_HEAD_ENTRY( List_t * pxList );
 
 #undef listSET_LIST_ITEM_OWNER
 void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,

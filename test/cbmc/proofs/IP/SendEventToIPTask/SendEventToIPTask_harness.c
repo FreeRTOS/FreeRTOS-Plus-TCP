@@ -36,6 +36,16 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* Abstraction of xIsCallingFromIPTask */
+BaseType_t xIsCallingFromIPTask( void )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
 /* The harness test proceeds to call SendEventToIPTask with an unconstrained value */
 void harness()
 {

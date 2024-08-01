@@ -55,11 +55,11 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
 }
 
 /* Abstraction of eNDGetCacheEntry. */
-eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                      MACAddress_t * const pxMACAddress,
                                      struct xNetworkEndPoint ** ppxEndPoint )
 {
-    eARPLookupResult_t xReturn;
+    eResolutionLookupResult_t xReturn;
 
     __CPROVER_assert( __CPROVER_r_ok( pxIPAddress, sizeof( IPv6_Address_t ) ), "pxIPAddress must be readable" );
     __CPROVER_assert( __CPROVER_w_ok( pxMACAddress, sizeof( MACAddress_t ) ), "pxMACAddress must be writeable" );

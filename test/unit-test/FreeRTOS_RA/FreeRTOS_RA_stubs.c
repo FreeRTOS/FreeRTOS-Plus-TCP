@@ -29,7 +29,7 @@
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
  * isn't a gateway defined) then return eResolutionFailed.
  */
-eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                      MACAddress_t * const pxMACAddress,
                                      struct xNetworkEndPoint ** ppxEndPoint )
 {

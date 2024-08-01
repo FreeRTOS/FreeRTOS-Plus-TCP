@@ -14,6 +14,8 @@
   [
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Routing.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IPv4.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IPv4_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_ARP.goto"
   ],
   "DEF":

@@ -279,7 +279,7 @@ static void handle_ifconfig( char * pcBuffer )
 }
 /*-----------------------------------------------------------*/
 
-static const char * pcARPReturnType( eARPLookupResult_t eResult )
+static const char * pcARPReturnType( eResolutionLookupResult_t eResult )
 {
     const char * pcReturn = "Unknown";
 
@@ -453,7 +453,7 @@ static void handle_arpq( char * pcBuffer )
 {
     CommandOptions_t xOptions;
     char * ptr = pcBuffer;
-    eARPLookupResult_t eResult = eResolutionCacheMiss;
+    eResolutionLookupResult_t eResult = eResolutionCacheMiss;
     uint32_t ulIPAddress;
     uint32_t ulLookUpIP;
     MACAddress_t xMACAddress;

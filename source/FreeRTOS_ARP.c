@@ -239,7 +239,7 @@
                 /* Process received ARP frame to see if there is a clash. */
                 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
                 {
-                    NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 );
+                    NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress );
 
                     if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
                     {
@@ -620,7 +620,7 @@
     {
         #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 0 )
             /* Only process the IP address if it is on the local network. */
-            BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+            BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
             /* Only process the IP address if it matches with one of the end-points. */
             if( xAddressIsLocal != 0 )
@@ -710,7 +710,7 @@
         BaseType_t xReturn = pdFALSE;
 
         #if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 )
-            BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 2 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+            BaseType_t xAddressIsLocal = ( FreeRTOS_FindEndPointOnNetMask( ulIPAddress ) != NULL ) ? 1 : 0; /* ARP remote address. */
         #endif
 
         /* Start with the maximum possible number. */
@@ -776,7 +776,7 @@
                     /* If ARP stores the MAC address of IP addresses outside the
                      * network, than the MAC address of the gateway should not be
                      * overwritten. */
-                    BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+                    BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
                     if( xAddressIsLocal == xOtherIsLocal )
                     {
@@ -891,7 +891,7 @@
 
         *( ppxEndPoint ) = NULL;
         ulAddressToLookup = *pulIPAddress;
-        pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
+        pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup );
 
         if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
         {
@@ -918,7 +918,7 @@
         {
             /* This is a broadcast so it uses the broadcast MAC address. */
             ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
-            pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
+            pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup );
 
             if( pxEndPoint != NULL )
             {
@@ -955,7 +955,7 @@
 
         /* It is assumed that devices with the same netmask are on the same
          * LAN and don't need a gateway. */
-        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
+        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup );
 
         if( pxEndPoint == NULL )
         {
@@ -1249,7 +1249,7 @@
         /* Its assumed that IPv4 endpoints belonging to different physical interface
          * in the system will have a different subnet, but endpoints on same interface
          * may have it. */
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 12 );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress );
 
         if( pxEndPoint != NULL )
         {

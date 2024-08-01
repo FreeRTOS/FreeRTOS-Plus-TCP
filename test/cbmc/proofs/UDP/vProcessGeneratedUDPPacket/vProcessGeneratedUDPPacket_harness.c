@@ -19,6 +19,12 @@
 #include "memory_assignments.c"
 #include "freertos_api.c"
 
+/* vProcessGeneratedUDPPacket_IPv6 is proven separately. */
+void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
+}
+
 /* We do not need to calculate the actual checksum for the proof to be complete.
  * Neither does the checksum matter for completeness. */
 uint16_t usGenerateChecksum( uint16_t usSum,
@@ -32,7 +38,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Return any random value of checksum since it does not matter for CBMC checks. */
     return usChecksum;
 }
-
 
 /* We do not need to calculate the actual checksum for the proof to be complete.
  * Neither does the checksum matter for completeness. */
@@ -64,13 +69,13 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
 
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
                                       MACAddress_t * const pxMACAddress )
 {
     __CPROVER_assert( pulIPAddress != NULL, "pulIPAddress cannot be NULL" );
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
 
-    eARPLookupResult_t eResult;
+    eResolutionLookupResult_t eResult;
 
     return eResult;
 }

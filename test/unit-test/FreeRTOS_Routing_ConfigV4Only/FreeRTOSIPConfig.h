@@ -44,8 +44,6 @@
 
 #define ipconfigCOMPATIBLE_WITH_SINGLE            ( 0 )
 
-#define ipconfigHAS_ROUTING_STATISTICS            ( 1 )
-
 #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to

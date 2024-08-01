@@ -50,6 +50,21 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 }
 
 /****************************************************************
+* Abstract FreeRTOS_socket.
+* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/socket.html
+*
+* We stub out this function to do nothing but allocate space for a
+* socket containing unconstrained data or return an error.
+****************************************************************/
+
+BaseType_t FreeRTOS_listen( Socket_t xSocket,
+                            BaseType_t xBacklog )
+{
+    __CPROVER_assert( xSocket != NULL, "Socket cannot be NULL" );
+    return nondet_BaseType();
+}
+
+/****************************************************************
 * Abstract FreeRTOS_setsockopt.
 * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/setsockopt.html
 ****************************************************************/
@@ -135,30 +150,11 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
 
-    /****************************************************************
-    * TODO: We need to check this out.
-    *
-    * The code calls recvfrom with these parameters NULL, it is not
-    * clear from the documentation that this is allowed.
-    ****************************************************************/
-    #if 0
-        __CPROVER_assert( pxSourceAddress != NULL,
-                          "FreeRTOS precondition: pxSourceAddress != NULL" );
-        __CPROVER_assert( pxSourceAddressLength != NULL,
-                          "FreeRTOS precondition: pxSourceAddress != NULL" );
-    #endif
-
     size_t payload_size;
     __CPROVER_assume( payload_size + sizeof( UDPPacket_t )
                       < CBMC_MAX_OBJECT_SIZE );
 
-    /****************************************************************
-    * TODO: We need to make this lower bound explicit in the Makefile.json
-    *
-    * DNSMessage_t is a typedef in FreeRTOS_DNS.c
-    * sizeof(DNSMessage_t) = 6 * sizeof(uint16_t)
-    ****************************************************************/
-    __CPROVER_assume( payload_size >= 6 * sizeof( uint16_t ) );
+    __CPROVER_assume( payload_size >= sizeof( DNSMessage_t ) );
 
     #ifdef CBMC_FREERTOS_RECVFROM_BUFFER_BOUND
         __CPROVER_assume( payload_size <= CBMC_FREERTOS_RECVFROM_BUFFER_BOUND );
@@ -404,6 +400,45 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 
     /* Return some random value. */
     return xReturn;
+}
+
+/****************************************************************/
+
+/****************************************************************
+* Abstract vIPSetARPResolutionTimerEnableState
+****************************************************************/
+void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
+{
+}
+
+/****************************************************************/
+
+/****************************************************************
+* Abstract vIPSetARPResolutionTimerEnableState
+****************************************************************/
+BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
+{
+    __CPROVER_assert( pulNumber != NULL, "The input number cannot be NULL" );
+
+    BaseType_t xReturn;
+
+    *pulNumber = nondet_uint32();
+
+    /* Return some random value. */
+    return xReturn;
+}
+
+/****************************************************************/
+
+/****************************************************************
+* Abstract vIPSetARPResolutionTimerEnableState
+****************************************************************/
+uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
+                                             uint16_t usSourcePort,
+                                             uint32_t ulDestinationAddress,
+                                             uint16_t usDestinationPort )
+{
+    return nondet_uint32();
 }
 
 /****************************************************************/

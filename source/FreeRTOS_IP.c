@@ -92,19 +92,11 @@
     #endif
 #endif
 
-/** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
- * driver will filter incoming packets and only pass the stack those packets it
- * considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
- * be #-defined away.  If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 0
- * then the Ethernet driver will pass all received packets to the stack, and the
- * stack must do the filtering itself.  In this case ipCONSIDER_FRAME_FOR_PROCESSING
- * needs to call eConsiderFrameForProcessing.
- */
-#if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#endif
+/** @brief The frame type field in the Ethernet header must have a value greater than 0x0600.
+ * If the configuration option ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is enabled, the stack
+ * will discard packets with a frame type value less than or equal to 0x0600.
+ * However, if this option is disabled, the stack will continue to process these packets. */
+#define ipIS_ETHERNET_FRAME_TYPE_INVALID( usFrameType )    ( ( usFrameType ) <= 0x0600U )
 
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
@@ -1451,85 +1443,165 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer )
 {
-    eFrameProcessingResult_t eReturn = eProcessBuffer;
-    const EthernetHeader_t * pxEthernetHeader = NULL;
-    const NetworkEndPoint_t * pxEndPoint = NULL;
+    eFrameProcessingResult_t eReturn = eReleaseBuffer;
 
-    if( pucEthernetBuffer == NULL )
+    do
     {
-        eReturn = eReleaseBuffer;
-    }
-    else
-    {
+        const EthernetHeader_t * pxEthernetHeader = NULL;
+        const NetworkEndPoint_t * pxEndPoint = NULL;
+        uint16_t usFrameType;
+
+        /* First, check the packet buffer is non-null. */
+        if( pucEthernetBuffer == NULL )
+        {
+            /* The packet buffer was null - release it. */
+            break;
+        }
+
         /* Map the buffer onto Ethernet Header struct for easy access to fields. */
-
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
+        usFrameType = pxEthernetHeader->usFrameType;
 
-        /* Examine the destination MAC from the Ethernet header to see if it matches
-         * that of an end point managed by FreeRTOS+TCP. */
+        /* Second, filter based on ethernet frame type. */
+        /* The frame type field in the Ethernet header must have a value greater than 0x0600. */
+        if( ipIS_ETHERNET_FRAME_TYPE_INVALID( FreeRTOS_ntohs( usFrameType ) ) )
+        {
+            /* The packet was not an Ethernet II frame */
+            #if ipconfigIS_ENABLED( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES )
+                /* filtering is enabled - release it. */
+                break;
+            #else
+                /* filtering is disabled - continue filter checks. */
+            #endif
+        }
+        else if( usFrameType == ipARP_FRAME_TYPE )
+        {
+            /* The frame is an ARP type */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
+                /* IPv4 is disabled - release it. */
+                break;
+            #else
+                /*  IPv4 is enabled - Continue filter checks. */
+            #endif
+        }
+        else if( usFrameType == ipIPv4_FRAME_TYPE )
+        {
+            /* The frame is an IPv4 type */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
+                /* IPv4 is disabled - release it. */
+                break;
+            #else
+                /* IPv4 is enabled - Continue filter checks. */
+            #endif
+        }
+        else if( usFrameType == ipIPv6_FRAME_TYPE )
+        {
+            /* The frame is an IPv6 type */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv6 )
+                /* IPv6 is disabled - release it. */
+                break;
+            #else
+                /* IPv6 is enabled - Continue filter checks. */
+            #endif
+        }
+        else
+        {
+            /* The frame is an unsupported Ethernet II type */
+            #if ipconfigIS_DISABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
+                /* Processing custom ethernet frames is disabled - release it. */
+                break;
+            #else
+                /* Processing custom ethernet frames is enabled - Continue filter checks. */
+            #endif
+        }
+
+        /* Third, filter based on destination mac address. */
         pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
 
         if( pxEndPoint != NULL )
         {
-            /* The packet was directed to this node - process it. */
-            eReturn = eProcessBuffer;
+            /* A destination endpoint was found - Continue filter checks. */
         }
         else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
         {
-            /* The packet was a broadcast - process it. */
-            eReturn = eProcessBuffer;
+            /* The packet was a broadcast - Continue filter checks. */
+        }
+        else if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for LLMNR using IPv4 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_LLMNR ) || ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) )
+                /* DNS, LLMNR, or IPv4 is disabled - release it. */
+                break;
+            #else
+                /* DNS, LLMNR, and IPv4 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( memcmp( xLLMNR_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for LLMNR using IPv6 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_LLMNR ) || ipconfigIS_DISABLED( ipconfigUSE_IPv6 ) )
+                /* DNS, LLMNR, or IPv6 is disabled - release it. */
+                break;
+            #else
+                /* DNS, LLMNR, and IPv6 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for MDNS using IPv4 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_MDNS ) || ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) )
+                /* DNS, MDNS, or IPv4 is disabled - release it. */
+                break;
+            #else
+                /* DNS, MDNS, and IPv4 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( memcmp( xMDNS_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for MDNS using IPv6 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_MDNS ) || ipconfigIS_DISABLED( ipconfigUSE_IPv6 ) )
+                /* DNS, MDNS, or IPv6 is disabled - release it. */
+                break;
+            #else
+                /* DNS, MDNS, and IPv6 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv4_0 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv4_1 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 2 ] == ipMULTICAST_MAC_ADDRESS_IPv4_2 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 3 ] <= 0x7fU ) )
+        {
+            /* The packet is an IPv4 Multicast */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
+                /* IPv4 is disabled - release it. */
+                break;
+            #else
+                /* IPv4 is enabled - Continue filter checks. */
+            #endif
+        }
+        else if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
+        {
+            /* The packet is an IPv6 Multicast */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv6 )
+                /* IPv6 is disabled - release it. */
+                break;
+            #else
+                /* IPv6 is enabled - Continue filter checks. */
+            #endif
         }
         else
-        #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-            {
-                /* The packet is a request for LLMNR - process it. */
-                eReturn = eProcessBuffer;
-            }
-            else
-        #endif /* ipconfigUSE_LLMNR */
-        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-            {
-                /* The packet is a request for MDNS - process it. */
-                eReturn = eProcessBuffer;
-            }
-            else
-        #endif /* ipconfigUSE_MDNS */
-        if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
-            ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
         {
-            /* The packet is a request for LLMNR - process it. */
-            eReturn = eProcessBuffer;
+            /* The packet was not a broadcast, or for this node - release it */
+            break;
         }
-        else
-        {
-            /* The packet was not a broadcast, or for this node, just release
-             * the buffer without taking any other action. */
-            eReturn = eReleaseBuffer;
-        }
-    }
 
-    #if ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1 )
-    {
-        uint16_t usFrameType;
-
-        if( eReturn == eProcessBuffer )
-        {
-            usFrameType = pxEthernetHeader->usFrameType;
-            usFrameType = FreeRTOS_ntohs( usFrameType );
-
-            if( usFrameType <= 0x600U )
-            {
-                /* Not an Ethernet II frame. */
-                eReturn = eReleaseBuffer;
-            }
-        }
-    }
-    #endif /* ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1  */
+        /* All checks have been passed, process the packet. */
+        eReturn = eProcessBuffer;
+    } while( ipFALSE_BOOL );
 
     return eReturn;
 }
@@ -1575,8 +1647,6 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             break;
         }
 
-        eReturned = ipCONSIDER_FRAME_FOR_PROCESSING( pxNetworkBuffer->pucEthernetBuffer );
-
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -1586,7 +1656,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
         /* The condition "eReturned == eProcessBuffer" must be true. */
         #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-            if( eReturned == eProcessBuffer )
+            if( eConsiderFrameForProcessing( pxNetworkBuffer->pucEthernetBuffer ) == eProcessBuffer )
         #endif
         {
             /* Interpret the received Ethernet packet. */
@@ -1983,7 +2053,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 }
             }
 
-            /* TODO: eReturn != eReleaseBuffer */
             if( eReturn != eWaitingResolution )
             {
                 switch( ucProtocol )
@@ -2124,7 +2193,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case ipIPv4_FRAME_TYPE:
-                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
+                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress );
                         break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 

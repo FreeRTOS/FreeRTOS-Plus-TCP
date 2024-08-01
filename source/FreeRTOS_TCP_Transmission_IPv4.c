@@ -332,7 +332,7 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
 {
     TCPPacket_t * pxTCPPacket;
     IPHeader_t * pxIPHeader;
-    eARPLookupResult_t eReturned;
+    eResolutionLookupResult_t eReturned;
     uint32_t ulRemoteIP;
     MACAddress_t xEthAddress;
     BaseType_t xReturn = pdTRUE;
@@ -457,7 +457,10 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
         /* The initial sequence numbers at our side are known.  Later
          * vTCPWindowInit() will be called to fill in the peer's sequence numbers, but
          * first wait for a SYN+ACK reply. */
-        prvTCPCreateWindow( pxSocket );
+        if( prvTCPCreateWindow( pxSocket ) != pdTRUE )
+        {
+            xReturn = pdFALSE;
+        }
     }
 
     return xReturn;
