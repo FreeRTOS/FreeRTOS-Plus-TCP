@@ -114,19 +114,19 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
 /*
  * Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the
  * associated MAC address into pxMACAddress, refresh the ARP cache entry's
- * age, and return eAddrResCacheHit.  If the IP address does not exist in the ARP
- * cache return eAddrResCacheMiss.  If the packet cannot be sent for any reason
+ * age, and return eResolutionCacheHit.  If the IP address does not exist in the ARP
+ * cache return eResolutionCacheMiss.  If the packet cannot be sent for any reason
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
- * isn't a gateway defined) then return eCantSendPacket.
+ * isn't a gateway defined) then return eResolutionFailed.
  */
-eAddrResLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
                                       MACAddress_t * const pxMACAddress,
                                       struct xNetworkEndPoint ** ppxEndPoint );
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
 /* Lookup an IP-address if only the MAC-address is known */
-    eAddrResLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
+    eResolutionLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                uint32_t * pulIPAddress,
                                                struct xNetworkInterface ** ppxInterface );
 

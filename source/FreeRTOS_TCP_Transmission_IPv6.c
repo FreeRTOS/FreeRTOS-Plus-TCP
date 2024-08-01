@@ -150,7 +150,7 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             if( pxNetworkBuffer != NULL ) /* LCOV_EXCL_BR_LINE the 2nd branch will never be reached */
         #endif
         {
-            eAddrResLookupResult_t eResult;
+            eResolutionLookupResult_t eResult;
             NetworkInterface_t * pxInterface;
 
             configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -318,7 +318,7 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
 {
     TCPPacket_IPv6_t * pxTCPPacket = NULL;
     IPHeader_IPv6_t * pxIPHeader = NULL;
-    eAddrResLookupResult_t eReturned;
+    eResolutionLookupResult_t eReturned;
     IP_Address_t xRemoteIP;
     MACAddress_t xEthAddress;
     BaseType_t xReturn = pdTRUE;
@@ -355,7 +355,7 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
             break;            /* We can now prepare the SYN packet. */
 
         case eResolutionCacheMiss:   /* An ND table lookup did not find a valid entry. */
-        case eCantSendPacket: /* There is no IP address, or an ND is still in progress. */
+        case eResolutionFailed: /* There is no IP address, or an ND is still in progress. */
         default:
             /* Count the number of times it could not find the ND address. */
             pxSocket->u.xTCP.ucRepCount++;

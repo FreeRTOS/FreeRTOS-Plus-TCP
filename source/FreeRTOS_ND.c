@@ -78,12 +78,12 @@
     const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33U, 0x33U, 0x00U, 0x00U, 0x00U, 0x01U };
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
-    static eAddrResLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
+    static eResolutionLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
                                              NetworkEndPoint_t ** ppxEndPoint );
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
-    static eAddrResLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
+    static eResolutionLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_t ** ppxEndPoint );
 
@@ -140,13 +140,13 @@
  * @param[out] pxMACAddress The resulting MAC-address is stored here.
  * @param[out] ppxEndPoint A pointer to an end-point pointer where the end-point will be stored.
  *
- * @return An enum, either eAddrResCacheHit or eAddrResCacheMiss.
+ * @return An enum, either eResolutionCacheHit or eResolutionCacheMiss.
  */
-    static eAddrResLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
+    static eResolutionLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
                                              NetworkEndPoint_t ** ppxEndPoint )
     {
-        eAddrResLookupResult_t eReturn;
+        eResolutionLookupResult_t eReturn;
 
         /* Mostly used multi-cast address is ff02::. */
         if( xIsIPv6AllowedMulticast( pxAddressToLookup ) != pdFALSE )
@@ -158,12 +158,12 @@
                 *ppxEndPoint = pxFindLocalEndpoint();
             }
 
-            eReturn = eAddrResCacheHit;
+            eReturn = eResolutionCacheHit;
         }
         else
         {
             /* Not a multicast IP address. */
-            eReturn = eAddrResCacheMiss;
+            eReturn = eResolutionCacheMiss;
         }
 
         return eReturn;
@@ -178,30 +178,30 @@
  * @param[out] pxMACAddress The MAC-address found.
  * @param[out] ppxEndPoint A pointer to a pointer to an end-point, where the end-point will be stored.
  *
- * @return An enum which says whether the address was found: eAddrResCacheHit or eAddrResCacheMiss.
+ * @return An enum which says whether the address was found: eResolutionCacheHit or eResolutionCacheMiss.
  */
-    eAddrResLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+    eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                          MACAddress_t * const pxMACAddress,
                                          struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eAddrResLookupResult_t eReturn;
+        eResolutionLookupResult_t eReturn;
         NetworkEndPoint_t * pxEndPoint;
 
         /* Multi-cast addresses can be resolved immediately. */
         eReturn = prvMACResolve( pxIPAddress, pxMACAddress, ppxEndPoint );
 
-        if( eReturn == eAddrResCacheMiss )
+        if( eReturn == eResolutionCacheMiss )
         {
             /* See if the IP-address has an entry in the cache. */
             eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
         }
 
-        if( eReturn == eAddrResCacheMiss )
+        if( eReturn == eResolutionCacheMiss )
         {
             FreeRTOS_printf( ( "eNDGetCacheEntry: lookup %pip miss\n", ( void * ) pxIPAddress->ucBytes ) );
         }
 
-        if( eReturn == eAddrResCacheMiss )
+        if( eReturn == eResolutionCacheMiss )
         {
             IPv6_Type_t eIPType = xIPv6_GetIPType( pxIPAddress );
 
@@ -236,7 +236,7 @@
                     }
 
                     FreeRTOS_printf( ( "eNDGetCacheEntry: LinkLocal %pip \"%s\"\n", ( void * ) pxIPAddress->ucBytes,
-                                       ( eReturn == eAddrResCacheHit ) ? "hit" : "miss" ) );
+                                       ( eReturn == eResolutionCacheHit ) ? "hit" : "miss" ) );
                 }
                 else
                 {
@@ -446,14 +446,14 @@
  * @param[out] pxMACAddress The resulting MAC-address will be stored here.
  * @param[out] ppxEndPoint A pointer to a pointer to an end-point, where the end-point will be stored.
  *
- * @return An enum: either eAddrResCacheHit or eAddrResCacheMiss.
+ * @return An enum: either eResolutionCacheHit or eResolutionCacheMiss.
  */
-    static eAddrResLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
+    static eResolutionLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_t ** ppxEndPoint )
     {
         BaseType_t x;
-        eAddrResLookupResult_t eReturn = eAddrResCacheMiss;
+        eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
 
         /* For each entry in the ND cache table. */
         for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
@@ -465,7 +465,7 @@
             else if( memcmp( xNDCache[ x ].xIPAddress.ucBytes, pxAddressToLookup->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
             {
                 ( void ) memcpy( pxMACAddress->ucBytes, xNDCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-                eReturn = eAddrResCacheHit;
+                eReturn = eResolutionCacheHit;
 
                 if( ppxEndPoint != NULL )
                 {
@@ -489,7 +489,7 @@
             }
         }
 
-        if( eReturn == eAddrResCacheMiss )
+        if( eReturn == eResolutionCacheMiss )
         {
             FreeRTOS_printf( ( "prvNDCacheLookup %pip Miss\n", ( void * ) pxAddressToLookup->ucBytes ) );
 
@@ -1366,14 +1366,14 @@
             {
                 MACAddress_t xMACAddress;
                 NetworkEndPoint_t * pxEndPoint;
-                eAddrResLookupResult_t eResult;
+                eResolutionLookupResult_t eResult;
                 char pcName[ 80 ];
 
                 ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
                 eResult = eNDGetCacheEntry( pxIPAddress, &xMACAddress, &pxEndPoint );
-                FreeRTOS_printf( ( "xCheckRequiresNDResolution: eResult %s with EP %s\n", ( eResult == eAddrResCacheMiss ) ? "Miss" : ( eResult == eAddrResCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
+                FreeRTOS_printf( ( "xCheckRequiresNDResolution: eResult %s with EP %s\n", ( eResult == eResolutionCacheMiss ) ? "Miss" : ( eResult == eResolutionCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
 
-                if( eResult == eAddrResCacheMiss )
+                if( eResult == eResolutionCacheMiss )
                 {
                     NetworkBufferDescriptor_t * pxTempBuffer;
                     size_t uxNeededSize;

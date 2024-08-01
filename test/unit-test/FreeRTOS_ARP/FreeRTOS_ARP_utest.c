@@ -1950,7 +1950,7 @@ void test_eARPGetCacheEntryByMac_NullInterface( void )
     }
 
     eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, NULL );
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
     TEST_ASSERT_EQUAL( 0x12345678, ulIPAddress );
     /* =================================================== */
 }
@@ -1972,7 +1972,7 @@ void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
     }
 
     eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
     TEST_ASSERT_EQUAL( 0x12345678, ulIPAddress );
     /* =================================================== */
 }
@@ -1997,16 +1997,16 @@ void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
     memset( xARPCache[ ulEntryToTest ].xMACAddress.ucBytes, 0x22, sizeof( xMACAddress.ucBytes ) );
     xARPCache[ ulEntryToTest ].ulIPAddress = 0xAABBCCEE;
     eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */
     eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, NULL );
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */
     xARPCache[ ulEntryToTest ].pxEndPoint = NULL;
     eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */
 }
@@ -2038,7 +2038,7 @@ void test_eARPGetCacheEntry_IPMatchesBroadcastAddr( void )
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL_MESSAGE( eAddrResCacheHit, eResult, "Test 3" );
+    TEST_ASSERT_EQUAL_MESSAGE( eResolutionCacheHit, eResult, "Test 3" );
     TEST_ASSERT_EQUAL( pxEndPoint, &xEndPoint );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
     /* =================================================== */
@@ -2060,7 +2060,7 @@ void test_eARPGetCacheEntry_IPMatchesBroadcastAddr_NullEndPointOnNetMask( void )
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
 }
@@ -2082,7 +2082,7 @@ void test_eARPGetCacheEntry_MultiCastAddr( void )
 
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eCantSendPacket, eResult );
+    TEST_ASSERT_EQUAL( eResolutionFailed, eResult );
     TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
 
@@ -2095,7 +2095,7 @@ void test_eARPGetCacheEntry_MultiCastAddr( void )
 
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eCantSendPacket, eResult );
+    TEST_ASSERT_EQUAL( eResolutionFailed, eResult );
     TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
 }
@@ -2116,7 +2116,7 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-    TEST_ASSERT_EQUAL_MESSAGE( eAddrResCacheHit, eResult, "Test 3" );
+    TEST_ASSERT_EQUAL_MESSAGE( eResolutionCacheHit, eResult, "Test 3" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
     TEST_ASSERT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
@@ -2149,7 +2149,7 @@ void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-    TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 6" );
+    TEST_ASSERT_EQUAL_MESSAGE( eResolutionFailed, eResult, "Test 6" );
     TEST_ASSERT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
 }
@@ -2178,7 +2178,7 @@ void test_eARPGetCacheEntry_MatchingValidEntry( void )
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-    TEST_ASSERT_EQUAL_MESSAGE( eAddrResCacheHit, eResult, "Test 7" );
+    TEST_ASSERT_EQUAL_MESSAGE( eResolutionCacheHit, eResult, "Test 7" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xARPCache[ 1 ].xMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 7" );
     TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
@@ -2211,7 +2211,7 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( NULL );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 9" );
+    TEST_ASSERT_EQUAL_MESSAGE( eResolutionFailed, eResult, "Test 9" );
     /* =================================================== */
 }
 
@@ -2237,7 +2237,7 @@ void test_eARPGetCacheEntry_AddressNotOnLocalAddress( void )
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( NULL );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-    TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 11" );
+    TEST_ASSERT_EQUAL_MESSAGE( eResolutionFailed, eResult, "Test 11" );
     TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
 }
@@ -2274,7 +2274,7 @@ void test_eARPGetCacheEntry_NoCacheHit( void )
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
     xNetworkAddressing.ulGatewayAddress = ulSavedGatewayAddress;
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
     /* =================================================== */
 }
@@ -2580,7 +2580,7 @@ void test_xARPWaitResolution_PrivateFunctionReturnsHit( void )
 
 
     /* Make the resolution pass without any attempt by making
-     * eARPGetCacheEntry return eAddrResCacheHit. */
+     * eARPGetCacheEntry return eResolutionCacheHit. */
     /* =================================================== */
     /* Assertion on calling from IP-task */
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;

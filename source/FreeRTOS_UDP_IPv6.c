@@ -121,10 +121,10 @@ static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
  * @param[out] pxLostBuffer  The pointee will be set to true in case the network packet got released
  *                            ( the ownership was taken ).
  */
-static eAddrResLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+static eResolutionLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                           BaseType_t * pxLostBuffer )
 {
-    eAddrResLookupResult_t eReturned = eResolutionCacheMiss;
+    eResolutionLookupResult_t eReturned = eResolutionCacheMiss;
 
     FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
                        ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
@@ -161,7 +161,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
 {
     UDPPacket_IPv6_t * pxUDPPacket_IPv6;
     IPHeader_IPv6_t * pxIPHeader_IPv6;
-    eAddrResLookupResult_t eReturned;
+    eResolutionLookupResult_t eReturned;
     size_t uxPayloadSize;
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     NetworkInterface_t * pxInterface = NULL;
@@ -198,7 +198,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket_IPv6->xEthernetHeader.xDestinationAddress ),
                                   &( pxEndPoint ) );
 
-    if( eReturned != eCantSendPacket )
+    if( eReturned != eResolutionFailed )
     {
         if( eReturned == eResolutionCacheHit )
         {
@@ -310,7 +310,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
         {
             /* The lookup indicated that an ND Solicitation has already been
              * sent out for the queried IP address. */
-            eReturned = eCantSendPacket;
+            eReturned = eResolutionFailed;
         }
     }
 
@@ -318,7 +318,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     {
         /* An ND solicitation has been sent. */
     }
-    else if( eReturned != eCantSendPacket )
+    else if( eReturned != eResolutionFailed )
     {
         /* The network driver is responsible for freeing the network buffer
          * after the packet has been sent. */

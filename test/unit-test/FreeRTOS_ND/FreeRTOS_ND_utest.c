@@ -124,7 +124,7 @@ void test_eNDGetCacheEntry_MulticastEndPoint( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
 }
 
 /**
@@ -154,7 +154,7 @@ void test_eNDGetCacheEntry_Multicast_ValidEndPoint( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
 }
 
 /**
@@ -175,7 +175,7 @@ void test_eNDGetCacheEntry_Multicast_InvalidEndPoint( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, ppxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
 }
 
 /**
@@ -202,7 +202,7 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_InvalidEndPoint( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, ppxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xNDCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 }
 
@@ -235,7 +235,7 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_ValidEndPoint( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xNDCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
     TEST_ASSERT_EQUAL_MEMORY( pxEndPoint, &xEndPoint2, sizeof( NetworkEndPoint_t ) );
 }
@@ -264,7 +264,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_InvalidEntry( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
 /**
@@ -290,7 +290,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_InvalidEntry2( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, ppxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
 /**
@@ -318,7 +318,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEntry( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
 /**
@@ -350,7 +350,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoLinkLocal( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
 /**
@@ -380,7 +380,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_LinkLocal( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
 /**
@@ -412,7 +412,7 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_Gateway( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheHit, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xNDCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 }
 
@@ -445,7 +445,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_Gateway( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
 /**
@@ -474,7 +474,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
-    TEST_ASSERT_EQUAL( eAddrResCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
 /**

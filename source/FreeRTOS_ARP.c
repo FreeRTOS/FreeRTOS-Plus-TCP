@@ -94,11 +94,11 @@
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
  */
-    static eAddrResLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+    static eResolutionLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
                                               MACAddress_t * const pxMACAddress,
                                               NetworkEndPoint_t ** ppxEndPoint );
 
-    static eAddrResLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
+    static eResolutionLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
                                                         MACAddress_t * const pxMACAddress,
                                                         struct xNetworkEndPoint ** ppxEndPoint );
 
@@ -318,7 +318,7 @@
                                     /* The request is a Gratuitous ARP message.
                                      * Refresh the entry if it already exists. */
                                     /* Determine the ARP cache status for the requested IP address. */
-                                    if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ) ) == eAddrResCacheHit )
+                                    if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ) ) == eResolutionCacheHit )
                                     {
                                         /* Check if the endpoint matches with the one present in the ARP cache */
                                         if( pxCachedEndPoint == pxTargetEndPoint )
@@ -819,14 +819,14 @@
  * @param[in] pxMACAddress The MAC-address of the entry of interest.
  * @param[out] pulIPAddress set to the IP-address found, or unchanged when not found.
  *
- * @return Either eAddrResCacheMiss or eAddrResCacheHit.
+ * @return Either eResolutionCacheMiss or eResolutionCacheHit.
  */
-        eAddrResLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
+        eResolutionLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                    uint32_t * pulIPAddress,
                                                    struct xNetworkInterface ** ppxInterface )
         {
             BaseType_t x;
-            eAddrResLookupResult_t eReturn = eResolutionCacheMiss;
+            eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
 
             configASSERT( pxMACAddress != NULL );
             configASSERT( pulIPAddress != NULL );
@@ -851,7 +851,7 @@
                         *( ppxInterface ) = xARPCache[ x ].pxEndPoint->pxNetworkInterface;
                     }
 
-                    eReturn = eAddrResCacheHit;
+                    eReturn = eResolutionCacheHit;
                     break;
                 }
             }
@@ -871,17 +871,17 @@
  * @param[out] ppxEndPoint Pointer to the end-point of the gateway will be stored.
  *
  * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
- *         refresh the ARP cache entry's age, and return eAddrResCacheHit. If the IP
- *         address does not exist in the ARP cache return eAddrResCacheMiss. If the packet
+ *         refresh the ARP cache entry's age, and return eResolutionCacheHit. If the IP
+ *         address does not exist in the ARP cache return eResolutionCacheMiss. If the packet
  *         cannot be sent for any reason (maybe DHCP is still in process, or the
  *         addressing needs a gateway but there isn't a gateway defined) then return
- *         eCantSendPacket.
+ *         eResolutionFailed.
  */
-    eAddrResLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+    eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
                                           MACAddress_t * const pxMACAddress,
                                           struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eAddrResLookupResult_t eReturn;
+        eResolutionLookupResult_t eReturn;
         uint32_t ulAddressToLookup;
         NetworkEndPoint_t * pxEndPoint = NULL;
 
@@ -898,7 +898,7 @@
             /* Get the lowest 23 bits of the IP-address. */
             vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
 
-            eReturn = eCantSendPacket;
+            eReturn = eResolutionFailed;
             pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
             for( ;
@@ -909,7 +909,7 @@
                 {
                     /* For multi-cast, use the first IPv4 end-point. */
                     *( ppxEndPoint ) = pxEndPoint;
-                    eReturn = eAddrResCacheHit;
+                    eReturn = eResolutionCacheHit;
                     break;
                 }
             }
@@ -925,7 +925,7 @@
                 *( ppxEndPoint ) = pxEndPoint;
             }
 
-            eReturn = eAddrResCacheHit;
+            eReturn = eResolutionCacheHit;
         }
         else
         {
@@ -944,11 +944,11 @@
  *                          stored to the buffer provided.
  * @param[out] ppxEndPoint The end-point of the gateway will be copy to the pointee.
  */
-    static eAddrResLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
+    static eResolutionLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
                                                         MACAddress_t * const pxMACAddress,
                                                         struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eAddrResLookupResult_t eReturn = eAddrResCacheMiss;
+        eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
         uint32_t ulAddressToLookup = *( pulIPAddress );
         NetworkEndPoint_t * pxEndPoint;
         uint32_t ulOriginal = *pulIPAddress;
@@ -963,7 +963,7 @@
             #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
                 eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
 
-                if( eReturn == eAddrResCacheHit )
+                if( eReturn == eResolutionCacheHit )
                 {
                     /* The stack is configured to store 'remote IP addresses', i.e. addresses
                      * belonging to a different the netmask.  prvCacheLookup() returned a hit, so
@@ -996,24 +996,24 @@
         }
 
         #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
-            if( eReturn == eAddrResCacheMiss )
+            if( eReturn == eResolutionCacheMiss )
         #endif
         {
             if( ulAddressToLookup == 0U )
             {
                 /* The address is not on the local network, and there is not a
                  * router. */
-                eReturn = eCantSendPacket;
+                eReturn = eResolutionFailed;
             }
             else
             {
                 eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
 
-                if( ( eReturn != eAddrResCacheHit ) || ( ulOriginal != ulAddressToLookup ) )
+                if( ( eReturn != eResolutionCacheHit ) || ( ulOriginal != ulAddressToLookup ) )
                 {
                     FreeRTOS_debug_printf( ( "ARP %xip %s using %xip\n",
                                              ( unsigned ) FreeRTOS_ntohl( ulOriginal ),
-                                             ( eReturn == eAddrResCacheHit ) ? "hit" : "miss",
+                                             ( eReturn == eResolutionCacheHit ) ? "hit" : "miss",
                                              ( unsigned ) FreeRTOS_ntohl( ulAddressToLookup ) ) );
                 }
 
@@ -1036,15 +1036,15 @@
  *                          the IP address will be stored.
  * @param[in,out] ppxEndPoint a pointer to the end-point will be stored.
  *
- * @return When the IP-address is found: eAddrResCacheHit, when not found: eAddrResCacheMiss,
- *         and when waiting for a ARP reply: eCantSendPacket.
+ * @return When the IP-address is found: eResolutionCacheHit, when not found: eResolutionCacheMiss,
+ *         and when waiting for a ARP reply: eResolutionFailed.
  */
-    static eAddrResLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+    static eResolutionLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
                                               MACAddress_t * const pxMACAddress,
                                               NetworkEndPoint_t ** ppxEndPoint )
     {
         BaseType_t x;
-        eAddrResLookupResult_t eReturn = eAddrResCacheMiss;
+        eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
 
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
@@ -1057,7 +1057,7 @@
                 if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )
                 {
                     /* This entry is waiting an ARP reply, so is not valid. */
-                    eReturn = eCantSendPacket;
+                    eReturn = eResolutionFailed;
                 }
                 else
                 {
@@ -1065,7 +1065,7 @@
                     ( void ) memcpy( pxMACAddress->ucBytes, xARPCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
                     /* ppxEndPoint != NULL was tested in the only caller eARPGetCacheEntry(). */
                     *( ppxEndPoint ) = xARPCache[ x ].pxEndPoint;
-                    eReturn = eAddrResCacheHit;
+                    eReturn = eResolutionCacheHit;
                 }
 
                 break;
@@ -1274,7 +1274,7 @@
         BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
         TimeOut_t xTimeOut;
         MACAddress_t xMACAddress;
-        eAddrResLookupResult_t xLookupResult;
+        eResolutionLookupResult_t xLookupResult;
         NetworkEndPoint_t * pxEndPoint;
         size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
         uint32_t ulIPAddressCopy = ulIPAddress;
@@ -1284,7 +1284,7 @@
 
         xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ), &( pxEndPoint ) );
 
-        if( xLookupResult == eAddrResCacheMiss )
+        if( xLookupResult == eResolutionCacheMiss )
         {
             const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
 
@@ -1300,7 +1300,7 @@
                 xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ), &( pxEndPoint ) );
 
                 if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
-                    ( xLookupResult != eAddrResCacheMiss ) )
+                    ( xLookupResult != eResolutionCacheMiss ) )
                 {
                     break;
                 }
@@ -1310,7 +1310,7 @@
             }
         }
 
-        if( xLookupResult == eAddrResCacheHit )
+        if( xLookupResult == eResolutionCacheHit )
         {
             xResult = 0;
         }

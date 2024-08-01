@@ -383,7 +383,7 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheMiss );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
@@ -438,7 +438,7 @@ void test_vReturnEthernetFrame_DuplicationSuccessCacheHit( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
     eARPGetCacheEntry_ReturnMemThruPtr_pxMACAddress( &xCacheMACAddress, sizeof( MACAddress_t ) );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );

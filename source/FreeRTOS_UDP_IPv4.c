@@ -76,7 +76,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 {
     UDPPacket_t * pxUDPPacket;
     IPHeader_t * pxIPHeader;
-    eAddrResLookupResult_t eReturned;
+    eResolutionLookupResult_t eReturned;
     uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     size_t uxPayloadSize;
@@ -110,7 +110,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
         pxNetworkBuffer->pxEndPoint = pxEndPoint;
     }
 
-    if( eReturned != eCantSendPacket )
+    if( eReturned != eResolutionFailed )
     {
         if( eReturned == eResolutionCacheHit )
         {
@@ -278,7 +278,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 
             if( pxNetworkBuffer->pxEndPoint == NULL )
             {
-                eReturned = eCantSendPacket;
+                eReturned = eResolutionFailed;
             }
             else
             {
@@ -290,11 +290,11 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
         {
             /* The lookup indicated that an ARP request has already been
              * sent out for the queried IP address. */
-            eReturned = eCantSendPacket;
+            eReturned = eResolutionFailed;
         }
     }
 
-    if( eReturned != eCantSendPacket )
+    if( eReturned != eResolutionFailed )
     {
         /* The network driver is responsible for freeing the network buffer
          * after the packet has been sent. */

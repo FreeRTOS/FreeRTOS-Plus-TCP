@@ -395,10 +395,10 @@
 
     typedef enum
     {
-        eAddrResCacheMiss = 0,  /* 0 A cache lookup did not find a valid entry. */
-        eAddrResCacheHit,       /* 1 A cache lookup found a valid entry. */
-        eCantSendPacket         /* 2 There is no IP address, or a resolution is still in progress, so the packet cannot be sent. */
-    } eAddrResLookupResult_t;
+        eResolutionCacheMiss = 0,   /* 0 A cache lookup did not find a valid entry. */
+        eResolutionCacheHit,        /* 1 A cache lookup found a valid entry. */
+        eResolutionFailed           /* 2 There is no IP address, or a resolution is still in progress, so the packet cannot be sent. */
+    } eResolutionLookupResult_t;
 
     #ifdef __cplusplus
 }     /* extern "C" */
