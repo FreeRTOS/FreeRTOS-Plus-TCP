@@ -840,7 +840,7 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle,
                 continue;
             }
 
-            configASSERT( pxEthHandle->RxDescList.RxDataLength <= niEMAC_DATA_BUFFER_SIZE );
+            configASSERT( pxCurDescriptor->xDataLength <= niEMAC_DATA_BUFFER_SIZE );
 
             pxCurDescriptor->pxInterface = pxInterface;
             pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxCurDescriptor->pxInterface, pxCurDescriptor->pucEthernetBuffer );
