@@ -34,7 +34,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_ARP.h"
 
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
@@ -66,7 +65,7 @@ typedef enum eFrameProcessingResult
     eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
     eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
     eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
-    eWaitingAddrRes       /* Frame is awaiting resolution. */
+    eWaitingResolution    /* Frame is awaiting resolution. */
 } eFrameProcessingResult_t;
 
 typedef enum
@@ -75,17 +74,18 @@ typedef enum
     eNetworkDownEvent,    /* 0: The network interface has been lost and/or needs [re]connecting. */
     eNetworkRxEvent,      /* 1: The network interface has queued a received Ethernet frame. */
     eNetworkTxEvent,      /* 2: Let the IP-task send a network packet. */
-    eAddrResTimerEvent,   /* 3: The resolution timer expired. */
-    eStackTxEvent,        /* 4: The software stack has queued a packet to transmit. */
-    eDHCPEvent,           /* 5: Process the DHCP state machine. */
-    eTCPTimerEvent,       /* 6: See if any TCP socket needs attention. */
-    eTCPAcceptEvent,      /* 7: Client API FreeRTOS_accept() waiting for client connections. */
-    eTCPNetStat,          /* 8: IP-task is asked to produce a netstat listing. */
-    eSocketBindEvent,     /* 9: Send a message to the IP-task to bind a socket to a port. */
-    eSocketCloseEvent,    /*10: Send a message to the IP-task to close a socket. */
-    eSocketSelectEvent,   /*11: Send a message to the IP-task for select(). */
-    eSocketSignalEvent,   /*12: A socket must be signalled. */
-    eSocketSetDeleteEvent /*13: A socket set must be deleted. */
+    eARPTimerEvent,       /* 3: The ARP timer expired. */
+    eNDTimerEvent,        /* 4: The ND timer expired. */
+    eStackTxEvent,        /* 5: The software stack has queued a packet to transmit. */
+    eDHCPEvent,           /* 6: Process the DHCP state machine. */
+    eTCPTimerEvent,       /* 7: See if any TCP socket needs attention. */
+    eTCPAcceptEvent,      /* 8: Client API FreeRTOS_accept() waiting for client connections. */
+    eTCPNetStat,          /* 9: IP-task is asked to produce a netstat listing. */
+    eSocketBindEvent,     /*10: Send a message to the IP-task to bind a socket to a port. */
+    eSocketCloseEvent,    /*11: Send a message to the IP-task to close a socket. */
+    eSocketSelectEvent,   /*12: Send a message to the IP-task for select(). */
+    eSocketSignalEvent,   /*13: A socket must be signalled. */
+    eSocketSetDeleteEvent /*14: A socket set must be deleted. */
 } eIPEvent_t;
 
 /**
@@ -843,7 +843,7 @@ BaseType_t xIsCallingFromIPTask( void );
 
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
-/* Send the network-up event and start the ARP timer. */
+/* Send the network-up event and start the ARP/ND timers. */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
 
 /* Mark whether all interfaces are up or at least one interface is down. */

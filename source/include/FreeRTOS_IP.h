@@ -439,10 +439,11 @@ BaseType_t xIsNetworkDownEventPending( void );
  * be defined in a user module. */
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
 
-/** @brief The pointer to buffer with packet waiting for resolution. This variable
- *  is defined in FreeRTOS_IP.c.
- *  This pointer is for internal use only. */
-extern NetworkBufferDescriptor_t * pxResolutionWaitingNetworkBuffer;
+/** @brief The pointers to buffers with packet waiting for resolution. These variables
+ *  are defined in FreeRTOS_IP.c.
+ *  These pointers are for internal use only. */
+extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+extern NetworkBufferDescriptor_t * pxNDWaitingNetworkBuffer;
 
 #if ( ipconfigENABLE_BACKWARD_COMPATIBILITY == 1 )
     #define xIPStackEvent_t               IPStackEvent_t

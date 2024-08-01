@@ -43,7 +43,6 @@
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
-#include "mock_FreeRTOS_ARP.h"
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IPv6.h"
 #include "mock_FreeRTOS_IP_Private.h"
@@ -523,7 +522,7 @@ void test_vNDRefreshCacheEntry_NoMatchingEntryAdd( void )
     /* Since no matching entry will be found, 0th entry will be updated to have the below details. */
     vNDRefreshCacheEntry( &xMACAddress, &xIPAddress, &xEndPoint );
 
-    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, ( uint8_t ) ipconfigMAX_ARP_AGE );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, ( uint8_t ) ipconfigMAX_ND_AGE );
     TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucValid, pdTRUE );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
@@ -550,7 +549,7 @@ void test_vNDRefreshCacheEntry_MatchingEntryRefresh( void )
     /* Since a matching entry is found at xUseEntry = 1st location, the entry will be refreshed.*/
     vNDRefreshCacheEntry( &xMACAddress, &xIPAddress, &xEndPoint );
 
-    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, ( uint8_t ) ipconfigMAX_ARP_AGE );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, ( uint8_t ) ipconfigMAX_ND_AGE );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].pxEndPoint, &xEndPoint, sizeof( NetworkEndPoint_t ) );
 }
@@ -1546,7 +1545,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitation( void )
 /**
  * @brief This function process ICMP message when message type is
  *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
- *        It handles case when pxARPWaitingNetworkBuffer is NULL.
+ *        It handles case when pxNDWaitingNetworkBuffer is NULL.
  */
 void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement1( void )
 {
@@ -1560,7 +1559,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement1( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
-    pxARPWaitingNetworkBuffer = NULL;
+    pxNDWaitingNetworkBuffer = NULL;
 
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
@@ -1580,14 +1579,14 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement2( void )
     ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
     NetworkEndPoint_t xEndPoint;
     eFrameProcessingResult_t eReturn;
-    NetworkBufferDescriptor_t xARPWaitingNetworkBuffer;
+    NetworkBufferDescriptor_t xNDWaitingNetworkBuffer;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
 
-    pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
+    pxNDWaitingNetworkBuffer = &xNDWaitingNetworkBuffer;
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
@@ -1598,7 +1597,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement2( void )
 /**
  * @brief This function process ICMP message when message type is
  *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
- *        This verifies a case 'pxARPWaitingNetworkBuffer' was
+ *        This verifies a case 'pxNDWaitingNetworkBuffer' was
  *        not waiting for this new address look-up.
  */
 void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement3( void )
@@ -1608,12 +1607,12 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement3( void )
     ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
     NetworkEndPoint_t xEndPoint;
     eFrameProcessingResult_t eReturn;
-    NetworkBufferDescriptor_t xARPWaitingNetworkBuffer;
+    NetworkBufferDescriptor_t xNDWaitingNetworkBuffer;
     IPPacket_IPv6_t xIPPacket;
     IPHeader_IPv6_t * pxIPHeader = &( xIPPacket.xIPHeader );
 
-    pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
-    pxARPWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
+    pxNDWaitingNetworkBuffer = &xNDWaitingNetworkBuffer;
+    pxNDWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
@@ -1632,7 +1631,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement3( void )
  *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
  *        This verifies a case where a packet is handled as a new
  *        incoming IP packet when a neighbour advertisement has been received,
- *        and 'pxARPWaitingNetworkBuffer' was waiting for this new address look-up.
+ *        and 'pxNDWaitingNetworkBuffer' was waiting for this new address look-up.
  */
 void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement4( void )
 {
@@ -1641,12 +1640,12 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement4( void )
     ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
     NetworkEndPoint_t xEndPoint;
     eFrameProcessingResult_t eReturn;
-    NetworkBufferDescriptor_t xARPWaitingNetworkBuffer;
+    NetworkBufferDescriptor_t xNDWaitingNetworkBuffer;
     IPPacket_IPv6_t xIPPacket;
     IPHeader_IPv6_t * pxIPHeader = &( xIPPacket.xIPHeader );
 
-    pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
-    pxARPWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
+    pxNDWaitingNetworkBuffer = &xNDWaitingNetworkBuffer;
+    pxNDWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
@@ -1659,12 +1658,12 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement4( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
     vReleaseNetworkBufferAndDescriptor_Ignore();
-    vIPSetARPResolutionTimerEnableState_ExpectAnyArgs();
+    vIPSetNDResolutionTimerEnableState_ExpectAnyArgs();
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
-    TEST_ASSERT_EQUAL( pxARPWaitingNetworkBuffer, NULL );
+    TEST_ASSERT_EQUAL( pxNDWaitingNetworkBuffer, NULL );
 }
 
 /**
@@ -1672,7 +1671,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement4( void )
  *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
  *        This verifies a case where a packet is handled as a new
  *        incoming IP packet when a neighbour advertisement has been received,
- *        and 'pxARPWaitingNetworkBuffer' was waiting for this new address look-up.
+ *        and 'pxNDWaitingNetworkBuffer' was waiting for this new address look-up.
  */
 void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement5( void )
 {
@@ -1681,12 +1680,12 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement5( void )
     ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
     NetworkEndPoint_t xEndPoint;
     eFrameProcessingResult_t eReturn;
-    NetworkBufferDescriptor_t xARPWaitingNetworkBuffer;
+    NetworkBufferDescriptor_t xNDWaitingNetworkBuffer;
     IPPacket_IPv6_t xIPPacket;
     IPHeader_IPv6_t * pxIPHeader = &( xIPPacket.xIPHeader );
 
-    pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
-    pxARPWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
+    pxNDWaitingNetworkBuffer = &xNDWaitingNetworkBuffer;
+    pxNDWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
@@ -1698,12 +1697,12 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement5( void )
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
     xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
-    vIPSetARPResolutionTimerEnableState_ExpectAnyArgs();
+    vIPSetNDResolutionTimerEnableState_ExpectAnyArgs();
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
-    TEST_ASSERT_EQUAL( pxARPWaitingNetworkBuffer, NULL );
+    TEST_ASSERT_EQUAL( pxNDWaitingNetworkBuffer, NULL );
 }
 
 /**

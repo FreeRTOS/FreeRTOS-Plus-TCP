@@ -2951,6 +2951,37 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * ipconfigMAX_ND_AGE
+ *
+ * Type: uint8_t
+ * Unit: decaseconds
+ * Minimum: 0
+ *
+ * Defines the maximum time between an entry in the ND table being created or
+ * refreshed and the entry being removed because it is stale. New ND requests
+ * are sent for ND cache entries that are nearing their maximum age.
+ * The maximum age of an entry in the ND cache table can be
+ * calculated as 'ipND_TIMER_PERIOD_MS' x 'ipconfigMAX_ND_AGE'.
+ *
+ * Units are derived from ipND_TIMER_PERIOD_MS, which is 10000 ms or 10 sec.
+ * So, a value of 150 is equal to 1500 seconds.
+ */
+
+#ifndef ipconfigMAX_ND_AGE
+    #define ipconfigMAX_ND_AGE    ( 150 )
+#endif
+
+#if ( ipconfigMAX_ND_AGE < 0 )
+    #error ipconfigMAX_ND_AGE must be at least 0
+#endif
+
+#if ( ipconfigMAX_ND_AGE > UINT8_MAX )
+    #error ipconfigMAX_ND_AGE overflows a uint8_t
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 /*===========================================================================*/
 /*                                ND CONFIG                                  */
 /*===========================================================================*/

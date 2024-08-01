@@ -41,7 +41,7 @@ list(APPEND mock_define_list
 # list the files you would like to test here
 set(real_source_files "")
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/source/FreeRTOS_ARP.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
 	)
 # list the directories the module under test includes
 set(real_include_directories "")

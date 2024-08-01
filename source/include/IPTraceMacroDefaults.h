@@ -129,7 +129,7 @@
  *                     [re]connecting.
  * eNetworkRxEvent - The network interface has queued a received Ethernet
  *                   frame.
- * eResolutionTimerEvent - The Resolution timer expired.
+ * eARPTimerEvent - The Resolution timer expired.
  * eStackTxEvent - The software stack has queued a packet to transmit.
  * eDHCPEvent - Process the DHCP state machine.
  *
@@ -611,10 +611,46 @@
 /*---------------------------------------------------------------------------*/
 
 /*
+ * iptraceDELAYED_ND_BUFFER_FULL
+ *
+ * A packet has come in from an unknown IPv6 address. An ND request has been
+ * sent, but the queue is still filled with a different packet.
+ */
+#ifndef iptraceDELAYED_ND_BUFFER_FULL
+    #define iptraceDELAYED_ND_BUFFER_FULL()
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * iptrace_DELAYED_ND_REQUEST_REPLIED
  */
 #ifndef iptrace_DELAYED_ND_REQUEST_REPLIED
     #define iptrace_DELAYED_ND_REQUEST_REPLIED()
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * iptraceDELAYED_ND_REQUEST_STARTED
+ *
+ * A packet came in from an unknown IPv6 address. An ND request has been sent
+ * and the network buffer is stored for processing later.
+ */
+#ifndef iptraceDELAYED_ND_REQUEST_STARTED
+    #define iptraceDELAYED_ND_REQUEST_STARTED()
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * iptraceDELAYED_ND_TIMER_EXPIRED
+ *
+ * A packet was stored for delayed processing, but there is no ND reply. The
+ * network buffer will be released without being processed.
+ */
+#ifndef iptraceDELAYED_ND_TIMER_EXPIRED
+    #define iptraceDELAYED_ND_TIMER_EXPIRED()
 #endif
 
 /*---------------------------------------------------------------------------*/

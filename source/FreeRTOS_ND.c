@@ -97,6 +97,10 @@
 /** @brief The ND cache. */
     static NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
 
+/** @brief  The time at which the last unsolicited ND was sent. Unsolicited NDs are used
+ * to ensure ND tables are up to date and to detect IP address conflicts. */
+    static TickType_t xLastUnsolicitedNDTime = 0U;
+
 /*-----------------------------------------------------------*/
 
 /*
@@ -1394,6 +1398,22 @@
         }
 
         return xNeedsNDResolution;
+    }
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Send an unsolicited ND packet to allow this node to announce the IP-MAC
+ *        mapping to the entire network.
+ */
+    void vNDSendUnsolicited( void )
+    {
+        /* Setting xLastUnsolicitedNDTime to 0 will force an unsolicited ND the next
+         * time vNDAgeCache() is called. */
+        xLastUnsolicitedNDTime = ( TickType_t ) 0;
+
+        /* Let the IP-task call vARPAgeCache(). */
+        ( void ) xSendEventToIPTask( eNDTimerEvent );
     }
 /*-----------------------------------------------------------*/
 #endif /* ipconfigUSE_IPv6 */
