@@ -78,6 +78,7 @@ TickType_t xCalculateSleepTime( void );
 void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
 
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+
 /**
  * Sets the reload time of an ARP timer and restarts it.
  */
@@ -97,29 +98,30 @@ void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
  * Enable or disable the ARP resolution timer.
  */
     void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
-#endif
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-    /**
-     * Sets the reload time of an ND timer and restarts it.
-     */
+
+/**
+ * Sets the reload time of an ND timer and restarts it.
+ */
     void vNDTimerReload( TickType_t xTime );
 
-    /*
-     * Start an ND Resolution timer.
-     */
+/*
+ * Start an ND Resolution timer.
+ */
     void vIPTimerStartNDResolution( TickType_t xTime );
 
-    /*
-     * Enable/disable the ND timer.
-     */
+/*
+ * Enable/disable the ND timer.
+ */
     void vIPSetNDTimerEnableState( BaseType_t xEnableState );
 
-    /*
-     * Enable or disable the ARP resolution timer.
-     */
+/*
+ * Enable or disable the ARP resolution timer.
+ */
     void vIPSetNDResolutionTimerEnableState( BaseType_t xEnableState );
-#endif
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
 

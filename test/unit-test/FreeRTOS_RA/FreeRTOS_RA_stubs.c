@@ -30,8 +30,8 @@
  * isn't a gateway defined) then return eResolutionFailed.
  */
 eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                     MACAddress_t * const pxMACAddress,
-                                     struct xNetworkEndPoint ** ppxEndPoint )
+                                            MACAddress_t * const pxMACAddress,
+                                            struct xNetworkEndPoint ** ppxEndPoint )
 {
     memset( pxMACAddress, 0, sizeof( MACAddress_t ) );
 

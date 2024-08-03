@@ -375,9 +375,9 @@
 
     typedef enum
     {
-        eResolutionCacheMiss = 0,   /* 0 A cache lookup did not find a valid entry. */
-        eResolutionCacheHit,        /* 1 A cache lookup found a valid entry. */
-        eResolutionFailed           /* 2 There is no IP address, or a resolution is still in progress, so the packet cannot be sent. */
+        eResolutionCacheMiss = 0, /* 0 A cache lookup did not find a valid entry. */
+        eResolutionCacheHit,      /* 1 A cache lookup found a valid entry. */
+        eResolutionFailed         /* 2 There is no IP address, or a resolution is still in progress, so the packet cannot be sent. */
     } eResolutionLookupResult_t;
 
     #ifdef __cplusplus

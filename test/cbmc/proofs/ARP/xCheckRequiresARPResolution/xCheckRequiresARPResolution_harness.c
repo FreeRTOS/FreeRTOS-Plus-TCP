@@ -56,8 +56,8 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
 
 /* Abstraction of eNDGetCacheEntry. */
 eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                     MACAddress_t * const pxMACAddress,
-                                     struct xNetworkEndPoint ** ppxEndPoint )
+                                            MACAddress_t * const pxMACAddress,
+                                            struct xNetworkEndPoint ** ppxEndPoint )
 {
     eResolutionLookupResult_t xReturn;
 

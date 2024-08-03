@@ -122,7 +122,7 @@ static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
  *                            ( the ownership was taken ).
  */
 static eResolutionLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                          BaseType_t * pxLostBuffer )
+                                                 BaseType_t * pxLostBuffer )
 {
     eResolutionLookupResult_t eReturned = eResolutionCacheMiss;
 

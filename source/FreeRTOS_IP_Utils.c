@@ -872,6 +872,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
         #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
 
         #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+
             /* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122
              * treat network down as a "delivery problem" and flush the ARP cache for this
              * interface. */

@@ -47,8 +47,8 @@ void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
 
 /* This function is proved elsewhere hence stubbing it out */
 eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress,
-                                      struct xNetworkEndPoint ** ppxEndPoint )
+                                             MACAddress_t * const pxMACAddress,
+                                             struct xNetworkEndPoint ** ppxEndPoint )
 {
     eResolutionLookupResult_t eReturn;
 

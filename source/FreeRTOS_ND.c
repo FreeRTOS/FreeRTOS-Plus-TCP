@@ -79,13 +79,13 @@
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
     static eResolutionLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
-                                             MACAddress_t * const pxMACAddress,
-                                             NetworkEndPoint_t ** ppxEndPoint );
+                                                    MACAddress_t * const pxMACAddress,
+                                                    NetworkEndPoint_t ** ppxEndPoint );
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
     static eResolutionLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
-                                                MACAddress_t * const pxMACAddress,
-                                                NetworkEndPoint_t ** ppxEndPoint );
+                                                       MACAddress_t * const pxMACAddress,
+                                                       NetworkEndPoint_t ** ppxEndPoint );
 
     #if ( ipconfigHAS_PRINTF == 1 )
         static const char * pcMessageType( BaseType_t xType );
@@ -147,8 +147,8 @@
  * @return An enum, either eResolutionCacheHit or eResolutionCacheMiss.
  */
     static eResolutionLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
-                                             MACAddress_t * const pxMACAddress,
-                                             NetworkEndPoint_t ** ppxEndPoint )
+                                                    MACAddress_t * const pxMACAddress,
+                                                    NetworkEndPoint_t ** ppxEndPoint )
     {
         eResolutionLookupResult_t eReturn;
 
@@ -185,8 +185,8 @@
  * @return An enum which says whether the address was found: eResolutionCacheHit or eResolutionCacheMiss.
  */
     eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                         MACAddress_t * const pxMACAddress,
-                                         struct xNetworkEndPoint ** ppxEndPoint )
+                                                MACAddress_t * const pxMACAddress,
+                                                struct xNetworkEndPoint ** ppxEndPoint )
     {
         eResolutionLookupResult_t eReturn;
         NetworkEndPoint_t * pxEndPoint;
@@ -424,6 +424,7 @@
     void FreeRTOS_ClearND( const struct xNetworkEndPoint * pxEndPoint )
     {
         ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+
         if( pxEndPoint != NULL )
         {
             BaseType_t x;
@@ -453,8 +454,8 @@
  * @return An enum: either eResolutionCacheHit or eResolutionCacheMiss.
  */
     static eResolutionLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
-                                                MACAddress_t * const pxMACAddress,
-                                                NetworkEndPoint_t ** ppxEndPoint )
+                                                       MACAddress_t * const pxMACAddress,
+                                                       NetworkEndPoint_t ** ppxEndPoint )
     {
         BaseType_t x;
         eResolutionLookupResult_t eReturn = eResolutionCacheMiss;

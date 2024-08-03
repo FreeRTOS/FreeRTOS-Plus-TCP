@@ -1793,9 +1793,10 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
                         iptraceDELAYED_ARP_BUFFER_FULL();
                     }
+
                     break;
                 }
-            #endif
+            #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
             #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                 if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
@@ -1814,9 +1815,10 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
                         iptraceDELAYED_ND_BUFFER_FULL();
                     }
+
                     break;
                 }
-            #endif
+            #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 
             break;
 

@@ -351,11 +351,11 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
 
     switch( eReturned )
     {
-        case eResolutionCacheHit:    /* An ND table lookup found a valid entry. */
-            break;            /* We can now prepare the SYN packet. */
+        case eResolutionCacheHit:  /* An ND table lookup found a valid entry. */
+            break;                 /* We can now prepare the SYN packet. */
 
-        case eResolutionCacheMiss:   /* An ND table lookup did not find a valid entry. */
-        case eResolutionFailed: /* There is no IP address, or an ND is still in progress. */
+        case eResolutionCacheMiss: /* An ND table lookup did not find a valid entry. */
+        case eResolutionFailed:    /* There is no IP address, or an ND is still in progress. */
         default:
             /* Count the number of times it could not find the ND address. */
             pxSocket->u.xTCP.ucRepCount++;

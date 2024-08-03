@@ -95,12 +95,12 @@
  * Lookup an MAC address in the ARP cache from the IP address.
  */
     static eResolutionLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
-                                              MACAddress_t * const pxMACAddress,
-                                              NetworkEndPoint_t ** ppxEndPoint );
+                                                     MACAddress_t * const pxMACAddress,
+                                                     NetworkEndPoint_t ** ppxEndPoint );
 
     static eResolutionLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
-                                                        MACAddress_t * const pxMACAddress,
-                                                        struct xNetworkEndPoint ** ppxEndPoint );
+                                                               MACAddress_t * const pxMACAddress,
+                                                               struct xNetworkEndPoint ** ppxEndPoint );
 
     static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                                          const uint32_t ulIPAddress,
@@ -822,8 +822,8 @@
  * @return Either eResolutionCacheMiss or eResolutionCacheHit.
  */
         eResolutionLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
-                                                   uint32_t * pulIPAddress,
-                                                   struct xNetworkInterface ** ppxInterface )
+                                                          uint32_t * pulIPAddress,
+                                                          struct xNetworkInterface ** ppxInterface )
         {
             BaseType_t x;
             eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
@@ -878,8 +878,8 @@
  *         eResolutionFailed.
  */
     eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                          MACAddress_t * const pxMACAddress,
-                                          struct xNetworkEndPoint ** ppxEndPoint )
+                                                 MACAddress_t * const pxMACAddress,
+                                                 struct xNetworkEndPoint ** ppxEndPoint )
     {
         eResolutionLookupResult_t eReturn;
         uint32_t ulAddressToLookup;
@@ -945,8 +945,8 @@
  * @param[out] ppxEndPoint The end-point of the gateway will be copy to the pointee.
  */
     static eResolutionLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
-                                                        MACAddress_t * const pxMACAddress,
-                                                        struct xNetworkEndPoint ** ppxEndPoint )
+                                                               MACAddress_t * const pxMACAddress,
+                                                               struct xNetworkEndPoint ** ppxEndPoint )
     {
         eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
         uint32_t ulAddressToLookup = *( pulIPAddress );
@@ -1040,8 +1040,8 @@
  *         and when waiting for a ARP reply: eResolutionFailed.
  */
     static eResolutionLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
-                                              MACAddress_t * const pxMACAddress,
-                                              NetworkEndPoint_t ** ppxEndPoint )
+                                                     MACAddress_t * const pxMACAddress,
+                                                     NetworkEndPoint_t ** ppxEndPoint )
     {
         BaseType_t x;
         eResolutionLookupResult_t eReturn = eResolutionCacheMiss;

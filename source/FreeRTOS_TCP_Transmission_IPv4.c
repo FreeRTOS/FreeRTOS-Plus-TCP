@@ -351,11 +351,11 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
 
     switch( eReturned )
     {
-        case eResolutionCacheHit:    /* An ARP table lookup found a valid entry. */
-            break;            /* We can now prepare the SYN packet. */
+        case eResolutionCacheHit:  /* An ARP table lookup found a valid entry. */
+            break;                 /* We can now prepare the SYN packet. */
 
-        case eResolutionCacheMiss:   /* An ARP table lookup did not find a valid entry. */
-        case eResolutionFailed: /* There is no IP address, or an ARP is still in progress. */
+        case eResolutionCacheMiss: /* An ARP table lookup did not find a valid entry. */
+        case eResolutionFailed:    /* There is no IP address, or an ARP is still in progress. */
         default:
             /* Count the number of times it could not find the ARP address. */
             pxSocket->u.xTCP.ucRepCount++;

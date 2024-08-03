@@ -94,8 +94,8 @@
  * isn't a gateway defined) then return eResolutionFailed.
  */
     eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                         MACAddress_t * const pxMACAddress,
-                                         struct xNetworkEndPoint ** ppxEndPoint );
+                                                MACAddress_t * const pxMACAddress,
+                                                struct xNetworkEndPoint ** ppxEndPoint );
 
 /**
  * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
@@ -206,7 +206,7 @@
 
     BaseType_t xCheckRequiresNDResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-    /* Clear all entries in the ND cache. */
+/* Clear all entries in the ND cache. */
     void FreeRTOS_ClearND( const struct xNetworkEndPoint * pxEndPoint );
 
     void vNDSendUnsolicited( void );

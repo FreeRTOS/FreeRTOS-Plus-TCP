@@ -95,6 +95,7 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
  */
 
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+
 /** @brief Timer to limit the maximum time a packet should be stored while
  *         awaiting an ARP resolution. */
     static IPTimer_t xARPResolutionTimer;
@@ -103,6 +104,7 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
     static IPTimer_t xARPTimer;
 #endif
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+
 /** @brief Timer to limit the maximum time a packet should be stored while
  *         awaiting an ND resolution. */
     static IPTimer_t xNDResolutionTimer;
@@ -250,7 +252,7 @@ void vCheckNetworkTimers( void )
                 iptraceDELAYED_ARP_TIMER_EXPIRED();
             }
         }
-    #endif
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
         /* Is it time for ND processing? */
@@ -277,7 +279,7 @@ void vCheckNetworkTimers( void )
                 iptraceDELAYED_ND_TIMER_EXPIRED();
             }
         }
-    #endif
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
     {
@@ -473,10 +475,10 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
  *
  * @param[in] xTime Time to be reloaded into the ARP timer.
  */
-void vARPTimerReload( TickType_t xTime )
-{
-    prvIPTimerReload( &xARPTimer, xTime );
-}
+    void vARPTimerReload( TickType_t xTime )
+    {
+        prvIPTimerReload( &xARPTimer, xTime );
+    }
 #endif
 /*-----------------------------------------------------------*/
 
@@ -487,10 +489,10 @@ void vARPTimerReload( TickType_t xTime )
  *
  * @param[in] xTime Time to be reloaded into the ND timer.
  */
-void vNDTimerReload( TickType_t xTime )
-{
-    prvIPTimerReload( &xNDTimer, xTime );
-}
+    void vNDTimerReload( TickType_t xTime )
+    {
+        prvIPTimerReload( &xNDTimer, xTime );
+    }
 #endif
 /*-----------------------------------------------------------*/
 
@@ -639,7 +641,7 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
             xARPResolutionTimer.bActive = pdFALSE_UNSIGNED;
         }
     }
-#endif
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 /*-----------------------------------------------------------*/
 
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
@@ -678,7 +680,7 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
             xNDResolutionTimer.bActive = pdFALSE_UNSIGNED;
         }
     }
-#endif
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )

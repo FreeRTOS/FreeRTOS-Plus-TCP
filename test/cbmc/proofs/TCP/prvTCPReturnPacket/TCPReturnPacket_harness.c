@@ -174,8 +174,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress,
-                                      struct xNetworkEndPoint ** ppxEndPoint )
+                                             MACAddress_t * const pxMACAddress,
+                                             struct xNetworkEndPoint ** ppxEndPoint )
 {
     /* Assume random ARP lookup result. */
     eResolutionLookupResult_t eReturn;

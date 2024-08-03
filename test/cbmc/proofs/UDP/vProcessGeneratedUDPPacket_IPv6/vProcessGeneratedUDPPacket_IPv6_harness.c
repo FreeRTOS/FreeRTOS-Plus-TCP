@@ -49,8 +49,8 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                     MACAddress_t * const pxMACAddress,
-                                     struct xNetworkEndPoint ** ppxEndPoint )
+                                            MACAddress_t * const pxMACAddress,
+                                            struct xNetworkEndPoint ** ppxEndPoint )
 {
     eResolutionLookupResult_t eResult;
 
