@@ -9,12 +9,21 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_TCP_IP.h"
 
+/* CBMC includes. */
+#include "cbmc.h"
+
 /*This proof assumes that pxUDPSocketLookup is implemented correctly. */
 
 /* This proof was done before. Hence we assume it to be correct here. */
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress )
 {
+}
+
+void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                               const uint32_t ulIPAddress )
+{
+    __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
 }
 
 /* This proof was done before. Hence we assume it to be correct here. */
@@ -68,19 +77,6 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     return xReturn;
 }
 
-/* Implementation of safe malloc */
-void * safeMalloc( size_t xWantedSize )
-{
-    if( xWantedSize == 0 )
-    {
-        return NULL;
-    }
-
-    uint8_t byte;
-
-    return byte ? malloc( xWantedSize ) : NULL;
-}
-
 /* Abstraction of pxUDPSocketLookup */
 FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 {
@@ -89,26 +85,23 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
-    BaseType_t * pxIsWaitingForARPResolution;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    BaseType_t xIsWaitingForARPResolution;
     NetworkEndPoint_t xEndpoint;
     uint16_t usPort;
+    EthernetHeader_t * pxHeader;
 
-    pxIsWaitingForARPResolution = safeMalloc( sizeof( BaseType_t ) );
-
-    /* The function under test is only called by the IP-task. The below pointer is an
-     * address of a local variable which is being passed to the function under test.
-     * Thus, it cannot ever be NULL. */
-    __CPROVER_assume( pxIsWaitingForARPResolution != NULL );
-
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ), 0 );
     /* The network buffer must not be NULL, checked in prvProcessEthernetPacket. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
-
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
-    pxNetworkBuffer->pxEndPoint = &xEndpoint;
-
-    /* The ethernet buffer must be valid. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
+
+    /* In this test case, we only focus on IPv4. */
+    pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    __CPROVER_assume( pxHeader->usFrameType != ipIPv6_FRAME_TYPE );
+
+    xIsWaitingForARPResolution = nondet_BaseType();
+    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, &xIsWaitingForARPResolution );
 }

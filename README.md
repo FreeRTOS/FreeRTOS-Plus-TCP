@@ -3,17 +3,17 @@ FreeRTOS-Plus-TCP is a lightweight TCP/IP stack for FreeRTOS. It provides a fami
 
 This library has undergone static code analysis and checks for compliance with the [MISRA coding standard](https://www.misra.org.uk/). Any deviations from the MISRA C:2012 guidelines are documented under [MISRA Deviations](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md). The library is validated for memory safety and data structure invariance through the [CBMC automated reasoning tool](https://www.cprover.org/cbmc/) for the functions that parse data originating from the network. The library is also protocol tested using Maxwell protocol tester for both IPv4 and IPv6.
 
-**FreeRTOS-Plus-TCP Library V4.2.1
-[source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V4.2.1/source)
+**FreeRTOS-Plus-TCP Library V4.2.2
+[source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V4.2.2/source)
 is part of the
-[FreeRTOS 202406.00 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202406.00-LTS)
+[FreeRTOS 202406.01 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202406.01-LTS)
 release.**
 
 ## Getting started
 The easiest way to use version 4.0.0 and later of FreeRTOS-Plus-TCP is to refer the Getting started Guide (found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted.md))
 Another way is to start with the pre-configured IPv4 Windows Simulator demo (found in [this directory](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator)) or IPv6 Multi-endpoint Windows Simulator demo (found in [this directory](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo)). That way you will have the correct FreeRTOS source files included, and the correct include paths configured.  Once a demo application is building and executing you can remove the demo application files, and start to add in your own application source files.  See the [FreeRTOS Kernel Quick Start Guide](https://www.freertos.org/FreeRTOS-quick-start-guide.html) for detailed instructions and other useful links.
 
-Additionally, for FreeRTOS-Plus-TCP source code organization refer to the [Documentation](http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial.html), and [API Reference](https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html).
+Additionally, for FreeRTOS-Plus-TCP source code organization refer to the [Documentation](http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial.html), and [API Reference](https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/09-API-reference/01-FreeRTOS-plus-TCP-APIs).
 
 ### Getting help
 If you have any questions or need assistance troubleshooting your FreeRTOS project, we have an active community that can help on the [FreeRTOS Community Support Forum](https://forums.freertos.org). Please also refer to [FAQ](http://www.freertos.org/FAQHelp.html) for frequently asked questions.

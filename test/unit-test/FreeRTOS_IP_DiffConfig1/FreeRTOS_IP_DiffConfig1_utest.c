@@ -786,3 +786,26 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig_IPv6NotSupported( 
 
     TEST_ASSERT_EQUAL_PTR( NULL, pvReturn );
 }
+
+/**
+ * @brief test_eConsiderFrameForProcessing_IPv6_FrameType_But_Disabled
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is IPv6 but
+ * ipconfigUSE_IPv6 is disabled.
+ */
+void test_eConsiderFrameForProcessing_IPv6_FrameType_But_Disabled( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigNETWORK_MTU );
+
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}

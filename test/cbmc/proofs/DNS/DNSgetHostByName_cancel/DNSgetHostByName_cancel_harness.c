@@ -8,6 +8,8 @@
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* CBMC includes. */
+#include "cbmc.h"
 
 /* This proof assumes the length of pcHostName is bounded by MAX_HOSTNAME_LEN. This also abstracts the concurrency. */
 
@@ -20,27 +22,38 @@ BaseType_t xDNSSetCallBack( const char * pcHostName,
                             TickType_t xIdentifier,
                             BaseType_t xIsIPv6 );
 
-void * safeMalloc( size_t xWantedSize ) /* Returns a NULL pointer if the wanted size is 0. */
+/* Abstraction of uxListRemove from list. This also abstracts the concurrency. */
+void vListInitialise( List_t * const pxList )
 {
-    if( xWantedSize == 0 )
+    __CPROVER_assert( pxList != NULL, "pxList cannot be NULL" );
+
+    pxList->pxIndex = ( ListItem_t * ) &( pxList->xListEnd );
+    pxList->xListEnd.xItemValue = portMAX_DELAY;
+
+    /* The list end next and previous pointers point to itself so we know
+     * when the list is empty. */
+    pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );
+    pxList->xListEnd.pxPrevious = ( ListItem_t * ) &( pxList->xListEnd );
+    pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
+}
+
+/* Abstraction of uxListRemove from list. This also abstracts the concurrency. */
+UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove )
+{
+    List_t * const pxList = pxItemToRemove->pxContainer;
+
+    pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
+    pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
+
+    if( pxList->pxIndex == pxItemToRemove )
     {
-        return NULL;
+        pxList->pxIndex = pxItemToRemove->pxPrevious;
     }
 
-    uint8_t byte;
+    pxItemToRemove->pxContainer = NULL;
+    ( pxList->uxNumberOfItems )--;
 
-    return byte ? malloc( xWantedSize ) : NULL;
-}
-
-/* Abstraction of xTaskCheckForTimeOut from task pool. This also abstracts the concurrency. */
-BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
-                                 TickType_t * const pxTicksToWait )
-{
-}
-
-/* Abstraction of xTaskResumeAll from task pool. This also abstracts the concurrency. */
-BaseType_t xTaskResumeAll( void )
-{
+    return pxList->uxNumberOfItems;
 }
 
 /* The function func mimics the callback function.*/
@@ -61,13 +74,11 @@ void harness()
     size_t len;
     BaseType_t xReturn;
 
-    __CPROVER_assume( len >= 0 && len <= MAX_HOSTNAME_LEN );
+    __CPROVER_assume( len > 0 && len <= MAX_HOSTNAME_LEN );
     char * pcHostName = safeMalloc( len );
-
-    if( len && pcHostName )
-    {
-        pcHostName[ len - 1 ] = NULL;
-    }
+    __CPROVER_assume( pcHostName != NULL );
+    __CPROVER_havoc_slice( pcHostName, len - 1 );
+    pcHostName[ len - 1 ] = NULL;
 
     xReturn = xDNSSetCallBack( pcHostName, &pvSearchID, pCallback, xTimeout, xIdentifier, xIsIPv6 ); /* Add an item to be able to check the cancel function if the list is non-empty. */
     FreeRTOS_gethostbyname_cancel( &pvSearchID );

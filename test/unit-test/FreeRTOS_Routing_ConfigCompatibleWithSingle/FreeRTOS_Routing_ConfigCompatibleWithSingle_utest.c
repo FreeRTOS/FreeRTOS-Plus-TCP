@@ -740,7 +740,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_HappyPath( void )
 
     pxNetworkEndPoints = &xEndPoint;
 
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_ADDRESS, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_ADDRESS );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
@@ -766,7 +766,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_NotFound( void )
     xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     pxNetworkEndPoints = &xEndPoint;
 
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_GATEWAY, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_GATEWAY );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
@@ -790,7 +790,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_AnyEndpoint( void )
     xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     pxNetworkEndPoints = &xEndPoint;
 
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0 );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
@@ -917,7 +917,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_HappyPath( void )
     pxNetworkEndPoints = &xEndPoint;
 
     /* IPV4_DEFAULT_DNS_SERVER is 192.168.123.1 within the network region. */
-    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( IPV4_DEFAULT_DNS_SERVER, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( IPV4_DEFAULT_DNS_SERVER );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
@@ -946,7 +946,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_NotFound( void )
     pxNetworkEndPoints = &xEndPoint;
 
     /* 192.168.1.1 is 0x0101A8C0. */
-    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( 0x0101A8C0, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( 0x0101A8C0 );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
@@ -981,7 +981,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_HappyPath( void )
     pxNetworkEndPoints = &xEndPoint;
 
     /* IPV4_DEFAULT_ADDRESS is 192.168.123.1 within the network region. */
-    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask( &xNetworkInterface, IPV4_DEFAULT_DNS_SERVER, 0 );
+    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask( &xNetworkInterface, IPV4_DEFAULT_DNS_SERVER );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
@@ -1016,7 +1016,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_NotFound( void )
     pxNetworkEndPoints = &xEndPoint;
 
     /* 192.168.122.1 is not in the network region. */
-    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask( &xNetworkInterface, 0x017AA8C0, 0 );
+    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask( &xNetworkInterface, 0x017AA8C0 );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 

@@ -38,6 +38,7 @@
 
 #include "cbmc.h"
 
+const BaseType_t xBufferAllocFixedSize = pdFALSE;
 NetworkBufferDescriptor_t xNetworkBuffer;
 
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
@@ -67,6 +68,11 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     uint8_t * pucNewBuffer = safeMalloc( xNewSizeBytes );
     __CPROVER_assume( pucNewBuffer != NULL );
 
+    if( pxNetworkBuffer->pucEthernetBuffer )
+    {
+        free( pxNetworkBuffer->pucEthernetBuffer );
+    }
+
     pxNetworkBuffer->pucEthernetBuffer = pucNewBuffer;
 
     if( nondet_bool() )
@@ -88,6 +94,26 @@ void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL" );
 }
 
+BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                           const char * pcName )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assert( strlen( pcName ) < ipconfigDNS_CACHE_NAME_LENGTH, "The length of domain name must be less than cache size" );
+    __CPROVER_assume( xReturn == pdFALSE || xReturn == pdTRUE );
+
+    return xReturn;
+}
+
+/* vReturnEthernetFrame() is proved separately */
+void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                           BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL, "xNetworkBuffer != NULL" );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "pxNetworkBuffer->pucEthernetBuffer != NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data must be valid" );
+}
+
 void harness()
 {
     uint32_t ulIPAddress;
@@ -103,6 +129,7 @@ void harness()
 
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
     xNetworkBuffer.xDataLength = xDataSize;
+    __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
 
     if( nondet_bool() )
     {

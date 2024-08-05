@@ -11,6 +11,8 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/cbmc.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_api.goto",
     "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/freertos_kernel_api.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IPv4.goto",

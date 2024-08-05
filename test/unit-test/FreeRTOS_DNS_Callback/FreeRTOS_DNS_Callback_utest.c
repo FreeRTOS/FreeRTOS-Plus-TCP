@@ -205,6 +205,82 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 /**
  * @brief Happy Path!
  */
+void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
+{
+    BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
+    DNSMessage_t xDNSMessageHeader;
+    char pc_name[] = "test";
+    uint8_t dnsCallbackMemory[ sizeof( DNSCallback_t ) + ipconfigDNS_CACHE_NAME_LENGTH ];
+    DNSCallback_t * pxDnsCallback = ( DNSCallback_t * ) &dnsCallbackMemory;
+
+    pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
+    pxSet.usPortNumber = FreeRTOS_htons( ipMDNS_PORT );
+    strcpy( pxSet.pcName, pc_name );
+    pxDnsCallback->pCallbackFunction = dns_callback;
+    strcpy( pxDnsCallback->pcName, pc_name );
+
+    /* Expectations */
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+    vTaskSuspendAll_Expect();
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( pxDnsCallback );
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    vPortFree_ExpectAnyArgs();
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
+
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    /* API Call */
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
+
+    /* Validations */
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_EQUAL( 1, callback_called );
+}
+
+/**
+ * @brief A failure path occurs when the port number is for MDNS but
+ *        the name does not match.
+ */
+void test_xDNSDoCallback_fail_equal_port_number_not_equal_name( void )
+{
+    BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
+    DNSMessage_t xDNSMessageHeader;
+
+    pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
+    pxSet.pxDNSMessageHeader->usIdentifier = 123;
+    pxSet.usPortNumber = FreeRTOS_htons( ipMDNS_PORT );
+    char pc_name[] = "test";
+    strcpy( pxSet.pcName, pc_name );
+    dnsCallback->pCallbackFunction = dns_callback;
+    dnsCallback->pcName[ 0 ] = '\0';
+
+    /* Expectations */
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+    vTaskSuspendAll_Expect();
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    /* API Call */
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
+
+    /* Validations */
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    TEST_ASSERT_EQUAL( 0, callback_called );
+}
+
+/**
+ * @brief Happy Path!
+ */
 void test_xDNSSetCallBack_success( void )
 {
     void * pvSearchID = NULL;

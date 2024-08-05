@@ -19,6 +19,12 @@
 #include "memory_assignments.c"
 #include "freertos_api.c"
 
+/* vProcessGeneratedUDPPacket_IPv6 is proven separately. */
+void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
+}
+
 /* We do not need to calculate the actual checksum for the proof to be complete.
  * Neither does the checksum matter for completeness. */
 uint16_t usGenerateChecksum( uint16_t usSum,
@@ -32,7 +38,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Return any random value of checksum since it does not matter for CBMC checks. */
     return usChecksum;
 }
-
 
 /* We do not need to calculate the actual checksum for the proof to be complete.
  * Neither does the checksum matter for completeness. */

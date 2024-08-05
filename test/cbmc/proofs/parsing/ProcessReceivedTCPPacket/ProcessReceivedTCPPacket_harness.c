@@ -35,6 +35,81 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
     return pxCurrentTCB;
 }
 
+/* Abstraction of vTCPStateChange */
+void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
+                      enum eTCP_STATE eTCPState )
+{
+}
+
+/* prvTCPReturnPacket is proven separately */
+void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
+                         NetworkBufferDescriptor_t * pxDescriptor,
+                         uint32_t ulLen,
+                         BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket should not be NULL" );
+    __CPROVER_assert( pxDescriptor != NULL, "pxDescriptor should not be NULL" );
+    __CPROVER_assert( pxDescriptor->pucEthernetBuffer != NULL, "pucEthernetBuffer should not be NULL" );
+}
+
+/* prvTCPPrepareSend is proven separately. */
+int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
+                           NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                           UBaseType_t uxOptionsLength )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
+    __CPROVER_assert( *ppxNetworkBuffer != NULL, "*ppxNetworkBuffer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( ( *ppxNetworkBuffer )->pucEthernetBuffer, ( *ppxNetworkBuffer )->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
+
+    return nondet_int32();
+}
+
+/* prvTCPHandleState is proven separately. */
+BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t ** ppxNetworkBuffer )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
+    __CPROVER_assert( *ppxNetworkBuffer != NULL, "*ppxNetworkBuffer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( ( *ppxNetworkBuffer )->pucEthernetBuffer, ( *ppxNetworkBuffer )->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
+
+    return nondet_basetype();
+}
+
+/* prvCheckOptions is proven separately. */
+BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                            const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "*ppxNetworkBuffer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
+
+    return nondet_basetype();
+}
+
+BaseType_t xTCPWindowTxHasData( TCPWindow_t const * pxWindow,
+                                uint32_t ulWindowSize,
+                                TickType_t * pulDelay )
+{
+    __CPROVER_assert( pxWindow != NULL, "pxWindow cannot be NULL" );
+    __CPROVER_assert( pulDelay != NULL, "pulDelay cannot be NULL" );
+
+    return nondet_basetype();
+}
+
+/* Abstraction of xSequenceLessThan */
+BaseType_t xSequenceLessThan( uint32_t a,
+                              uint32_t b )
+{
+    return nondet_basetype();
+}
+
+/* Abstraction of xSequenceGreaterThan */
+BaseType_t xSequenceGreaterThan( uint32_t a,
+                                 uint32_t b )
+{
+    return nondet_basetype();
+}
+
 /* Abstraction of prvHandleListen_IPV4 */
 FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
                                           NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -98,14 +173,12 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( TCPPacket_t ), 0 );
 
     /* To avoid asserting on the network buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
-
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
-
-    /* To avoid asserting on the ethernet buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     xProcessReceivedTCPPacket( pxNetworkBuffer );
