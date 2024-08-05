@@ -91,7 +91,6 @@
     #define ipconfigEMAC_WATCHDOG_TIMER()
 #endif
 
-
 /* Bit map of outstanding ETH interrupt events for processing. */
 static volatile uint32_t ulISREvents;
 
