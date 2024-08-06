@@ -1196,6 +1196,7 @@ static void prvEMACHandlerTask( void * pvParameters )
                 prvEthernetUpdateConfig( pdFALSE );
             }
         }
+
         ipconfigEMAC_TASK_HOOK();
     }
 }
