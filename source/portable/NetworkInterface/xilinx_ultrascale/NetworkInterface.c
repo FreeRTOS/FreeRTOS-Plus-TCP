@@ -68,7 +68,7 @@
 #endif
 
 /* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
+ * https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/05-Buffer-management */
 #if ( USE_JUMBO_FRAMES == 1 )
     #define niBUFFER_1_PACKET_SIZE    10240
 #else

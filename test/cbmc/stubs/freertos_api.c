@@ -200,7 +200,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 
 /****************************************************************
 * Abstract FreeRTOS_GetUDPPayloadBuffer
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/FreeRTOS_GetUDPPayloadBuffer.html
+* https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/09-API-reference/34-FreeRTOS_GetUDPPayloadBuffer
 *
 * We stub out this function to do nothing but allocate a buffer of
 * unconstrained size containing unconstrained data and return a
@@ -329,7 +329,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 
 /****************************************************************
 * Abstract FreeRTOS_GetAddressConfiguration
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/FreeRTOS_GetAddressConfiguration.html
+* https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/09-API-reference/32-FreeRTOS_GetAddressConfiguration
 ****************************************************************/
 
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
@@ -389,7 +389,6 @@ const char * pcApplicationHostnameHook( void )
 
 /****************************************************************
 * Abstract xNetworkInterfaceOutput
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Porting.html#xNetworkInterfaceOutput
 ****************************************************************/
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t bReleaseAfterSend )

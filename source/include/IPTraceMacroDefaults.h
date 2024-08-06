@@ -29,7 +29,7 @@
  * @file IPTraceMacroDefaults.h
  * @brief This file provides default (empty) implementations for any IP trace
  *        macros that are not defined by the user.  See
- *        http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html
+ *        https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/08-Trace-macros
  */
 
 #ifndef IP_TRACE_MACRO_DEFAULTS_H
