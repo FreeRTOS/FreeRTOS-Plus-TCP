@@ -87,8 +87,8 @@
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
 #endif
 
-#ifndef ipconfigEMAC_WATCHDOG_TIMER
-    #define ipconfigEMAC_WATCHDOG_TIMER()
+#ifndef ipconfigEMAC_TASK_HOOK
+    #define ipconfigEMAC_TASK_HOOK()
 #endif
 
 /* Bit map of outstanding ETH interrupt events for processing. */
@@ -1196,7 +1196,7 @@ static void prvEMACHandlerTask( void * pvParameters )
                 prvEthernetUpdateConfig( pdFALSE );
             }
         }
-        ipconfigEMAC_WATCHDOG_TIMER();
+        ipconfigEMAC_TASK_HOOK();
     }
 }
 
