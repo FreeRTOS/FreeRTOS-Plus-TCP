@@ -1511,6 +1511,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         {
             /* The frame is an unsupported Ethernet II type */
             #if ipconfigIS_ENABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
+
                 /* Processing custom Ethernet frames is enabled. No need for any further testing.
                  * Accept the frame whether it's a unicast, multicast, or broadcast. */
                 eReturn = eProcessBuffer;
