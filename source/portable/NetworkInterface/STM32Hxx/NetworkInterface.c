@@ -87,6 +87,9 @@
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
 #endif
 
+#ifndef ipconfigEMAC_TASK_HOOK
+    #define ipconfigEMAC_TASK_HOOK()
+#endif
 
 /* Bit map of outstanding ETH interrupt events for processing. */
 static volatile uint32_t ulISREvents;
@@ -1193,6 +1196,8 @@ static void prvEMACHandlerTask( void * pvParameters )
                 prvEthernetUpdateConfig( pdFALSE );
             }
         }
+
+        ipconfigEMAC_TASK_HOOK();
     }
 }
 
