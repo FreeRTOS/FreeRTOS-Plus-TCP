@@ -1202,3 +1202,16 @@ static void prvEMACHandlerTask( void * pvParameters )
 }
 
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief The variable 'xEMACTaskHandle' is declared static.  This function
+ *        gives read-only access to it.
+ *
+ * @return The handle of the EMAC-task.
+ */
+TaskHandle_t FreeRTOS_GetEMACTaskHandle( void )
+{
+    return xEMACTaskHandle;
+}
+
+/*-----------------------------------------------------------*/
