@@ -2116,7 +2116,7 @@ void test_prvProcessEthernetPacket_ARPFrameType2( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingResolution
  * without pxARPWaitingNetworkBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
@@ -2141,7 +2141,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
 
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingARPResolution );
+    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingResolution );
 
     vIPTimerStartARPResolution_ExpectAnyArgs();
 
@@ -2150,7 +2150,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingResolution
  * with pxARPWaitingNetworkBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
@@ -2175,7 +2175,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
 
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingARPResolution );
+    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingResolution );
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
@@ -2489,7 +2489,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
 }
 
 /**
@@ -2825,12 +2825,12 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
-    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
-    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
+    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForResolution();
+    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForResolution( &xReturnValue );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) - sizeof( UDPHeader_t ) + sizeof( UDPPacket_t ), pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
@@ -2876,12 +2876,12 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
-    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
-    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
+    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForResolution();
+    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForResolution( &xReturnValue );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
 }
@@ -3360,7 +3360,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
 
     eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
 }
 
 /**

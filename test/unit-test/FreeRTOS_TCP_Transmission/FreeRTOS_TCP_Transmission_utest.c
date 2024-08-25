@@ -1212,7 +1212,7 @@ void test_prvTCPPrepareConnect_Ready_TCPWindowCreateFail( void )
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
     pxSocket->bits.bIsIPv6 = pdFALSE;
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0x11111111 );
     prvSocketSetMSS_ExpectAnyArgs();
     xTCPWindowCreate_ExpectAnyArgsAndReturn( pdFAIL );

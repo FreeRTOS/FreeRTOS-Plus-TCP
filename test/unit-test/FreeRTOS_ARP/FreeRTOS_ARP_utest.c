@@ -1961,7 +1961,7 @@ void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
     eResolutionLookupResult_t eResult;
     MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
     int i;
-    struct xNetworkInterface * xInterface;
+    NetworkInterface_t xInterface, * pxInterface = &xInterface;
 
     /* =================================================== */
     /* Make sure no entry matches. */
@@ -1971,7 +1971,7 @@ void test_eARPGetCacheEntryByMac_NoMatchingEntries( void )
         memset( xARPCache[ i ].xMACAddress.ucBytes, 0x11, sizeof( xMACAddress.ucBytes ) );
     }
 
-    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
+    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &pxInterface );
     TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
     TEST_ASSERT_EQUAL( 0x12345678, ulIPAddress );
     /* =================================================== */
@@ -1984,7 +1984,7 @@ void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
     MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
     int i;
     NetworkEndPoint_t xNetworkEndPoint = { 0 };
-    NetworkInterface_t xInterface, * pxInterface = NULL;
+    NetworkInterface_t xInterface, * pxInterface = &xInterface;
 
     xNetworkEndPoint.pxNetworkInterface = &xInterface;
 
@@ -2000,7 +2000,7 @@ void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
     ulEntryToTest = 1;
     memset( xARPCache[ ulEntryToTest ].xMACAddress.ucBytes, 0x22, sizeof( xMACAddress.ucBytes ) );
     xARPCache[ ulEntryToTest ].ulIPAddress = 0xAABBCCEE;
-    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
+    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &pxInterface );
     TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     TEST_ASSERT_EQUAL( &xInterface, pxInterface );
@@ -2010,7 +2010,7 @@ void test_eARPGetCacheEntryByMac_OneMatchingEntry( void )
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */
     xARPCache[ ulEntryToTest ].pxEndPoint = NULL;
-    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &xInterface );
+    eResult = eARPGetCacheEntryByMac( &xMACAddress, &ulIPAddress, &pxInterface );
     TEST_ASSERT_EQUAL( eResolutionCacheHit, eResult );
     TEST_ASSERT_EQUAL( xARPCache[ ulEntryToTest ].ulIPAddress, ulIPAddress );
     /* =================================================== */

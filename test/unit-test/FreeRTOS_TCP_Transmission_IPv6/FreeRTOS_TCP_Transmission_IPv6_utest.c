@@ -574,7 +574,7 @@ void test_prvTCPPrepareConnect_IPV6_CreateTCPWindowFails( void )
     memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
     memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
     pxSocket->bits.bIsIPv6 = 1;
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );

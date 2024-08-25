@@ -3680,13 +3680,13 @@ void test_xCheckRequiresResolution( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     /* Make sure there is no match. */
-    pxIPHeader->ulSourceIPAddress = ~( *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask );
+    pxIPHeader->ulSourceIPAddress = ~( xEndPoint.ipv4_settings.ulIPAddress & xEndPoint.ipv4_settings.ulNetMask );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     xCheckRequiresARPResolution_IgnoreAndReturn( pdFALSE );
