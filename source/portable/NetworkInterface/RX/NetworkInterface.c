@@ -102,8 +102,8 @@ void prvLinkStatusChange( BaseType_t xStatus );
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
-NetworkInterface_t * pxRX_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                   NetworkInterface_t * pxInterface );
+    NetworkInterface_t * pxRX_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                       NetworkInterface_t * pxInterface );
 #endif
 
 /* Function to initialise the network interface */
@@ -139,11 +139,11 @@ NetworkInterface_t * pxRX_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 }
 
 #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
-{
-	return pxRX_FillInterfaceDescriptor( xEMACIndex, pxInterface );
-}
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        return pxRX_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
 #endif
 
 /***********************************************************************************************************************
