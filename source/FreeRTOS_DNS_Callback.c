@@ -76,8 +76,8 @@
                 BaseType_t xMatching;
                 DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                 #if ( ipconfigUSE_MDNS == 1 )
-                    /* mDNS port 5353. */
-                    if( pxSet->usPortNumber == FreeRTOS_htons( ipMDNS_PORT ) )
+                    /* mDNS port 5353. Host byte order comparison. */
+                    if( pxSet->usPortNumber == ipMDNS_PORT )
                     {
                         /* In mDNS, the query ID field is ignored and the
                          * hostname will be compared with outstanding requests. */

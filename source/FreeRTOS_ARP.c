@@ -974,7 +974,18 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
         ulAddressToLookup = *pulIPAddress;
         pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup );
 
-        if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
+        if( xIsIPv4Loopback( ulAddressToLookup ) != 0 )
+        {
+            if( pxEndPoint != NULL )
+            {
+                /* For multi-cast, use the first IPv4 end-point. */
+                memcpy( pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( pxMACAddress->ucBytes ) );
+                *( ppxEndPoint ) = pxEndPoint;
+                eReturn = eARPCacheHit;
+                /*FreeRTOS_printf( ( "eARPGetCacheEntry: loopback found\n" ) ); */
+            }
+        }
+        else if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
         {
             /* Get the lowest 23 bits of the IP-address. */
             vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
