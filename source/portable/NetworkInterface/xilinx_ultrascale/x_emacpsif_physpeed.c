@@ -54,7 +54,6 @@
 #include <stdlib.h>
 
 #include "x_emacpsif.h"
-/*#include "lwipopts.h" */
 #include "xparameters_ps.h"
 #include "xparameters.h"
 
@@ -69,6 +68,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 
 #define phyMIN_PHY_ADDRESS    0
@@ -76,9 +76,8 @@
 
 #define MINIMUM_SLEEP_TIME    ( ( TickType_t ) 1 * configTICK_RATE_HZ )
 
-/*** IMPORTANT: Define PEEP in xemacpsif.h and sys_arch_raw.c
- *** to run it on a PEEP board
- ***/
+
+uint32_t phy_detected[ 4 ];
 
 /* Advertisement control register. */
 #define ADVERTISE_10HALF      0x0020    /* Try for 10mbps half-duplex  */
@@ -226,8 +225,6 @@
 #define GEM_VERSION_ZYNQMP                     7
 #define GEM_VERSION_VERSAL                     0x107
 
-u32 phymapemac0[ 32 ];
-u32 phymapemac1[ 32 ];
 
 static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
                                            uint32_t phy_addr,
@@ -912,7 +909,7 @@ static uint32_t ar8035CheckStatus( XEmacPs * xemacpsp,
 static const char * pcGetPHIName( uint16_t usID )
 {
     const char * pcReturn = "";
-    static char pcName[ 16 ];
+    static char pcName[ 32 ];
 
     switch( usID )
     {
@@ -973,8 +970,6 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
 
         case PHY_AR8035_IDENTIFIER:
             RetStatus = get_AR8035_phy_speed( xemacpsp, phy_addr );
-            /* RetStatus = get_Marvell_phy_speed(xemacpsp, phy_addr); */
-            /* RetStatus = get_Realtek_phy_speed(xemacpsp, phy_addr); */
             prvSET_AR803x_TX_Timing( xemacpsp, phy_addr );
             break;
 
