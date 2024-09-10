@@ -2347,6 +2347,91 @@ void test_eARPGetCacheEntry_NoCacheHit( void )
     /* =================================================== */
 }
 
+/**
+ * @brief Test the scenario that the address given is a loopback address
+ * but there is no loopback endpoint
+ */
+void test_eARPGetCacheEntry_LoopbackAddress( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress = {0};
+    MACAddress_t xMACAddressExp = {0};
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
+    struct xNetworkInterface * xInterface;
+    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    int i;
+
+    /* =================================================== */
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    {
+        xARPCache[ i ].ulIPAddress = 0;
+        xARPCache[ i ].ucValid = ( uint8_t ) pdTRUE;
+        xARPCache[ i ].pxEndPoint = NULL;
+    }
+
+    ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;
+    xNetworkAddressing.ulGatewayAddress = 0;
+    /* Make IP address param == 0 */
+    ulIPAddress = 0x7F000000UL;
+
+    /* Make both values (IP address and local IP pointer) different
+     * and on different net masks. */
+    xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
+    pxNetworkEndPoints = &xEndPoint;
+    /* Not worried about what these functions do. */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    xIsIPv4Loopback_ExpectAndReturn(ulIPAddress, 1UL);
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
+    TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
+    TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
+    TEST_ASSERT_EQUAL_MEMORY(xMACAddressExp.ucBytes, xMACAddress.ucBytes, sizeof(MACAddress_t));
+    /* =================================================== */
+}
+
+/**
+ * @brief Test the scenario that the address given is a loopback address
+ * and there is a loopback endpoint
+ */
+void test_eARPGetCacheEntry_LoopbackAddress_ValidLPEndpoint( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress = {0};
+    MACAddress_t xMACAddressExp = {0x11,0x22,0x33,0x11,0x22,0x33};
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
+    struct xNetworkInterface * xInterface;
+    struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    int i;
+
+    /* =================================================== */
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    {
+        xARPCache[ i ].ulIPAddress = 0;
+        xARPCache[ i ].ucValid = ( uint8_t ) pdTRUE;
+        xARPCache[ i ].pxEndPoint = NULL;
+    }
+
+    ulSavedGatewayAddress = xNetworkAddressing.ulGatewayAddress;
+    xNetworkAddressing.ulGatewayAddress = 0;
+    /* Make IP address param == 0 */
+    ulIPAddress = 0x7F000000UL;
+
+    /* Make both values (IP address and local IP pointer) different
+     * and on different net masks. */
+    xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
+    memcpy(xEndPoint.xMACAddress.ucBytes, xMACAddressExp.ucBytes, sizeof(MACAddress_t));
+    pxNetworkEndPoints = &xEndPoint;
+    /* Not worried about what these functions do. */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
+    xIsIPv4Loopback_ExpectAndReturn(ulIPAddress, 1UL);
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
+    TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
+    TEST_ASSERT_EQUAL( pxEndPoint, &xEndPoint );
+    TEST_ASSERT_EQUAL_MEMORY(xMACAddressExp.ucBytes, xMACAddress.ucBytes, sizeof(MACAddress_t));
+    /* =================================================== */
+}
+
 void test_vARPAgeCache( void )
 {
     NetworkEndPoint_t xEndPoint = { 0 };

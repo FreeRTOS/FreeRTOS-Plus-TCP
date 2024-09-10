@@ -962,7 +962,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                                           MACAddress_t * const pxMACAddress,
                                           struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eARPLookupResult_t eReturn;
+        eARPLookupResult_t eReturn = eARPCacheMiss;
         uint32_t ulAddressToLookup;
         NetworkEndPoint_t * pxEndPoint = NULL;
 
