@@ -54,6 +54,7 @@
 #include <stdlib.h>
 
 #include "x_emacpsif.h"
+#include "x_emac_map.h"
 #include "xparameters_ps.h"
 #include "xparameters.h"
 

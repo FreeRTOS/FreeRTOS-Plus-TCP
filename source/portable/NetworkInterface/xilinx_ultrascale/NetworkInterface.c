@@ -50,6 +50,7 @@
 #include "x_topology.h"
 #include "x_emacpsif.h"
 #include "x_emacpsif_hw.h"
+#include "x_emac_map.h"
 
 /* Provided memory configured as uncached. */
 #include "uncached_memory.h"
@@ -160,7 +161,7 @@ struct xtopology_t xXTopologies[ XPAR_XEMACPS_NUM_INSTANCES ] =
         .intc_baseaddr    = 0x0,
         .intc_emac_intr   = 0x0,
         .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
-        .scugic_emac_intr = XPAR_XEMACPS_0_INTR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_0_IRQ_ID,
         },
     #if ( XPAR_XEMACPS_NUM_INSTANCES > 1 )
         [ 1 ] =
@@ -170,7 +171,7 @@ struct xtopology_t xXTopologies[ XPAR_XEMACPS_NUM_INSTANCES ] =
         .intc_baseaddr    = 0x0,
         .intc_emac_intr   = 0x0,
         .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
-        .scugic_emac_intr = XPAR_XEMACPS_1_INTR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_1_IRQ_ID,
         },
     #elif ( XPAR_XEMACPS_NUM_INSTANCES > 2 )
         [ 2 ] =
@@ -180,7 +181,7 @@ struct xtopology_t xXTopologies[ XPAR_XEMACPS_NUM_INSTANCES ] =
         .intc_baseaddr    = 0x0,
         .intc_emac_intr   = 0x0,
         .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
-        .scugic_emac_intr = XPAR_XEMACPS_2_INTR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_2_IRQ_ID,
         },
     #elif ( XPAR_XEMACPS_NUM_INSTANCES > 3 )
         [ 3 ] =
@@ -190,7 +191,7 @@ struct xtopology_t xXTopologies[ XPAR_XEMACPS_NUM_INSTANCES ] =
         .intc_baseaddr    = 0x0,
         .intc_emac_intr   = 0x0,
         .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
-        .scugic_emac_intr = XPAR_XEMACPS_3_INTR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_3_IRQ_ID,
         },
     #endif /* if ( XPAR_XEMACPS_NUM_INSTANCES > 1 ) */
 };
