@@ -157,6 +157,7 @@ uint32_t phy_detected[ 4 ];
 #define PHY_MARVELL_IDENTIFIER                 0x0141
 #define PHY_TI_IDENTIFIER                      0x2000
 #define PHY_REALTEK_IDENTIFIER                 0x001c
+#define PHY_MICREL_IDENTIFIER                  0x0022
 #define PHY_AR8035_IDENTIFIER                  0x004D
 #define PHY_XILINX_PCS_PMA_ID1                 0x0174
 #define PHY_XILINX_PCS_PMA_ID2                 0x0C00
@@ -659,6 +660,240 @@ static uint32_t get_Realtek_phy_speed( XEmacPs * xemacpsp,
     return XST_FAILURE;
 }
 
+#define LPA_IEEE_1000FD      0x0800
+#define LP5_IEEE_100BTXFD    0x0100
+#define LP5_IEEE_10BTFD      0x0040
+#define MICREL_ID_KSZ9021    0x0161
+#define MICREL_ID_KSZ9031    0x0162
+#define MICREL_ID_KSZ9131    0x0164
+
+
+static int set_Micrel_phy_delays( XEmacPs * EmacPsInstancePtr,
+                                  uint32_t PhyAddr )
+{
+    int Status;
+    uint16_t PhyType, PhyData;
+
+    XEmacPs_PhyRead( EmacPsInstancePtr, PhyAddr, 0x3, ( u16 * ) &PhyData ); /* read value */
+    PhyType = ( PhyData >> 4 );
+
+    /* enabling RGMII delays */
+    if( PhyType == MICREL_ID_KSZ9131 ) /* KSZ9131 */
+    {
+        FreeRTOS_printf( ( "Detected KSZ9131 Ethernet PHY\n\r" ) );
+        /*Ctrl Delay */
+        u16 RxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0004 ); /* Reg 0x4 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxCtrlDelay | ( RxCtrlDelay << 4 ) ) );
+        /*Data Delay */
+        u16 RxDataDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxDataDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0005 ); /* Reg 0x5 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxDataDelay | ( RxDataDelay << 4 ) | ( RxDataDelay << 8 ) | ( RxDataDelay << 12 ) ) );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0006 ); /* Reg 0x6 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxDataDelay | ( TxDataDelay << 4 ) | ( TxDataDelay << 8 ) | ( TxDataDelay << 12 ) ) );
+        /*Clock Delay */
+        u16 RxClockDelay = 31;                                       /* 0..31, default 15 */
+        u16 TxClockDelay = 31;                                       /* 0..31, default 15 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0008 ); /* Reg 0x8 RGMII Clock Pad Skew */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxClockDelay | ( TxClockDelay << 5 ) ) );
+    }
+    else if( PhyType == MICREL_ID_KSZ9031 ) /* KSZ9031 */
+    {
+        FreeRTOS_printf( ( "Detected KSZ9031 Ethernet PHY\n\r" ) );
+        /*Ctrl Delay */
+        u16 RxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0004 ); /* Reg 0x4 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxCtrlDelay | ( RxCtrlDelay << 4 ) ) );
+        /*Data Delay */
+        u16 RxDataDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxDataDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0005 ); /* Reg 0x5 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxDataDelay | ( RxDataDelay << 4 ) | ( RxDataDelay << 8 ) | ( RxDataDelay << 12 ) ) );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0006 ); /* Reg 0x6 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxDataDelay | ( TxDataDelay << 4 ) | ( TxDataDelay << 8 ) | ( TxDataDelay << 12 ) ) );
+        /*Clock Delay */
+        u16 RxClockDelay = 31;                                       /* 0..31, default 15 */
+        u16 TxClockDelay = 31;                                       /* 0..31, default 15 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0008 ); /* Reg 0x8 RGMII Clock Pad Skew */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxClockDelay | ( TxClockDelay << 5 ) ) );
+    }
+    else if( PhyType == MICREL_ID_KSZ9021 ) /* KSZ9021 */
+    {
+        FreeRTOS_printf( ( "Detected KSZ9021 Ethernet PHY\n\r" ) );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xB, 0x8104 ); /* write Reg 0x104 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xC, 0xF0F0 ); /* set write data */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xB, 0x8105 ); /* write Reg 0x105 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xC, 0x0000 ); /* set write data */
+    }
+
+    /* Issue a reset to phy */
+    Status = XEmacPs_PhyRead( EmacPsInstancePtr, PhyAddr, 0x0, &PhyData );
+    PhyData |= 0x8000;
+    Status = XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0x0, PhyData );
+    vTaskDelay( 1 );
+    Status |= XEmacPs_PhyRead( EmacPsInstancePtr, PhyAddr, 0x0, &PhyData );
+
+    if( Status != XST_SUCCESS )
+    {
+        return Status;
+    }
+
+    return PhyType;
+}
+
+static uint32_t get_Micrel_phy_speed( XEmacPs * xemacpsp,
+                                      uint32_t phy_addr )
+{
+    const char * name_ptr;
+    uint16_t temp, phy_type;
+    uint16_t control;
+    uint16_t status;
+    uint16_t status_speed;
+    uint32_t timeout_counter = 0;
+
+    /* Just to prevent compiler warnings about unused variables. */
+    ( void ) name_ptr;
+
+
+    FreeRTOS_printf( ( "Start Micrel PHY program delay\r\n" ) );
+
+    if( ( phy_type = set_Micrel_phy_delays( xemacpsp, phy_addr ) ) != XST_FAILURE )
+    {
+        FreeRTOS_printf( ( "Delay Set Okay!\r\n" ) );
+    }
+    else
+    {
+        FreeRTOS_printf( ( "Delay Set Error!\r\n" ) );
+    }
+
+    switch( phy_type )
+    {
+        case MICREL_ID_KSZ9021:
+            name_ptr = "KSZ9021";
+            break;
+
+        case MICREL_ID_KSZ9031:
+            name_ptr = "KSZ9031";
+            break;
+
+        case MICREL_ID_KSZ9131:
+            name_ptr = "KSZ9131";
+            break;
+
+        default:
+            name_ptr = "!UNKNOWN!";
+            break;
+    }
+
+    FreeRTOS_printf( ( "Start %s auto-negotiation\r\n", name_ptr ) );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, &control );
+    control |= IEEE_ASYMMETRIC_PAUSE_MASK;
+    control |= IEEE_PAUSE_MASK;
+    control |= ADVERTISE_100;
+    control |= ADVERTISE_10;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET, &control );
+    control |= ADVERTISE_1000;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_COPPER_SPECIFIC_CONTROL_REG, &control );
+    control |= ( 7 << 12 );
+    control |= ( 1 << 11 );
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_COPPER_SPECIFIC_CONTROL_REG, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
+    control |= IEEE_CTRL_AUTONEGOTIATE_ENABLE;
+    control |= IEEE_STAT_AUTONEGOTIATE_RESTART;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
+    control |= IEEE_CTRL_RESET_MASK;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, control );
+
+    while( 1 )
+    {
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
+
+        if( control & IEEE_CTRL_RESET_MASK )
+        {
+            continue;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
+
+    FreeRTOS_printf( ( "Waiting for %s to complete Auto-negotiation.\r\n", name_ptr ) );
+
+    while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
+    {
+        vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_COPPER_SPECIFIC_STATUS_REG_2, &temp );
+        timeout_counter++;
+
+        if( timeout_counter == 30 )
+        {
+            FreeRTOS_printf( ( "Auto negotiation error \r\n" ) );
+            return XST_FAILURE;
+        }
+
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
+    }
+
+    FreeRTOS_printf( ( "%s Completed Auto-negotiation\r\n", name_ptr ) );
+
+    /* Check for high speed connection first */
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PARTNER_ABILITIES_3_REG_OFFSET, &status_speed );
+
+    if( status_speed & LPA_IEEE_1000FD )
+    {
+        FreeRTOS_printf( ( "Micrel PHY %s speed 1000Mbps\r\n", name_ptr ) );
+        return 1000;
+    }
+    else /* No high speed so check lows... */
+    {
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PARTNER_ABILITIES_1_REG_OFFSET, &status_speed );
+
+        if( status_speed & LP5_IEEE_100BTXFD )
+        {
+            FreeRTOS_printf( ( "Micrel PHY %s speed 100Mbps\r\n", name_ptr ) );
+            return 100;
+        }
+
+        if( status_speed & LP5_IEEE_10BTFD )
+        {
+            FreeRTOS_printf( ( "Micrel PHY %s speed 10Mbps\r\n", name_ptr ) );
+            return 10;
+        }
+    }
+
+    return XST_FAILURE;
+}
+
 /* Here is a XEmacPs_PhyRead() that returns the value of a register. */
 static uint16_t XEmacPs_PhyRead2( XEmacPs * InstancePtr,
                                   u32 PhyAddress,
@@ -898,6 +1133,10 @@ static const char * pcGetPHIName( uint16_t usID )
             pcReturn = "Realtek RTL8212";
             break;
 
+        case PHY_MICREL_IDENTIFIER:
+            pcReturn = "MICREL PHY";
+            break;
+
         case PHY_AR8035_IDENTIFIER:
             pcReturn = "Atheros_ar8035";
             break;
@@ -943,6 +1182,10 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
 
         case PHY_MARVELL_IDENTIFIER:
             RetStatus = get_Marvell_phy_speed( xemacpsp, phy_addr );
+            break;
+
+        case PHY_MICREL_IDENTIFIER:
+            RetStatus = get_Micrel_phy_speed( xemacpsp, phy_addr );
             break;
 
         case PHY_AR8035_IDENTIFIER:
