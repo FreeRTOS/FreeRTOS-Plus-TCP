@@ -310,13 +310,10 @@ static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * px
             pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
             configASSERT( pxEndPoint != NULL );
 
-            if( pxEMAC_PS->Version > 2 )
-            {
-                #if ( USE_JUMBO_FRAMES == 1 )
-                    /* Enable jumbo frames for zynqmp */
-                    XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
-                #endif
-            }
+            #if ( USE_JUMBO_FRAMES == 1 )
+                /* Enable jumbo frames for zynqmp */
+                XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
+            #endif
 
             /* Initialize the mac and set the MAC address at position 1. */
             XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) pxEndPoint->xMACAddress.ucBytes, 1 );

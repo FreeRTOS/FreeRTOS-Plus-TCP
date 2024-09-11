@@ -178,30 +178,6 @@ uint32_t phy_detected[ 4 ];
 #define PHY_TI_CRVAL                           0x5048
 #define PHY_TI_CFG4RESVDBIT7                   0x80
 
-/* Frequency setting */
-#define SLCR_LOCK_ADDR                         ( XPS_SYS_CTRL_BASEADDR + 0x4 )
-#define SLCR_UNLOCK_ADDR                       ( XPS_SYS_CTRL_BASEADDR + 0x8 )
-#define SLCR_GEM0_CLK_CTRL_ADDR                ( XPS_SYS_CTRL_BASEADDR + 0x140 )
-#define SLCR_GEM1_CLK_CTRL_ADDR                ( XPS_SYS_CTRL_BASEADDR + 0x144 )
-#ifdef PEEP
-    #define SLCR_GEM_10M_CLK_CTRL_VALUE        0x00103031
-    #define SLCR_GEM_100M_CLK_CTRL_VALUE       0x00103001
-    #define SLCR_GEM_1G_CLK_CTRL_VALUE         0x00103011
-#endif
-#define SLCR_GEM_SRCSEL_EMIO                   0x40
-#define SLCR_LOCK_KEY_VALUE                    0x767B
-#define SLCR_UNLOCK_KEY_VALUE                  0xDF0D
-#define SLCR_ADDR_GEM_RST_CTRL                 ( XPS_SYS_CTRL_BASEADDR + 0x214 )
-#define EMACPS_SLCR_DIV_MASK                   0xFC0FC0FF
-
-#define ZYNQ_EMACPS_0_BASEADDR                 0xE000B000
-#define ZYNQ_EMACPS_1_BASEADDR                 0xE000C000
-
-#define ZYNQMP_EMACPS_0_BASEADDR               0xFF0B0000
-#define ZYNQMP_EMACPS_1_BASEADDR               0xFF0C0000
-#define ZYNQMP_EMACPS_2_BASEADDR               0xFF0D0000
-#define ZYNQMP_EMACPS_3_BASEADDR               0xFF0E0000
-
 #define CRL_APB_GEM0_REF_CTRL                  0xFF5E0050
 #define CRL_APB_GEM1_REF_CTRL                  0xFF5E0054
 #define CRL_APB_GEM2_REF_CTRL                  0xFF5E0058
@@ -985,10 +961,6 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
 static void SetUpSLCRDivisors( u32 mac_baseaddr,
                                s32 speed )
 {
-    volatile u32 slcrBaseAddress;
-    u32 SlcrDiv0 = 0;
-    u32 SlcrDiv1 = 0;
-    u32 SlcrTxClkCntrl;
     u32 gigeversion;
     volatile u32 CrlApbBaseAddr;
     u32 CrlApbDiv0 = 0;
@@ -997,92 +969,7 @@ static void SetUpSLCRDivisors( u32 mac_baseaddr,
 
     gigeversion = ( ( Xil_In32( mac_baseaddr + 0xFC ) ) >> 16 ) & 0xFFF;
 
-    if( gigeversion == 2 )
-    {
-        *( volatile u32 * ) ( SLCR_UNLOCK_ADDR ) = SLCR_UNLOCK_KEY_VALUE;
-
-        if( mac_baseaddr == ZYNQ_EMACPS_0_BASEADDR )
-        {
-            slcrBaseAddress = SLCR_GEM0_CLK_CTRL_ADDR;
-        }
-        else
-        {
-            slcrBaseAddress = SLCR_GEM1_CLK_CTRL_ADDR;
-        }
-
-        if( ( *( volatile u32 * ) ( UINTPTR ) ( slcrBaseAddress ) ) &
-            SLCR_GEM_SRCSEL_EMIO )
-        {
-            return;
-        }
-
-        if( speed == 1000 )
-        {
-            if( mac_baseaddr == XPAR_XEMACPS_0_BASEADDR )
-            {
-                #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV1;
-                #endif
-            }
-            else
-            {
-                #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV1;
-                #endif
-            }
-        }
-        else if( speed == 100 )
-        {
-            if( mac_baseaddr == XPAR_XEMACPS_0_BASEADDR )
-            {
-                #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV1;
-                #endif
-            }
-            else
-            {
-                #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV1;
-                #endif
-            }
-        }
-        else
-        {
-            if( mac_baseaddr == XPAR_XEMACPS_0_BASEADDR )
-            {
-                #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV1;
-                #endif
-            }
-            else
-            {
-                #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV1;
-                #endif
-            }
-        }
-
-        if( ( SlcrDiv0 != 0 ) && ( SlcrDiv1 != 0 ) )
-        {
-            SlcrTxClkCntrl = *( volatile u32 * ) ( UINTPTR ) ( slcrBaseAddress );
-            SlcrTxClkCntrl &= EMACPS_SLCR_DIV_MASK;
-            SlcrTxClkCntrl |= ( SlcrDiv1 << 20 );
-            SlcrTxClkCntrl |= ( SlcrDiv0 << 8 );
-            *( volatile u32 * ) ( UINTPTR ) ( slcrBaseAddress ) = SlcrTxClkCntrl;
-            *( volatile u32 * ) ( SLCR_LOCK_ADDR ) = SLCR_LOCK_KEY_VALUE;
-        }
-        else
-        {
-            FreeRTOS_printf( ( "Clock Divisors incorrect - Please check\n" ) );
-        }
-    }
-    else if( gigeversion == GEM_VERSION_ZYNQMP )
+    if( gigeversion == GEM_VERSION_ZYNQMP )
     {
         /* Setup divisors in CRL_APB for Zynq Ultrascale+ MPSoC */
         if( mac_baseaddr == ZYNQMP_EMACPS_0_BASEADDR )
@@ -1308,6 +1195,11 @@ static void SetUpSLCRDivisors( u32 mac_baseaddr,
         {
             FreeRTOS_printf( ( "Clock Divisors incorrect - Please check\n" ) );
         }
+    }
+    else
+    {
+        FreeRTOS_printf( ( "Invalid GEM version %u \n", gigeversion ) );
+        return;
     }
 }
 

@@ -47,29 +47,12 @@
 
 #include "uncached_memory.h"
 
-#ifndef ipconfigULTRASCALE
-    #error please define ipconfigULTRASCALE
-#endif
-
-/* Two defines used to set or clear the EMAC interrupt */
-#if ( ipconfigULTRASCALE == 1 )
-
 /*
  * XPAR_SCUGIC_0_CPU_BASEADDR  0xF9020000U
  * XPAR_SCUGIC_0_DIST_BASEADDR 0xF9010000U
  */
-    #define INTC_BASE_ADDR         XPAR_SCUGIC_0_CPU_BASEADDR
-    #define INTC_DIST_BASE_ADDR    XPAR_SCUGIC_0_DIST_BASEADDR
-#else
-
-/*
- * XPAR_SCUGIC_CPU_BASEADDR   (XPS_SCU_PERIPH_BASE + 0x00000100U)
- * XPAR_SCUGIC_DIST_BASEADDR  (XPS_SCU_PERIPH_BASE + 0x00001000U)
- */
-
-    #define INTC_BASE_ADDR         XPAR_SCUGIC_CPU_BASEADDR
-    #define INTC_DIST_BASE_ADDR    XPAR_SCUGIC_DIST_BASEADDR
-#endif
+#define INTC_BASE_ADDR         XPAR_SCUGIC_0_CPU_BASEADDR
+#define INTC_DIST_BASE_ADDR    XPAR_SCUGIC_0_DIST_BASEADDR
 
 #if ( ipconfigPACKET_FILLER_SIZE != 2 )
     #error Please define ipconfigPACKET_FILLER_SIZE as the value '2'
@@ -90,9 +73,7 @@
     #define dmaRX_TX_BUFFER_SIZE    1536
 #endif /* ( USE_JUMBO_FRAMES == 1 ) */
 
-#if ( ipconfigULTRASCALE == 1 )
-    extern XScuGic xInterruptController;
-#endif
+extern XScuGic xInterruptController;
 
 /* Defined in NetworkInterface.c */
 extern TaskHandle_t xEMACTaskHandles[ XPAR_XEMACPS_NUM_INSTANCES ];
@@ -793,35 +774,25 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
     }
 
     /* Set terminating BDs for US+ GEM */
-    if( xemacpsif->emacps.Version > 2 )
-    {
-        xemacpsif->rxBdTerminator = ( struct xBD_TYPE * ) pucGetUncachedMemory( sizeof( *xemacpsif->rxBdTerminator ) );
-        xemacpsif->txBdTerminator = ( struct xBD_TYPE * ) pucGetUncachedMemory( sizeof( *xemacpsif->txBdTerminator ) );
+    xemacpsif->rxBdTerminator = ( struct xBD_TYPE * ) pucGetUncachedMemory( sizeof( *xemacpsif->rxBdTerminator ) );
+    xemacpsif->txBdTerminator = ( struct xBD_TYPE * ) pucGetUncachedMemory( sizeof( *xemacpsif->txBdTerminator ) );
 
-        XEmacPs_BdClear( xemacpsif->rxBdTerminator );
-        XEmacPs_BdSetAddressRx( xemacpsif->rxBdTerminator, ( XEMACPS_RXBUF_NEW_MASK |
-                                                             XEMACPS_RXBUF_WRAP_MASK ) );
-        XEmacPs_Out32( ( emac->Config.BaseAddress + XEMACPS_RXQ1BASE_OFFSET ),
-                       ( UINTPTR ) xemacpsif->rxBdTerminator );
+    XEmacPs_BdClear( xemacpsif->rxBdTerminator );
+    XEmacPs_BdSetAddressRx( xemacpsif->rxBdTerminator, ( XEMACPS_RXBUF_NEW_MASK |
+                                                         XEMACPS_RXBUF_WRAP_MASK ) );
+    XEmacPs_Out32( ( emac->Config.BaseAddress + XEMACPS_RXQ1BASE_OFFSET ),
+                   ( UINTPTR ) xemacpsif->rxBdTerminator );
 
-        XEmacPs_BdClear( xemacpsif->txBdTerminator );
-        XEmacPs_BdSetStatus( xemacpsif->txBdTerminator,
-                             ( XEMACPS_TXBUF_USED_MASK | XEMACPS_TXBUF_WRAP_MASK ) );
-        XEmacPs_Out32( ( emac->Config.BaseAddress + XEMACPS_TXQBASE_OFFSET ),
-                       ( UINTPTR ) xemacpsif->txBdTerminator );
-    }
+    XEmacPs_BdClear( xemacpsif->txBdTerminator );
+    XEmacPs_BdSetStatus( xemacpsif->txBdTerminator,
+                         ( XEMACPS_TXBUF_USED_MASK | XEMACPS_TXBUF_WRAP_MASK ) );
+    XEmacPs_Out32( ( emac->Config.BaseAddress + XEMACPS_TXQBASE_OFFSET ),
+                   ( UINTPTR ) xemacpsif->txBdTerminator );
 
     /* These variables will be used in XEmacPs_Start (see src/xemacps.c). */
     XEmacPs_SetQueuePtr( emac, ( uintptr_t ) xemacpsif->rxSegments, 0, XEMACPS_RECV );
 
-    if( xemacpsif->emacps.Version > 2 )
-    {
-        XEmacPs_SetQueuePtr( emac, ( uintptr_t ) xemacpsif->txSegments, 1, XEMACPS_SEND );
-    }
-    else
-    {
-        XEmacPs_SetQueuePtr( emac, ( uintptr_t ) xemacpsif->txSegments, 0, XEMACPS_SEND );
-    }
+    XEmacPs_SetQueuePtr( emac, ( uintptr_t ) xemacpsif->txSegments, 1, XEMACPS_SEND );
 
     XScuGic_Connect( &xInterruptController, xtopologyp->scugic_emac_intr, XEmacPs_IntrHandler, emac );
 
