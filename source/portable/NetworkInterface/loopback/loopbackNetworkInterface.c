@@ -148,7 +148,7 @@ static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
         else
         {
             #if ( ipconfigUSE_IPv4 != 0 )
-                if( xIsIPv4Loopback( pxDescriptor->xIPAddress.ulIP_IPv4 ) )
+                if( xIsIPv4Loopback( pxDescriptor->xIPAddress.ulIP_IPv4 ) != pdFALSE )
                 {
                     vARPRefreshCacheEntry( pxMACAddress, pxDescriptor->xIPAddress.ulIP_IPv4, pxDescriptor->pxEndPoint );
                 }
