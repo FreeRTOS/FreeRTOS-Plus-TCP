@@ -325,8 +325,7 @@ static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * px
             {
                 #if ( ipconfigUSE_IPv6 == 0 )
                 {
-                    /* Also add LLMNR multicast MAC address. */
-                    XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes, 2 );
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes );
                 }
                 #else
                 {
