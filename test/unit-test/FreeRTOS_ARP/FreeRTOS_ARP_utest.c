@@ -2383,7 +2383,7 @@ void test_eARPGetCacheEntry_LoopbackAddress( void )
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
     xIsIPv4Loopback_ExpectAndReturn(ulIPAddress, 1UL);
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
-    TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
+    TEST_ASSERT_EQUAL( eCantSendPacket, eResult );
     TEST_ASSERT_NOT_EQUAL( pxEndPoint, &xEndPoint );
     TEST_ASSERT_EQUAL_MEMORY(xMACAddressExp.ucBytes, xMACAddress.ucBytes, sizeof(MACAddress_t));
     /* =================================================== */

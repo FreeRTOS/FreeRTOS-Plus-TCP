@@ -962,7 +962,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                                           MACAddress_t * const pxMACAddress,
                                           struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eARPLookupResult_t eReturn = eARPCacheMiss;
+        eARPLookupResult_t eReturn = eCantSendPacket;
         uint32_t ulAddressToLookup;
         NetworkEndPoint_t * pxEndPoint = NULL;
 
@@ -990,7 +990,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
             /* Get the lowest 23 bits of the IP-address. */
             vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
 
-            eReturn = eCantSendPacket;
             pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
             for( ;
