@@ -982,7 +982,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                 memcpy( pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( pxMACAddress->ucBytes ) );
                 *( ppxEndPoint ) = pxEndPoint;
                 eReturn = eARPCacheHit;
-                /*FreeRTOS_printf( ( "eARPGetCacheEntry: loopback found\n" ) ); */
             }
         }
         else if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
