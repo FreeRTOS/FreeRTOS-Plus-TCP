@@ -181,7 +181,7 @@ static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
         }
         else if( xSendEventStructToIPTask( &xRxEvent, 0u ) != pdTRUE )
         {
-            /* Sending tfailed, release the descriptor. */
+            /* Sending failed, release the descriptor. */
             vReleaseNetworkBufferAndDescriptor( pxDescriptor );
             iptraceETHERNET_RX_EVENT_LOST();
             FreeRTOS_printf( ( "prvLoopback_Output: Can not queue return packet!\n" ) );
