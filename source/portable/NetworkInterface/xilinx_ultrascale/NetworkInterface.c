@@ -413,14 +413,8 @@ static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * px
             /* Setting the operating speed of the MAC needs a delay. */
             vTaskDelay( pdMS_TO_TICKS( 25UL ) );
 
-            ulDMAReg = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET );
             /* Enable 16-bytes AHB bursts */
-            ulDMAReg = ulDMAReg | XEMACPS_DMACR_INCR16_AHB_BURST;
-
-            /* DISC_WHEN_NO_AHB: when set, the GEM DMA will automatically discard receive
-             * packets from the receiver packet buffer memory when no AHB resource is available. */
-            XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET,
-                              ulDMAReg /*| XEMACPS_DMACR_DISC_WHEN_NO_AHB_MASK*/ );
+            XEmacPs_DMABLengthUpdate( pxEMAC_PS, XEMACPS_16BYTE_BURST );
 
             setup_isr( &( xEMACpsifs[ xEMACIndex ] ) );
             init_dma( &( xEMACpsifs[ xEMACIndex ] ) );
