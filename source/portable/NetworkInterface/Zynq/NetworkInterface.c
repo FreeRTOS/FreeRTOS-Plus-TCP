@@ -256,43 +256,52 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
 
         #if ( ipconfigUSE_LLMNR == 1 )
         {
-            /* Also add LLMNR multicast MAC address. */
             #if ( ipconfigUSE_IPv6 == 0 )
             {
                 XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes );
             }
             #else
             {
-                NetworkEndPoint_t * pxEndPoint;
-                NetworkInterface_t * pxInterface = pxMyInterfaces[ xEMACIndex ];
-
-                for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
-                {
-                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                    {
-                        unsigned char ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
-                        ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                        ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                        ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                        XEmacPs_SetHash( pxEMAC_PS, ( void * ) ucMACAddress );
-                    }
-                }
-
                 XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddressIPv6.ucBytes );
             }
             #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
         }
         #endif /* ipconfigUSE_LLMNR == 1 */
 
-        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddress.ucBytes );
-            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddressIPv6.ucBytes );
-        #endif
+        #if ( ipconfigUSE_MDNS == 1 )
+        {
+            #if ( ipconfigUSE_IPv6 == 0 )
+            {
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddress.ucBytes );
+            }
+            #else
+            {
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddressIPv6.ucBytes );
+            }
+            #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
+        }
+        #endif /* ( ipconfigUSE_MDNS == 1 ) */
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+        {
+            /* set the solicited-node multicast address */
+            for( NetworkEndPoint_t * pxEndPointIter = FreeRTOS_FirstEndPoint( pxInterface );
+                    pxEndPointIter != NULL;
+                    pxEndPointIter = FreeRTOS_NextEndPoint( pxInterface, pxEndPointIter ) )
+            {
+                if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    unsigned char ucSsolicitedNodeMAC[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                    ucSsolicitedNodeMAC[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                    ucSsolicitedNodeMAC[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                    ucSsolicitedNodeMAC[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) ucSsolicitedNodeMAC );
+                }
+            }
+        }
+        #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
 
         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint );
-
         if( pxEndPoint != NULL )
         {
             /* If there is a second end-point, store the MAC
