@@ -2356,17 +2356,25 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         uint32_t ulNewValue;
         BaseType_t xReturn;
 
+        if( ( FreeRTOS_issocketconnected( pxSocket ) == pdTRUE ) )
+        {
+            /* If this socket is the child of a listening socket, the remote client may or may not have already sent
+             * us data. If data was already sent, then pxSocket->u.xTCP.rxStream != NULL and this call will fail.
+             * Warn the user about this inconsistent behavior. */
+            FreeRTOS_printf( ( "Warning: Changing buffer/window properties on a connected socket may fail." ) );
+        }
+
         if( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_TCP )
         {
-            FreeRTOS_debug_printf( ( "Set SO_%sBUF: wrong socket type\n",
-                                     ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
+            FreeRTOS_printf( ( "Set SO_%sBUF: wrong socket type\n",
+                               ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
             xReturn = -pdFREERTOS_ERRNO_EINVAL;
         }
         else if( ( ( lOptionName == FREERTOS_SO_SNDBUF ) && ( pxSocket->u.xTCP.txStream != NULL ) ) ||
                  ( ( lOptionName == FREERTOS_SO_RCVBUF ) && ( pxSocket->u.xTCP.rxStream != NULL ) ) )
         {
-            FreeRTOS_debug_printf( ( "Set SO_%sBUF: buffer already created\n",
-                                     ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
+            FreeRTOS_printf( ( "Set SO_%sBUF: buffer already created\n",
+                               ( lOptionName == FREERTOS_SO_SNDBUF ) ? "SND" : "RCV" ) );
             xReturn = -pdFREERTOS_ERRNO_EINVAL;
         }
         else
