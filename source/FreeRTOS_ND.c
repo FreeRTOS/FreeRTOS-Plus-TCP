@@ -1356,6 +1356,8 @@
         IPv6_Address_t * pxIPAddress = &( pxIPHeader->xSourceAddress );
         uint8_t ucNextHeader = pxIPHeader->ucNextHeader;
 
+        configASSERT( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE );
+
         if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
             ( ucNextHeader == ipPROTOCOL_UDP ) )
         {

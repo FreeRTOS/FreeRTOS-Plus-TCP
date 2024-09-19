@@ -1778,7 +1778,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
         case eWaitingResolution:
 
             #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                if( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE )
+                if( ( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE ) || ( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE ) )
                 {
                     if( pxARPWaitingNetworkBuffer == NULL )
                     {

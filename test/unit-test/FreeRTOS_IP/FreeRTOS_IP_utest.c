@@ -492,6 +492,7 @@ void test_prvIPTask( void )
     /* In prvIPTask_Initialise. */
     vTCPTimerReload_ExpectAnyArgs();
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
+    vIPSetNDResolutionTimerEnableState_Expect( pdFALSE );
     vDNSInitialise_Ignore();
     FreeRTOS_dnsclear_Ignore();
 
@@ -533,6 +534,7 @@ void test_prvIPTask_NetworkDown( void )
     /* In prvIPTask_Initialise. */
     vTCPTimerReload_ExpectAnyArgs();
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
+    vIPSetNDResolutionTimerEnableState_Expect( pdFALSE );
     vDNSInitialise_Ignore();
     FreeRTOS_dnsclear_Ignore();
 
@@ -731,7 +733,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_NullEndPoint( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eARPTimerEvent
- * Check if prvProcessIPEventsAndTimers() updates the cache for ARP/ND when timeout event triggered.
+ * Check if prvProcessIPEventsAndTimers() updates the cache for ARP when timeout event triggered.
  */
 void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
 {
@@ -746,6 +748,26 @@ void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     vARPAgeCache_Expect();
+
+    prvProcessIPEventsAndTimers();
+}
+
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eNDTimerEvent
+ * Check if prvProcessIPEventsAndTimers() updates the cache for ND when timeout event triggered.
+ */
+void test_prvProcessIPEventsAndTimers_eNDTimerEvent( void )
+{
+    IPStackEvent_t xReceivedEvent;
+
+    xReceivedEvent.eEventType = eNDTimerEvent;
+    xReceivedEvent.pvData = NULL;
+
+    /* prvProcessIPEventsAndTimers */
+    vCheckNetworkTimers_Expect();
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     vNDAgeCache_Expect();
 
     prvProcessIPEventsAndTimers();
@@ -4232,7 +4254,14 @@ static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
-    vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+    if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        vNDTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+    }
+    else
+    {
+        vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+    }
 
     vIPNetworkUpCalls( &xEndPoint );
 
