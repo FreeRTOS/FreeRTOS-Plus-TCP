@@ -64,7 +64,7 @@
 #define niBMSR_LINK_STATUS                  0x0004uL
 
 /* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
+ * https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/05-Buffer-management */
 #define niBUFFER_1_PACKET_SIZE              1536
 
 /* Naming and numbering of PHY registers. */
