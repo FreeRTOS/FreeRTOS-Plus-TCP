@@ -1553,12 +1553,13 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         else
         {
             /* The frame is an unsupported Ethernet II type */
-            #if ipconfigIS_DISABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
-                /* Processing custom ethernet frames is disabled - release it. */
-                break;
-            #else
-                /* Processing custom ethernet frames is enabled - Continue filter checks. */
+            #if ipconfigIS_ENABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
+
+                /* Processing custom Ethernet frames is enabled. No need for any further testing.
+                 * Accept the frame whether it's a unicast, multicast, or broadcast. */
+                eReturn = eProcessBuffer;
             #endif
+            break;
         }
 
         /* Third, filter based on destination mac address. */
