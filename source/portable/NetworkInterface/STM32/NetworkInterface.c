@@ -635,74 +635,9 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                         FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported ICMP\n" ) );
                     #endif
                 }
-                else if( pxIPPacket->xIPHeader.ucProtocol == ipPROTOCOL_TCP )
-                {
-                    #if ipconfigIS_ENABLED( ipconfigUSE_TCP )
-                        TCPPacket_t * const pxTCPPacket = ( TCPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
-
-                        /* #if defined( niEMAC_STM32HX ) && ipconfigIS_ENABLED( niEMAC_TCP_SEGMENTATION )
-                         *  xTxConfig.MaxSegmentSize = ipconfigTCP_MSS;
-                         *  xTxConfig.PayloadLen = pxDescriptor->xDataLength;
-                         *  xTxConfig.TCPHeaderLen = ( pxTCPPacket->xIPHeader.ucVersionHeaderLength & ( uint8_t ) 0x0FU );
-                         *  xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_TSO;
-                         #endif */
-                        ( void ) pxTCPPacket;
-                    #else
-                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported TCP\n" ) );
-                    #endif
-                }
-                else if( pxIPPacket->xIPHeader.ucProtocol == ipPROTOCOL_UDP )
-                {
-                    UDPPacket_t * const pxUDPPacket = ( UDPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
-                    ( void ) pxUDPPacket;
-                }
             #else /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
                 FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported IPv4\n" ) );
             #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
-        }
-        else if( pxEthHeader->usFrameType == ipIPv6_FRAME_TYPE )
-        {
-            #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-                const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( IPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer;
-
-                if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 )
-                {
-                    #if ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS )
-                        ICMPPacket_IPv6_t * const pxICMPPacket_IPv6 = ( ICMPPacket_IPv6_t * const ) pxDescriptor->pucEthernetBuffer;
-                        #if ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM )
-                            pxICMPPacket_IPv6->xICMPHeaderIPv6.usChecksum = 0U;
-                        #endif
-                        ( void ) pxICMPPacket_IPv6;
-                    #else
-                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported ICMP\n" ) );
-                    #endif
-                }
-                else if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_TCP )
-                {
-                    #if ipconfigIS_ENABLED( ipconfigUSE_TCP )
-                        TCPPacket_IPv6_t * const pxTCPPacket_IPv6 = ( TCPPacket_IPv6_t * const ) pxDescriptor->pucEthernetBuffer;
-
-                        /* #if defined( niEMAC_STM32HX ) && ipconfigIS_ENABLED( niEMAC_TCP_SEGMENTATION )
-                         *  xTxConfig.PayloadLen = pxDescriptor->xDataLength;
-                         *  xTxConfig.TCPHeaderLen = sizeof( pxTCPPacket_IPv6->xTCPHeader );
-                         *  xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_TSO;
-                         #endif */
-                        ( void ) pxTCPPacket_IPv6;
-                    #else
-                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported TCP\n" ) );
-                    #endif
-                }
-                else if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_UDP )
-                {
-                    UDPPacket_t * const pxUDPPacket_IPv6 = ( UDPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
-                    ( void ) pxUDPPacket_IPv6;
-                }
-            #else /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
-                FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported IPv6\n" ) );
-            #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
-        }
-        else if( pxEthHeader->usFrameType == ipARP_FRAME_TYPE )
-        {
         }
 
         ETH_BufferTypeDef xTxBuffer =
@@ -1769,12 +1704,12 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
 
         #if ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
         {
-            const ETH_DMADescTypeDef * const ulRxDesc = ( const ETH_DMADescTypeDef * const ) pxEthHandle->RxDescList.RxDesc[ pxEthHandle->RxDescList.RxDescIdx ];
+            const ETH_DMADescTypeDef * const pxRxDesc = ( const ETH_DMADescTypeDef * const ) pxEthHandle->RxDescList.RxDesc[ pxEthHandle->RxDescList.RxDescIdx ];
             uint32_t ulRxDesc;
             #ifdef niEMAC_STM32HX
-                ulRxDesc = ulRxDesc->DESC1;
+                ulRxDesc = pxRxDesc->DESC1;
             #elif defined( niEMAC_STM32FX )
-                ulRxDesc = ulRxDesc->DESC4;
+                ulRxDesc = pxRxDesc->DESC4;
             #endif
 
             if( ( ulRxDesc & ETH_IP_HEADER_IPV4 ) != 0 )
