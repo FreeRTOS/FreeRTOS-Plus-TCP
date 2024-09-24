@@ -643,7 +643,7 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
 
 
 extern void vGMACGenerateChecksum( uint8_t * pucBuffer,
-                                    size_t uxLength );
+                                   size_t uxLength );
 
 /**
  * \brief Send ulLength bytes from pcFrom. This copies the buffer to one of the

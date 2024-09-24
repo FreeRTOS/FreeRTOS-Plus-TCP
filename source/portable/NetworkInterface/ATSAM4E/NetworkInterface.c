@@ -421,7 +421,7 @@ void vGMACGenerateChecksum( uint8_t * pucBuffer,
         pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
         /* Calculate the TCP checksum for an outgoing packet. */
-        usGenerateProtocolChecksum( ( uint8_t * ) pucBuffer, pdTRUE );
+        usGenerateProtocolChecksum( ( uint8_t * ) pucBuffer, uxLength, pdTRUE );
     }
 }
 
