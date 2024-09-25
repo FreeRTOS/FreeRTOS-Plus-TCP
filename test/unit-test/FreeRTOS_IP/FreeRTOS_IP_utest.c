@@ -4254,6 +4254,7 @@ static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
+
     if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
     {
         vNDTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
