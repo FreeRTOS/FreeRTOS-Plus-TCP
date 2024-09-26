@@ -161,7 +161,7 @@ static BaseType_t xPHY_Write( BaseType_t xAddress,
                               uint32_t ulValue );
 
 #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) && ( ipconfigHAS_TX_CRC_OFFLOADING == 0 )
-    void vGMACGenerateChecksum( uint8_t * apBuffer,
+    void vGMACGenerateChecksum( uint8_t * pucBuffer,
                                 size_t uxLength );
 #endif
 

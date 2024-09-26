@@ -88,7 +88,8 @@
 static BaseType_t xGMACWaitLS( TickType_t xMaxTime );
 
 #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) && ( ipconfigHAS_TX_CRC_OFFLOADING == 0 )
-    void vGMACGenerateChecksum( uint8_t * apBuffer );
+    void vGMACGenerateChecksum( uint8_t * pucBuffer,
+                                size_t uxLength );
 #endif
 
 /*
@@ -405,9 +406,10 @@ static BaseType_t xGMACWaitLS( TickType_t xMaxTime )
 
 /*#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) && ( ipconfigHAS_TX_CRC_OFFLOADING == 0 ) */
 
-void vGMACGenerateChecksum( uint8_t * apBuffer )
+void vGMACGenerateChecksum( uint8_t * pucBuffer,
+                            size_t uxLength )
 {
-    ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) apBuffer;
+    ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) pucBuffer;
 
     if( xProtPacket->xTCPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
@@ -419,7 +421,7 @@ void vGMACGenerateChecksum( uint8_t * apBuffer )
         pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
         /* Calculate the TCP checksum for an outgoing packet. */
-        usGenerateProtocolChecksum( ( uint8_t * ) apBuffer, pdTRUE );
+        usGenerateProtocolChecksum( ( uint8_t * ) pucBuffer, uxLength, pdTRUE );
     }
 }
 
