@@ -34,7 +34,7 @@
 
 
     #ifdef __cplusplus
-    } /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* ifndef __XEMACPSIF_HW_H_ */

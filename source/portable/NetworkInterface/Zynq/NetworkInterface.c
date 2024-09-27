@@ -286,8 +286,8 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
         {
             /* set the solicited-node multicast address */
             for( NetworkEndPoint_t * pxEndPointIter = FreeRTOS_FirstEndPoint( pxInterface );
-                    pxEndPointIter != NULL;
-                    pxEndPointIter = FreeRTOS_NextEndPoint( pxInterface, pxEndPointIter ) )
+                 pxEndPointIter != NULL;
+                 pxEndPointIter = FreeRTOS_NextEndPoint( pxInterface, pxEndPointIter ) )
             {
                 if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
                 {
@@ -302,6 +302,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
         #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
 
         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint );
+
         if( pxEndPoint != NULL )
         {
             /* If there is a second end-point, store the MAC

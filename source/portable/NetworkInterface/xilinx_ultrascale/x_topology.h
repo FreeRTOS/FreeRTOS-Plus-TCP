@@ -39,7 +39,7 @@
     };
 
     #ifdef __cplusplus
-    } /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* __XTOPOLOGY_H_ */
