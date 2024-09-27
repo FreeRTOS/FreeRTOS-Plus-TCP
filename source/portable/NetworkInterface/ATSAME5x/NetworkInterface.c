@@ -272,6 +272,20 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
     return xATSAM5x_PHYGetLinkStatus( NULL );
 }
 
+/* Check if the raw ethernet frame is ICMP */
+static inline BaseType_t isICMP(const NetworkBufferDescriptor_t * pxDescriptor) {
+	const IPPacket_t * pkt = (const IPPacket_t *) pxDescriptor->pucEthernetBuffer;
+	if (pkt->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE) {
+		return pkt->xIPHeader.ucProtocol == (uint8_t) ipPROTOCOL_ICMP;
+	}
+	#if ipconfigUSE_IPv6 != 0
+	else if (pkt->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE) {
+		ICMPPacket_IPv6_t * icmp6 = (ICMPPacket_IPv6_t *) pxDescriptor->pucEthernetBuffer;
+		return icmp6->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6;
+	}
+	#endif
+	return pdFALSE;
+}
 
 static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 {
@@ -279,7 +293,6 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     size_t xBytesReceived = 0, xBytesRead = 0;
 
     uint16_t xICMPChecksumResult = ipCORRECT_CRC;
-    const IPPacket_t * pxIPPacket;
 
 
     /* Used to indicate that xSendEventStructToIPTask() is being called because
@@ -335,16 +348,12 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                     #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
                     {
                         /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
-                         * It must therefore be implemented in software. */
-                        pxIPPacket = ( IPPacket_t const * ) pxBufferDescriptor->pucEthernetBuffer;
-
-                        if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
-                        {
+                        * It must therefore be implemented in software. */
+                        if ( isICMP(pxBufferDescriptor) ) {
                             xICMPChecksumResult = usGenerateProtocolChecksum( pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength, pdFALSE );
                         }
-                        else
-                        {
-                            xICMPChecksumResult = ipCORRECT_CRC; /* Reset the result value in case this is not an ICMP packet. */
+                        else {
+                            xICMPChecksumResult = ipCORRECT_CRC; /* Checksum already verified by GMAC */
                         }
                     }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
@@ -440,12 +449,9 @@ BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         {
             /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
              * It must therefore be implemented in software. */
-            const IPPacket_t * pxIPPacket = ( IPPacket_t const * ) pxDescriptor->pucEthernetBuffer;
-
-            if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
-            {
-                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
-            }
+			if ( isICMP(pxDescriptor) ) {
+				usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+			}
         }
         #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
 
