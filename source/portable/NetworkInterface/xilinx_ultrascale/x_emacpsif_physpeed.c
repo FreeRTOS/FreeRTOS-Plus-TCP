@@ -660,9 +660,9 @@ static uint32_t get_Realtek_phy_speed( XEmacPs * xemacpsp,
     return XST_FAILURE;
 }
 
-#define LPA_IEEE_1000FD      0x0800
-#define LP5_IEEE_100BTXFD    0x0100
-#define LP5_IEEE_10BTFD      0x0040
+#define LPA_IEEE_1000        0x0800
+#define LP5_IEEE_100         0x0100
+#define LP5_IEEE_10          0x0040
 #define MICREL_ID_KSZ9021    0x0161
 #define MICREL_ID_KSZ9031    0x0162
 #define MICREL_ID_KSZ9131    0x0164
@@ -869,7 +869,7 @@ static uint32_t get_Micrel_phy_speed( XEmacPs * xemacpsp,
     /* Check for high speed connection first */
     XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PARTNER_ABILITIES_3_REG_OFFSET, &status_speed );
 
-    if( status_speed & LPA_IEEE_1000FD )
+    if( status_speed & LPA_IEEE_1000 )
     {
         FreeRTOS_printf( ( "Micrel PHY %s speed 1000Mbps\r\n", name_ptr ) );
         return 1000;
@@ -878,13 +878,13 @@ static uint32_t get_Micrel_phy_speed( XEmacPs * xemacpsp,
     {
         XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PARTNER_ABILITIES_1_REG_OFFSET, &status_speed );
 
-        if( status_speed & LP5_IEEE_100BTXFD )
+        if( status_speed & LP5_IEEE_100 )
         {
             FreeRTOS_printf( ( "Micrel PHY %s speed 100Mbps\r\n", name_ptr ) );
             return 100;
         }
 
-        if( status_speed & LP5_IEEE_10BTFD )
+        if( status_speed & LP5_IEEE_10 )
         {
             FreeRTOS_printf( ( "Micrel PHY %s speed 10Mbps\r\n", name_ptr ) );
             return 10;
