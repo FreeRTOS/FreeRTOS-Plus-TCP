@@ -90,6 +90,9 @@
 static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
 
+/* Check if the raw Ethernet frame is ICMP */
+static BaseType_t isICMP( const NetworkBufferDescriptor_t * pxDescriptor );
+
 /* Receive task refresh time */
 #define RECEIVE_BLOCK_TIME_MS    100
 
@@ -272,19 +275,33 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
     return xATSAM5x_PHYGetLinkStatus( NULL );
 }
 
-/* Check if the raw ethernet frame is ICMP */
-static inline BaseType_t isICMP(const NetworkBufferDescriptor_t * pxDescriptor) {
-	const IPPacket_t * pkt = (const IPPacket_t *) pxDescriptor->pucEthernetBuffer;
-	if (pkt->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE) {
-		return pkt->xIPHeader.ucProtocol == (uint8_t) ipPROTOCOL_ICMP;
-	}
-	#if ipconfigUSE_IPv6 != 0
-	else if (pkt->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE) {
-		ICMPPacket_IPv6_t * icmp6 = (ICMPPacket_IPv6_t *) pxDescriptor->pucEthernetBuffer;
-		return icmp6->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6;
-	}
-	#endif
-	return pdFALSE;
+/* Check if the raw Ethernet frame is ICMP */
+static BaseType_t isICMP( const NetworkBufferDescriptor_t * pxDescriptor )
+{
+    BaseType_t xReturn = pdFALSE;
+
+    const IPPacket_t * pkt = ( const IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
+
+    if( pkt->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+    {
+        if( pkt->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+        {
+            xReturn = pdTRUE;
+        }
+    }
+
+    #if ipconfigUSE_IPv6 != 0
+        else if( pkt->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+        {
+            ICMPPacket_IPv6_t * icmp6 = ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer;
+
+            if( icmp6->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 )
+            {
+                xReturn = pdTRUE;
+            }
+        }
+    #endif
+    return xReturn;
 }
 
 static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
@@ -348,11 +365,13 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                     #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
                     {
                         /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
-                        * It must therefore be implemented in software. */
-                        if ( isICMP(pxBufferDescriptor) ) {
+                         * It must therefore be implemented in software. */
+                        if( isICMP( pxBufferDescriptor ) == pdTRUE )
+                        {
                             xICMPChecksumResult = usGenerateProtocolChecksum( pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength, pdFALSE );
                         }
-                        else {
+                        else
+                        {
                             xICMPChecksumResult = ipCORRECT_CRC; /* Checksum already verified by GMAC */
                         }
                     }
@@ -449,9 +468,10 @@ BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         {
             /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
              * It must therefore be implemented in software. */
-			if ( isICMP(pxDescriptor) ) {
-				usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
-			}
+            if( isICMP( pxDescriptor ) == pdTRUE )
+            {
+                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+            }
         }
         #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
 
