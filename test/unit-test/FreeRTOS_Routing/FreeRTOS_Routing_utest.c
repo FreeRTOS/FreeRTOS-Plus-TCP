@@ -1440,11 +1440,15 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_AnyEndpoint( void )
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
  * Test step:
- *  - Create 1 endpoint with IP address 0 and add it to the list.
+ *  - Create 1 endpoint with IP address 0xAB12CD34 and add it to the list.
+ *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with 0xAB12CD34.
+ *  - Check if returned endpoint is same.
+ *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with 0.
+ *  - Check if returned endpoint is same.
  *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with IPV4_DEFAULT_ADDRESS.
- *  - Check if returned endpoint is same.
+ *  - Check if returned endpoint is NULL.
  *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with IPV4_DEFAULT_GATEWAY.
- *  - Check if returned endpoint is same.
+ *  - Check if returned endpoint is NULL.
  */
 void test_FreeRTOS_FindEndPointOnIP_IPv4_ZeroAddressEndpoint( void )
 {
@@ -1452,13 +1456,17 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_ZeroAddressEndpoint( void )
     NetworkEndPoint_t * pxEndPoint = NULL;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = 0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAB12CD34;
     pxNetworkEndPoints = &xEndPoint;
 
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0xAB12CD34 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
     pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_ADDRESS );
-    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
     pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_GATEWAY );
-    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
 /**
