@@ -319,35 +319,39 @@ static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * px
             /* Initialize the mac and set the MAC address at position 1. */
             XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) pxEndPoint->xMACAddress.ucBytes, 1 );
 
-            #if ( ipconfigUSE_LLMNR == 1 )
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
             {
-                #if ( ipconfigUSE_IPv6 == 0 )
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
                 {
                     XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes );
                 }
-                #else
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
                 {
                     XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddressIPv6.ucBytes );
                 }
-                #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
             }
-            #endif /* ipconfigUSE_LLMNR == 1 */
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) ) */
 
-            #if ( ipconfigUSE_MDNS == 1 )
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_MDNS ) )
             {
-                #if ( ipconfigUSE_IPv6 == 0 )
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
                 {
                     XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddress.ucBytes );
                 }
-                #else
-                {
-                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MACAddressIPv6.ucBytes );
-                }
-                #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
-            }
-            #endif /* ( ipconfigUSE_MDNS == 1 ) */
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                {
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddressIPv6.ucBytes );
+                }
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+            }
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_MDNS) ) */
+
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             {
                 /* set the solicited-node multicast address */
                 for( NetworkEndPoint_t * pxEndPointIter = FreeRTOS_FirstEndPoint( pxInterface );
@@ -364,7 +368,7 @@ static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * px
                     }
                 }
             }
-            #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
 
             /* allow reception of multicast addresses programmed into hash (LLMNR or mDNS) */
             XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_MULTICAST_OPTION );
@@ -504,7 +508,7 @@ static BaseType_t xUltrascaleNetworkInterfaceOutput( NetworkInterface_t * pxInte
          * the protocol checksum to have a value of zero. */
         pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             ICMPPacket_IPv6_t * pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxBuffer->pucEthernetBuffer;
 
             if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
@@ -515,16 +519,20 @@ static BaseType_t xUltrascaleNetworkInterfaceOutput( NetworkInterface_t * pxInte
                  * so for ICMP and other protocols it must be done manually. */
                 usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
             }
-        #endif /* ipconfigUSE_IPv6 */
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
 
-        if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol == ipPROTOCOL_ICMP ) )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
         {
-            /* The EMAC will calculate the checksum of the IP-header.
-             * It can only calculate protocol checksums of UDP and TCP,
-             * so for ICMP and other protocols it must be done manually. */
-            usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
+            if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol == ipPROTOCOL_ICMP ) )
+            {
+                /* The EMAC will calculate the checksum of the IP-header.
+                 * It can only calculate protocol checksums of UDP and TCP,
+                 * so for ICMP and other protocols it must be done manually. */
+                usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
+            }
         }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
     }
     #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
