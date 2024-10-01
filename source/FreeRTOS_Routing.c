@@ -389,7 +389,6 @@ struct xIPv6_Couple
                 #endif
                 {
                     if( ( ulIPAddress == 0U ) ||
-                        ( pxEndPoint->ipv4_settings.ulIPAddress == 0U ) ||
                         ( pxEndPoint->ipv4_settings.ulIPAddress == ulIPAddress ) )
                     {
                         break;

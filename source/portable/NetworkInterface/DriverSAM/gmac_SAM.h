@@ -1539,7 +1539,7 @@
 
 /* The SAM4E has problems offloading checksums for transmission.
  * The SAME70 does not set the CRC for ICMP packets (ping). */
-    extern void vGMACGenerateChecksum( uint8_t * apBuffer,
+    extern void vGMACGenerateChecksum( uint8_t * pucBuffer,
                                        size_t uxLength );
 
 /*/ @cond 0 */
