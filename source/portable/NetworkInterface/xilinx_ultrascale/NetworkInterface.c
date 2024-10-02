@@ -664,7 +664,7 @@ static BaseType_t xUltrascaleGetPhyLinkStatus( NetworkInterface_t * pxInterface 
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxUltrascale_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxUltrascale_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 #endif
 
