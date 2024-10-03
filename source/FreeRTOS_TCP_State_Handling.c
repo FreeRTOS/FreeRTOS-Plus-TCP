@@ -607,7 +607,7 @@
                         /* This action is necessary to ensure proper handling of any subsequent packets that
                          * may arrive after the refused FIN packet. Note that we only update it when the sequence
                          * of FIN packet is correct. Otherwise, we wait for re-transmission. */
-                        if( lDistance == 1 )
+                        if( lDistance <= 1 )
                         {
                             pxTCPWindow->rx.ulCurrentSequenceNumber = pxTCPWindow->rx.ulFINSequenceNumber + 1U;
                         }
