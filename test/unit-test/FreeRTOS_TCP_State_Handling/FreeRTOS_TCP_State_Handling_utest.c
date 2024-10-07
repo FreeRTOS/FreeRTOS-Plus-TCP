@@ -824,6 +824,47 @@ void test_prvHandleEstablished_FINNotSentRXComplete( void )
 /**
  * @brief Data left for receiving when receiving TCP packet with FIN/ACK.
  */
+void test_prvHandleEstablished_FINNotSentRXNotCompleteNotExpectedSeq( void )
+{
+    BaseType_t xSendLength = 0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1502 );
+    pxTCPHeader->usWindow = 1000;
+    pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
+    pxSocket->u.xTCP.pxHandleSent = NULL;
+    pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1500;
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
+    prvTCPAddTxData_ExpectAnyArgs();
+    xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdFALSE );
+    xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
+    prvTCPPrepareSend_ExpectAnyArgsAndReturn( 0 );
+
+    xSendLength = prvHandleEstablished( pxSocket,
+                                        &pxNetworkBuffer,
+                                        0,
+                                        0 );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+}
+
+/**
+ * @brief Data left for receiving when receiving TCP packet with FIN/ACK.
+ */
 void test_prvHandleEstablished_FINNotSentRXNotComplete( void )
 {
     BaseType_t xSendLength = 0;
@@ -846,7 +887,7 @@ void test_prvHandleEstablished_FINNotSentRXNotComplete( void )
     pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.pxHandleSent = NULL;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
-    pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1500;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
