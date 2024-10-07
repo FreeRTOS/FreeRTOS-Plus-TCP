@@ -61,7 +61,7 @@ extern const MACAddress_t xMDNS_MacAddressIPv6;
 /* Guarantee backward compatibility. */
 #define xMDNS_MACAddressIPv6    xMDNS_MacAddressIPv6
 
-/* The MDNS IPv6 address is ff02::1:3 */
+/* The MDNS IPv6 address is ff02::fb */
 extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
 
 /** @brief While doing integration tests, it is necessary to influence the choice
