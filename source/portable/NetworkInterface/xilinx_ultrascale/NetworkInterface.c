@@ -43,12 +43,14 @@
 #include "FreeRTOS_ARP.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
+#include "FreeRTOS_Routing.h"
 
 /* Xilinx library files. */
 #include <xemacps.h>
 #include "x_topology.h"
 #include "x_emacpsif.h"
 #include "x_emacpsif_hw.h"
+#include "x_emac_map.h"
 
 /* Provided memory configured as uncached. */
 #include "uncached_memory.h"
@@ -114,7 +116,8 @@
  * Look for the link to be up every few milliseconds until
  * xMaxTimeTicks has passed or a link is found.
  */
-static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks );
+static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
+                                 TickType_t xMaxTimeTicks );
 
 /*
  * A deferred interrupt handler for all MAC/DMA interrupt sources.
@@ -123,116 +126,279 @@ static void prvEMACHandlerTask( void * pvParameters );
 
 /*-----------------------------------------------------------*/
 
+/* FreeRTOS+TCP/multi :
+ * Each network device has 3 access functions:
+ * - initialise the device
+ * - output a network packet
+ * - return the PHY link-status (LS)
+ * They can be defined as static because their addresses will be
+ * stored in struct NetworkInterface_t. */
+
+static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
+
+static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+static BaseType_t xUltrascaleNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxBuffer,
+                                                     BaseType_t bReleaseAfterSend );
+
+static BaseType_t xUltrascaleGetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxUltrascale_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                           NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
 /* EMAC data/descriptions. */
-static xemacpsif_s xEMACpsif;
-struct xtopology_t xXTopology =
+static xemacpsif_s xEMACpsifs[ XPAR_XEMACPS_NUM_INSTANCES ];
+
+struct xtopology_t xXTopologies[ XPAR_XEMACPS_NUM_INSTANCES ] =
 {
-    .emac_baseaddr    = XPAR_XEMACPS_0_BASEADDR,
-    .emac_type        = xemac_type_emacps,
-    .intc_baseaddr    = 0x0,
-    .intc_emac_intr   = 0x0,
-    .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
-    .scugic_emac_intr = XPAR_XEMACPS_3_INTR,
+    [ 0 ] =
+        {
+        .emac_baseaddr    = XPAR_XEMACPS_0_BASEADDR,
+        .emac_type        = xemac_type_emacps,
+        .intc_baseaddr    = 0x0,
+        .intc_emac_intr   = 0x0,
+        .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_0_IRQ_ID,
+        },
+    #if ( XPAR_XEMACPS_NUM_INSTANCES > 1 )
+        [ 1 ] =
+        {
+        .emac_baseaddr    = XPAR_XEMACPS_1_BASEADDR,
+        .emac_type        = xemac_type_emacps,
+        .intc_baseaddr    = 0x0,
+        .intc_emac_intr   = 0x0,
+        .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_1_IRQ_ID,
+        },
+    #elif ( XPAR_XEMACPS_NUM_INSTANCES > 2 )
+        [ 2 ] =
+        {
+        .emac_baseaddr    = XPAR_XEMACPS_2_BASEADDR,
+        .emac_type        = xemac_type_emacps,
+        .intc_baseaddr    = 0x0,
+        .intc_emac_intr   = 0x0,
+        .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_2_IRQ_ID,
+        },
+    #elif ( XPAR_XEMACPS_NUM_INSTANCES > 3 )
+        [ 3 ] =
+        {
+        .emac_baseaddr    = XPAR_XEMACPS_3_BASEADDR,
+        .emac_type        = xemac_type_emacps,
+        .intc_baseaddr    = 0x0,
+        .intc_emac_intr   = 0x0,
+        .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
+        .scugic_emac_intr = ZYNQMP_EMACPS_3_IRQ_ID,
+        },
+    #endif /* if ( XPAR_XEMACPS_NUM_INSTANCES > 1 ) */
 };
 
-XEmacPs_Config mac_config =
+XEmacPs_Config mac_configs[ XPAR_XEMACPS_NUM_INSTANCES ] =
 {
-    .DeviceId        = XPAR_PSU_ETHERNET_3_DEVICE_ID, /**< Unique ID  of device */
-    .BaseAddress     = XPAR_PSU_ETHERNET_3_BASEADDR,  /**< Physical base address of IPIF registers */
-    .IsCacheCoherent = XPAR_PSU_ETHERNET_3_IS_CACHE_COHERENT
+    [ 0 ] =
+        {
+        .DeviceId        = XPAR_XEMACPS_0_DEVICE_ID,     /**< Unique ID  of device */
+        .BaseAddress     = XPAR_XEMACPS_0_BASEADDR,      /**< Physical base address of IPIF registers */
+        .IsCacheCoherent = XPAR_XEMACPS_0_IS_CACHE_COHERENT
+        },
+    #if ( XPAR_XEMACPS_NUM_INSTANCES > 1 )
+        [ 1 ] =
+        {
+        .DeviceId        = XPAR_XEMACPS_1_DEVICE_ID,     /**< Unique ID  of device */
+        .BaseAddress     = XPAR_XEMACPS_1_BASEADDR,      /**< Physical base address of IPIF registers */
+        .IsCacheCoherent = XPAR_XEMACPS_1_IS_CACHE_COHERENT
+        },
+    #elif ( XPAR_XEMACPS_NUM_INSTANCES > 2 )
+        [ 2 ] =
+        {
+        .DeviceId        = XPAR_XEMACPS_2_DEVICE_ID,     /**< Unique ID  of device */
+        .BaseAddress     = XPAR_XEMACPS_2_BASEADDR,      /**< Physical base address of IPIF registers */
+        .IsCacheCoherent = XPAR_XEMACPS_2_IS_CACHE_COHERENT
+        },
+    #elif ( XPAR_XEMACPS_NUM_INSTANCES > 3 )
+        [ 3 ] =
+        {
+        .DeviceId        = XPAR_XEMACPS_3_DEVICE_ID,     /**< Unique ID  of device */
+        .BaseAddress     = XPAR_XEMACPS_3_BASEADDR,      /**< Physical base address of IPIF registers */
+        .IsCacheCoherent = XPAR_XEMACPS_3_IS_CACHE_COHERENT
+        },
+    #endif /* if ( XPAR_XEMACPS_NUM_INSTANCES > 1 ) */
 };
+
+extern uint32_t phy_detected[ 4 ];
 
 /* A copy of PHY register 1: 'PHY_REG_01_BMSR' */
-static uint32_t ulPHYLinkStatus = 0uL;
-
-#if ( ipconfigUSE_LLMNR == 1 )
-static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
-#endif
+static uint32_t ulPHYLinkStates[ XPAR_XEMACPS_NUM_INSTANCES ];
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
  * handle is used so direct notifications can be sent to the task for all EMAC/DMA
  * related interrupts. */
-TaskHandle_t xEMACTaskHandle = NULL;
+TaskHandle_t xEMACTaskHandles[ XPAR_XEMACPS_NUM_INSTANCES ];
 
-/* The PHY index where a PHY was found. */
-static u32 ulPHYIndex;
+/*-----------------------------------------------------------*/
 
+/**
+ * @brief Initialise the interface number 'xIndex'
+ * @param xIndex: the index of the interface, between 0
+ *                zero and (XPAR_XEMACPS_NUM_INSTANCES-1)
+ * @note Although the function is declared public, it should
+ *       not be called directly by an application.
+ */
+void vInitialiseOnIndex( BaseType_t xIndex )
+{
+    if( ( xIndex >= 0 ) && ( xIndex < XPAR_XEMACPS_NUM_INSTANCES ) )
+    {
+        NetworkInterface_t * pxInterface = pxMyInterfaces[ xIndex ];
+
+        if( pxInterface != NULL )
+        {
+            xUltrascaleNetworkInterfaceInitialise( pxInterface );
+        }
+    }
+}
 /*-----------------------------------------------------------*/
 
 /* The function xNetworkInterfaceInitialise() will be called as
  * long as it returns the value pdFAIL.
- * It will go through several stages as described in 'eEMACState'.
+ * It will go through several stages as described in 'eEMACStates'.
  */
 typedef enum xEMAC_STATE
 {
-    xEMAC_Init,
+    xEMAC_Init = 0,
     xEMAC_SetupPHY,
     xEMAC_WaitPHY,
     xEMAC_Ready,
     xEMAC_Fatal,
 } EMACState_t;
 
-static EMACState_t eEMACState = xEMAC_Init;
+static EMACState_t eEMACStates[ XPAR_XEMACPS_NUM_INSTANCES ] = { xEMAC_Init };
 
-BaseType_t xNetworkInterfaceInitialise( void )
+static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     uint32_t ulLinkSpeed, ulDMAReg;
     BaseType_t xStatus, xReturn = pdFAIL;
-    XEmacPs * pxEMAC_PS = &( xEMACpsif.emacps );
+    XEmacPs * pxEMAC_PS;
     const TickType_t xWaitLinkDelay = pdMS_TO_TICKS( 1000U );
+    NetworkEndPoint_t * pxEndPoint;
+    BaseType_t xEMACIndex = ( BaseType_t ) pxInterface->pvArgument;
 
-    switch( eEMACState )
+    configASSERT( xEMACIndex >= 0 );
+    configASSERT( xEMACIndex < XPAR_XEMACPS_NUM_INSTANCES );
+
+    pxEMAC_PS = &( xEMACpsifs[ xEMACIndex ].emacps );
+
+    switch( eEMACStates[ xEMACIndex ] )
     {
         case xEMAC_Init:
 
-            ulPHYLinkStatus = 0U;
-            memset( &xEMACpsif, '\0', sizeof( xEMACpsif ) );
+            pxMyInterfaces[ xEMACIndex ] = pxInterface;
 
-            xStatus = XEmacPs_CfgInitialize( pxEMAC_PS, &mac_config, mac_config.BaseAddress );
+            ulPHYLinkStates[ xEMACIndex ] = 0U;
+            memset( &xEMACpsifs[ xEMACIndex ], '\0', sizeof( xEMACpsifs[ xEMACIndex ] ) );
+
+            xStatus = XEmacPs_CfgInitialize( pxEMAC_PS, &( mac_configs[ xEMACIndex ] ), mac_configs[ xEMACIndex ].BaseAddress );
 
             if( xStatus != XST_SUCCESS )
             {
                 FreeRTOS_printf( ( "xEMACInit: EmacPs Configuration Failed....\n" ) );
-                eEMACState = xEMAC_Fatal;
+                eEMACStates[ xEMACIndex ] = xEMAC_Fatal;
                 break;
             }
 
-/* _HT_ : the use of jumbo frames has not been tested sufficiently yet. */
+            pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+            configASSERT( pxEndPoint != NULL );
 
-            if( pxEMAC_PS->Version > 2 )
+            #if ( USE_JUMBO_FRAMES == 1 )
+                /* Enable jumbo frames for zynqmp */
+                XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
+            #endif
+
+            /* Initialize the mac and set the MAC address at position 1. */
+            XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) pxEndPoint->xMACAddress.ucBytes, 1 );
+
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
             {
-                #if ( USE_JUMBO_FRAMES == 1 )
-                    /* Enable jumbo frames for zynqmp */
-                    XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
-                #endif
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                {
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes );
+                }
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                {
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddressIPv6.ucBytes );
+                }
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
             }
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) ) */
 
-            /* Initialize the mac and set the MAC address. */
-            XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
-
-            #if ( ipconfigUSE_LLMNR == 1 )
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_MDNS ) )
             {
-                /* Also add LLMNR multicast MAC address. */
-                XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                {
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddress.ucBytes );
+                }
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                {
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddressIPv6.ucBytes );
+                }
+                #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
             }
-            #endif /* ipconfigUSE_LLMNR == 1 */
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_MDNS) ) */
+
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+            {
+                /* set the solicited-node multicast address */
+                for( NetworkEndPoint_t * pxEndPointIter = FreeRTOS_FirstEndPoint( pxInterface );
+                     pxEndPointIter != NULL;
+                     pxEndPointIter = FreeRTOS_NextEndPoint( pxInterface, pxEndPointIter ) )
+                {
+                    if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    {
+                        unsigned char ucSsolicitedNodeMAC[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                        ucSsolicitedNodeMAC[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                        ucSsolicitedNodeMAC[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                        ucSsolicitedNodeMAC[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                        XEmacPs_SetHash( pxEMAC_PS, ( void * ) ucSsolicitedNodeMAC );
+                    }
+                }
+            }
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+
+            /* allow reception of multicast addresses programmed into hash (LLMNR or mDNS) */
+            XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_MULTICAST_OPTION );
+
+            /* TODO: is it needed to add the MAC of the second endpoint? */
+            pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint );
+
+            if( pxEndPoint != NULL )
+            {
+                /* If there is a second end-point, store the MAC
+                 * address at position 4.*/
+                XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) pxEndPoint->xMACAddress.ucBytes, 4 );
+            }
 
             XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
-            ulPHYIndex = ulDetectPHY( pxEMAC_PS );
+            phy_detected[ xEMACIndex ] = ulDetectPHY( pxEMAC_PS );
 
-            if( ulPHYIndex == ~0U )
+            if( phy_detected[ xEMACIndex ] == ~0U )
             {
                 FreeRTOS_printf( ( "xEMACInit: No valid PHY was found\n" ) );
-                eEMACState = xEMAC_Fatal;
+                eEMACStates[ xEMACIndex ] = xEMAC_Fatal;
                 break;
             }
 
-            eEMACState = xEMAC_SetupPHY;
+            eEMACStates[ xEMACIndex ] = xEMAC_SetupPHY;
 
         /* Fall through. */
 
         case xEMAC_SetupPHY:
-            ulLinkSpeed = Phy_Setup_US( pxEMAC_PS, ulPHYIndex );
+            ulLinkSpeed = Phy_Setup_US( pxEMAC_PS, phy_detected[ xEMACIndex ] );
 
             if( ulLinkSpeed == XST_FAILURE )
             {
@@ -249,47 +415,63 @@ BaseType_t xNetworkInterfaceInitialise( void )
             /* Setting the operating speed of the MAC needs a delay. */
             vTaskDelay( pdMS_TO_TICKS( 25UL ) );
 
-            ulDMAReg = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET );
             /* Enable 16-bytes AHB bursts */
-            ulDMAReg = ulDMAReg | XEMACPS_DMACR_INCR16_AHB_BURST;
+            XEmacPs_DMABLengthUpdate( pxEMAC_PS, XEMACPS_16BYTE_BURST );
 
-            /* DISC_WHEN_NO_AHB: when set, the GEM DMA will automatically discard receive
-             * packets from the receiver packet buffer memory when no AHB resource is available. */
-            XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET,
-                              ulDMAReg /*| XEMACPS_DMACR_DISC_WHEN_NO_AHB_MASK*/ );
-
-            setup_isr( &xEMACpsif );
-            init_dma( &xEMACpsif );
-            start_emacps( &xEMACpsif );
-            eEMACState = xEMAC_WaitPHY;
+            setup_isr( &( xEMACpsifs[ xEMACIndex ] ) );
+            init_dma( &( xEMACpsifs[ xEMACIndex ] ) );
+            start_emacps( &( xEMACpsifs[ xEMACIndex ] ) );
+            eEMACStates[ xEMACIndex ] = xEMAC_WaitPHY;
 
         /* Fall through. */
 
         case xEMAC_WaitPHY:
-            prvGMACWaitLS( xWaitLinkDelay );
+            prvGMACWaitLS( xEMACIndex, xWaitLinkDelay );
 
-            if( xGetPhyLinkStatus() == pdFALSE )
+            if( xGetPhyLinkStatus( pxInterface ) == pdFALSE )
             {
                 /* The Link Status is not yet high, Stay in 'xEMAC_WaitPHY'. */
                 break;
             }
 
-            if( xEMACTaskHandle == NULL )
+            if( xEMACTaskHandles[ xEMACIndex ] == NULL )
             {
                 /* The deferred interrupt handler task is created at the highest
                  * possible priority to ensure the interrupt handler can return directly
-                 * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
+                 * to it.  The task's handle is stored in xEMACTaskHandles[] so interrupts can
                  * notify the task when there is something to process. */
-                xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+                const char * pcTaskName;
 
-                if( xEMACTaskHandle == NULL )
+                switch( xEMACIndex )
                 {
-                    eEMACState = xEMAC_Fatal;
+                    case 1:
+                        pcTaskName = "EMAC1";
+                        break;
+
+                    case 2:
+                        pcTaskName = "EMAC2";
+                        break;
+
+                    case 3:
+                        pcTaskName = "EMAC3";
+                        break;
+
+                    case 0:
+                    default:
+                        pcTaskName = "EMAC0";
+                        break;
+                }
+
+                xTaskCreate( prvEMACHandlerTask, pcTaskName, configEMAC_TASK_STACK_SIZE, ( void * ) xEMACIndex, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandles[ xEMACIndex ] ) );
+
+                if( xEMACTaskHandles[ xEMACIndex ] == NULL )
+                {
+                    eEMACStates[ xEMACIndex ] = xEMAC_Fatal;
                     break;
                 }
             }
 
-            eEMACState = xEMAC_Ready;
+            eEMACStates[ xEMACIndex ] = xEMAC_Ready;
 
         /* Fall through. */
 
@@ -307,11 +489,17 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     return xReturn;
 }
-/*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
-                                    BaseType_t bReleaseAfterSend )
+/*-----------------------------------------------------------*/
+static BaseType_t xUltrascaleNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxBuffer,
+                                                     BaseType_t bReleaseAfterSend )
 {
+    BaseType_t xEMACIndex = ( BaseType_t ) pxInterface->pvArgument;
+
+    configASSERT( xEMACIndex >= 0 );
+    configASSERT( xEMACIndex < XPAR_XEMACPS_NUM_INSTANCES );
+
     #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
     {
         ProtocolPacket_t * pxPacket;
@@ -320,22 +508,41 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
          * the protocol checksum to have a value of zero. */
         pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
 
-        if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
-            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+            ICMPPacket_IPv6_t * pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxBuffer->pucEthernetBuffer;
+
+            if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
+                ( pxICMPPacket->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+            {
+                /* The EMAC will calculate the checksum of the IP-header.
+                 * It can only calculate protocol checksums of UDP and TCP,
+                 * so for ICMP and other protocols it must be done manually. */
+                usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
+            }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
         {
-            /* The EMAC will calculate the checksum of the IP-header.
-             * It can only calculate protocol checksums of UDP and TCP,
-             * so for ICMP and other protocols it must be done manually. */
-            usGenerateProtocolChecksum( ( uint8_t * ) &( pxPacket->xUDPPacket ), pxBuffer->xDataLength, pdTRUE );
+            if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol == ipPROTOCOL_ICMP ) )
+            {
+                /* The EMAC will calculate the checksum of the IP-header.
+                 * It can only calculate protocol checksums of UDP and TCP,
+                 * so for ICMP and other protocols it must be done manually. */
+                usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
+            }
         }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
     }
     #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
-    if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0UL )
+    if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0UL )
     {
         iptraceNETWORK_INTERFACE_TRANSMIT();
-        emacps_send_message( &xEMACpsif, pxBuffer, bReleaseAfterSend );
+
+        /* emacps_send_message() will take ownership of pxBuffer, and
+         * make sure it will get release when bReleaseAfterSend is pdTRUE. */
+        emacps_send_message( &( xEMACpsifs[ xEMACIndex ] ), pxBuffer, bReleaseAfterSend );
     }
     else if( bReleaseAfterSend != pdFALSE )
     {
@@ -347,16 +554,18 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
 }
 /*-----------------------------------------------------------*/
 
-static inline unsigned long ulReadMDIO( unsigned ulRegister )
+static inline unsigned long ulReadMDIO( BaseType_t xEMACIndex,
+                                        unsigned ulRegister )
 {
     uint16_t usValue;
 
-    XEmacPs_PhyRead( &( xEMACpsif.emacps ), ulPHYIndex, ulRegister, &usValue );
+    XEmacPs_PhyRead( &( xEMACpsifs[ xEMACIndex ].emacps ), phy_detected[ xEMACIndex ], ulRegister, &usValue );
     return usValue;
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
+static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
+                                 TickType_t xMaxTimeTicks )
 {
     TickType_t xStartTime, xEndTime;
     const TickType_t xShortDelay = pdMS_TO_TICKS( 20UL );
@@ -374,9 +583,9 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
             break;
         }
 
-        ulPHYLinkStatus = ulReadMDIO( PHY_REG_01_BMSR );
+        ulPHYLinkStates[ xEMACIndex ] = ulReadMDIO( xEMACIndex, PHY_REG_01_BMSR );
 
-        if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL )
+        if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0uL )
         {
             xReturn = pdTRUE;
             break;
@@ -429,11 +638,12 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 #endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( void )
+static BaseType_t xUltrascaleGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     BaseType_t xReturn;
+    BaseType_t xEMACIndex = ( BaseType_t ) pxInterface->pvArgument;
 
-    if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) == 0uL )
+    if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) == 0uL )
     {
         xReturn = pdFALSE;
     }
@@ -444,6 +654,56 @@ BaseType_t xGetPhyLinkStatus( void )
 
     return xReturn;
 }
+
+/*-----------------------------------------------------------*/
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        return pxUltrascale_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+#endif
+
+NetworkInterface_t * pxUltrascale_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                           NetworkInterface_t * pxInterface )
+{
+    static char pcNames[ XPAR_XEMACPS_NUM_INSTANCES ][ 8 ];
+
+    configASSERT( xEMACIndex >= 0 );
+    configASSERT( xEMACIndex < XPAR_XEMACPS_NUM_INSTANCES );
+
+/* This function pxZynq_FillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    strcpy( pcNames[ xEMACIndex ], "ETH" );
+    uint8_t temp = strlen( pcNames[ xEMACIndex ] );
+    pcNames[ xEMACIndex ][ temp ] = ( char ) xEMACIndex + '0';
+    pcNames[ xEMACIndex ][ temp + 1 ] = '\0';
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcNames[ xEMACIndex ];     /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has meaning only for the driver functions. */
+    pxInterface->pfInitialise = xUltrascaleNetworkInterfaceInitialise;
+    pxInterface->pfOutput = xUltrascaleNetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xUltrascaleGetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+
+/*-----------------------------------------------------------*/
+
+BaseType_t xGetPhyLinkStatus( struct xNetworkInterface * pxInterface )
+{
+    return xUltrascaleGetPhyLinkStatus( pxInterface );
+}
+
 /*-----------------------------------------------------------*/
 
 static void prvEMACHandlerTask( void * pvParameters )
@@ -454,8 +714,13 @@ static void prvEMACHandlerTask( void * pvParameters )
     uint32_t xStatus;
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
 
-    /* Remove compiler warnings about unused parameters. */
-    ( void ) pvParameters;
+    BaseType_t xEMACIndex = ( BaseType_t ) pvParameters;
+    xemacpsif_s * pxEMAC_PS;
+
+    configASSERT( xEMACIndex >= 0 );
+    configASSERT( xEMACIndex < XPAR_XEMACPS_NUM_INSTANCES );
+
+    pxEMAC_PS = &( xEMACpsifs[ xEMACIndex ] );
 
     /* A possibility to set some additional task properties like calling
      * portTASK_USES_FLOATING_POINT() */
@@ -463,6 +728,7 @@ static void prvEMACHandlerTask( void * pvParameters )
 
     vTaskSetTimeOutState( &xPhyTime );
     xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
+    FreeRTOS_printf( ( "prvEMACHandlerTask[ %ld ] started running\n", xEMACIndex ) );
 
     for( ; ; )
     {
@@ -475,28 +741,28 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
-        if( ( xEMACpsif.isr_events & EMAC_IF_ALL_EVENT ) == 0 )
+        if( ( pxEMAC_PS->isr_events & EMAC_IF_ALL_EVENT ) == 0 )
         {
             /* No events to process now, wait for the next. */
             ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
         }
 
-        if( ( xEMACpsif.isr_events & EMAC_IF_RX_EVENT ) != 0 )
+        if( ( pxEMAC_PS->isr_events & EMAC_IF_RX_EVENT ) != 0 )
         {
-            xEMACpsif.isr_events &= ~EMAC_IF_RX_EVENT;
-            xResult = emacps_check_rx( &xEMACpsif );
+            pxEMAC_PS->isr_events &= ~EMAC_IF_RX_EVENT;
+            xResult = emacps_check_rx( pxEMAC_PS, pxMyInterfaces[ xEMACIndex ] );
         }
 
-        if( ( xEMACpsif.isr_events & EMAC_IF_TX_EVENT ) != 0 )
+        if( ( pxEMAC_PS->isr_events & EMAC_IF_TX_EVENT ) != 0 )
         {
-            xEMACpsif.isr_events &= ~EMAC_IF_TX_EVENT;
-            emacps_check_tx( &xEMACpsif );
+            pxEMAC_PS->isr_events &= ~EMAC_IF_TX_EVENT;
+            emacps_check_tx( pxEMAC_PS );
         }
 
-        if( ( xEMACpsif.isr_events & EMAC_IF_ERR_EVENT ) != 0 )
+        if( ( pxEMAC_PS->isr_events & EMAC_IF_ERR_EVENT ) != 0 )
         {
-            xEMACpsif.isr_events &= ~EMAC_IF_ERR_EVENT;
-            emacps_check_errors( &xEMACpsif );
+            pxEMAC_PS->isr_events &= ~EMAC_IF_ERR_EVENT;
+            emacps_check_errors( pxEMAC_PS );
         }
 
         if( xResult > 0 )
@@ -507,27 +773,27 @@ static void prvEMACHandlerTask( void * pvParameters )
             xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             xResult = 0;
 
-            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) == 0uL )
+            if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) == 0uL )
             {
                 /* Indicate that the Link Status is high, so that
                  * xNetworkInterfaceOutput() can send packets. */
-                ulPHYLinkStatus |= niBMSR_LINK_STATUS;
+                ulPHYLinkStates[ xEMACIndex ] |= niBMSR_LINK_STATUS;
                 FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS assume 1\n" ) );
             }
         }
         else if( xTaskCheckForTimeOut( &xPhyTime, &xPhyRemTime ) != pdFALSE )
         {
-            xStatus = ulReadMDIO( PHY_REG_01_BMSR );
+            xStatus = ulReadMDIO( xEMACIndex, PHY_REG_01_BMSR );
 
-            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != ( xStatus & niBMSR_LINK_STATUS ) )
+            if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != ( xStatus & niBMSR_LINK_STATUS ) )
             {
-                ulPHYLinkStatus = xStatus;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL ) );
+                ulPHYLinkStates[ xEMACIndex ] = xStatus;
+                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0uL ) );
             }
 
             vTaskSetTimeOutState( &xPhyTime );
 
-            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL )
+            if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0uL )
             {
                 xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }

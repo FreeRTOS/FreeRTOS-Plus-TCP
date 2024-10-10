@@ -54,7 +54,7 @@
 #include <stdlib.h>
 
 #include "x_emacpsif.h"
-/*#include "lwipopts.h" */
+#include "x_emac_map.h"
 #include "xparameters_ps.h"
 #include "xparameters.h"
 
@@ -69,6 +69,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 
 #define phyMIN_PHY_ADDRESS    0
@@ -76,9 +77,8 @@
 
 #define MINIMUM_SLEEP_TIME    ( ( TickType_t ) 1 * configTICK_RATE_HZ )
 
-/*** IMPORTANT: Define PEEP in xemacpsif.h and sys_arch_raw.c
- *** to run it on a PEEP board
- ***/
+
+uint32_t phy_detected[ 4 ];
 
 /* Advertisement control register. */
 #define ADVERTISE_10HALF      0x0020    /* Try for 10mbps half-duplex  */
@@ -157,6 +157,7 @@
 #define PHY_MARVELL_IDENTIFIER                 0x0141
 #define PHY_TI_IDENTIFIER                      0x2000
 #define PHY_REALTEK_IDENTIFIER                 0x001c
+#define PHY_MICREL_IDENTIFIER                  0x0022
 #define PHY_AR8035_IDENTIFIER                  0x004D
 #define PHY_XILINX_PCS_PMA_ID1                 0x0174
 #define PHY_XILINX_PCS_PMA_ID2                 0x0C00
@@ -178,30 +179,6 @@
 #define PHY_REGCR_DATA                         0x401F
 #define PHY_TI_CRVAL                           0x5048
 #define PHY_TI_CFG4RESVDBIT7                   0x80
-
-/* Frequency setting */
-#define SLCR_LOCK_ADDR                         ( XPS_SYS_CTRL_BASEADDR + 0x4 )
-#define SLCR_UNLOCK_ADDR                       ( XPS_SYS_CTRL_BASEADDR + 0x8 )
-#define SLCR_GEM0_CLK_CTRL_ADDR                ( XPS_SYS_CTRL_BASEADDR + 0x140 )
-#define SLCR_GEM1_CLK_CTRL_ADDR                ( XPS_SYS_CTRL_BASEADDR + 0x144 )
-#ifdef PEEP
-    #define SLCR_GEM_10M_CLK_CTRL_VALUE        0x00103031
-    #define SLCR_GEM_100M_CLK_CTRL_VALUE       0x00103001
-    #define SLCR_GEM_1G_CLK_CTRL_VALUE         0x00103011
-#endif
-#define SLCR_GEM_SRCSEL_EMIO                   0x40
-#define SLCR_LOCK_KEY_VALUE                    0x767B
-#define SLCR_UNLOCK_KEY_VALUE                  0xDF0D
-#define SLCR_ADDR_GEM_RST_CTRL                 ( XPS_SYS_CTRL_BASEADDR + 0x214 )
-#define EMACPS_SLCR_DIV_MASK                   0xFC0FC0FF
-
-#define ZYNQ_EMACPS_0_BASEADDR                 0xE000B000
-#define ZYNQ_EMACPS_1_BASEADDR                 0xE000C000
-
-#define ZYNQMP_EMACPS_0_BASEADDR               0xFF0B0000
-#define ZYNQMP_EMACPS_1_BASEADDR               0xFF0C0000
-#define ZYNQMP_EMACPS_2_BASEADDR               0xFF0D0000
-#define ZYNQMP_EMACPS_3_BASEADDR               0xFF0E0000
 
 #define CRL_APB_GEM0_REF_CTRL                  0xFF5E0050
 #define CRL_APB_GEM1_REF_CTRL                  0xFF5E0054
@@ -226,8 +203,6 @@
 #define GEM_VERSION_ZYNQMP                     7
 #define GEM_VERSION_VERSAL                     0x107
 
-u32 phymapemac0[ 32 ];
-u32 phymapemac1[ 32 ];
 
 static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
                                            uint32_t phy_addr,
@@ -685,6 +660,240 @@ static uint32_t get_Realtek_phy_speed( XEmacPs * xemacpsp,
     return XST_FAILURE;
 }
 
+#define LPA_IEEE_1000        0x0800
+#define LP5_IEEE_100         0x0100
+#define LP5_IEEE_10          0x0040
+#define MICREL_ID_KSZ9021    0x0161
+#define MICREL_ID_KSZ9031    0x0162
+#define MICREL_ID_KSZ9131    0x0164
+
+
+static int set_Micrel_phy_delays( XEmacPs * EmacPsInstancePtr,
+                                  uint32_t PhyAddr )
+{
+    int Status;
+    uint16_t PhyType, PhyData;
+
+    XEmacPs_PhyRead( EmacPsInstancePtr, PhyAddr, 0x3, ( u16 * ) &PhyData ); /* read value */
+    PhyType = ( PhyData >> 4 );
+
+    /* enabling RGMII delays */
+    if( PhyType == MICREL_ID_KSZ9131 ) /* KSZ9131 */
+    {
+        FreeRTOS_printf( ( "Detected KSZ9131 Ethernet PHY\n\r" ) );
+        /*Ctrl Delay */
+        u16 RxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0004 ); /* Reg 0x4 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxCtrlDelay | ( RxCtrlDelay << 4 ) ) );
+        /*Data Delay */
+        u16 RxDataDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxDataDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0005 ); /* Reg 0x5 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxDataDelay | ( RxDataDelay << 4 ) | ( RxDataDelay << 8 ) | ( RxDataDelay << 12 ) ) );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0006 ); /* Reg 0x6 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxDataDelay | ( TxDataDelay << 4 ) | ( TxDataDelay << 8 ) | ( TxDataDelay << 12 ) ) );
+        /*Clock Delay */
+        u16 RxClockDelay = 31;                                       /* 0..31, default 15 */
+        u16 TxClockDelay = 31;                                       /* 0..31, default 15 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0008 ); /* Reg 0x8 RGMII Clock Pad Skew */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxClockDelay | ( TxClockDelay << 5 ) ) );
+    }
+    else if( PhyType == MICREL_ID_KSZ9031 ) /* KSZ9031 */
+    {
+        FreeRTOS_printf( ( "Detected KSZ9031 Ethernet PHY\n\r" ) );
+        /*Ctrl Delay */
+        u16 RxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxCtrlDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0004 ); /* Reg 0x4 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxCtrlDelay | ( RxCtrlDelay << 4 ) ) );
+        /*Data Delay */
+        u16 RxDataDelay = 7;                                         /* 0..15, default 7 */
+        u16 TxDataDelay = 7;                                         /* 0..15, default 7 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0005 ); /* Reg 0x5 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxDataDelay | ( RxDataDelay << 4 ) | ( RxDataDelay << 8 ) | ( RxDataDelay << 12 ) ) );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0006 ); /* Reg 0x6 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( TxDataDelay | ( TxDataDelay << 4 ) | ( TxDataDelay << 8 ) | ( TxDataDelay << 12 ) ) );
+        /*Clock Delay */
+        u16 RxClockDelay = 31;                                       /* 0..31, default 15 */
+        u16 TxClockDelay = 31;                                       /* 0..31, default 15 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x0002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, 0x0008 ); /* Reg 0x8 RGMII Clock Pad Skew */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xD, 0x4002 );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xE, ( RxClockDelay | ( TxClockDelay << 5 ) ) );
+    }
+    else if( PhyType == MICREL_ID_KSZ9021 ) /* KSZ9021 */
+    {
+        FreeRTOS_printf( ( "Detected KSZ9021 Ethernet PHY\n\r" ) );
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xB, 0x8104 ); /* write Reg 0x104 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xC, 0xF0F0 ); /* set write data */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xB, 0x8105 ); /* write Reg 0x105 */
+        XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0xC, 0x0000 ); /* set write data */
+    }
+
+    /* Issue a reset to phy */
+    Status = XEmacPs_PhyRead( EmacPsInstancePtr, PhyAddr, 0x0, &PhyData );
+    PhyData |= 0x8000;
+    Status = XEmacPs_PhyWrite( EmacPsInstancePtr, PhyAddr, 0x0, PhyData );
+    vTaskDelay( 1 );
+    Status |= XEmacPs_PhyRead( EmacPsInstancePtr, PhyAddr, 0x0, &PhyData );
+
+    if( Status != XST_SUCCESS )
+    {
+        return Status;
+    }
+
+    return PhyType;
+}
+
+static uint32_t get_Micrel_phy_speed( XEmacPs * xemacpsp,
+                                      uint32_t phy_addr )
+{
+    const char * name_ptr;
+    uint16_t temp, phy_type;
+    uint16_t control;
+    uint16_t status;
+    uint16_t status_speed;
+    uint32_t timeout_counter = 0;
+
+    /* Just to prevent compiler warnings about unused variables. */
+    ( void ) name_ptr;
+
+
+    FreeRTOS_printf( ( "Start Micrel PHY program delay\r\n" ) );
+
+    if( ( phy_type = set_Micrel_phy_delays( xemacpsp, phy_addr ) ) != XST_FAILURE )
+    {
+        FreeRTOS_printf( ( "Delay Set Okay!\r\n" ) );
+    }
+    else
+    {
+        FreeRTOS_printf( ( "Delay Set Error!\r\n" ) );
+    }
+
+    switch( phy_type )
+    {
+        case MICREL_ID_KSZ9021:
+            name_ptr = "KSZ9021";
+            break;
+
+        case MICREL_ID_KSZ9031:
+            name_ptr = "KSZ9031";
+            break;
+
+        case MICREL_ID_KSZ9131:
+            name_ptr = "KSZ9131";
+            break;
+
+        default:
+            name_ptr = "!UNKNOWN!";
+            break;
+    }
+
+    FreeRTOS_printf( ( "Start %s auto-negotiation\r\n", name_ptr ) );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, &control );
+    control |= IEEE_ASYMMETRIC_PAUSE_MASK;
+    control |= IEEE_PAUSE_MASK;
+    control |= ADVERTISE_100;
+    control |= ADVERTISE_10;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET, &control );
+    control |= ADVERTISE_1000;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_COPPER_SPECIFIC_CONTROL_REG, &control );
+    control |= ( 7 << 12 );
+    control |= ( 1 << 11 );
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_COPPER_SPECIFIC_CONTROL_REG, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
+    control |= IEEE_CTRL_AUTONEGOTIATE_ENABLE;
+    control |= IEEE_STAT_AUTONEGOTIATE_RESTART;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, control );
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
+    control |= IEEE_CTRL_RESET_MASK;
+    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, control );
+
+    while( 1 )
+    {
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
+
+        if( control & IEEE_CTRL_RESET_MASK )
+        {
+            continue;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
+
+    FreeRTOS_printf( ( "Waiting for %s to complete Auto-negotiation.\r\n", name_ptr ) );
+
+    while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
+    {
+        vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_COPPER_SPECIFIC_STATUS_REG_2, &temp );
+        timeout_counter++;
+
+        if( timeout_counter == 30 )
+        {
+            FreeRTOS_printf( ( "Auto negotiation error \r\n" ) );
+            return XST_FAILURE;
+        }
+
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET, &status );
+    }
+
+    FreeRTOS_printf( ( "%s Completed Auto-negotiation\r\n", name_ptr ) );
+
+    /* Check for high speed connection first */
+    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PARTNER_ABILITIES_3_REG_OFFSET, &status_speed );
+
+    if( status_speed & LPA_IEEE_1000 )
+    {
+        FreeRTOS_printf( ( "Micrel PHY %s speed 1000Mbps\r\n", name_ptr ) );
+        return 1000;
+    }
+    else /* No high speed so check lows... */
+    {
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PARTNER_ABILITIES_1_REG_OFFSET, &status_speed );
+
+        if( status_speed & LP5_IEEE_100 )
+        {
+            FreeRTOS_printf( ( "Micrel PHY %s speed 100Mbps\r\n", name_ptr ) );
+            return 100;
+        }
+
+        if( status_speed & LP5_IEEE_10 )
+        {
+            FreeRTOS_printf( ( "Micrel PHY %s speed 10Mbps\r\n", name_ptr ) );
+            return 10;
+        }
+    }
+
+    return XST_FAILURE;
+}
+
 /* Here is a XEmacPs_PhyRead() that returns the value of a register. */
 static uint16_t XEmacPs_PhyRead2( XEmacPs * InstancePtr,
                                   u32 PhyAddress,
@@ -912,7 +1121,7 @@ static uint32_t ar8035CheckStatus( XEmacPs * xemacpsp,
 static const char * pcGetPHIName( uint16_t usID )
 {
     const char * pcReturn = "";
-    static char pcName[ 16 ];
+    static char pcName[ 32 ];
 
     switch( usID )
     {
@@ -922,6 +1131,10 @@ static const char * pcGetPHIName( uint16_t usID )
 
         case PHY_REALTEK_IDENTIFIER:
             pcReturn = "Realtek RTL8212";
+            break;
+
+        case PHY_MICREL_IDENTIFIER:
+            pcReturn = "MICREL PHY";
             break;
 
         case PHY_AR8035_IDENTIFIER:
@@ -971,10 +1184,12 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
             RetStatus = get_Marvell_phy_speed( xemacpsp, phy_addr );
             break;
 
+        case PHY_MICREL_IDENTIFIER:
+            RetStatus = get_Micrel_phy_speed( xemacpsp, phy_addr );
+            break;
+
         case PHY_AR8035_IDENTIFIER:
             RetStatus = get_AR8035_phy_speed( xemacpsp, phy_addr );
-            /* RetStatus = get_Marvell_phy_speed(xemacpsp, phy_addr); */
-            /* RetStatus = get_Realtek_phy_speed(xemacpsp, phy_addr); */
             prvSET_AR803x_TX_Timing( xemacpsp, phy_addr );
             break;
 
@@ -990,10 +1205,6 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
 static void SetUpSLCRDivisors( u32 mac_baseaddr,
                                s32 speed )
 {
-    volatile u32 slcrBaseAddress;
-    u32 SlcrDiv0 = 0;
-    u32 SlcrDiv1 = 0;
-    u32 SlcrTxClkCntrl;
     u32 gigeversion;
     volatile u32 CrlApbBaseAddr;
     u32 CrlApbDiv0 = 0;
@@ -1002,92 +1213,7 @@ static void SetUpSLCRDivisors( u32 mac_baseaddr,
 
     gigeversion = ( ( Xil_In32( mac_baseaddr + 0xFC ) ) >> 16 ) & 0xFFF;
 
-    if( gigeversion == 2 )
-    {
-        *( volatile u32 * ) ( SLCR_UNLOCK_ADDR ) = SLCR_UNLOCK_KEY_VALUE;
-
-        if( mac_baseaddr == ZYNQ_EMACPS_0_BASEADDR )
-        {
-            slcrBaseAddress = SLCR_GEM0_CLK_CTRL_ADDR;
-        }
-        else
-        {
-            slcrBaseAddress = SLCR_GEM1_CLK_CTRL_ADDR;
-        }
-
-        if( ( *( volatile u32 * ) ( UINTPTR ) ( slcrBaseAddress ) ) &
-            SLCR_GEM_SRCSEL_EMIO )
-        {
-            return;
-        }
-
-        if( speed == 1000 )
-        {
-            if( mac_baseaddr == XPAR_XEMACPS_0_BASEADDR )
-            {
-                #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV1;
-                #endif
-            }
-            else
-            {
-                #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV1;
-                #endif
-            }
-        }
-        else if( speed == 100 )
-        {
-            if( mac_baseaddr == XPAR_XEMACPS_0_BASEADDR )
-            {
-                #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV1;
-                #endif
-            }
-            else
-            {
-                #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV1;
-                #endif
-            }
-        }
-        else
-        {
-            if( mac_baseaddr == XPAR_XEMACPS_0_BASEADDR )
-            {
-                #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV1;
-                #endif
-            }
-            else
-            {
-                #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0
-                    SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0;
-                    SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV1;
-                #endif
-            }
-        }
-
-        if( ( SlcrDiv0 != 0 ) && ( SlcrDiv1 != 0 ) )
-        {
-            SlcrTxClkCntrl = *( volatile u32 * ) ( UINTPTR ) ( slcrBaseAddress );
-            SlcrTxClkCntrl &= EMACPS_SLCR_DIV_MASK;
-            SlcrTxClkCntrl |= ( SlcrDiv1 << 20 );
-            SlcrTxClkCntrl |= ( SlcrDiv0 << 8 );
-            *( volatile u32 * ) ( UINTPTR ) ( slcrBaseAddress ) = SlcrTxClkCntrl;
-            *( volatile u32 * ) ( SLCR_LOCK_ADDR ) = SLCR_LOCK_KEY_VALUE;
-        }
-        else
-        {
-            FreeRTOS_printf( ( "Clock Divisors incorrect - Please check\n" ) );
-        }
-    }
-    else if( gigeversion == GEM_VERSION_ZYNQMP )
+    if( gigeversion == GEM_VERSION_ZYNQMP )
     {
         /* Setup divisors in CRL_APB for Zynq Ultrascale+ MPSoC */
         if( mac_baseaddr == ZYNQMP_EMACPS_0_BASEADDR )
@@ -1313,6 +1439,11 @@ static void SetUpSLCRDivisors( u32 mac_baseaddr,
         {
             FreeRTOS_printf( ( "Clock Divisors incorrect - Please check\n" ) );
         }
+    }
+    else
+    {
+        FreeRTOS_printf( ( "Invalid GEM version %u \n", gigeversion ) );
+        return;
     }
 }
 
