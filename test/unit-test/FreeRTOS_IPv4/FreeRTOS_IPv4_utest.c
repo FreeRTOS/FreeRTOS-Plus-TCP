@@ -262,7 +262,6 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
     pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress + 1;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( pdTRUE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -417,7 +416,6 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
 
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( pdFALSE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -455,7 +453,6 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
 
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( pdTRUE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 

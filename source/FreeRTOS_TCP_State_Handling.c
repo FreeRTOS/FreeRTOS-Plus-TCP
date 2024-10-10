@@ -584,6 +584,8 @@
             {
                 /* Peer is requesting to stop, see if we're really finished. */
                 xMayClose = pdTRUE;
+                ulIntermediateResult = ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulCurrentSequenceNumber;
+                lDistance = ( int32_t ) ulIntermediateResult;
 
                 /* Checks are only necessary if we haven't sent a FIN yet. */
                 if( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED )
@@ -601,21 +603,27 @@
                                                  ( int ) bRxComplete,
                                                  ( int ) bTxDone ) );
                         xMayClose = pdFALSE;
+
+                        /* This action is necessary to ensure proper handling of any subsequent packets that
+                         * may arrive after the refused FIN packet. Note that we only update it when the sequence
+                         * of FIN packet is correct. Otherwise, we wait for re-transmission. */
+                        if( lDistance <= 1 )
+                        {
+                            pxTCPWindow->rx.ulCurrentSequenceNumber = pxTCPWindow->rx.ulFINSequenceNumber + 1U;
+                        }
+                    }
+                    else if( lDistance > 1 )
+                    {
+                        FreeRTOS_debug_printf( ( "Refusing FIN: Rx not complete %d (cur %u high %u)\n",
+                                                 ( int ) lDistance,
+                                                 ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
+                                                 ( unsigned ) ( pxTCPWindow->rx.ulHighestSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ) ) );
+
+                        xMayClose = pdFALSE;
                     }
                     else
                     {
-                        ulIntermediateResult = ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulCurrentSequenceNumber;
-                        lDistance = ( int32_t ) ulIntermediateResult;
-
-                        if( lDistance > 1 )
-                        {
-                            FreeRTOS_debug_printf( ( "Refusing FIN: Rx not complete %d (cur %u high %u)\n",
-                                                     ( int ) lDistance,
-                                                     ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
-                                                     ( unsigned ) ( pxTCPWindow->rx.ulHighestSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ) ) );
-
-                            xMayClose = pdFALSE;
-                        }
+                        /* Empty else marker. */
                     }
                 }
 

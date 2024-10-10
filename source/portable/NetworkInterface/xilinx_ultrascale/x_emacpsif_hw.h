@@ -20,15 +20,12 @@
     #define __XEMACPSIF_HW_H_
 
     #include "x_emacpsif.h"
-/*#include "lwip/netif.h" */
 
     #ifdef __cplusplus
     extern "C" {
     #endif
 
     XEmacPs_Config * lookup_config( unsigned mac_base );
-
-/*void init_emacps(xemacpsif_s *xemacpsif, struct netif *netif); */
 
     int emacps_check_errors( xemacpsif_s * xemacps );
 

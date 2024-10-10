@@ -63,20 +63,22 @@ const MACAddress_t xLLMNR_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } 
 /** @brief The IPv6 link-scope multicast MAC address */
 const MACAddress_t xLLMNR_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
 
+#if ( ( ipconfigUSE_LLMNR != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
 /** @brief The IPv6 link-scope multicast address */
-const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
-{
-    { /* ff02::1:3 */
-        0xff, 0x02,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x01,
-        0x00, 0x03,
-    }
-};
+    const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
+    {
+        { /* ff02::1:3 */
+            0xff, 0x02,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x01,
+            0x00, 0x03,
+        }
+    };
+#endif /* ( ( ipconfigUSE_LLMNR != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
 /** @brief The MAC address used for MDNS. */
 const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
@@ -84,20 +86,22 @@ const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } }
 /** @brief The IPv6 multicast DNS MAC address. */
 const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
 
+#if ( ( ipconfigUSE_MDNS != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
 /** @brief multicast DNS IPv6 address */
-const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
-{
-    { /* ff02::fb */
-        0xff, 0x02,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0x00,
-        0x00, 0xfb,
-    }
-};
+    const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
+    {
+        { /* ff02::fb */
+            0xff, 0x02,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0xfb,
+        }
+    };
+#endif /* ( ( ipconfigUSE_MDNS != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )

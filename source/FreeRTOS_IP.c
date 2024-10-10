@@ -982,7 +982,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             {
                 static StaticTask_t xIPTaskBuffer;
                 static StackType_t xIPTaskStack[ ipconfigIP_TASK_STACK_SIZE_WORDS ];
-                xIPTaskHandle = xTaskCreateStatic( prvIPTask,
+                xIPTaskHandle = xTaskCreateStatic( &prvIPTask,
                                                    "IP-Task",
                                                    ipconfigIP_TASK_STACK_SIZE_WORDS,
                                                    NULL,
@@ -997,7 +997,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             }
             #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
             {
-                xReturn = xTaskCreate( prvIPTask,
+                xReturn = xTaskCreate( &prvIPTask,
                                        "IP-task",
                                        ipconfigIP_TASK_STACK_SIZE_WORDS,
                                        NULL,
