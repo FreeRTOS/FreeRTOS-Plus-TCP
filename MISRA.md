@@ -228,13 +228,3 @@ _Ref 21.6.1_
   The function `snprintf` is used to insert information in a logging string.
   This is only used in a utility function which aids in debugging and is not
   part of the 'core' code governing the functionality of the TCP/IP stack.
-
-#### Rule 17.11
-
-_Ref 17.11_
-
-- MISRA C-2012 Rule 17.11 advises that functions that never returns should be 
-declared with a _Noreturn function specifier. However, in this case, `_Noreturn`
-is added by C standard as part of C11 and the FreeRTOS+TCP codebase is compatible
-with C90. This is a false positive as the Coverity is also run with C90 
-as the standard. 

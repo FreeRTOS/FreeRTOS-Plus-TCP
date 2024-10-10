@@ -208,10 +208,7 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
 
 /* MISRA Ref 8.13.1 [Not decorating a pointer to const parameter with const] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-813 */
-/* MISRA Ref 17.11 [A function that never returns should be declared with a _Noreturn function specifier] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-1711 */
 /* coverity[misra_c_2012_rule_8_13_violation] */
-/* coverity[misra_c_2012_rule_17_11_violation] */
 static void prvIPTask( void * pvParameters )
 {
     /* Just to prevent compiler warnings about unused parameters. */
