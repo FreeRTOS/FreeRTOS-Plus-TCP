@@ -21,6 +21,8 @@
 
     #include <stdint.h>
 
+    #include "FreeRTOS_Routing.h"
+
     #include "xstatus.h"
     #include "sleep.h"
     #include "xparameters.h"
@@ -117,7 +119,8 @@
 
     struct xNETWORK_BUFFER;
 
-    int emacps_check_rx( xemacpsif_s * xemacpsif );
+    int emacps_check_rx( xemacpsif_s * xemacpsif,
+                         NetworkInterface_t * pxInterface );
     void emacps_check_tx( xemacpsif_s * xemacpsif );
     int emacps_check_errors( xemacpsif_s * xemacps );
     void emacps_set_rx_buffers( xemacpsif_s * xemacpsif,
@@ -133,8 +136,8 @@
     extern XStatus init_dma( xemacpsif_s * xemacpsif );
     extern void start_emacps( xemacpsif_s * xemacpsif );
 
-    void EmacEnableIntr( void );
-    void EmacDisableIntr( void );
+    void EmacEnableIntr( int xEMACIndex );
+    void EmacDisableIntr( int xEMACIndex );
 
     XStatus init_axi_dma( xemacpsif_s * xemacpsif );
     void process_sent_bds( xemacpsif_s * xemacpsif );
@@ -149,6 +152,11 @@
 
     void clean_dma_txdescs( xemacpsif_s * xemacpsif );
     void resetrx_on_no_rxdata( xemacpsif_s * xemacpsif );
+
+/**
+ * @brief Initialise the interface number 'xIndex'. Do not call directly.
+ */
+    void vInitialiseOnIndex( BaseType_t xIndex );
 
     #ifdef __cplusplus
 }     /* extern "C" */

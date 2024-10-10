@@ -979,7 +979,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
             if( pxEndPoint != NULL )
             {
                 /* For multi-cast, use the first IPv4 end-point. */
-                memcpy( pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( pxMACAddress->ucBytes ) );
+                ( void ) memcpy( pxMACAddress->ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( pxMACAddress->ucBytes ) );
                 *( ppxEndPoint ) = pxEndPoint;
                 eReturn = eARPCacheHit;
             }
