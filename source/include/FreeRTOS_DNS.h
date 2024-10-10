@@ -47,8 +47,10 @@ extern const MACAddress_t xLLMNR_MacAddress;
 /* The LLMNR IPv6 MAC address is 33:33:00:01:00:03 */
 extern const MACAddress_t xLLMNR_MacAddressIPv6;
 
+#if ( ( ipconfigUSE_LLMNR != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
 /* The LLMNR IPv6 address is ff02::1:3 */
-extern const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6;
+    extern const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6;
+#endif /* ( ( ipconfigUSE_LLMNR != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
 /* The MDNS MAC address is 01:00:5e:00:00:fc */
 extern const MACAddress_t xMDNS_MacAddress;
@@ -61,8 +63,10 @@ extern const MACAddress_t xMDNS_MacAddressIPv6;
 /* Guarantee backward compatibility. */
 #define xMDNS_MACAddressIPv6    xMDNS_MacAddressIPv6
 
+#if ( ( ipconfigUSE_MDNS != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
 /* The MDNS IPv6 address is ff02::1:3 */
-extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
+    extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
+#endif /* ( ( ipconfigUSE_MDNS != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
 /** @brief While doing integration tests, it is necessary to influence the choice
  * between DNS/IPv4 and DNS/IPv4.  Depending on this, a DNS server will be
