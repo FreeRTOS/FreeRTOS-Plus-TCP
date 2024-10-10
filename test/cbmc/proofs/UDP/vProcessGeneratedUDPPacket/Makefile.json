@@ -2,6 +2,9 @@
   "ENTRY": "vProcessGeneratedUDPPacket",
   "CBMCFLAGS":
   [
+    "--unwind 1",
+    "--unwindset FreeRTOS_InterfaceEndPointOnNetMask.0:3",
+    "--nondet-static"
   ],
   "OBJS":
   [
