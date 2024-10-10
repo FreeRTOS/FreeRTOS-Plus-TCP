@@ -223,7 +223,6 @@ static void prvIPTask( void * pvParameters )
     {
         prvProcessIPEventsAndTimers();
     }
-
 }
 /*-----------------------------------------------------------*/
 
