@@ -81,12 +81,6 @@ uint32_t FreeRTOS_GetDNSServerAddress( void );
 uint32_t FreeRTOS_GetNetmask( void );
 uint32_t FreeRTOS_GetIPAddress( void );
 
-/* Show all valid ARP entries
- */
-#if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
-    void FreeRTOS_PrintARPCache( void );
-#endif
-
 /* Return pdTRUE if the IPv4 address is a multicast address. */
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 

@@ -173,18 +173,18 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 }
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress,
-                                      struct xNetworkEndPoint ** ppxEndPoint )
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                             MACAddress_t * const pxMACAddress,
+                                             struct xNetworkEndPoint ** ppxEndPoint )
 {
     /* Assume random ARP lookup result. */
-    eARPLookupResult_t eReturn;
+    eResolutionLookupResult_t eReturn;
 
     /* Make sure NULL pointers are not passed as arguments. */
     __CPROVER_assert( pulIPAddress != NULL, "The pulIPAddress cannot be NULL" );
     __CPROVER_assert( pxMACAddress != NULL, "The pxMACAddress cannot be NULL" );
 
-    if( eReturn == eARPCacheHit )
+    if( eReturn == eResolutionCacheHit )
     {
         /* If its a cache hit, update ppxEndPoint with a valid endpoint. */
         struct xNetworkEndPoint * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );

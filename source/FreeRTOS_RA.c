@@ -42,7 +42,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_IP_Timers.h"
-#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_ND.h"
@@ -509,7 +508,7 @@
                 }
 
                 /* Now call vIPNetworkUpCalls() to send the network-up event and
-                 * start the ARP timer. */
+                 * start the Resolution timer. */
                 vIPNetworkUpCalls( pxEndPoint );
             }
         }

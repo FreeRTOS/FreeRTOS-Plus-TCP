@@ -48,11 +48,11 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 }
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
-eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                     MACAddress_t * const pxMACAddress,
-                                     struct xNetworkEndPoint ** ppxEndPoint )
+eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+                                            MACAddress_t * const pxMACAddress,
+                                            struct xNetworkEndPoint ** ppxEndPoint )
 {
-    eARPLookupResult_t eResult;
+    eResolutionLookupResult_t eResult;
 
     __CPROVER_assert( pxIPAddress != NULL, "pxIPAddress cannot be NULL" );
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );

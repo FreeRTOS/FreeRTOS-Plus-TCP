@@ -69,13 +69,13 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
 
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress )
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                             MACAddress_t * const pxMACAddress )
 {
     __CPROVER_assert( pulIPAddress != NULL, "pulIPAddress cannot be NULL" );
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
 
-    eARPLookupResult_t eResult;
+    eResolutionLookupResult_t eResult;
 
     return eResult;
 }
