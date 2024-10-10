@@ -78,7 +78,7 @@ const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
         0x00, 0x03,
     }
 };
-#endif /* ( ( ipconfigUSE_LLMNR != 1 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
+#endif /* ( ( ipconfigUSE_LLMNR != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
 /** @brief The MAC address used for MDNS. */
 const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
@@ -101,7 +101,7 @@ const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         0x00, 0xfb,
     }
 };
-#endif /* ( ( ipconfigUSE_MDNS != 1 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
+#endif /* ( ( ipconfigUSE_MDNS != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
 /* Exclude the entire file if DNS is not enabled. */
 #if ( ipconfigUSE_DNS != 0 )
