@@ -43,11 +43,12 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 }
 
 /* This proof was done before. Hence we assume it to be correct here. */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresNDResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xReturn;
 
-    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
 
     return xReturn;
 }
@@ -95,6 +96,7 @@ void harness()
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_IPv6_t ) );
     pxNetworkBuffer->pxEndPoint = &xEndpoint;
+    pxNetworkBuffer->xDataLength = sizeof( UDPPacket_IPv6_t );
 
     /* The ethernet buffer must be valid. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
