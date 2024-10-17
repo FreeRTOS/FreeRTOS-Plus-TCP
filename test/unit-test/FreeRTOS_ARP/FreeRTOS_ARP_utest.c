@@ -1076,6 +1076,7 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     vResetARPClashCounter();
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
@@ -1103,7 +1104,10 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xARPHadIPClash = pdFALSE;
 
     /* Let there be no timeout. Let the EndPoint be NULL */
-    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+    xTaskGetTickCount_ExpectAndReturn( 0 );
+    vTaskSetTimeOutState_ExpectAnyArgs();
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
     eResult = eARPProcessPacket( &xNetworkBuffer );
@@ -1114,7 +1118,10 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     /* Reset the flag. */
     xARPHadIPClash = pdFALSE;
     /* Let there be no timeout. */
-    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+    xTaskGetTickCount_ExpectAndReturn( 0 );
+    vTaskSetTimeOutState_ExpectAnyArgs();
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
 
     /* Call it again and do not expect the task functions to be called. */
@@ -1128,7 +1135,10 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xEndPoint_2.ipv4_settings.ulIPAddress = ( uint32_t ) *( pxARPFrame->xARPHeader.ucSenderProtocolAddress + 0x11 );
 
     /* Let there be no timeout. Let the EndPoint be NULL */
-    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+    xTaskGetTickCount_ExpectAndReturn( 0 );
+    vTaskSetTimeOutState_ExpectAnyArgs();
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint_2 );
 
     eResult = eARPProcessPacket( &xNetworkBuffer );
