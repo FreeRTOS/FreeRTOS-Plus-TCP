@@ -1777,9 +1777,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
         case eWaitingResolution:
 
-            #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                if( ( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE ) || ( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE ) )
-                {
+            if( ( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE ) || ( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE ) )
+            {
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
                     if( pxARPWaitingNetworkBuffer == NULL )
                     {
                         pxARPWaitingNetworkBuffer = pxNetworkBuffer;
@@ -1788,20 +1788,20 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         iptraceDELAYED_ARP_REQUEST_STARTED();
                     }
                     else
-                    {
-                        /* We are already waiting on one resolution. This frame will be dropped. */
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-
-                        iptraceDELAYED_ARP_BUFFER_FULL();
-                    }
-
-                    break;
-                }
-            #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
-
-            #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-                if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+                #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
                 {
+                    /* We are already waiting on one resolution. This frame will be dropped. */
+                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+
+                    iptraceDELAYED_ARP_BUFFER_FULL();
+                }
+
+                break;
+            }
+
+            if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+            {
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                     if( pxNDWaitingNetworkBuffer == NULL )
                     {
                         pxNDWaitingNetworkBuffer = pxNetworkBuffer;
@@ -1810,16 +1810,16 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         iptraceDELAYED_ND_REQUEST_STARTED();
                     }
                     else
-                    {
-                        /* We are already waiting on one resolution. This frame will be dropped. */
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
+                {
+                    /* We are already waiting on one resolution. This frame will be dropped. */
+                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 
-                        iptraceDELAYED_ND_BUFFER_FULL();
-                    }
-
-                    break;
+                    iptraceDELAYED_ND_BUFFER_FULL();
                 }
-            #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
+
+                break;
+            }
 
             break;
 
