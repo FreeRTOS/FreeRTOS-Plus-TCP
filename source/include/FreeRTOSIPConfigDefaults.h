@@ -1162,8 +1162,14 @@ STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS ) <= portMAX_DELA
     #error ipconfigIP_TASK_PRIORITY must be at least 0
 #endif
 
-#if ( ipconfigIP_TASK_PRIORITY > ( configMAX_PRIORITIES - 1 ) )
-    #error ipconfigIP_TASK_PRIORITY must be at most configMAX_PRIORITIES - 1
+#if (configENABLE_MPU != 0)
+    #if ( ipconfigIP_TASK_PRIORITY > ( ( configMAX_PRIORITIES - 1 ) | portPRIVILEGE_BIT ) )
+        #error ipconfigIP_TASK_PRIORITY must be at most ( ( configMAX_PRIORITIES - 1 ) | portPRIVILEGE_BIT ) )
+    #endif
+#else
+    #if ( ipconfigIP_TASK_PRIORITY > ( configMAX_PRIORITIES - 1 ) )
+        #error ipconfigIP_TASK_PRIORITY must be at most configMAX_PRIORITIES - 1
+    #endif
 #endif
 
 /*---------------------------------------------------------------------------*/
