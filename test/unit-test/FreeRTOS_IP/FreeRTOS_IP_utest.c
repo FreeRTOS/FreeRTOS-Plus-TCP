@@ -2404,8 +2404,8 @@ void test_prvProcessEthernetPacket_IPv4FrameType_NeedARPResolution( void )
     struct xNetworkInterface xInterface;
     NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
-    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS - ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->pxInterface = &xInterface;
     pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
@@ -2442,8 +2442,8 @@ void test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution( void )
     struct xNetworkInterface xInterface;
     NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
-    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS - ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->pxInterface = &xInterface;
     pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
@@ -2480,8 +2480,8 @@ void test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution2( void )
     struct xNetworkInterface xInterface;
     NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
-    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS - ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->pxInterface = &xInterface;
     pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
