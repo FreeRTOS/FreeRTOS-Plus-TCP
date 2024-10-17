@@ -472,11 +472,11 @@ void test_vCheckNetworkTimers_NDTimerActiveAndExpired( void )
 }
 
 /**
- * @brief test_vCheckNetworkTimers_NDesolutionTimerActiveAndExpiredNullBuffer
+ * @brief test_vCheckNetworkTimers_NDResolutionTimerActiveAndExpiredNullBuffer
  * To validate if vCheckNetworkTimers() handles ND resolution timer expired event as expected.
  * And there is no buffer waiting for ND reply.
  */
-void test_vCheckNetworkTimers_NDesolutionTimerActiveAndExpiredNullBuffer( void )
+void test_vCheckNetworkTimers_NDResolutionTimerActiveAndExpiredNullBuffer( void )
 {
     xARPTimer.bActive = pdFALSE;
     xNDTimer.bActive = pdFALSE;
