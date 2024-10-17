@@ -423,8 +423,6 @@
  */
     void FreeRTOS_ClearND( const struct xNetworkEndPoint * pxEndPoint )
     {
-        ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
-
         if( pxEndPoint != NULL )
         {
             BaseType_t x;

@@ -790,6 +790,40 @@ void test_FreeRTOS_ClearND( void )
 }
 
 /**
+ * @brief Clear the Neighbour Discovery cache with specific endpoint.
+ */
+void test_FreeRTOS_ClearND_WithEndPoint( void )
+{
+    NDCacheRow_t xTempNDCache[ ipconfigND_CACHE_ENTRIES ];
+    struct xNetworkEndPoint xEndPoint;
+
+    /* Set xNDCache to non zero entries*/
+    ( void ) memset( xNDCache, 1, sizeof( xNDCache ) );
+    ( void ) memset( xTempNDCache, 0, sizeof( xTempNDCache ) );
+    xNDCache[ 1 ].pxEndPoint = &xEndPoint;
+    FreeRTOS_ClearND( &xEndPoint );
+
+    TEST_ASSERT_EQUAL_MEMORY( &xNDCache[ 1 ], xTempNDCache, sizeof( NDCacheRow_t ) );
+}
+
+/**
+ * @brief Clear the Neighbour Discovery cache with endpoint.
+ *        But the endpoint doesn't match any in cache.
+ */
+void test_FreeRTOS_ClearND_EndPointNotFound( void )
+{
+    NDCacheRow_t xTempNDCache[ ipconfigND_CACHE_ENTRIES ];
+    struct xNetworkEndPoint xEndPoint;
+
+    /* Set xNDCache to non zero entries*/
+    ( void ) memset( xNDCache, 1, sizeof( xNDCache ) );
+    ( void ) memset( xTempNDCache, 1, sizeof( xTempNDCache ) );
+    FreeRTOS_ClearND( &xEndPoint );
+
+    TEST_ASSERT_EQUAL_MEMORY( xTempNDCache, xNDCache, sizeof( xNDCache ) );
+}
+
+/**
  * @brief Toggle happy path.
  */
 void test_FreeRTOS_PrintNDCache( void )
@@ -1886,22 +1920,6 @@ void test_FreeRTOS_CreateIPv6Address_Pass2( void )
     TEST_ASSERT_EQUAL( xReturn, pdPASS );
 }
 
-void test_FreeRTOS_CreateIPv6Address_Pass3( void ) /*CHECK if needed */
-{
-    IPv6_Address_t xIPAddress, xPrefix;
-    size_t uxPrefixLength = 127;
-    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
-
-    for( xIndex = 0; xIndex < 4; xIndex++ )
-    {
-        xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-    }
-
-    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
-
-    TEST_ASSERT_EQUAL( xReturn, pdPASS );
-}
-
 /**
  * @brief Cover all the pcMessageType print
  *        scenario.
@@ -1944,6 +1962,9 @@ void test_pcMessageType_All( void )
     ( void ) pcMessageType( xType );
 }
 
+/**
+ * @brief heck if the network buffer requires resolution for different protocols.
+ */
 void test_xCheckIPv6RequiresResolution_Protocols( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -1978,6 +1999,10 @@ void test_xCheckIPv6RequiresResolution_Protocols( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+/**
+ * @brief Check if the network buffer requires resolution for addresses
+ *        not on the local network.
+ */
 void test_xCheckRequiresNDResolution_TCPNotOnLocalNetwork( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -2000,6 +2025,9 @@ void test_xCheckRequiresNDResolution_TCPNotOnLocalNetwork( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+/**
+ * @brief Cache hit occurs with an IP address in the multicast case.
+ */
 void test_xCheckRequiresNDResolution_Hit( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -2028,6 +2056,9 @@ void test_xCheckRequiresNDResolution_Hit( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+/**
+ * @brief ND cache miss scenarios.
+ */
 void test_xCheckRequiresNDResolution_Miss( void )
 {
     struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
@@ -2066,4 +2097,14 @@ void test_xCheckRequiresNDResolution_Miss( void )
     xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}
+
+/**
+ * @brief Toggle vNDSendUnsolicited.
+ */
+void test_vNDSendUnsolicited( void )
+{
+    xSendEventToIPTask_ExpectAndReturn( eNDTimerEvent, 0 );
+
+    vNDSendUnsolicited();
 }

@@ -1104,10 +1104,7 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xARPHadIPClash = pdFALSE;
 
     /* Let there be no timeout. Let the EndPoint be NULL */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
-    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
-    xTaskGetTickCount_ExpectAndReturn( 0 );
-    vTaskSetTimeOutState_ExpectAnyArgs();
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
     eResult = eARPProcessPacket( &xNetworkBuffer );
@@ -1118,10 +1115,7 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     /* Reset the flag. */
     xARPHadIPClash = pdFALSE;
     /* Let there be no timeout. */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
-    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
-    xTaskGetTickCount_ExpectAndReturn( 0 );
-    vTaskSetTimeOutState_ExpectAnyArgs();
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );
 
     /* Call it again and do not expect the task functions to be called. */
@@ -1135,10 +1129,7 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xEndPoint_2.ipv4_settings.ulIPAddress = ( uint32_t ) *( pxARPFrame->xARPHeader.ucSenderProtocolAddress + 0x11 );
 
     /* Let there be no timeout. Let the EndPoint be NULL */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
-    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
-    xTaskGetTickCount_ExpectAndReturn( 0 );
-    vTaskSetTimeOutState_ExpectAnyArgs();
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFAIL );
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint_2 );
 
     eResult = eARPProcessPacket( &xNetworkBuffer );

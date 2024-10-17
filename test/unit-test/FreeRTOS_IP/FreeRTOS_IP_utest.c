@@ -2387,6 +2387,122 @@ void test_prvProcessEthernetPacket_InterfaceNull( void )
     prvProcessEthernetPacket( pxNetworkBuffer );
 }
 
+/**
+ * @brief test_prvProcessEthernetPacket_IPv4FrameType_NeedARPResolution
+ * To validate the flow to handle IPv4 packets and it needs ARP resolution.
+ * But we already have one ARP packet pending so that buffer got released
+ * at the end.
+ */
+void test_prvProcessEthernetPacket_IPv4FrameType_NeedARPResolution( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_t * pxIPPacket;
+    IPHeader_t * pxIPHeader;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
+
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxARPWaitingNetworkBuffer = ( NetworkBufferDescriptor_t * ) 0x1234ABCD;
+
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+/**
+ * @brief test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution
+ * To validate the flow to handle IPv4 packets and it needs ND resolution.
+ * But we already have one ND packet pending so that buffer got released
+ * at the end.
+ */
+void test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_IPv6_t * pxIPv6Packet;
+    IPHeader_IPv6_t * pxIPv6Header;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    pxIPv6Packet = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPv6Header = &( pxIPv6Packet->xIPHeader );
+    pxIPv6Header->ucNextHeader = ipPROTOCOL_TCP;
+
+    pxNDWaitingNetworkBuffer = ( NetworkBufferDescriptor_t * ) 0x1234ABCD;
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPv6Header, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0, -1 );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+/**
+ * @brief test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution2
+ * To validate the flow to handle IPv6 packets and it needs ND resolution.
+ * And we don't have any pending ND packet.
+ */
+void test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution2( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_IPv6_t * pxIPv6Packet;
+    IPHeader_IPv6_t * pxIPv6Header;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    pxIPv6Packet = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPv6Header = &( pxIPv6Packet->xIPHeader );
+    pxIPv6Header->ucNextHeader = ipPROTOCOL_TCP;
+
+    pxNDWaitingNetworkBuffer = NULL;
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPv6Header, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0, -1 );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    vIPTimerStartNDResolution_ExpectAnyArgs();
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL_PTR( pxNetworkBuffer, pxNDWaitingNetworkBuffer );
+}
 
 /**
  * @brief test_prvProcessIPPacket_HeaderLengthSmaller

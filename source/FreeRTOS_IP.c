@@ -1798,8 +1798,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
                 break;
             }
-
-            if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+            else if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
             {
                 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                     if( pxNDWaitingNetworkBuffer == NULL )
@@ -1819,6 +1818,11 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 }
 
                 break;
+            }
+            else
+            {
+                /* Unknown frame type, drop the packet. */
+                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             }
 
             break;

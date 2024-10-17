@@ -263,7 +263,7 @@
  * because the packet will already have been passed into the stack).  If the
  * Ethernet driver does all the necessary filtering in hardware then software
  * filtering can be removed by using a value other than 1 or 0. */
-#define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
+#define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    0
 
 /* When ipconfigETHERNET_DRIVER_FILTERS_PACKETS is enabled, the network
  * interface will inspect the incoming packets to see if they can be
@@ -347,5 +347,7 @@
 #define ipconfigUSE_LINKED_RX_MESSAGES             ( 1 )
 #define ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS    ( 0 )
 #define ipconfigZERO_COPY_TX_DRIVER                ( 1 )
+
+#define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES     ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */
