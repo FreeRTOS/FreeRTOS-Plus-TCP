@@ -1921,6 +1921,27 @@ void test_FreeRTOS_CreateIPv6Address_Pass2( void )
 }
 
 /**
+ * @brief Create an IPv6 address, based on a prefix.
+ *        with the bits after the prefix having random value
+ *        and uxPrefixLength is 128 bites.
+ */
+void test_FreeRTOS_CreateIPv6Address_Pass3( void )
+{
+    IPv6_Address_t xIPAddress, xPrefix;
+    size_t uxPrefixLength = 128;
+    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
+
+    for( xIndex = 0; xIndex < 4; xIndex++ )
+    {
+        xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    }
+
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
+
+    TEST_ASSERT_EQUAL( xReturn, pdPASS );
+}
+
+/**
  * @brief Cover all the pcMessageType print
  *        scenario.
  */
@@ -2097,6 +2118,28 @@ void test_xCheckRequiresNDResolution_Miss( void )
     xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}
+
+/**
+ * @brief Trigger assertion when Ethernet frame type is not IPv6 while calling xCheckRequiresNDResolution.
+ */
+void test_xCheckRequiresNDResolution_AssertInvalidFrameType( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
+    catch_assert( xCheckRequiresNDResolution( pxNetworkBuffer ) );
 }
 
 /**
