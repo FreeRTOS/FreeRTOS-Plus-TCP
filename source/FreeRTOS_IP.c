@@ -49,6 +49,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_ND.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #if ( ipconfigUSE_DHCPv6 == 1 )
@@ -58,12 +59,12 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_ND.h"
 
 /** @brief Time delay between repeated attempts to initialise the network hardware. */
 #ifndef ipINITIALISATION_RETRY_DELAY
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
+
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
     #include "tcp_mem_stats.h"
 #endif
@@ -73,16 +74,12 @@
     #define ipARP_RESOLUTION_MAX_DELAY    ( pdMS_TO_TICKS( 2000U ) )
 #endif
 
-#ifndef iptraceIP_TASK_STARTING
-    #define iptraceIP_TASK_STARTING()    do {} while( ipFALSE_BOOL ) /**< Empty definition in case iptraceIP_TASK_STARTING is not defined. */
+/** @brief Maximum time to wait for a ND resolution while holding a packet. */
+#ifndef ipND_RESOLUTION_MAX_DELAY
+    #define ipND_RESOLUTION_MAX_DELAY    ( pdMS_TO_TICKS( 2000U ) )
 #endif
 
-#if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
-    /** @brief When initialising the TCP timer, give it an initial time-out of 1 second. */
-    #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
-#endif
-
-/** @brief Defines how often the ARP timer callback function is executed.  The time is
+/** @brief Defines how often the ARP resolution timer callback function is executed.  The time is
  * shorter in the Windows simulator as simulated time is not real time. */
 #ifndef ipARP_TIMER_PERIOD_MS
     #ifdef _WINDOWS_
@@ -90,6 +87,25 @@
     #else
         #define ipARP_TIMER_PERIOD_MS    ( 10000U )
     #endif
+#endif
+
+/** @brief Defines how often the ND resolution timer callback function is executed.  The time is
+ * shorter in the Windows simulator as simulated time is not real time. */
+#ifndef ipND_TIMER_PERIOD_MS
+    #ifdef _WINDOWS_
+        #define ipND_TIMER_PERIOD_MS    ( 500U ) /* For windows simulator builds. */
+    #else
+        #define ipND_TIMER_PERIOD_MS    ( 10000U )
+    #endif
+#endif
+
+#if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
+    /** @brief When initialising the TCP timer, give it an initial time-out of 1 second. */
+    #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
+#endif
+
+#ifndef iptraceIP_TASK_STARTING
+    #define iptraceIP_TASK_STARTING()    do {} while( ipFALSE_BOOL ) /**< Empty definition in case iptraceIP_TASK_STARTING is not defined. */
 #endif
 
 /** @brief The frame type field in the Ethernet header must have a value greater than 0x0600.
@@ -107,7 +123,14 @@ static void prvIPTask_CheckPendingEvents( void );
 /*-----------------------------------------------------------*/
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. */
-NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
+#if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+    NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
+#endif
+
+/** @brief The pointer to buffer with packet waiting for ND resolution. */
+#if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+    NetworkBufferDescriptor_t * pxNDWaitingNetworkBuffer = NULL;
+#endif
 
 /*-----------------------------------------------------------*/
 
@@ -238,7 +261,7 @@ static void prvProcessIPEventsAndTimers( void )
 
     ipconfigWATCHDOG_TIMER();
 
-    /* Check the ARP, DHCP and TCP timers to see if there is any periodic
+    /* Check the Resolution, DHCP and TCP timers to see if there is any periodic
      * or timeout processing to perform. */
     vCheckNetworkTimers();
 
@@ -294,15 +317,17 @@ static void prvProcessIPEventsAndTimers( void )
             break;
 
         case eARPTimerEvent:
-            /* The ARP timer has expired, process the ARP cache. */
-            #if ( ipconfigUSE_IPv4 != 0 )
+            /* The ARP Resolution timer has expired, process the cache. */
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
                 vARPAgeCache();
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+            break;
 
-            #if ( ipconfigUSE_IPv6 != 0 )
+        case eNDTimerEvent:
+            /* The ND Resolution timer has expired, process the cache. */
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                 vNDAgeCache();
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
             break;
 
         case eSocketBindEvent:
@@ -493,8 +518,15 @@ static void prvIPTask_Initialise( void )
     }
     #endif
 
-    /* Mark the timer as inactive since we are not waiting on any ARP resolution as of now. */
-    vIPSetARPResolutionTimerEnableState( pdFALSE );
+    #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+        /* Mark the ARP timer as inactive since we are not waiting on any resolution as of now. */
+        vIPSetARPResolutionTimerEnableState( pdFALSE );
+    #endif
+
+    #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+        /* Mark the ND timer as inactive since we are not waiting on any resolution as of now. */
+        vIPSetNDResolutionTimerEnableState( pdFALSE );
+    #endif
 
     #if ( ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigUSE_DNS != 0 ) )
     {
@@ -648,7 +680,18 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
     #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 
     /* Set remaining time to 0 so it will become active immediately. */
-    vARPTimerReload( pdMS_TO_TICKS( ipARP_TIMER_PERIOD_MS ) );
+    if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+            vNDTimerReload( pdMS_TO_TICKS( ipND_TIMER_PERIOD_MS ) );
+        #endif
+    }
+    else
+    {
+        #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+            vARPTimerReload( pdMS_TO_TICKS( ipARP_TIMER_PERIOD_MS ) );
+        #endif
+    }
 }
 /*-----------------------------------------------------------*/
 
@@ -1718,7 +1761,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
         case eReturnEthernetFrame:
 
             /* The Ethernet frame will have been updated (maybe it was
-             * an ARP request or a PING request?) and should be sent back to
+             * a resolution request or a PING request?) and should be sent back to
              * its source. */
             vReturnEthernetFrame( pxNetworkBuffer, pdTRUE );
 
@@ -1732,21 +1775,54 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
              * yet. */
             break;
 
-        case eWaitingARPResolution:
+        case eWaitingResolution:
 
-            if( pxARPWaitingNetworkBuffer == NULL )
+            if( ( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE ) || ( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE ) )
             {
-                pxARPWaitingNetworkBuffer = pxNetworkBuffer;
-                vIPTimerStartARPResolution( ipARP_RESOLUTION_MAX_DELAY );
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                    if( pxARPWaitingNetworkBuffer == NULL )
+                    {
+                        pxARPWaitingNetworkBuffer = pxNetworkBuffer;
+                        vIPTimerStartARPResolution( ipARP_RESOLUTION_MAX_DELAY );
 
-                iptraceDELAYED_ARP_REQUEST_STARTED();
+                        iptraceDELAYED_ARP_REQUEST_STARTED();
+                    }
+                    else
+                #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+                {
+                    /* We are already waiting on one resolution. This frame will be dropped. */
+                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+
+                    iptraceDELAYED_ARP_BUFFER_FULL();
+                }
+
+                break;
+            }
+            else if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+            {
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                    if( pxNDWaitingNetworkBuffer == NULL )
+                    {
+                        pxNDWaitingNetworkBuffer = pxNetworkBuffer;
+                        vIPTimerStartNDResolution( ipND_RESOLUTION_MAX_DELAY );
+
+                        iptraceDELAYED_ND_REQUEST_STARTED();
+                    }
+                    else
+                #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
+                {
+                    /* We are already waiting on one resolution. This frame will be dropped. */
+                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+
+                    iptraceDELAYED_ND_BUFFER_FULL();
+                }
+
+                break;
             }
             else
             {
-                /* We are already waiting on one ARP resolution. This frame will be dropped. */
+                /* Unknown frame type, drop the packet. */
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-
-                iptraceDELAYED_ARP_BUFFER_FULL();
             }
 
             break;
@@ -1775,7 +1851,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
-    BaseType_t xIsWaitingARPResolution = pdFALSE;
+    BaseType_t xIsWaitingResolution = pdFALSE;
     /* The IP packet contained a UDP frame. */
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -1847,16 +1923,16 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
          * implementation. */
         if( xProcessReceivedUDPPacket( pxNetworkBuffer,
                                        pxUDPHeader->usDestinationPort,
-                                       &( xIsWaitingARPResolution ) ) == pdPASS )
+                                       &( xIsWaitingResolution ) ) == pdPASS )
         {
             eReturn = eFrameConsumed;
         }
         else
         {
-            /* Is this packet to be set aside for ARP resolution. */
-            if( xIsWaitingARPResolution == pdTRUE )
+            /* Is this packet to be set aside for resolution. */
+            if( xIsWaitingResolution == pdTRUE )
             {
-                eReturn = eWaitingARPResolution;
+                eReturn = eWaitingResolution;
             }
         }
     }
@@ -2014,21 +2090,21 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
         /* coverity[const] */
         if( eReturn != eReleaseBuffer )
         {
-            /* Add the IP and MAC addresses to the ARP table if they are not
+            /* Add the IP and MAC addresses to the cache if they are not
              * already there - otherwise refresh the age of the existing
              * entry. */
             if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
             {
-                if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+                if( xCheckRequiresResolution( pxNetworkBuffer ) == pdTRUE )
                 {
-                    eReturn = eWaitingARPResolution;
+                    eReturn = eWaitingResolution;
                 }
                 else
                 {
-                    /* Refresh the ARP cache with the IP/MAC-address of the received
+                    /* Refresh the cache with the IP/MAC-address of the received
                      * packet.  For UDP packets, this will be done later in
                      * xProcessReceivedUDPPacket(), as soon as it's know that the message
-                     * will be handled.  This will prevent the ARP cache getting
+                     * will be handled.  This will prevent the cache getting
                      * overwritten with the IP address of useless broadcast packets. */
                     /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
                     switch( pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
@@ -2054,7 +2130,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 }
             }
 
-            if( eReturn != eWaitingARPResolution )
+            if( eReturn != eWaitingResolution )
             {
                 switch( ucProtocol )
                 {
@@ -2171,7 +2247,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
         #if ( ipconfigUSE_IPv4 != 0 )
             MACAddress_t xMACAddress;
-            eARPLookupResult_t eResult;
+            eResolutionLookupResult_t eResult;
             uint32_t ulDestinationIPAddress = 0U;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -2219,7 +2295,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                          * address. */
                         eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
 
-                        if( eResult == eARPCacheHit )
+                        if( eResult == eResolutionCacheHit )
                         {
                             /* Best case scenario - an address is found, use it. */
                             pvCopySource = &xMACAddress;
@@ -2235,7 +2311,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                 case ipIPv6_FRAME_TYPE:
                 case ipARP_FRAME_TYPE:
                 default:
-                    /* In case of ARP frame, just swap the source and destination MAC addresses. */
+                    /* Just swap the source and destination MAC addresses. */
                     pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
                     break;
             }
@@ -2262,7 +2338,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             {
                 IPStackEvent_t xSendEvent;
 
-                /* Send a message to the IP-task to send this ARP packet. */
+                /* Send a message to the IP-task to send this packet. */
                 xSendEvent.eEventType = eNetworkTxEvent;
                 xSendEvent.pvData = pxNetworkBuffer;
 

@@ -46,11 +46,11 @@ void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
 }
 
 /* This function is proved elsewhere hence stubbing it out */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress,
-                                      struct xNetworkEndPoint ** ppxEndPoint )
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                             MACAddress_t * const pxMACAddress,
+                                             struct xNetworkEndPoint ** ppxEndPoint )
 {
-    eARPLookupResult_t eReturn;
+    eResolutionLookupResult_t eReturn;
 
     __CPROVER_assert( pulIPAddress != NULL, "pulIPAddress cannot be NULL." );
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL." );

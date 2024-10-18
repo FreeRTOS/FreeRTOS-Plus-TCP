@@ -38,6 +38,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_Routing.h"
 
 #include <string.h>
 #include <stdarg.h>

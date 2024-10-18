@@ -41,6 +41,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_ND.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkBufferManagement.h"
@@ -1507,3 +1508,38 @@ struct xIPv6_Couple
     }
 /*-----------------------------------------------------------*/
 #endif /* ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) ) */
+
+/**
+ * @brief Check whether a packet needs resolution if it is on local subnet. If required send a request.
+ *
+ * @param[in] pxNetworkBuffer The network buffer with the packet to be checked.
+ *
+ * @return pdTRUE if the packet needs resolution, pdFALSE otherwise.
+ */
+BaseType_t xCheckRequiresResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    BaseType_t xNeedsResolution = pdFALSE;
+
+    switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
+    {
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case ipSIZE_OF_IPv4_HEADER:
+                xNeedsResolution = xCheckRequiresARPResolution( pxNetworkBuffer );
+                break;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case ipSIZE_OF_IPv6_HEADER:
+                xNeedsResolution = xCheckRequiresNDResolution( pxNetworkBuffer );
+                break;
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+        default:
+            /* Shouldn't reach here */
+            /* MISRA 16.4 Compliance */
+            break;
+    }
+
+    return xNeedsResolution;
+}
+/*-----------------------------------------------------------*/

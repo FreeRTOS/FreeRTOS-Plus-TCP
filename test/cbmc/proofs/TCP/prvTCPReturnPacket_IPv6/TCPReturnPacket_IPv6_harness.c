@@ -96,11 +96,11 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
 }
 
 /* Abstraction of eNDGetCacheEntry. */
-eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                     MACAddress_t * const pxMACAddress,
-                                     struct xNetworkEndPoint ** ppxEndPoint )
+eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+                                            MACAddress_t * const pxMACAddress,
+                                            struct xNetworkEndPoint ** ppxEndPoint )
 {
-    eARPLookupResult_t xReturn;
+    eResolutionLookupResult_t xReturn;
 
     __CPROVER_assert( __CPROVER_r_ok( pxIPAddress, sizeof( IPv6_Address_t ) ), "pxIPAddress must be readable" );
     __CPROVER_assert( __CPROVER_w_ok( pxMACAddress, sizeof( MACAddress_t ) ), "pxMACAddress must be writeable" );

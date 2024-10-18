@@ -279,21 +279,21 @@ static void handle_ifconfig( char * pcBuffer )
 }
 /*-----------------------------------------------------------*/
 
-static const char * pcARPReturnType( eARPLookupResult_t eResult )
+static const char * pcARPReturnType( eResolutionLookupResult_t eResult )
 {
     const char * pcReturn = "Unknown";
 
     switch( eResult )
     {
-        case eARPCacheMiss:
+        case eResolutionCacheMiss:
             pcReturn = "Miss";
             break;
 
-        case eARPCacheHit:
+        case eResolutionCacheHit:
             pcReturn = "Hit";
             break;
 
-        case eCantSendPacket:
+        case eResolutionFailed:
             pcReturn = "Can not send";
             break;
     }
@@ -453,7 +453,7 @@ static void handle_arpq( char * pcBuffer )
 {
     CommandOptions_t xOptions;
     char * ptr = pcBuffer;
-    eARPLookupResult_t eResult = eARPCacheMiss;
+    eResolutionLookupResult_t eResult = eResolutionCacheMiss;
     uint32_t ulIPAddress;
     uint32_t ulLookUpIP;
     MACAddress_t xMACAddress;
@@ -537,7 +537,7 @@ static void handle_arpq( char * pcBuffer )
                 break;
         }
 
-        if( ( eResult == eARPCacheMiss ) && ( pxEndPoint != NULL ) )
+        if( ( eResult == eResolutionCacheMiss ) && ( pxEndPoint != NULL ) )
         {
             size_t uxNeededSize = sizeof( ARPPacket_t );
 
@@ -1426,7 +1426,7 @@ static void clear_caches()
     {
         FreeRTOS_dnsclear();
         #if ( ipconfigUSE_IPv6 != 0 )
-            FreeRTOS_ClearND();
+            FreeRTOS_ClearND( NULL );
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
     #endif /* ipconfigUSE_DNS_CACHE */

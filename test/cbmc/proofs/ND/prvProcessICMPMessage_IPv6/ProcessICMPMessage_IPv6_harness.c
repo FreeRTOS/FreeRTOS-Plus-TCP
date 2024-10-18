@@ -156,7 +156,7 @@ void harness()
      * which is validated only when bIPv6 is set*/
     __CPROVER_assume( ( pxNetworkBuffer->pxEndPoint != NULL ) && ( pxNetworkBuffer->pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) );
 
-    /* Non deterministically determine whether the pxARPWaitingNetworkBuffer will
+    /* Non deterministically determine whether the pxNDWaitingNetworkBuffer will
      * point to some valid data or will it be NULL. */
     if( nondet_bool() )
     {
@@ -167,7 +167,7 @@ void harness()
         pxLocalARPWaitingNetworkBuffer = pxGetNetworkBufferWithDescriptor( usEthernetBufferSize, 0 );
 
         /* Since this pointer is maintained by the IP-task, either the pointer
-         * pxARPWaitingNetworkBuffer will be NULL or pxLocalARPWaitingNetworkBuffer.pucEthernetBuffer
+         * pxNDWaitingNetworkBuffer will be NULL or pxLocalARPWaitingNetworkBuffer.pucEthernetBuffer
          * will be non-NULL. */
         __CPROVER_assume( pxLocalARPWaitingNetworkBuffer != NULL );
         __CPROVER_assume( pxLocalARPWaitingNetworkBuffer->pucEthernetBuffer != NULL );
@@ -176,11 +176,11 @@ void harness()
         /* Add matching data length to the network buffer descriptor. */
         pxLocalARPWaitingNetworkBuffer->xDataLength = usEthernetBufferSize;
 
-        pxARPWaitingNetworkBuffer = pxLocalARPWaitingNetworkBuffer;
+        pxNDWaitingNetworkBuffer = pxLocalARPWaitingNetworkBuffer;
     }
     else
     {
-        pxARPWaitingNetworkBuffer = NULL;
+        pxNDWaitingNetworkBuffer = NULL;
     }
 
     prvProcessICMPMessage_IPv6( pxNetworkBuffer );

@@ -43,6 +43,7 @@
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+NetworkBufferDescriptor_t * pxNDWaitingNetworkBuffer;
 
 struct xNetworkEndPoint * pxNetworkEndPoints;
 struct xNetworkInterface * pxNetworkInterfaces;
