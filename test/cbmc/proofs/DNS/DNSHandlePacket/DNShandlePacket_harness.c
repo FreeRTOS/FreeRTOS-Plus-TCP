@@ -26,5 +26,7 @@ void harness()
     NetworkBufferDescriptor_t xNetworkBuffer;
 
     xNetworkBuffer.pucEthernetBuffer = malloc( sizeof( UDPPacket_t ) + sizeof( DNSMessage_t ) );
+    __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
+
     ulDNSHandlePacket( &xNetworkBuffer );
 }

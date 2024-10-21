@@ -99,7 +99,7 @@
         size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
@@ -237,7 +237,17 @@
                     /* Option is only valid in SYN phase. */
                     if( xHasSYNFlag != 0 )
                     {
-                        pxSocket->u.xTCP.ucPeerWinScaleFactor = pucPtr[ 2 ];
+                        /* From RFC7323 - section 2.3, we should limit the WSopt not larger than 14. */
+                        if( pucPtr[ 2 ] > tcpTCP_OPT_WSOPT_MAXIMUM_VALUE )
+                        {
+                            FreeRTOS_debug_printf( ( "The WSopt(%u) from SYN packet is larger than maximum value.", pucPtr[ 2 ] ) );
+                            pxSocket->u.xTCP.ucPeerWinScaleFactor = tcpTCP_OPT_WSOPT_MAXIMUM_VALUE;
+                        }
+                        else
+                        {
+                            pxSocket->u.xTCP.ucPeerWinScaleFactor = pucPtr[ 2 ];
+                        }
+
                         pxSocket->u.xTCP.bits.bWinScaling = pdTRUE_UNSIGNED;
                     }
 
@@ -430,7 +440,7 @@
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );

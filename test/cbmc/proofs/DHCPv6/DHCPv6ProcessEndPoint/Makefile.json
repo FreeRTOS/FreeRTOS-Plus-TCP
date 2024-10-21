@@ -1,5 +1,6 @@
 {
     "ENTRY": "DHCPv6ProcessEndPoint",
+    "ENDPOINT_DNS_ADDRESS_COUNT": 5,
     "CBMCFLAGS":
     [
       "--nondet-static --flush",
@@ -11,7 +12,8 @@
     ],
     "DEF":
     [
-      "ipconfigUSE_DHCPv6=1"
+      "ipconfigUSE_DHCPv6=1",
+      "ENDPOINT_DNS_ADDRESS_COUNT={ENDPOINT_DNS_ADDRESS_COUNT}"
     ],
     "OBJS":
     [

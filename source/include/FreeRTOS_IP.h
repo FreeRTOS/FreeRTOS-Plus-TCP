@@ -60,6 +60,11 @@
 #define ipSIZE_OF_UDP_HEADER     8U
 #define ipSIZE_OF_TCP_HEADER     20U
 
+/* The maximum of int32 value. */
+#define ipINT32_MAX_VALUE        ( 0x7FFFFFFF )
+
+/* The minimum of int32 value. */
+#define ipINT32_MIN_VALUE        ( 0x80000000 )
 
 /*
  * Generate a randomized TCP Initial Sequence Number per RFC.
@@ -269,6 +274,11 @@ uint32_t FreeRTOS_min_uint32( uint32_t a,
 
 size_t FreeRTOS_min_size_t( size_t a,
                             size_t b );
+
+int32_t FreeRTOS_add_int32( int32_t a,
+                             int32_t b );
+int32_t FreeRTOS_multiply_int32( int32_t a,
+                             int32_t b );
 
 uint32_t FreeRTOS_round_up( uint32_t a,
                             uint32_t d );
