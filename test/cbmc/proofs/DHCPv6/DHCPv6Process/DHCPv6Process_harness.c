@@ -46,6 +46,7 @@
 
 extern Socket_t xDHCPv6Socket;
 extern DHCPMessage_IPv6_t xDHCPMessage;
+extern BaseType_t xDHCPv6SocketUserCount;
 
 void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
 
@@ -155,6 +156,8 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 void harness()
 {
     BaseType_t xReset;
+
+    __CPROVER_assume( xDHCPv6SocketUserCount >= 0 && xDHCPv6SocketUserCount <= ENDPOINT_DNS_ADDRESS_COUNT );
 
     NetworkEndPoint_t * pxNetworkEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
 

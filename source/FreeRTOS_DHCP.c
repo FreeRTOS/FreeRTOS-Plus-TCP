@@ -81,7 +81,7 @@
 /**
  * @brief The number of end-points that are making use of the UDP-socket.
  */
-    static BaseType_t xDHCPSocketUserCount = 0;
+    _static BaseType_t xDHCPSocketUserCount = 0;
 
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
@@ -881,7 +881,7 @@
             configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );
 
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             if( xSocketValid( xDHCPv4Socket ) == pdTRUE )
             {

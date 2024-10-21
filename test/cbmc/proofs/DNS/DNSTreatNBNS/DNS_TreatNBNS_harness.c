@@ -133,6 +133,7 @@ void harness()
 
     if( nondet_bool() )
     {
+        __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
         xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
     }
     else
