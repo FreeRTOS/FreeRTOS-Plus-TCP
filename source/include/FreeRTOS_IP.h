@@ -61,10 +61,10 @@
 #define ipSIZE_OF_TCP_HEADER     20U
 
 /* The maximum of int32 value. */
-#define ipINT32_MAX_VALUE        ( 0x7FFFFFFF )
+#define ipINT32_MAX_VALUE        ( ( int32_t ) 0x7FFFFFFF )
 
 /* The minimum of int32 value. */
-#define ipINT32_MIN_VALUE        ( 0x80000000 )
+#define ipINT32_MIN_VALUE        ( ( int32_t ) 0x80000000 )
 
 /*
  * Generate a randomized TCP Initial Sequence Number per RFC.
