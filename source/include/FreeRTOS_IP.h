@@ -276,9 +276,9 @@ size_t FreeRTOS_min_size_t( size_t a,
                             size_t b );
 
 int32_t FreeRTOS_add_int32( int32_t a,
-                             int32_t b );
+                            int32_t b );
 int32_t FreeRTOS_multiply_int32( int32_t a,
-                             int32_t b );
+                                 int32_t b );
 
 uint32_t FreeRTOS_round_up( uint32_t a,
                             uint32_t d );

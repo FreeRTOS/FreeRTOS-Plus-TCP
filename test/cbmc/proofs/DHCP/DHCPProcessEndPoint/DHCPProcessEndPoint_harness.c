@@ -185,7 +185,7 @@ void harness()
     BaseType_t xReset;
     BaseType_t xDoCheck;
 
-    /* The only possibility of making xDHCPSocketUserCount overflow is having more than BaseType_t enpoints, which is assumed not possible here. */
+    /* The only possibility of making xDHCPSocketUserCount overflow is having more than BaseType_t endpoints, which is assumed not possible here. */
     __CPROVER_assume( xDHCPSocketUserCount >= 0 && xDHCPSocketUserCount <= ENDPOINT_DNS_ADDRESS_COUNT );
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
