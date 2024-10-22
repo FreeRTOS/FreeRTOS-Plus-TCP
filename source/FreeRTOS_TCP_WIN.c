@@ -1902,31 +1902,31 @@
         {
             int32_t mS = ( int32_t ) ulTimerGetAge( &( pxSegment->xTransmitTimer ) );
             int32_t lSum = 0;
-            int32_t weight = 0;
-            int32_t divisor = 0;
+            int32_t lWeight = 0;
+            int32_t lDivisor = 0;
 
             mS = mS < 0 ? ipINT32_MAX_VALUE : mS;
 
             if( pxWindow->lSRTT >= mS )
             {
                 /* RTT becomes smaller: adapt slowly. */
-                weight = winSRTT_DECREMENT_CURRENT;
-                divisor = winSRTT_DECREMENT_NEW + winSRTT_DECREMENT_CURRENT;
+                lWeight = winSRTT_DECREMENT_CURRENT;
+                lDivisor = winSRTT_DECREMENT_NEW + winSRTT_DECREMENT_CURRENT;
                 mS = FreeRTOS_multiply_int32( mS,
                                               winSRTT_DECREMENT_NEW );
             }
             else
             {
                 /* RTT becomes larger: adapt quicker */
-                weight = winSRTT_INCREMENT_CURRENT;
-                divisor = winSRTT_INCREMENT_NEW + winSRTT_INCREMENT_CURRENT;
+                lWeight = winSRTT_INCREMENT_CURRENT;
+                lDivisor = winSRTT_INCREMENT_NEW + winSRTT_INCREMENT_CURRENT;
                 mS = FreeRTOS_multiply_int32( mS,
                                               winSRTT_INCREMENT_NEW );
             }
 
-            lSum = FreeRTOS_multiply_int32( pxWindow->lSRTT, weight );
+            lSum = FreeRTOS_multiply_int32( pxWindow->lSRTT, lWeight );
             lSum = FreeRTOS_add_int32( lSum, mS );
-            pxWindow->lSRTT = lSum / divisor;
+            pxWindow->lSRTT = lSum / lDivisor;
 
             /* Cap to the minimum of 50ms. */
             if( pxWindow->lSRTT < winSRTT_CAP_mS )
