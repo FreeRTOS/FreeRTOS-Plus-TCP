@@ -1492,7 +1492,6 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
             xSet.uxOptionLength = ( size_t ) usBitConfig_read_16( &xMessage );
             xSet.uxStart = xMessage.uxIndex;
 
-            /* ulOptionsReceived has only 32-bits, it's not allowed to shift more than 32-bits on it. */
             if( xMessage.xHasError != pdFALSE )
             {
                 FreeRTOS_printf( ( "prvDHCPv6Analyse: bad input\n" ) );
@@ -1501,6 +1500,7 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
             }
             else
             {
+                /* ulOptionsReceived has only 32-bits, it's not allowed to shift more than 32-bits on it. */
                 if( usOption < 32 )
                 {
                     /* Store the option by bit-map only if it's less than 32. */
