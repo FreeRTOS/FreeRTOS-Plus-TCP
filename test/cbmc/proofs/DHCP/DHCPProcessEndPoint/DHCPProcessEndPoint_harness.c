@@ -51,6 +51,7 @@
 /* Static members defined in FreeRTOS_DHCP.c */
 extern DHCPData_t xDHCPData;
 extern Socket_t xDHCPv4Socket;
+extern BaseType_t xDHCPSocketUserCount;
 void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
 /* Static member defined in freertos_api.c */
@@ -183,6 +184,9 @@ void harness()
 {
     BaseType_t xReset;
     BaseType_t xDoCheck;
+
+    /* The only possibility of making xDHCPSocketUserCount overflow is having more than BaseType_t endpoints, which is assumed not possible here. */
+    __CPROVER_assume( xDHCPSocketUserCount >= 0 && xDHCPSocketUserCount <= ENDPOINT_DNS_ADDRESS_COUNT );
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );

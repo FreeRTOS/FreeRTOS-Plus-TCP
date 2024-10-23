@@ -12,6 +12,7 @@ void harness()
 {
     uint32_t ulIPAddress;
     MACAddress_t xMACAddress;
+    struct xNetworkEndPoint * pxEndPoint = NULL;
 
     /*
      * For this proof, its assumed that the endpoints and interfaces are correctly
@@ -38,13 +39,5 @@ void harness()
         pxNetworkEndPoints->pxNext = NULL;
     }
 
-    NetworkInterface_t ** ppxInterface = ( NetworkInterface_t ** ) malloc( sizeof( NetworkInterface_t * ) );
-
-    if( ppxInterface )
-    {
-        *ppxInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
-        __CPROVER_assume( *ppxInterface != NULL );
-    }
-
-    eARPGetCacheEntry( &ulIPAddress, &xMACAddress, ppxInterface );
+    eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 }

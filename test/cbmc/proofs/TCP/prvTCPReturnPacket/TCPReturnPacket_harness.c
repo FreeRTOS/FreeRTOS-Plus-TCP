@@ -224,6 +224,8 @@ void harness()
 
     /* The code does not expect both of these to be equal to NULL at the same time. */
     __CPROVER_assume( pxSocket != NULL || pxNetworkBuffer != NULL );
+    /* ucPeerWinScaleFactor is limited in range [0,14]. */
+    __CPROVER_assume( pxSocket->u.xTCP.ucMyWinScaleFactor <= tcpTCP_OPT_WSOPT_MAXIMUM_VALUE );
 
     /* If network buffer is properly created. */
     if( pxNetworkBuffer != NULL )

@@ -49,6 +49,10 @@
 #include "mock_FreeRTOS_IP.h"
 #include "mock_task.h"
 
+#define winSRTT_INCREMENT_NEW        2                                     /**< New increment for the smoothed RTT. */
+#define winSRTT_INCREMENT_CURRENT    6                                     /**< Current increment for the smoothed RTT. */
+#define winSRTT_DECREMENT_NEW        1                                     /**< New decrement for the smoothed RTT. */
+#define winSRTT_DECREMENT_CURRENT    7                                     /**< Current decrement for the smoothed RTT. */
 
 static void initializeList( List_t * const pxList );
 
@@ -2477,6 +2481,9 @@ void test_ulTCPWindowTxSack( void )
     /* --->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 23 );
     /* -->prvTCPWindowTxCheckAck_CalcSRTT */
+    FreeRTOS_multiply_int32_ExpectAndReturn( 23, winSRTT_DECREMENT_NEW, 23 * winSRTT_DECREMENT_NEW );
+    FreeRTOS_multiply_int32_ExpectAndReturn( xWindow.lSRTT, winSRTT_DECREMENT_CURRENT, xWindow.lSRTT * winSRTT_DECREMENT_CURRENT );
+    FreeRTOS_add_int32_ExpectAndReturn( xWindow.lSRTT * winSRTT_DECREMENT_CURRENT, 23 * winSRTT_DECREMENT_NEW, xWindow.lSRTT * winSRTT_DECREMENT_CURRENT + 23 * winSRTT_DECREMENT_NEW );
     /* ->prvTCPWindowTxCheckAck */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     /* ulTCPWindowTxSack */
@@ -2521,6 +2528,10 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_1( void )
     /* -->prvTCPWindowTxCheckAck_CalcSRTT */
     /* --->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 69 );
+    FreeRTOS_multiply_int32_ExpectAndReturn( 69, winSRTT_INCREMENT_NEW, 69 * winSRTT_INCREMENT_NEW );
+    FreeRTOS_multiply_int32_ExpectAndReturn( xWindow.lSRTT, winSRTT_INCREMENT_CURRENT, xWindow.lSRTT * winSRTT_INCREMENT_CURRENT );
+    FreeRTOS_add_int32_ExpectAndReturn( xWindow.lSRTT * winSRTT_INCREMENT_CURRENT, 69 * winSRTT_INCREMENT_NEW, xWindow.lSRTT * winSRTT_INCREMENT_CURRENT + 69 * winSRTT_INCREMENT_NEW );
+
     /* <--prvTCPWindowTxCheckAck_CalcSRTT */
     /* <-prvTCPWindowTxCheckAck */
     /* ulTCPWindowTxSack */
@@ -2700,4 +2711,55 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_4_LoggingLTZero( void )
     TEST_ASSERT_EQUAL( 0, ulAckCount );
 
     xTCPWindowLoggingLevel = xBackup;
+}
+
+
+void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_5_ulTimerGetAgeReturnNegative( void )
+{
+    uint32_t ulAckCount;
+    TCPWindow_t xWindow;
+    uint32_t ulFirst = 33;
+    uint32_t ulLast = 63;
+    TCPSegment_t mockSegment;
+    ListItem_t mockListItem;
+
+    initializeListItem( &mockListItem );
+
+    xWindow.tx.ulCurrentSequenceNumber = 32;
+    xWindow.lSRTT = ipconfigTCP_SRTT_MINIMUM_VALUE_MS + 30;
+    mockSegment.u.bits.bAcked = pdFALSE_UNSIGNED;
+    mockSegment.lDataLength = 30;
+
+    mockSegment.u.bits.ucTransmitCount = 1U;
+    mockSegment.ulSequenceNumber = 33;
+    mockListItem.pxContainer = &xWindow.xPriorityQueue;
+    mockSegment.xQueueItem = mockListItem;
+    mockSegment.xQueueItem.pxContainer = NULL;
+    mockSegment.u.bits.ucDupAckCount = 1U;
+
+    /* ->prvTCPWindowTxCheckAck */
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    /* -->prvTCPWindowTxCheckAck_CalcSRTT */
+    /* --->ulTimerGetAge */
+    xTaskGetTickCount_ExpectAndReturn( 0xFFFFFFFF ); /* prvTCPWindowTxCheckAck_CalcSRTT replaces negative value with ipINT32_MAX_VALUE. */
+    FreeRTOS_multiply_int32_ExpectAndReturn( ipINT32_MAX_VALUE, winSRTT_INCREMENT_NEW, ipINT32_MAX_VALUE );
+    FreeRTOS_multiply_int32_ExpectAndReturn( xWindow.lSRTT, winSRTT_INCREMENT_CURRENT, xWindow.lSRTT * winSRTT_INCREMENT_CURRENT );
+    FreeRTOS_add_int32_ExpectAndReturn( xWindow.lSRTT * winSRTT_INCREMENT_CURRENT, ipINT32_MAX_VALUE, ipINT32_MAX_VALUE );
+
+    /* <--prvTCPWindowTxCheckAck_CalcSRTT */
+    /* <-prvTCPWindowTxCheckAck */
+    /* ulTCPWindowTxSack */
+    /* ->prvTCPWindowFastRetransmit */
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
+    /* exit the loop */
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+
+    ulAckCount = ulTCPWindowTxSack( &xWindow,
+                                    ulFirst,
+                                    ulLast );
+    TEST_ASSERT_EQUAL( 0, ulAckCount );
+    TEST_ASSERT_EQUAL( 268435455, xWindow.lSRTT ); /* Expected result is: ( 0x7FFFFFFF / 8 ). */
 }

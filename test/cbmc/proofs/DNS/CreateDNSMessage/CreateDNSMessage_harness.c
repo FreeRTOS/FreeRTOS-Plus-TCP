@@ -55,6 +55,7 @@ void harness()
 
     /* pcHostName is tested to be valid prior */
     char * pcHostName = malloc( len );
+    __CPROVER_assume( pcHostName != NULL );
 
     if( len && pcHostName )
     {
@@ -81,6 +82,7 @@ void harness()
 
     /* pucUDPPayloadBuffer is tested to be valid prior */
     uint8_t * pucUDPPayloadBuffer = malloc( uxExpectedPayloadLength );
+    __CPROVER_assume( pucUDPPayloadBuffer != NULL );
 
     __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( pucUDPPayloadBuffer, pcHostName, uxIdentifier, uxHostType );
 }
