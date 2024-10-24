@@ -43,7 +43,7 @@
  */
     typedef struct xDNS_CACHE_TABLE_ROW
     {
-        IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
+        IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of a DNS cache entry. */
         char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
         uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
         uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */

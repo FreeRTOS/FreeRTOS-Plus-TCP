@@ -44,10 +44,25 @@
  */
 void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-/*
- * _HT_ added in order to avoid warnings while testing. */
 void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/*
+ * The caller must ensure that pxNetworkBuffer->xDataLength is the UDP packet
+ * payload size (excluding packet headers) and that the packet in pucEthernetBuffer
+ * is at least the size of UDPPacket_t.
+ */
+BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                      uint16_t usPort,
+                                      BaseType_t * pxIsWaitingForResolution );
+
+BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution );
+
+BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForNDResolution );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
