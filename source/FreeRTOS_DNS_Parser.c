@@ -56,110 +56,114 @@
  *
  * @return If a fully formed name was found, then return the number of bytes processed in pucByte.
  */
-    size_t DNS_ReadNameField( ParseSet_t * pxSet,
-                              size_t uxDestLen )
-    {
-        size_t uxNameLen = 0U;
-        size_t uxIndex = 0U;
-        size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
-        const uint8_t * pucByte = pxSet->pucByte;
 
-        /* uxCount gets the values from pucByte and counts down to 0.
-         * No need to have a different type than that of pucByte */
-        size_t uxCount;
+    #if ( ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) )
 
-        if( uxSourceLen == ( size_t ) 0U )
+        size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                                  size_t uxDestLen )
         {
-            /* Return 0 value in case of error. */
-            uxIndex = 0U;
-        }
+            size_t uxNameLen = 0U;
+            size_t uxIndex = 0U;
+            size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
+            const uint8_t * pucByte = pxSet->pucByte;
 
-        /* Determine if the name is the fully coded name, or an offset to the name
-         * elsewhere in the message. */
-        else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
-        {
-            /* Jump over the two byte offset. */
-            if( uxSourceLen > sizeof( uint16_t ) )
+            /* uxCount gets the values from pucByte and counts down to 0.
+             * No need to have a different type than that of pucByte */
+            size_t uxCount;
+
+            if( uxSourceLen == ( size_t ) 0U )
             {
-                uxIndex += sizeof( uint16_t );
-            }
-            else
-            {
+                /* Return 0 value in case of error. */
                 uxIndex = 0U;
             }
-        }
-        else
-        {
-            /* 'uxIndex' points to the full name. Walk over the string. */
-            while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) )
+
+            /* Determine if the name is the fully coded name, or an offset to the name
+             * elsewhere in the message. */
+            else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
             {
-                /* If this is not the first time through the loop, then add a
-                 * separator in the output. */
-                if( ( uxNameLen > 0U ) )
+                /* Jump over the two byte offset. */
+                if( uxSourceLen > sizeof( uint16_t ) )
                 {
-                    /*
-                     * uxNameLen can never be greater than uxDestLen, since there are checks
-                     * outside this condition, so the check is removed.
-                     */
-                    pxSet->pcName[ uxNameLen ] = '.';
-                    uxNameLen++;
-                }
-
-                /* Process the first/next sub-string. */
-                uxCount = ( size_t ) pucByte[ uxIndex ];
-
-                /* uxIndex should point to the first character now, unless uxCount
-                 * is an offset field. */
-                uxIndex++;
-
-                if( ( uxIndex + uxCount ) > uxSourceLen )
-                {
-                    uxIndex = 0U;
-                    break;
-                }
-
-                if( ( uxNameLen + uxCount ) >= uxDestLen )
-                {
-                    uxIndex = 0U;
-                    break;
-                }
-
-                while( uxCount-- != 0U )
-                {
-                    /*
-                     * uxNameLen can never be greater than uxDestLen, since there are checks
-                     * outside this condition, so the check is removed.
-                     */
-                    pxSet->pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
-                    uxNameLen++;
-                    uxIndex++;
-                }
-            }
-
-            /* Confirm that a fully formed name was found. */
-            if( uxIndex > 0U )
-            {
-                /* Here, there is no need to check for pucByte[ uxindex ] == 0 because:
-                 * When we break out of the above while loop, uxIndex is made 0 thereby
-                 * failing above check. Whenever we exit the loop otherwise, either
-                 * pucByte[ uxIndex ] == 0 (which makes the check here unnecessary) or
-                 * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
-                 * case).
-                 */
-                if( uxIndex < uxSourceLen )
-                {
-                    pxSet->pcName[ uxNameLen ] = '\0';
-                    uxIndex++;
+                    uxIndex += sizeof( uint16_t );
                 }
                 else
                 {
                     uxIndex = 0U;
                 }
             }
-        }
+            else
+            {
+                /* 'uxIndex' points to the full name. Walk over the string. */
+                while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) )
+                {
+                    /* If this is not the first time through the loop, then add a
+                     * separator in the output. */
+                    if( ( uxNameLen > 0U ) )
+                    {
+                        /*
+                         * uxNameLen can never be greater than uxDestLen, since there are checks
+                         * outside this condition, so the check is removed.
+                         */
+                        pxSet->pcName[ uxNameLen ] = '.';
+                        uxNameLen++;
+                    }
 
-        return uxIndex;
-    }
+                    /* Process the first/next sub-string. */
+                    uxCount = ( size_t ) pucByte[ uxIndex ];
+
+                    /* uxIndex should point to the first character now, unless uxCount
+                     * is an offset field. */
+                    uxIndex++;
+
+                    if( ( uxIndex + uxCount ) > uxSourceLen )
+                    {
+                        uxIndex = 0U;
+                        break;
+                    }
+
+                    if( ( uxNameLen + uxCount ) >= uxDestLen )
+                    {
+                        uxIndex = 0U;
+                        break;
+                    }
+
+                    while( uxCount-- != 0U )
+                    {
+                        /*
+                         * uxNameLen can never be greater than uxDestLen, since there are checks
+                         * outside this condition, so the check is removed.
+                         */
+                        pxSet->pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
+                        uxNameLen++;
+                        uxIndex++;
+                    }
+                }
+
+                /* Confirm that a fully formed name was found. */
+                if( uxIndex > 0U )
+                {
+                    /* Here, there is no need to check for pucByte[ uxindex ] == 0 because:
+                     * When we break out of the above while loop, uxIndex is made 0 thereby
+                     * failing above check. Whenever we exit the loop otherwise, either
+                     * pucByte[ uxIndex ] == 0 (which makes the check here unnecessary) or
+                     * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
+                     * case).
+                     */
+                    if( uxIndex < uxSourceLen )
+                    {
+                        pxSet->pcName[ uxNameLen ] = '\0';
+                        uxIndex++;
+                    }
+                    else
+                    {
+                        uxIndex = 0U;
+                    }
+                }
+            }
+
+            return uxIndex;
+        }
+    #endif /* ( ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) ) */
 
 /**
  * @brief Simple routine that jumps over the NAME field of a resource record.
@@ -456,7 +460,9 @@
                         #if ( ipconfigUSE_IPv6 != 0 )
                         {
                             /*logging*/
-                            FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
+                            #if ( ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) )
+                                FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
+                            #endif /* ( ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) ) */
 
                             xEndPoint.usDNSType = ( uint8_t ) xSet.usType;
                         }
@@ -464,11 +470,13 @@
 
                         /* If this is not a reply to our DNS request, it might be an mDNS or an LLMNR
                          * request. Ask the application if it uses the name. */
-                        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-                            xDNSHookReturn = xApplicationDNSQueryHook( xSet.pcName );
-                        #else
-                            xDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
-                        #endif
+                        #if ( ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) )
+                            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                                xDNSHookReturn = xApplicationDNSQueryHook( xSet.pcName );
+                            #else
+                                xDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
+                            #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+                        #endif /* ( ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) ) */
 
                         /* During the early stages of boot or after a DHCP lease expires, our end-point
                          * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
@@ -735,10 +743,12 @@
                                          &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
                                          ipSIZE_OF_IPv6_ADDRESS );
 
-                        if( ppxAddressInfo != NULL )
-                        {
-                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xIPAddress.xIP_IPv6.ucBytes );
-                        }
+                        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                            if( ppxAddressInfo != NULL )
+                            {
+                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xIPAddress.xIP_IPv6.ucBytes );
+                            }
+                        #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
                         xIP_Address.xIs_IPv6 = pdTRUE;
 
@@ -763,12 +773,14 @@
                         pvCopyDest = &( pxSet->ulIPAddress );
                         ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
 
-                        if( ppxAddressInfo != NULL )
-                        {
-                            const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
+                        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                            if( ppxAddressInfo != NULL )
+                            {
+                                const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
 
-                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
-                        }
+                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
+                            }
+                        #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
                         xIP_Address.xIPAddress.ulIP_IPv4 = pxSet->ulIPAddress;
                         xIP_Address.xIs_IPv6 = pdFALSE;
