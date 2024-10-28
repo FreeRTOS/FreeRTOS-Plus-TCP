@@ -49,6 +49,7 @@
 
 
     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+
 /**
  * @brief Read the Name field out of a DNS response packet.
  *
@@ -64,17 +65,17 @@
             size_t uxIndex = 0U;
             size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
             const uint8_t * pucByte = pxSet->pucByte;
-    
+
             /* uxCount gets the values from pucByte and counts down to 0.
              * No need to have a different type than that of pucByte */
             size_t uxCount;
-    
+
             if( uxSourceLen == ( size_t ) 0U )
             {
                 /* Return 0 value in case of error. */
                 uxIndex = 0U;
             }
-    
+
             /* Determine if the name is the fully coded name, or an offset to the name
              * elsewhere in the message. */
             else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
@@ -105,26 +106,26 @@
                         pxSet->pcName[ uxNameLen ] = '.';
                         uxNameLen++;
                     }
-    
+
                     /* Process the first/next sub-string. */
                     uxCount = ( size_t ) pucByte[ uxIndex ];
-    
+
                     /* uxIndex should point to the first character now, unless uxCount
                      * is an offset field. */
                     uxIndex++;
-    
+
                     if( ( uxIndex + uxCount ) > uxSourceLen )
                     {
                         uxIndex = 0U;
                         break;
                     }
-    
+
                     if( ( uxNameLen + uxCount ) >= uxDestLen )
                     {
                         uxIndex = 0U;
                         break;
                     }
-    
+
                     while( uxCount-- != 0U )
                     {
                         /*
@@ -136,7 +137,7 @@
                         uxIndex++;
                     }
                 }
-    
+
                 /* Confirm that a fully formed name was found. */
                 if( uxIndex > 0U )
                 {
@@ -158,7 +159,7 @@
                     }
                 }
             }
-    
+
             return uxIndex;
         }
     #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
