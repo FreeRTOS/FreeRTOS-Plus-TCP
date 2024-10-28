@@ -2,8 +2,8 @@
   "ENTRY": "CheckOptionsInner",
   "CBMCFLAGS": [
       "--unwind 1",
-      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowTxCheckAck.1:2",
-      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowFastRetransmit.2:2"
+      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowTxCheckAck.0:2",
+      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowFastRetransmit.0:2"
   ],
   "OPT":
   [
@@ -12,6 +12,7 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Reception.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_WIN.goto",
@@ -21,6 +22,7 @@
   ],
   "DEF":
   [
-    "ipconfigUSE_TCP=1"
+    "ipconfigUSE_TCP=1",
+    "ipconfigNETWORK_MTU=586"
   ]
 }

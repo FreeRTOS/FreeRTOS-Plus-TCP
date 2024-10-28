@@ -324,26 +324,26 @@
             else
             {
                 #if ( ipconfigUSE_TCP_WIN == 1 )
+                {
+                    /* Selective ACK: the peer has received a packet but it is missing
+                     * earlier packets. At least this packet does not need retransmission
+                     * anymore. ulTCPWindowTxSack( ) takes care of this administration.
+                     */
+                    if( pucPtr[ 0U ] == tcpTCP_OPT_SACK_A )
                     {
-                        /* Selective ACK: the peer has received a packet but it is missing
-                         * earlier packets. At least this packet does not need retransmission
-                         * anymore. ulTCPWindowTxSack( ) takes care of this administration.
-                         */
-                        if( pucPtr[ 0U ] == tcpTCP_OPT_SACK_A )
+                        ucLen = ( uint8_t ) ( ucLen - 2U );
+                        lIndex += 2;
+
+                        while( ucLen >= ( uint8_t ) 8U )
                         {
-                            ucLen -= 2U;
-                            lIndex += 2;
-
-                            while( ucLen >= ( uint8_t ) 8U )
-                            {
-                                prvReadSackOption( pucPtr, ( size_t ) lIndex, pxSocket );
-                                lIndex += 8;
-                                ucLen -= 8U;
-                            }
-
-                            /* ucLen should be 0 by now. */
+                            prvReadSackOption( pucPtr, ( size_t ) lIndex, pxSocket );
+                            lIndex += 8;
+                            ucLen = ( uint8_t ) ( ucLen - 8U );
                         }
+
+                        /* ucLen should be 0 by now. */
                     }
+                }
                 #endif /* ipconfigUSE_TCP_WIN == 1 */
 
                 lIndex += ( int32_t ) ucLen;
@@ -387,26 +387,26 @@
                 pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_SEND;
 
                 #if ipconfigSUPPORT_SELECT_FUNCTION == 1
+                {
+                    if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_WRITE ) != 0U )
                     {
-                        if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_WRITE ) != 0U )
-                        {
-                            /* The field 'xEventBits' is used to store regular socket events
-                             * (at most 8), as well as 'select events', which will be left-shifted.
-                             */
-                            pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT;
-                        }
+                        /* The field 'xEventBits' is used to store regular socket events
+                         * (at most 8), as well as 'select events', which will be left-shifted.
+                         */
+                        pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT;
                     }
+                }
                 #endif
 
                 /* In case the socket owner has installed an OnSent handler,
                  * call it now. */
                 #if ( ipconfigUSE_CALLBACKS == 1 )
+                {
+                    if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleSent ) )
                     {
-                        if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleSent ) )
-                        {
-                            pxSocket->u.xTCP.pxHandleSent( pxSocket, ulCount );
-                        }
+                        pxSocket->u.xTCP.pxHandleSent( pxSocket, ulCount );
                     }
+                }
                 #endif /* ipconfigUSE_CALLBACKS == 1  */
             }
         }
@@ -531,6 +531,10 @@
         {
             /* Although we ignore the urgent data, we have to skip it. */
             lUrgentLength = ( int32_t ) FreeRTOS_htons( pxTCPHeader->usUrgent );
+
+            /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
             *ppucRecvData += lUrgentLength;
             lReceiveLength -= FreeRTOS_min_int32( lReceiveLength, lUrgentLength );
         }
@@ -627,16 +631,16 @@
             /* After a missing packet has come in, higher packets may be passed to
              * the user. */
             #if ( ipconfigUSE_TCP_WIN == 1 )
+            {
+                /* Now lTCPAddRxdata() will move the rxHead pointer forward
+                 * so data becomes available to the user immediately
+                 * In case the low-water mark is reached, bLowWater will be set. */
+                if( ( xResult == 0 ) && ( pxTCPWindow->ulUserDataLength > 0U ) )
                 {
-                    /* Now lTCPAddRxdata() will move the rxHead pointer forward
-                     * so data becomes available to the user immediately
-                     * In case the low-water mark is reached, bLowWater will be set. */
-                    if( ( xResult == 0 ) && ( pxTCPWindow->ulUserDataLength > 0U ) )
-                    {
-                        ( void ) lTCPAddRxdata( pxSocket, 0U, NULL, pxTCPWindow->ulUserDataLength );
-                        pxTCPWindow->ulUserDataLength = 0;
-                    }
+                    ( void ) lTCPAddRxdata( pxSocket, 0U, NULL, pxTCPWindow->ulUserDataLength );
+                    pxTCPWindow->ulUserDataLength = 0;
                 }
+            }
             #endif /* ipconfigUSE_TCP_WIN */
         }
         else

@@ -1,10 +1,7 @@
 add_library( freertos_plus_tcp STATIC )
 
-set_property(TARGET freertos_plus_tcp PROPERTY C_STANDARD 90)
-
 target_sources( freertos_plus_tcp
   PRIVATE
-      include/FreeRTOSIPConfigDefaults.h
       include/FreeRTOS_ARP.h
       include/FreeRTOS_BitConfig.h
       include/FreeRTOS_DHCP.h
@@ -40,7 +37,8 @@ target_sources( freertos_plus_tcp
       include/FreeRTOS_TCP_Utils.h
       include/FreeRTOS_TCP_WIN.h
       include/FreeRTOS_UDP_IP.h
-      include/FreeRTOS_errno_TCP.h
+      include/FreeRTOSIPConfigDefaults.h
+      include/FreeRTOSIPDeprecatedDefinitions.h
       include/IPTraceMacroDefaults.h
       include/NetworkBufferManagement.h
       include/NetworkInterface.h
@@ -70,18 +68,18 @@ target_sources( freertos_plus_tcp
       FreeRTOS_Sockets.c
       FreeRTOS_Stream_Buffer.c
       FreeRTOS_TCP_IP.c
-      FreeRTOS_TCP_IP_IPV4.c
-      FreeRTOS_TCP_IP_IPV6.c
+      FreeRTOS_TCP_IP_IPv4.c
+      FreeRTOS_TCP_IP_IPv6.c
       FreeRTOS_TCP_Reception.c
       FreeRTOS_TCP_State_Handling.c
-      FreeRTOS_TCP_State_Handling_IPV4.c
-      FreeRTOS_TCP_State_Handling_IPV6.c
+      FreeRTOS_TCP_State_Handling_IPv4.c
+      FreeRTOS_TCP_State_Handling_IPv6.c
       FreeRTOS_TCP_Transmission.c
-      FreeRTOS_TCP_Transmission_IPV4.c
-      FreeRTOS_TCP_Transmission_IPV6.c
+      FreeRTOS_TCP_Transmission_IPv4.c
+      FreeRTOS_TCP_Transmission_IPv6.c
       FreeRTOS_TCP_Utils.c
-      FreeRTOS_TCP_Utils_IPV4.c
-      FreeRTOS_TCP_Utils_IPV6.c
+      FreeRTOS_TCP_Utils_IPv4.c
+      FreeRTOS_TCP_Utils_IPv6.c
       FreeRTOS_TCP_WIN.c
       FreeRTOS_Tiny_TCP.c
       FreeRTOS_UDP_IP.c
@@ -89,8 +87,7 @@ target_sources( freertos_plus_tcp
       FreeRTOS_UDP_IPv6.c
 )
 
-# Note: Have to make system due to compiler warnings in header files.
-target_include_directories( freertos_plus_tcp SYSTEM
+target_include_directories( freertos_plus_tcp
   PUBLIC
     include
 )

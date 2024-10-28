@@ -55,10 +55,14 @@
 #include "FreeRTOS_TCP_Reception.h"
 
 
+int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                       size_t uxTotalLength,
+                                       FreeRTOS_Socket_t * const pxSocket,
+                                       BaseType_t xHasSYNFlag );
 
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+void prvReadSackOption( const uint8_t * const pucPtr,
+                        size_t uxIndex,
+                        FreeRTOS_Socket_t * const pxSocket );
 
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
@@ -782,7 +786,7 @@ void test_prvCheckRxData_URG_On( void )
     TEST_ASSERT_EQUAL( 4, result );
 }
 
-/* Test for prvStorexData function. */
+/* Test for prvStoreRxData function. */
 void test_prvStoreRxData_Happy_Path( void )
 {
     int32_t result;
@@ -823,7 +827,7 @@ void test_prvStoreRxData_Happy_Path( void )
     TEST_ASSERT_EQUAL( 0, xResult );
 }
 
-/* Test for prvStorexData function. */
+/* Test for prvStoreRxData function. */
 void test_prvStoreRxData_Wrong_State( void )
 {
     int32_t result;
@@ -855,7 +859,7 @@ void test_prvStoreRxData_Wrong_State( void )
     TEST_ASSERT_EQUAL( 0, xResult );
 }
 
-/* Test for prvStorexData function. */
+/* Test for prvStoreRxData function. */
 void test_prvStoreRxData_Zero_Length( void )
 {
     int32_t result;
@@ -897,7 +901,7 @@ void test_prvStoreRxData_Zero_Length( void )
 }
 
 
-/* Test for prvStorexData function. */
+/* Test for prvStoreRxData function. */
 void test_prvStoreRxData_Null_RxStream( void )
 {
     int32_t result;
@@ -934,7 +938,7 @@ void test_prvStoreRxData_Null_RxStream( void )
     TEST_ASSERT_EQUAL( -1, xResult );
 }
 
-/* Test for prvStorexData function. */
+/* Test for prvStoreRxData function. */
 void test_prvStoreRxData_Negative_Offset( void )
 {
     int32_t result;
@@ -971,7 +975,7 @@ void test_prvStoreRxData_Negative_Offset( void )
     TEST_ASSERT_EQUAL( 0, xResult );
 }
 
-/* Test for prvStorexData function. */
+/* Test for prvStoreRxData function. */
 void test_prvStoreRxData_None_Zero_Skipcount( void )
 {
     int32_t result;

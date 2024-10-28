@@ -242,7 +242,7 @@ UBaseType_t uxRand( void )
 
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 {
-    *pulNumber = uxRand();
+    *pulNumber = ( uint32_t ) uxRand();
 
     return pdTRUE;
 }
@@ -251,7 +251,7 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
-                                    uint32_t * pulIdleTaskStackSize )
+                                    configSTACK_DEPTH_TYPE * pulIdleTaskStackSize )
 {
     /* Provide a stub for this function. */
 }
@@ -286,12 +286,12 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     ( void ) ulDestinationAddress;
     ( void ) usDestinationPort;
 
-    return uxRand();
+    return ( uint32_t ) uxRand();
 }
 
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      StackType_t ** ppxTimerTaskStackBuffer,
-                                     uint32_t * pulTimerTaskStackSize )
+                                     configSTACK_DEPTH_TYPE * pulTimerTaskStackSize )
 {
     /* Provide a stub for this function. */
 }
@@ -365,6 +365,6 @@ void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
     /* DHCPv6 needs a time-stamp, seconds after 1970. */
     uint32_t ulApplicationTimeHook( void )
     {
-        return time( NULL );
+        return ( uint32_t ) time( NULL );
     }
 #endif

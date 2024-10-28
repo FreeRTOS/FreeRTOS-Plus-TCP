@@ -30,7 +30,7 @@
     #define TCP_MEM_STATS_H
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
     typedef enum xTCP_MEMORY
@@ -69,7 +69,7 @@
     #endif /* ipconfigUSE_TCP_MEM_STATS != 0 */
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* TCP_MEM_STATS_H */

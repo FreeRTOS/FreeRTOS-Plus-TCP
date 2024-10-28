@@ -53,8 +53,7 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * 
 
 /* Stub FreeRTOS_FindEndPointOnNetMask_IPv6 as its not relevant to the
  * correctness of the proof */
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
-                                                    uint32_t ulWhere )
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress )
 {
     /* Assume at least one end-point is available */
     return pxNetworkEndPoint_Temp;
@@ -106,6 +105,7 @@ void harness()
     __CPROVER_assume( ( xDataSize > ( sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) && ( xDataSize < ipconfigNETWORK_MTU ) );
 
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
+    xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
 
     /* xNetworkBuffer.pucEthernetBuffer is checked if its valid before the call to
      * prepareReplyDNSMessage() */

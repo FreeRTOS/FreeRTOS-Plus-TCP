@@ -45,6 +45,7 @@
 
 #include "FreeRTOSIPConfig.h"
 
+#include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_ARP.h"
@@ -103,6 +104,8 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Enabled( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
 
     FreeRTOS_ClearARP_Expect( &xEndPoint );
+
+    vDHCPStop_Expect( &xEndPoint );
 
     FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
 

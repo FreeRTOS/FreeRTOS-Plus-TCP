@@ -27,7 +27,7 @@
     #include <stdint.h>
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /** SMSC9220 device configuration structure */
@@ -279,7 +279,7 @@
 /**
  * \brief Sets the Maximum Transmission Unit by Tx fifo size.
  *        Note: The MTU will be smaller by 512 bytes,
- *        whis is used by the status.
+ *        which is used by the status.
  *
  * \param[in] dev Ethernet device structure \ref smsc9220_eth_dev_t
  * \param[in] val Size of the fifo in kbytes
@@ -470,7 +470,7 @@
     int smsc9220_check_id( const struct smsc9220_eth_dev_t * dev );
 
 /**
- * \brief Gets the data size of the Tx buffer, aka Maximum Trasmission Unit
+ * \brief Gets the data size of the Tx buffer, aka Maximum Transmission Unit
  *
  * \param[in] dev Ethernet device structure \ref smsc9220_eth_dev_t
  *
@@ -541,7 +541,7 @@
                                              smsc9220_eth_dev_t * dev );
 
     #ifdef __cplusplus
-        }
+}     /* extern "C" */
     #endif
 
 #endif /* __SMSC9220_ETH_H__ */

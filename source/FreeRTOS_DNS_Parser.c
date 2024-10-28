@@ -47,47 +47,6 @@
 
 #if ( ipconfigUSE_DNS != 0 )
 
-/** @brief The list of all callback structures. */
-
-
-    #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-
-/**
- * @brief Find the best matching end-point given a reply that was received.
- * @param[in] pxNetworkBuffer The Ethernet packet that was received.
- * @return An end-point.
- */
-        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
-        {
-            NetworkEndPoint_t * pxEndPoint = NULL;
-
-            #if ( ipconfigUSE_IPv6 != 0 )
-                IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-                if( xIPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xIPPacket_IPv6->xIPHeader.xSourceAddress );
-                }
-                else
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-            #if ( ipconfigUSE_IPv4 != 0 )
-                {
-                    IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
-                }
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-            if( pxEndPoint != NULL )
-            {
-                pxNetworkBuffer->pxEndPoint = pxEndPoint;
-            }
-
-            return pxEndPoint;
-        }
-    #endif /* ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
-/*-----------------------------------------------------------*/
 
 /**
  * @brief Read the Name field out of a DNS response packet.
@@ -291,7 +250,6 @@
  *         An error code (dnsPARSE_ERROR) if there was an error in the DNS response.
  *         0 if xExpected set to pdFALSE.
  */
-/* TODO cross check again */
     uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                 size_t uxBufferLength,
                                 struct freertos_addrinfo ** ppxAddressInfo,
@@ -337,32 +295,64 @@
             {
                 size_t uxBytesRead = 0U;
                 size_t uxResult;
+                BaseType_t xIsResponse = pdFALSE;
 
                 /* Start at the first byte after the header. */
                 xSet.pucUDPPayloadBuffer = pucUDPPayloadBuffer;
+                /* Skip 12-byte header. */
                 xSet.pucByte = &( pucUDPPayloadBuffer[ sizeof( DNSMessage_t ) ] );
                 xSet.uxSourceBytesRemaining -= sizeof( DNSMessage_t );
 
-                /* Skip any question records. */
+                /* The number of questions supplied. */
                 xSet.usQuestions = FreeRTOS_ntohs( xSet.pxDNSMessageHeader->usQuestions );
+                /* The number of answer records. */
+                xSet.usAnswers = FreeRTOS_ntohs( xSet.pxDNSMessageHeader->usAnswers );
 
-                if( xSet.usQuestions == 0U )
+                if( ( xSet.pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK ) == dnsEXPECTED_RX_FLAGS )
                 {
-                    /* The IP-stack will only accept DNS replies that have a copy
-                     * of the questions. */
-                    xReturn = pdFALSE;
-                    break;
+                    xIsResponse = pdTRUE;
+
+                    if( xSet.usAnswers == 0U )
+                    {
+                        /* This is a response that does not include answers. */
+                        xReturn = pdFALSE;
+                        break;
+                    }
+
+                    if( xSet.usQuestions == 0U )
+                    {
+                        #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+                        {
+                            xSet.pcRequestedName = ( char * ) xSet.pucByte;
+                        }
+                        #endif
+
+                        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                            uxResult = DNS_ReadNameField( &xSet,
+                                                          sizeof( xSet.pcName ) );
+                            ( void ) uxResult;
+                        #endif
+                    }
+                }
+                else
+                {
+                    if( xSet.usQuestions == 0U )
+                    {
+                        /* This is a query that does not include any question. */
+                        xReturn = pdFALSE;
+                        break;
+                    }
                 }
 
                 for( x = 0U; x < xSet.usQuestions; x++ )
                 {
                     #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+                    {
+                        if( x == 0U )
                         {
-                            if( x == 0U )
-                            {
-                                xSet.pcRequestedName = ( char * ) xSet.pucByte;
-                            }
+                            xSet.pcRequestedName = ( char * ) xSet.pucByte;
                         }
+                    }
                     #endif
 
                     #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
@@ -370,6 +360,7 @@
                         {
                             uxResult = DNS_ReadNameField( &xSet,
                                                           sizeof( xSet.pcName ) );
+                            ( void ) uxResult;
                         }
                         else
                     #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
@@ -394,11 +385,11 @@
                     if( xSet.uxSourceBytesRemaining >= sizeof( uint32_t ) )
                     {
                         #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-                            {
-                                /* usChar2u16 returns value in host endianness. */
-                                xSet.usType = usChar2u16( xSet.pucByte );
-                                xSet.usClass = usChar2u16( &( xSet.pucByte[ 2 ] ) );
-                            }
+                        {
+                            /* usChar2u16 returns value in host endianness. */
+                            xSet.usType = usChar2u16( xSet.pucByte );
+                            xSet.usClass = usChar2u16( &( xSet.pucByte[ 2 ] ) );
+                        }
                         #endif /* ipconfigUSE_LLMNR */
 
                         /* Skip the type and class fields. */
@@ -418,13 +409,9 @@
                     break;
                 }
 
-                /* Search through the answer records. */
-                xSet.pxDNSMessageHeader->usAnswers =
-                    FreeRTOS_ntohs( xSet.pxDNSMessageHeader->usAnswers );
-
-                if( ( xSet.pxDNSMessageHeader->usFlags & dnsRX_FLAGS_MASK )
-                    == dnsEXPECTED_RX_FLAGS )
+                if( xIsResponse == pdTRUE )
                 {
+                    /* Search through the answer records. */
                     ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo, &uxBytesRead );
                 }
 
@@ -467,12 +454,12 @@
                         ( void ) memcpy( &( xEndPoint ), pxEndPoint, sizeof( xEndPoint ) );
 
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            {
-                                /*logging*/
-                                FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
+                        {
+                            /*logging*/
+                            FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
 
-                                xEndPoint.usDNSType = xSet.usType;
-                            }
+                            xEndPoint.usDNSType = ( uint8_t ) xSet.usType;
+                        }
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                         /* If this is not a reply to our DNS request, it might be an mDNS or an LLMNR
@@ -482,6 +469,13 @@
                         #else
                             xDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
                         #endif
+
+                        /* During the early stages of boot or after a DHCP lease expires, our end-point
+                         * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
+                        if( ( xDNSHookReturn != pdFALSE ) && ( xEndPoint.bits.bIPv6 == pdFALSE ) && ( xEndPoint.ipv4_settings.ulIPAddress == 0U ) )
+                        {
+                            xDNSHookReturn = pdFALSE;
+                        }
 
                         if( xDNSHookReturn != pdFALSE )
                         {
@@ -506,13 +500,13 @@
                                     else
                                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                                 #if ( ipconfigUSE_IPv4 != 0 )
-                                    {
-                                        uxExtraLength = sizeof( LLMNRAnswer_t );
-                                    }
+                                {
+                                    uxExtraLength = sizeof( LLMNRAnswer_t );
+                                }
                                 #else /* ( ipconfigUSE_IPv4 != 0 ) */
-                                    {
-                                        /* do nothing, coverity happy */
-                                    }
+                                {
+                                    /* do nothing, coverity happy */
+                                }
                                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                                 /* Set the size of the outgoing packet. */
@@ -550,10 +544,10 @@
                             {
                                 pxAnswer = ( ( LLMNRAnswer_t * ) xSet.pucByte );
                                 /* We leave 'usIdentifier' and 'usQuestions' untouched */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_REPONSE ); /* Set the response flag */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                       /* Provide a single answer */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                  /* No authority */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                 /* No additional info */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_RESPONSE ); /* Set the response flag */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                        /* Provide a single answer */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                   /* No authority */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                  /* No additional info */
 
                                 pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
@@ -572,7 +566,7 @@
                                         ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                                         uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                         /* An extra 12 bytes will be sent compared to an A-record. */
-                                        usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
+                                        usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
                                     }
                                     else
                                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -623,7 +617,7 @@
     }
 
 /**
- * @brief perform a dns lookup in the local cache {TODO WRONG}
+ * @brief Process DNS answer field in a DNS response packet from a DNS server.
  * @param[in] pxSet a set of variables that are shared among the helper functions.
  * @param[out] ppxAddressInfo a linked list storing the DNS answers.
  * @param[out] uxBytesRead total bytes consumed by the function
@@ -643,7 +637,7 @@
 
         struct freertos_addrinfo * pxNewAddress = NULL;
 
-        for( x = 0U; x < pxSet->pxDNSMessageHeader->usAnswers; x++ )
+        for( x = 0U; x < pxSet->usAnswers; x++ )
         {
             BaseType_t xDoAccept = pdFALSE;
 
@@ -654,7 +648,7 @@
             }
 
             uxResult = DNS_SkipNameField( pxSet->pucByte,
-                                          sizeof( pxSet->pcName ) );
+                                          pxSet->uxSourceBytesRemaining );
 
             /* Check for a malformed response. */
             if( uxResult == 0U )
@@ -692,11 +686,25 @@
             }
             else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
             {
-                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS; /*TODO check if fine */
+                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
 
                 if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
                 {
-                    xDoAccept = pdTRUE;
+                    /* Ignore responses containing an IP of 0.0.0.0.
+                     * If we don't stop parsing this now, the code below will
+                     * invoke the user callback and also store this invalid address in our cache. */
+                    void * pvCopyDest;
+                    const void * pvCopySource;
+                    uint32_t ulTestAddress;
+
+                    pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
+                    pvCopyDest = &( ulTestAddress );
+                    ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
+
+                    if( ulTestAddress != 0U )
+                    {
+                        xDoAccept = pdTRUE;
+                    }
                 }
             }
             else
@@ -783,72 +791,66 @@
                     }
 
                     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                    {
+                        BaseType_t xCallbackResult;
+
+                        xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
+
+                        /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
+                        if( xCallbackResult != pdFALSE )
                         {
-                            BaseType_t xCallbackResult;
-
-                            #if ( ipconfigUSE_IPv6 != 0 )
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
-                                }
-                            #else
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, pxSet->ulIPAddress );
-                                }
-                            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-                            /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
-                            if( xCallbackResult != pdFALSE )
-                            {
-                                /* This device has requested this DNS look-up.
-                                 * The result may be stored in the DNS cache. */
-                                pxSet->xDoStore = pdTRUE;
-                            }
+                            /* This device has requested this DNS look-up.
+                             * The result may be stored in the DNS cache. */
+                            pxSet->xDoStore = pdTRUE;
                         }
+                    }
                     #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
                     #if ( ipconfigUSE_DNS_CACHE == 1 )
+                    {
+                        char cBuffer[ 40 ];
+
+                        /* The reply will only be stored in the DNS cache when the
+                         * request was issued by this device. */
+                        if( pxSet->xDoStore != pdFALSE )
                         {
-                            char cBuffer[ 40 ];
-
-                            /* The reply will only be stored in the DNS cache when the
-                             * request was issued by this device. */
-                            if( pxSet->xDoStore != pdFALSE )
-                            {
-                                ( void ) FreeRTOS_dns_update(
-                                    pxSet->pcName,
-                                    &xIP_Address,
-                                    pxDNSAnswerRecord->ulTTL,
-                                    pdFALSE,
-                                    NULL );
-                                pxSet->usNumARecordsStored++; /* Track # of A records stored */
-                            }
-
-                            if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
-                            {
-                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xIPAddress.xIP_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
-                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
-                                                   ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
-                                                   pxSet->pcName,
-                                                   cBuffer,
-                                                   ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
-                            }
-                            else
-                            {
-                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
-                                                             ( const void * ) &( pxSet->ulIPAddress ),
-                                                             cBuffer,
-                                                             ( socklen_t ) sizeof( cBuffer ) );
-                                /* Show what has happened. */
-                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
-                                                   pxSet->pxDNSMessageHeader->usIdentifier,
-                                                   pxSet->pcName,
-                                                   cBuffer,
-                                                   ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
-                            }
+                            ( void ) FreeRTOS_dns_update(
+                                pxSet->pcName,
+                                &xIP_Address,
+                                pxDNSAnswerRecord->ulTTL,
+                                pdFALSE,
+                                NULL );
+                            pxSet->usNumARecordsStored++; /* Track # of A records stored */
                         }
+
+                        if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
+                        {
+                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xIPAddress.xIP_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
+                            FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
+                                               ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
+                                               pxSet->pcName,
+                                               cBuffer,
+                                               ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
+                        }
+                        else
+                        {
+                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
+                                                         ( const void * ) &( pxSet->ulIPAddress ),
+                                                         cBuffer,
+                                                         ( socklen_t ) sizeof( cBuffer ) );
+                            /* Show what has happened. */
+                            FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
+                                               pxSet->pxDNSMessageHeader->usIdentifier,
+                                               pxSet->pcName,
+                                               cBuffer,
+                                               ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
+                        }
+                    }
                     #endif /* ipconfigUSE_DNS_CACHE */
 
-                    if( ( ulReturnIPAddress == 0U ) && ( pxSet->ulIPAddress != 0U ) )
+                    if( ulReturnIPAddress == 0U )
                     {
+                        /* Here pxSet->ulIPAddress should be not equal tp 0 since pxSet->ulIPAddress is copied from
+                         * pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] and os verified to be non zero above. */
                         /* Remember the first IP-address that is found. */
                         ulReturnIPAddress = pxSet->ulIPAddress;
                     }
@@ -919,9 +921,10 @@
             IPHeader_t * pxIPHeader;
             UDPHeader_t * pxUDPHeader;
             size_t uxDataLength;
-            NetworkEndPoint_t * pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
+            NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
             const size_t uxIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
 
+            configASSERT( pxEndPoint != NULL );
             pxUDPPacket = ( ( UDPPacket_t * )
                             pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
@@ -967,7 +970,7 @@
                     pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
                 }
 
-                pxIPHeader->ulSourceIPAddress = ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U;
+                pxIPHeader->ulSourceIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
                 pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
 
                 /* The stack doesn't support fragments, so the fragment offset field must always be zero.
@@ -988,21 +991,21 @@
             }
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+            {
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    /* IPv6 IP-headers have no checksum field. */
+                    if( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) != 0x60U )
+                #endif
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        /* IPv6 IP-headers have no checksum field. */
-                        if( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) != 0x60U )
-                    #endif
-                    {
-                        /* Calculate the IP header checksum. */
-                        pxIPHeader->usHeaderChecksum = 0U;
-                        pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderLength );
-                        pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
-                    }
-
-                    /* calculate the UDP checksum for outgoing package */
-                    ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxUDPPacket, uxDataLength, pdTRUE );
+                    /* Calculate the IP header checksum. */
+                    pxIPHeader->usHeaderChecksum = 0U;
+                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderLength );
+                    pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
                 }
+
+                /* calculate the UDP checksum for outgoing package */
+                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxUDPPacket, uxDataLength, pdTRUE );
+            }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
             /* Important: tell NIC driver how many bytes must be sent */
@@ -1090,8 +1093,8 @@
                     /* Define the ASCII value of the capital "A". */
                     const uint8_t ucCharA = ( uint8_t ) 0x41U;
 
-                    ucByte = ( ( uint8_t ) ( ( pucSource[ 0 ] - ucCharA ) << 4 ) ) |
-                             ( pucSource[ 1 ] - ucCharA );
+                    ucByte = ( uint8_t ) ( ( ( pucSource[ 0 ] - ucCharA ) << 4 ) |
+                                           ( pucSource[ 1 ] - ucCharA ) );
 
                     /* Make sure there are no trailing spaces in the name. */
                     if( ( ucByte == ( uint8_t ) ' ' ) && ( pucTarget[ 1 ] == 0U ) )
@@ -1111,28 +1114,28 @@
                 }
 
                 #if ( ipconfigUSE_DNS_CACHE == 1 )
+                {
+                    if( ( usFlags & dnsNBNS_FLAGS_RESPONSE ) != 0U )
                     {
-                        if( ( usFlags & dnsNBNS_FLAGS_RESPONSE ) != 0U )
+                        /* If this is a response from another device,
+                         * add the name to the DNS cache */
+                        IPv46_Address_t xIPAddress;
+
+                        xIPAddress.xIPAddress.ulIP_IPv4 = ulIPAddress;
+                        #if ( ipconfigUSE_IPv6 != 0 )
                         {
-                            /* If this is a response from another device,
-                             * add the name to the DNS cache */
-                            IPv46_Address_t xIPAddress;
-
-                            xIPAddress.xIPAddress.ulIP_IPv4 = ulIPAddress;
-                            #if ( ipconfigUSE_IPv6 != 0 )
-                                {
-                                    xIPAddress.xIs_IPv6 = pdFALSE;
-                                }
-                            #endif
-
-                            ( void ) FreeRTOS_dns_update( ( char * ) ucNBNSName, &( xIPAddress ), 0, pdFALSE, NULL );
+                            xIPAddress.xIs_IPv6 = pdFALSE;
                         }
+                        #endif
+
+                        ( void ) FreeRTOS_dns_update( ( char * ) ucNBNSName, &( xIPAddress ), 0, pdFALSE, NULL );
                     }
+                }
                 #else /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
-                    {
-                        /* Avoid compiler warnings. */
-                        ( void ) ulIPAddress;
-                    }
+                {
+                    /* Avoid compiler warnings. */
+                    ( void ) ulIPAddress;
+                }
                 #endif /* ipconfigUSE_DNS_CACHE */
 
                 if( ( usType != dnsNBNS_TYPE_NET_BIOS ) ||
@@ -1156,7 +1159,7 @@
                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
                 xEndPoint.usDNSType = dnsTYPE_A_HOST;
 
-                #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                     xDNSHookReturn = xApplicationDNSQueryHook( ( const char * ) ucNBNSName );
                 #else
                     xDNSHookReturn = xApplicationDNSQueryHook_Multi( &( xEndPoint ), ( const char * ) ucNBNSName );
@@ -1169,6 +1172,13 @@
                     break;
                 }
 
+                /* During the early stages of boot or after a DHCP lease expires, our end-point
+                 * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
+                if( xEndPoint.ipv4_settings.ulIPAddress == 0U )
+                {
+                    break;
+                }
+
                 /* Someone is looking for a device with ucNBNSName,
                  * prepare a positive reply.
                  * The reply will be a bit longer than the request, so make some space.
@@ -1178,7 +1188,7 @@
 
                 if( xBufferAllocFixedSize == pdFALSE )
                 {
-                    /* We're linked with BufferAlolocation_2.c
+                    /* We're linked with BufferAllocation_2.c
                      * pxResizeNetworkBufferWithDescriptor() will malloc a new bigger buffer,
                      * and memcpy the data. The old buffer will be free'd.
                      */

@@ -63,29 +63,12 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
-
 /* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#define niBUFFER_1_PACKET_SIZE    1536
+ * https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/05-Buffer-management */
+#define niBUFFER_1_PACKET_SIZE              1536
 
 /* Naming and numbering of PHY registers. */
-#define PHY_REG_01_BMSR           0x01  /* Basic mode status register */
+#define PHY_REG_01_BMSR                     0x01 /* Basic mode status register */
 
 #ifndef iptraceEMAC_TASK_STARTING
     #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )
@@ -103,7 +86,9 @@
 /* When the PHY is forces to work with a speed of 100 Mbps
  * many outgoing packets seem to get dropped.
  */
-    #warning ipconfigNIC_LINKSPEED100 is btoken. Are you sure?
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning ipconfigNIC_LINKSPEED100 is broken. Are you sure?
+    #endif
 #endif
 
 static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
@@ -113,7 +98,9 @@ static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
 #endif
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 || ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-    #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #endif
 #endif
 
 #ifndef nicUSE_UNCACHED_MEMORY
@@ -267,42 +254,56 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
         /* Initialize the mac and set the MAC address at position 1. */
         XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) pxEndPoint->xMACAddress.ucBytes, 1 );
 
-        #if ( ipconfigUSE_LLMNR == 1 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
+        {
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
             {
-                /* Also add LLMNR multicast MAC address. */
-                #if ( ipconfigUSE_IPv6 == 0 )
-                    {
-                        XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAdress.ucBytes );
-                    }
-                #else
-                    {
-                        NetworkEndPoint_t * pxEndPoint;
-                        NetworkInterface_t * pxInterface = pxMyInterfaces[ xEMACIndex ];
-
-                        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-                             pxEndPoint != NULL;
-                             pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
-                        {
-                            if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                            {
-                                unsigned char ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
-                                ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                                ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                                ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                                XEmacPs_SetHash( pxEMAC_PS, ( void * ) ucMACAddress );
-                            }
-                        }
-
-                        XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAdressIPv6.ucBytes );
-                    }
-                #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes );
             }
-        #endif /* ipconfigUSE_LLMNR == 1 */
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
-        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAdress.ucBytes );
-            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MACAdressIPv6.ucBytes );
-        #endif
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+            {
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddressIPv6.ucBytes );
+            }
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+        }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) ) */
+
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_MDNS ) )
+        {
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+            {
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddress.ucBytes );
+            }
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+            {
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddressIPv6.ucBytes );
+            }
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+        }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_MDNS) ) */
+
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+        {
+            /* set the solicited-node multicast address */
+            for( NetworkEndPoint_t * pxEndPointIter = FreeRTOS_FirstEndPoint( pxInterface );
+                 pxEndPointIter != NULL;
+                 pxEndPointIter = FreeRTOS_NextEndPoint( pxInterface, pxEndPointIter ) )
+            {
+                if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    unsigned char ucSsolicitedNodeMAC[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                    ucSsolicitedNodeMAC[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                    ucSsolicitedNodeMAC[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                    ucSsolicitedNodeMAC[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                    XEmacPs_SetHash( pxEMAC_PS, ( void * ) ucSsolicitedNodeMAC );
+                }
+            }
+        }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
 
         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint );
 
@@ -327,7 +328,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
             uint32_t ulValue = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_NWCFG_OFFSET );
             /* Allow the use of hashed MAC addresses. */
             ulValue |= XEMACPS_NWCFG_MCASTHASHEN_MASK;
-            #warning As 'MCASTHASHEN' doesn't seem to work, use the promiscuous mode so that IPv6 multicast packets are received.
+            /* As 'MCASTHASHEN' doesn't seem to work, use the promiscuous mode so that IPv6 multicast packets are received. */
             /* Allow promiscuous mode. */
             ulValue |= XEMACPS_NWCFG_COPYALLEN_MASK;
             XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_NWCFG_OFFSET, ulValue );
@@ -384,26 +385,30 @@ static BaseType_t xZynqNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     configASSERT( xEMACIndex < XPAR_XEMACPS_NUM_INSTANCES );
 
     #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+    {
+        ProtocolPacket_t * pxPacket;
+
+        /* If the peripheral must calculate the checksum, it wants
+         * the protocol checksum to have a value of zero. */
+        pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
+
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
         {
-            ProtocolPacket_t * pxPacket;
+            ICMPPacket_IPv6_t * pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxBuffer->pucEthernetBuffer;
 
-            /* If the peripheral must calculate the checksum, it wants
-             * the protocol checksum to have a value of zero. */
-            pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
+            if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
+                ( pxICMPPacket->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+            {
+                /* The EMAC will calculate the checksum of the IP-header.
+                 * It can only calculate protocol checksums of UDP and TCP,
+                 * so for ICMP and other protocols it must be done manually. */
+                usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
+            }
+        }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
 
-            #if ( ipconfigUSE_IPv6 != 0 )
-                ICMPPacket_IPv6_t * pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxBuffer->pucEthernetBuffer;
-
-                if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) &&
-                    ( pxICMPPacket->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
-                {
-                    /* The EMAC will calculate the checksum of the IP-header.
-                     * It can only calculate protocol checksums of UDP and TCP,
-                     * so for ICMP and other protocols it must be done manually. */
-                    usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
-                }
-            #endif
-
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+        {
             if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
                 ( pxPacket->xICMPPacket.xIPHeader.ucProtocol == ipPROTOCOL_ICMP ) )
             {
@@ -413,6 +418,8 @@ static BaseType_t xZynqNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                 usGenerateProtocolChecksum( pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength, pdTRUE );
             }
         }
+        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) ) */
+    }
     #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
     if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0UL )
@@ -536,7 +543,7 @@ static BaseType_t xZynqGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -544,7 +551,7 @@ static BaseType_t xZynqGetPhyLinkStatus( NetworkInterface_t * pxInterface )
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxZynq_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxZynq_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif
@@ -606,12 +613,12 @@ static void prvEMACHandlerTask( void * pvParameters )
     for( ; ; )
     {
         #if ( ipconfigHAS_PRINTF != 0 )
-            {
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-            }
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( ( pxEMAC_PS->isr_events & EMAC_IF_ALL_EVENT ) == 0 )

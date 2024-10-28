@@ -780,7 +780,7 @@ void test_xProcessReceivedUDPPacket_IPv4_SocketRecvHandlerFail()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -826,7 +826,7 @@ void test_xProcessReceivedUDPPacket_IPv4_UDPListBufferFull()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = xSocket.u.xUDP.uxMaxPackets;
@@ -878,7 +878,7 @@ void test_xProcessReceivedUDPPacket_IPv4_Pass()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
@@ -949,7 +949,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoEventGroup()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
@@ -1017,7 +1017,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSelectBit()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
@@ -1085,7 +1085,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSelectSet()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
@@ -1151,7 +1151,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSem()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
@@ -1218,7 +1218,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoDHCP()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vARPRefreshCacheEntry_Ignore();
+    vARPRefreshCacheEntryAge_Ignore();
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
@@ -1658,8 +1658,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointFound()
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
 
     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 0, pxEndPoint );
-    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxEndPoint );
 
     vARPGenerateRequestPacket_Expect( pxNetworkBuffer );
 
@@ -1691,8 +1690,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointNotFound()
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
 
     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 0, NULL );
-    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );

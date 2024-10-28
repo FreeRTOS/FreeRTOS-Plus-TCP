@@ -40,13 +40,7 @@
     #define PHYHANDLING_H
 
     #ifdef __cplusplus
-        extern "C" {
-    #endif
-
-
-    #ifndef ipconfigPHY_MAX_PORTS
-        /* There can be at most 32 PHY ports, but in most cases there are 4 or less. */
-        #define ipconfigPHY_MAX_PORTS    4
+    extern "C" {
     #endif
 
 /* A generic user-provided function that reads from the PHY-port at 'xAddress'( 0-based ). A 16-bit value shall be stored in
@@ -155,7 +149,7 @@
     ( ( ( ( uint32_t ) 1u ) << ( pxPhyObject )->xPortCount ) - 1u )
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}     /* extern "C" */
     #endif
 
-#endif /* ifndef PHYHANDLING_H */
+#endif /* PHYHANDLING_H */

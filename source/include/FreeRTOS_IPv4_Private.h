@@ -27,29 +27,42 @@
 
 #ifndef FREERTOS_IPV4_PRIVATE_H
 #define FREERTOS_IPV4_PRIVATE_H
+
+#include "FreeRTOS_IP_Private.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
 
-#include "FreeRTOS_IP_Private.h"
-
 /* The maximum UDP payload length. */
-#define ipMAX_UDP_PAYLOAD_LENGTH     ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
+#define ipMAX_UDP_PAYLOAD_LENGTH        ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
 
-#define TCP_PACKET_SIZE              ( sizeof( TCPPacket_t ) )
+#define TCP_PACKET_SIZE                 ( sizeof( TCPPacket_t ) )
 
 /* The offset into an IP packet into which the IP data (payload) starts. */
-#define ipIP_PAYLOAD_OFFSET          ( sizeof( IPPacket_t ) )
+#define ipIP_PAYLOAD_OFFSET             ( sizeof( IPPacket_t ) )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
-#define ipUDP_PAYLOAD_OFFSET_IPv4    ( sizeof( UDPPacket_t ) )
-/* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 42 + 6 = 48 bytes. */
-/* __HT_ just to get it compiled. */
-#if !defined( ipIP_TYPE_OFFSET )
-    #define ipIP_TYPE_OFFSET            ( 6U )
-#endif
-#define ipUDP_PAYLOAD_IP_TYPE_OFFSET    ( sizeof( UDPPacket_t ) + ipIP_TYPE_OFFSET )
+#define ipUDP_PAYLOAD_OFFSET_IPv4       ( sizeof( UDPPacket_t ) )
+/* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 8 + 40 = 48 bytes. */
+#define ipUDP_PAYLOAD_IP_TYPE_OFFSET    ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) )
+
+/* ipIP_TYPE_OFFSET is involved in some sorcery. pxUDPPayloadBuffer_to_NetworkBuffer() must be able to convert
+ * a payload pointer ( like for example a pointer to the DNS payload of a packet ) back to a NetworkBufferDescriptor_t.
+ * This must work for both IPv4 and IPv6 packets. The pointer conversion is done by subtracting a constant from the payload pointer.
+ * For IPv6, this magic number is ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) ) which equals 48 bytes.
+ * If however we use that same constant for an IPv4 packet, we end up somewhere in front of the Ethernet header.
+ * In order to accommodate that, the Ethernet frame buffer gets allocated a bit larger than needed.
+ * For IPv4 frames, prvProcessIPPacket() stores the version header field at a negative offset, a few bytes before the start
+ * of the Ethernet header. That IPv4 version field MUST be stored the same distance from the payload as in IPv6.
+ * ipIP_TYPE_OFFSET must be equal to: sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) - ( sizeof( UDPPacket_t )
+ * In most situations, ipIP_TYPE_OFFSET will end up being equal to 6. If the Ethernet header is enlarged to include VLAN
+ * tag support, ipIP_TYPE_OFFSET will shrink to 2. With the current design, the Ethernet header cannot be expanded to contain
+ * more than one VLAN tag or ipIP_TYPE_OFFSET will become less than zero. ipIP_TYPE_OFFSET should never be allowed to be <= 0
+ * or storing of the IPv4 version byte will overwrite the Ethernet header of the frame.
+ */
+#define ipIP_TYPE_OFFSET                ( ( int32_t ) sizeof( UDPHeader_t ) + ( int32_t ) sizeof( IPHeader_IPv6_t ) - ( int32_t ) sizeof( UDPPacket_t ) )
 
 #include "pack_struct_start.h"
 struct xIP_HEADER
@@ -112,10 +125,19 @@ struct xTCP_PACKET
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET TCPPacket_t;
 
+
+/* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
+enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
+                                                  const struct xNETWORK_BUFFER * const pxNetworkBuffer,
+                                                  UBaseType_t uxHeaderLength );
+
+/* Check if the IP-header is carrying options. */
+enum eFrameProcessingResult prvCheckIP4HeaderOptions( struct xNETWORK_BUFFER * const pxNetworkBuffer );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_PRIVATE_H */
+#endif /* FREERTOS_IPV4_PRIVATE_H */

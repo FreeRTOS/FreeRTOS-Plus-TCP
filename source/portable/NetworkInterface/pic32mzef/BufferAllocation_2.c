@@ -29,7 +29,7 @@
 *
 * See the following web page for essential buffer allocation scheme usage and
 * configuration details:
-* http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
+* https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/05-Buffer-management
 *
 ******************************************************************************/
 
@@ -65,15 +65,11 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
-/*_RB_ This is too complex not to have an explanation. */
-#if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-    #define ASSERT_CONCAT_( a, b )    a ## b
-    #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
-    #define STATIC_ASSERT( e ) \
-    ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
+STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
 
-    STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
-#endif
+#define baALIGNMENT_BYTES    ( sizeof( size_t ) )
+#define baALIGNMENT_MASK     ( baALIGNMENT_BYTES - 1U )
+#define baADD_WILL_OVERFLOW( a, b )    ( ( a ) > ( SIZE_MAX - ( b ) ) )
 
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
 static List_t xFreeBuffersList;
@@ -269,19 +265,19 @@ BaseType_t xNetworkBuffersInitialise( void )
         if( xNetworkBufferSemaphore != NULL )
         {
             #if ( configQUEUE_REGISTRY_SIZE > 0 )
-                {
-                    vQueueAddToRegistry( xNetworkBufferSemaphore, "NetBufSem" );
-                }
+            {
+                vQueueAddToRegistry( xNetworkBufferSemaphore, "NetBufSem" );
+            }
             #endif /* configQUEUE_REGISTRY_SIZE */
 
             /* If the trace recorder code is included name the semaphore for viewing
              * in FreeRTOS+Trace.  */
             #if ( ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 )
-                {
-                    extern QueueHandle_t xNetworkEventQueue;
-                    vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
-                    vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
-                }
+            {
+                extern QueueHandle_t xNetworkEventQueue;
+                vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
+                vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
+            }
             #endif /*  ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 */
 
             vListInitialise( &xFreeBuffersList );
@@ -385,6 +381,8 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
     size_t uxCount;
+    size_t xBytesRequiredForAlignment, xAllocatedBytes;
+    BaseType_t xIntegerOverflowed = pdFALSE;
 
     if( ( xRequestedSizeBytes != 0u ) && ( xRequestedSizeBytes < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
     {
@@ -397,19 +395,49 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         if( xRequestedSizeBytes != 0u )
         {
     #endif /* #ifdef PIC32_USE_ETHERNET */
-    xRequestedSizeBytes += 2u;
 
-    if( ( xRequestedSizeBytes & ( sizeof( size_t ) - 1u ) ) != 0u )
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytes, 2 ) == 0 )
     {
-        xRequestedSizeBytes = ( xRequestedSizeBytes | ( sizeof( size_t ) - 1u ) ) + 1u;
+        xRequestedSizeBytes += 2U;
     }
+    else
+    {
+        xIntegerOverflowed = pdTRUE;
+    }
+
+    if( ( xRequestedSizeBytes & baALIGNMENT_MASK ) != 0U )
+    {
+        xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xRequestedSizeBytes & baALIGNMENT_MASK );
+
+        if( baADD_WILL_OVERFLOW( xRequestedSizeBytes, xBytesRequiredForAlignment ) == 0 )
+        {
+            xRequestedSizeBytes += xBytesRequiredForAlignment;
+        }
+        else
+        {
+            xIntegerOverflowed = pdTRUE;
+        }
+    }
+
+    #ifdef PIC32_USE_ETHERNET
+        ( void ) xAllocatedBytes;
+    #else
+        if( baADD_WILL_OVERFLOW( xRequestedSizeBytes, ipBUFFER_PADDING ) == 0 )
+        {
+            xAllocatedBytes = xRequestedSizeBytes + ipBUFFER_PADDING;
+        }
+        else
+        {
+            xIntegerOverflowed = pdTRUE;
+        }
+    #endif /* #ifndef PIC32_USE_ETHERNET */
 
     #ifdef PIC32_USE_ETHERNET
 }
     #endif /* #ifdef PIC32_USE_ETHERNET */
 
     /* If there is a semaphore available, there is a network buffer available. */
-    if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
+    if( ( xIntegerOverflowed == pdFALSE ) && ( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS ) )
     {
         /* Protect the structure as it is accessed from tasks and interrupts. */
         taskENTER_CRITICAL();
@@ -438,7 +466,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
             #ifdef PIC32_USE_ETHERNET
                 pxReturn->pucEthernetBuffer = NetworkBufferAllocate( xRequestedSizeBytes - sizeof( TCPIP_MAC_ETHERNET_HEADER ) );
             #else
-                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xRequestedSizeBytes + ipBUFFER_PADDING );
+                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xAllocatedBytes );
             #endif /* #ifdef PIC32_USE_ETHERNET */
 
             if( pxReturn->pucEthernetBuffer == NULL )
@@ -467,10 +495,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                 pxReturn->xDataLength = xRequestedSizeBytes;
 
                 #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                    {
-                        /* make sure the buffer is not linked */
-                        pxReturn->pxNextBuffer = NULL;
-                    }
+                {
+                    /* make sure the buffer is not linked */
+                    pxReturn->pxNextBuffer = NULL;
+                }
                 #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
             }
         }
@@ -554,16 +582,28 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
                                                                  size_t xNewSizeBytes )
 {
     size_t xOriginalLength;
-    uint8_t * pucBuffer;
+    uint8_t * pucBuffer = NULL;
+    BaseType_t xIntegerOverflowed = pdFALSE;
 
     #ifdef PIC32_USE_ETHERNET
         xOriginalLength = pxNetworkBuffer->xDataLength;
     #else
         xOriginalLength = pxNetworkBuffer->xDataLength + ipBUFFER_PADDING;
-        xNewSizeBytes = xNewSizeBytes + ipBUFFER_PADDING;
+
+        if( baADD_WILL_OVERFLOW( xNewSizeBytes, ipBUFFER_PADDING ) == 0 )
+        {
+            xNewSizeBytes = xNewSizeBytes + ipBUFFER_PADDING;
+        }
+        else
+        {
+            xIntegerOverflowed = pdTRUE;
+        }
     #endif /* #ifdef PIC32_USE_ETHERNET */
 
-    pucBuffer = pucGetNetworkBuffer( &( xNewSizeBytes ) );
+    if( xIntegerOverflowed == pdFALSE )
+    {
+        pucBuffer = pucGetNetworkBuffer( &( xNewSizeBytes ) );
+    }
 
     if( pucBuffer == NULL )
     {

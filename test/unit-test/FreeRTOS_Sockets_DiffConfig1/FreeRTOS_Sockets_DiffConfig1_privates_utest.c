@@ -34,34 +34,77 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
 
-#include "FreeRTOSIPConfig.h"
+/* This must come after list.h is included (in this case, indirectly
+ * by mock_list.h). */
+#include "mock_Sockets_DiffConfig1_list_macros.h"
+#include "mock_FreeRTOS_IP_Private.h"
 
 #include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 
 #include "catch_assert.h"
 
+#include "FreeRTOSIPConfig.h"
+
+/* =========================== EXTERN VARIABLES =========================== */
+
+BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
+                                   BaseType_t xType,
+                                   BaseType_t xProtocol,
+                                   size_t * pxSocketSize );
+
+BaseType_t xTCPWindowLoggingLevel = 0;
+
 /* ============================== Test Cases ============================== */
 
-/*
- * @brief Binding successful.
+/**
+ * @brief Happy path with TCP socket size being determined.
  */
-void test_vSocketBind_TCP( void )
+void test_prvDetermineSocketSize_TCPSocket( void )
+{
+    BaseType_t xReturn;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    size_t xSocketSize;
+    FreeRTOS_Socket_t const * pxSocket = NULL;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    xReturn = prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), xSocketSize );
+}
+
+/**
+ * @brief Happy path with TCPv6 socket size being determined.
+ * But IPv6 is disabled.
+ */
+void test_prvDetermineSocketSize_TCPv6Socket( void )
+{
+    BaseType_t xDomain = FREERTOS_AF_INET6, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    size_t xSocketSize;
+    FreeRTOS_Socket_t const * pxSocket = NULL;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
+}
+
+/**
+ * @brief Trying to bind an NULL bind address.
+ */
+void test_vSocketBind_CatchAssert( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
-    struct freertos_sockaddr xBindAddress;
     size_t uxAddressLength;
-    BaseType_t xInternal = pdFALSE;
-    NetworkEndPoint_t xEndPoint = { 0 };
+    BaseType_t xInternal;
 
-    memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
     memset( &xSocket, 0, sizeof( xSocket ) );
-
-    xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
     catch_assert( vSocketBind( &xSocket, NULL, uxAddressLength, xInternal ) );
 }

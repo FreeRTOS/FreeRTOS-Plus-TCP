@@ -60,7 +60,7 @@ NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -68,7 +68,7 @@ NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxESP32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxESP32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif
@@ -160,12 +160,12 @@ static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
     }
 
     #if ( ipconfigHAS_PRINTF != 0 )
-        {
-            /* Call a function that monitors resources: the amount of free network
-             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-             * for more detailed comments. */
-            vPrintResourceStats();
-        }
+    {
+        /* Call a function that monitors resources: the amount of free network
+         * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+         * for more detailed comments. */
+        vPrintResourceStats();
+    }
     #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( xReleaseAfterSend == pdTRUE )
@@ -202,9 +202,9 @@ esp_err_t wlanif_input( void * netif,
     const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( 250 );
 
     #if ( ipconfigHAS_PRINTF != 0 )
-        {
-            vPrintResourceStats();
-        }
+    {
+        vPrintResourceStats();
+    }
     #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( eConsiderFrameForProcessing( buffer ) != eProcessBuffer )

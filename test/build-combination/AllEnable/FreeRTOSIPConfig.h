@@ -56,6 +56,14 @@
 #define ipconfigSELECT_USES_NOTIFY                 1
 #define ipconfigSUPPORT_SIGNALS                    1
 #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES     1
+#define ipconfigDNS_USE_CALLBACKS                  1
+#define ipconfigCOMPATIBLE_WITH_SINGLE             1
+#define ipconfigIGNORE_UNKNOWN_PACKETS             1
+#define ipconfigCHECK_IP_QUEUE_SPACE               1
+#define ipconfigUDP_MAX_RX_PACKETS                 1
+#define ipconfigETHERNET_MINIMUM_PACKET_BYTES      1
+#define ipconfigTCP_IP_SANITY                      1
+#define ipconfigSUPPORT_NETWORK_DOWN_EVENT         1
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
@@ -78,8 +86,8 @@
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
 #define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
 
-/* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
- * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
+/* If the network card/driver includes checksum offloading then set
+ * ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
 #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
 
@@ -119,20 +127,12 @@
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
 #define ipconfigIP_TASK_STACK_SIZE_WORDS           ( configMINIMAL_STACK_SIZE * 5 )
 
-/* ipconfigRAND32() is called by the IP stack to generate random numbers for
- * things such as a DHCP transaction number or initial sequence number.  Random
- * number generation is performed via this macro to allow applications to use their
- * own random number generation method.  For example, it might be possible to
- * generate a random number by sampling noise on an analogue input. */
-extern uint32_t ulRand();
-#define ipconfigRAND32()    ulRand()
-
 /* If ipconfigUSE_NETWORK_EVENT_HOOK is set to 1 then FreeRTOS+TCP will call the
  * network event hook at the appropriate times.  If ipconfigUSE_NETWORK_EVENT_HOOK
  * is not set to 1 then the network event hook will never be called. See:
- * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/vApplicationIPNetworkEventHook.shtml.
+ * https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/09-API-reference/57-vApplicationIPNetworkEventHook.
  */
-#define ipconfigUSE_NETWORK_EVENT_HOOK           1
+#define ipconfigUSE_NETWORK_EVENT_HOOK             1
 
 /* Sockets have a send block time attribute.  If FreeRTOS_sendto() is called but
  * a network buffer cannot be obtained then the calling task is held in the Blocked
@@ -146,7 +146,7 @@ extern uint32_t ulRand();
  * ipconfigMAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks.  A time in
  * milliseconds can be converted to a time in ticks by dividing the time in
  * milliseconds by portTICK_PERIOD_MS. */
-#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS    ( 5000U / portTICK_PERIOD_MS )
+#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS      ( 5000U / portTICK_PERIOD_MS )
 
 /* If ipconfigUSE_DHCP is 1 then FreeRTOS+TCP will attempt to retrieve an IP
  * address, netmask, DNS server address and gateway address from a DHCP server.  If
@@ -155,14 +155,14 @@ extern uint32_t ulRand();
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                         1
-#define ipconfigDHCP_REGISTER_HOSTNAME           1
-#define ipconfigDHCP_USES_UNICAST                1
+#define ipconfigUSE_DHCP                           1
+#define ipconfigDHCP_REGISTER_HOSTNAME             1
+#define ipconfigDHCP_USES_UNICAST                  1
 
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,
  * xApplicationDHCPUserHook(). */
-#define ipconfigUSE_DHCP_HOOK                    1
+#define ipconfigUSE_DHCP_HOOK                      1
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -316,13 +316,16 @@ extern uint32_t ulRand();
 #define ipconfigTCP_KEEP_ALIVE                   ( 1 )
 #define ipconfigTCP_KEEP_ALIVE_INTERVAL          ( 20 ) /* Seconds. */
 
-/* The socket semaphore is used to unblock the MQTT task. */
-#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 1 )
-
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 1 )
 
 
 #define portINLINE                               __inline
+
+#define ipconfigISO_STRICTNESS_VIOLATION_START \
+    _Pragma("GCC diagnostic push")             \
+    _Pragma("GCC diagnostic ignored \"-Wpedantic\"")
+
+#define ipconfigISO_STRICTNESS_VIOLATION_END    _Pragma("GCC diagnostic pop")
 
 #endif /* FREERTOS_IP_CONFIG_H */

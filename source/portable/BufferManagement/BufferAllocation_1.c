@@ -29,7 +29,7 @@
 *
 * See the following web page for essential buffer allocation scheme usage and
 * configuration details:
-* http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
+* https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/05-Buffer-management
 *
 ******************************************************************************/
 
@@ -94,7 +94,7 @@ static void prvShowWarnings( void );
     {
     #define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()               \
     portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); \
-    }
+}
 
     #define ipconfigBUFFER_ALLOC_LOCK()      taskENTER_CRITICAL()
     #define ipconfigBUFFER_ALLOC_UNLOCK()    taskEXIT_CRITICAL()
@@ -179,17 +179,17 @@ BaseType_t xNetworkBuffersInitialise( void )
         ipconfigBUFFER_ALLOC_INIT();
 
         #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-            {
-                static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
-                xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
-                    ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
-                    ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
-                    &xNetworkBufferSemaphoreBuffer );
-            }
+        {
+            static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+            xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
+                ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                &xNetworkBufferSemaphoreBuffer );
+        }
         #else
-            {
-                xNetworkBufferSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
-            }
+        {
+            xNetworkBufferSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+        }
         #endif /* configSUPPORT_STATIC_ALLOCATION */
 
         configASSERT( xNetworkBufferSemaphore != NULL );
@@ -294,16 +294,16 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                 pxReturn->pxEndPoint = NULL;
 
                 #if ( ipconfigTCP_IP_SANITY != 0 )
-                    {
-                        prvShowWarnings();
-                    }
+                {
+                    prvShowWarnings();
+                }
                 #endif /* ipconfigTCP_IP_SANITY */
 
                 #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                    {
-                        /* make sure the buffer is not linked */
-                        pxReturn->pxNextBuffer = NULL;
-                    }
+                {
+                    /* make sure the buffer is not linked */
+                    pxReturn->pxNextBuffer = NULL;
+                }
                 #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
             }
 

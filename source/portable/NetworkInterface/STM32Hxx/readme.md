@@ -8,7 +8,7 @@ Number of DMA descriptors, for transmission and for reception.
 The descriptors for transmission are protected with a counting semaphore.
 By the time that a packet has been sent, the other TX descriptor becomes
 available already.
-The number of descriptors has an incluence on the performance.  But that also depends on the size
+The number of descriptors has an influence on the performance.  But that also depends on the size
 of the TCP buffers and TCP window sizes.
 
 When ETH_RX_DESC_CNT is too low, the adapter may miss incoming packets, they will be dropped.
@@ -37,21 +37,22 @@ The following macro's are **not** used by the FreeRTOS driver:
 
 All memory that is shared between the CPU and the DMA ETH peripheral, should be
 located in special RAM area called ".ethernet_data". This shall be declared in
-the linker file.
+the linker file (.ld).
 
 It is possible to use the AXI SRAM for this, but RAM{1,2,3} are also connected
 to the Ethernet MAC.
 
 Here is an example of the changes to the linker file:
 
-	AXI_RAM (xrw)   : ORIGIN = 0x24000000, LENGTH = 512K	/* .ethernet_data declared here. */
-	.ethernet_data :
+	RAM_D1 (xrw)   : ORIGIN = 0x24000000, LENGTH = 512K	/* should already exist in MEMORY section */
+
+	.ethernet_data : /* inside SECTIONS section, before /DISCARD/ */
 	{
 		PROVIDE_HIDDEN (__ethernet_data_start = .);
 		KEEP (*(SORT(.ethernet_data.*)))
 		KEEP (*(.ethernet_data*))
 		PROVIDE_HIDDEN (__ethernet_data_end = .);
-	} >AXI_RAM
+	} >RAM_D1
 
 Here is a table of 3 types of STH32H7 :
 
@@ -68,6 +69,10 @@ Here is a table of 3 types of STH32H7 :
 
 Please make sure that the addresses and lengths are correct for your model of STM32H7xx.
 If you use a memory that is not supported, it will result in a DMA errors.
+
+Don't redefine a new memory area (like AXI-SRAM, RAM_D1) if it already exists in the
+MEMORY section, just take note of it's name for defining the section .ethernet_data later
+in that same file.
 
 In FreeRTOSIPConfig.h :
 

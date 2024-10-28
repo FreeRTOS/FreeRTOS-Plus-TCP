@@ -28,12 +28,6 @@
 #ifndef FREERTOS_IP_H
 #define FREERTOS_IP_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -41,17 +35,20 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_IP_Common.h"
-#include "IPTraceMacroDefaults.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-#define ipFR_TCP_VERSION_NUMBER      "V4.0.999"
-#define ipFR_TCP_VERSION_MAJOR       4
-#define ipFR_TCP_VERSION_MINOR       0
+#define ipFR_TCP_VERSION_NUMBER    "V4.2.999"
+#define ipFR_TCP_VERSION_MAJOR     4
+#define ipFR_TCP_VERSION_MINOR     2
 /* Development builds are always version 999. */
-#define ipFR_TCP_VERSION_BUILD       999
-/* Using TCP version to support backward compatibility in the Demo files. */
-#define FREERTOS_PLUS_TCP_VERSION    10
+#define ipFR_TCP_VERSION_BUILD     999
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
@@ -98,22 +95,30 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
  * pointer back to the network buffer.  Should be a multiple of 8 to ensure 8 byte
  * alignment is maintained on architectures that require it.
  *
- * In order to get a 32-bit alignment of network packets, an offset of 2 bytes
- * would be desirable, as defined by ipconfigPACKET_FILLER_SIZE.  So the malloc'd
+ * In order to get a 32-bit or 64-bit alignment of network packets, an offset of 2 bytes
+ * is ideal as defined by ipconfigPACKET_FILLER_SIZE. So the malloc'd
  * buffer will have the following contents:
- *  uint32_t pointer;   // word-aligned
- *  uchar_8 filler[6];
- *  << ETH-header >>    // half-word-aligned
- *  uchar_8 dest[6];    // start of pucEthernetBuffer
- *  uchar_8 dest[6];
- *  uchar16_t type;
- *  << IP-header >>     // word-aligned
+ *
+ * +---------+-----------+---------+
+ * | Offset  | Alignment | Length  |
+ * | 32 | 64 | 32  | 64  | 32 | 64 |
+ * |----|----|-----|-----|----|----|
+ * | 0  | 0  | 4   | 8   | 4  | 8  | uchar_8 * pointer;     // Points to the 'NetworkBufferDescriptor_t'.
+ * | 4  | 8  | 4   | 8   | 6  | 6  | uchar_8   filler[6];   // To give the +2 byte offset.
+ * |-------------------------------|
+ * | 10 | 14 | 4+2 | 8+2 | 6  | 6  | uchar_8   dest_mac[6]; // Destination address.
+ * | 16 | 20 | 4   | 8   | 6  | 6  | uchar_8   src_mac[6];  // Source address.
+ * | 22 | 26 | 4+2 | 4+2 | 2  | 2  | uchar16_t ethertype;
+ * | 24 | 28 | 4   | 4   | ~  | ~  | << IP-header >>        // word-aligned, either 4 or 8 bytes.
  *  uint8_t ucVersionHeaderLength;
  *  etc
  */
 
+/* Use setting from FreeRTOS if defined and non-zero */
 #if ( ipconfigBUFFER_PADDING != 0 )
     #define ipBUFFER_PADDING    ipconfigBUFFER_PADDING
+#elif ( UINTPTR_MAX > 0xFFFFFFFFU )
+    #define ipBUFFER_PADDING    ( 12U + ipconfigPACKET_FILLER_SIZE )
 #else
     #define ipBUFFER_PADDING    ( 8U + ipconfigPACKET_FILLER_SIZE )
 #endif
@@ -134,12 +139,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 /** @brief Returned as the (invalid) checksum when the protocol being checked is not
  * handled.  The value is chosen simply to be easy to spot when debugging. */
 #define ipUNHANDLED_PROTOCOL    0x4321U
-
-/** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
- * events are posted to the network event queue. */
-#ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
-    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
-#endif
 
 /* Trace macros to aid in debugging, disabled if ipconfigHAS_PRINTF != 1 */
 #if ( ipconfigHAS_PRINTF == 1 )
@@ -247,6 +246,11 @@ typedef struct xIP_TIMER
 #define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
 #define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
 
+/* Translate a pdFREERTOS_ERRNO code to a human readable string. */
+const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
+                                  char * pcBuffer,
+                                  size_t uxLength );
+
 /* Some simple helper functions. */
 int32_t FreeRTOS_max_int32( int32_t a,
                             int32_t b );
@@ -293,17 +297,17 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 #endif /* pdFALSE_UNSIGNED */
 
 #ifndef ipTRUE_BOOL
-    #define ipTRUE_BOOL    ( 1 == 1 )
+    #define ipTRUE_BOOL    ( pdPASS == pdPASS )
 #endif /* ipTRUE_BOOL */
 
 #ifndef ipFALSE_BOOL
-    #define ipFALSE_BOOL    ( 1 == 2 )
+    #define ipFALSE_BOOL    ( pdPASS == pdFAIL )
 #endif /* ipFALSE_BOOL */
 
 /*
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
  * FUNCTIONS IS AVAILABLE ON THE FOLLOWING URL:
- * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html
+ * https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/09-API-reference/01-FreeRTOS-plus-TCP-APIs
  */
 
 /* FreeRTOS_IPInit_Multi() replaces the earlier FreeRTOS_IPInit().  It assumes
@@ -313,7 +317,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void );
 
 struct xNetworkInterface;
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
@@ -345,7 +349,7 @@ struct xNetworkInterface;
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks );
 
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
 /*
  * Returns the addresses stored in an end-point structure.
@@ -381,7 +385,7 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
     #else
         void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
@@ -446,12 +450,6 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
  *  This pointer is for internal use only. */
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
-/* For backward compatibility define old structure names to the newer equivalent
- * structure name. */
-#ifndef ipconfigENABLE_BACKWARD_COMPATIBILITY
-    #define ipconfigENABLE_BACKWARD_COMPATIBILITY    1
-#endif
-
 #if ( ipconfigENABLE_BACKWARD_COMPATIBILITY == 1 )
     #define xIPStackEvent_t               IPStackEvent_t
     #define xNetworkBufferDescriptor_t    NetworkBufferDescriptor_t
@@ -485,18 +483,8 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
     #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )     /**< ipconfigHAS_PRINTF is not defined. Define vPrintResourceStats to a do-while( 0 ). */
 #endif
 
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- * within the last round. */
-    extern BaseType_t xProcessedTCPMessage;
-#endif
-
-#include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
-
-
+#include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_IPv4.h"
-
 #include "FreeRTOS_IPv6.h"
 
 /* *INDENT-OFF* */

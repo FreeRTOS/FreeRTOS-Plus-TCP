@@ -27,17 +27,11 @@
 
 #ifndef FREERTOS_IP_PRIVATE_H
 #define FREERTOS_IP_PRIVATE_H
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_Sockets.h"
-#include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #include "FreeRTOS_Routing.h"
 
@@ -50,13 +44,22 @@
 
 #include "event_groups.h"
 
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
 #ifdef TEST
     int ipFOREVER( void );
 #else
     #define ipFOREVER()    1
 #endif
 
-typedef enum
+/* Forward declaration. */
+struct xNetworkEndPoint;
+
+typedef enum eFrameProcessingResult
 {
     eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
     eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
@@ -68,20 +71,20 @@ typedef enum
 typedef enum
 {
     eNoEvent = -1,
-    eNetworkDownEvent,     /* 0: The network interface has been lost and/or needs [re]connecting. */
-    eNetworkRxEvent,       /* 1: The network interface has queued a received Ethernet frame. */
-    eNetworkTxEvent,       /* 2: Let the IP-task send a network packet. */
-    eARPTimerEvent,        /* 3: The ARP timer expired. */
-    eStackTxEvent,         /* 4: The software stack has queued a packet to transmit. */
-    eDHCPEvent,            /* 5: Process the DHCP state machine. */
-    eTCPTimerEvent,        /* 6: See if any TCP socket needs attention. */
-    eTCPAcceptEvent,       /* 7: Client API FreeRTOS_accept() waiting for client connections. */
-    eTCPNetStat,           /* 8: IP-task is asked to produce a netstat listing. */
-    eSocketBindEvent,      /* 9: Send a message to the IP-task to bind a socket to a port. */
-    eSocketCloseEvent,     /*10: Send a message to the IP-task to close a socket. */
-    eSocketSelectEvent,    /*11: Send a message to the IP-task for select(). */
-    eSocketSignalEvent,    /*12: A socket must be signalled. */
-    eSocketSetDeleteEvent, /*13: A socket set must be deleted. */
+    eNetworkDownEvent,    /* 0: The network interface has been lost and/or needs [re]connecting. */
+    eNetworkRxEvent,      /* 1: The network interface has queued a received Ethernet frame. */
+    eNetworkTxEvent,      /* 2: Let the IP-task send a network packet. */
+    eARPTimerEvent,       /* 3: The ARP timer expired. */
+    eStackTxEvent,        /* 4: The software stack has queued a packet to transmit. */
+    eDHCPEvent,           /* 5: Process the DHCP state machine. */
+    eTCPTimerEvent,       /* 6: See if any TCP socket needs attention. */
+    eTCPAcceptEvent,      /* 7: Client API FreeRTOS_accept() waiting for client connections. */
+    eTCPNetStat,          /* 8: IP-task is asked to produce a netstat listing. */
+    eSocketBindEvent,     /* 9: Send a message to the IP-task to bind a socket to a port. */
+    eSocketCloseEvent,    /*10: Send a message to the IP-task to close a socket. */
+    eSocketSelectEvent,   /*11: Send a message to the IP-task for select(). */
+    eSocketSignalEvent,   /*12: A socket must be signalled. */
+    eSocketSetDeleteEvent /*13: A socket set must be deleted. */
 } eIPEvent_t;
 
 /**
@@ -324,26 +327,6 @@ extern uint16_t usPacketIdentifier;
  */
 extern List_t xBoundUDPSocketsList;
 
-/**
- * Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c)
- */
-typedef union xUDPPacketHeader
-{
-    uint8_t ucBytes[ 24 ]; /**< Member: 8-bit array */
-    uint32_t ulWords[ 6 ]; /**< Member: 32-bit array */
-} UDPPacketHeader_t;
-extern UDPPacketHeader_t xDefaultPartUDPPacketHeader;
-
-
-/* Structure that stores the netmask, gateway address and DNS server addresses. */
-extern NetworkAddressingParameters_t xNetworkAddressing;
-
-/* Structure that stores the defaults for netmask, gateway address and DNS.
- * These values will be copied to 'xNetworkAddressing' in case DHCP is not used,
- * and also in case DHCP does not lead to a confirmed request. */
-/*lint -e9003*/
-extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could define variable 'xDefaultAddressing' at block scope [MISRA 2012 Rule 8.9, advisory]. */
-
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
 extern const BaseType_t xBufferAllocFixedSize;
 
@@ -362,14 +345,6 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 #if ( ipconfigUSE_TCP == 1 )
     extern List_t xBoundTCPSocketsList;
 #endif
-
-/* The local IP address is accessed from within xDefaultPartUDPPacketHeader,
- * rather than duplicated in its own variable. */
-#define ipLOCAL_IP_ADDRESS_POINTER     ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
-
-/* The local MAC address is accessed from within xDefaultPartUDPPacketHeader,
- * rather than duplicated in its own variable. */
-#define ipLOCAL_MAC_ADDRESS            ( xDefaultPartUDPPacketHeader.ucBytes )
 
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
@@ -410,11 +385,7 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 /** @brief Macro calculates the number of elements in an array as a size_t. */
 #ifndef ARRAY_SIZE_X
     #ifndef _WINDOWS_
-        #define ARRAY_SIZE_X( x )                            \
-    ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
-        BaseType_t xCount = ( BaseType_t ) uxCount;          \
-        xCount; }                                            \
-    )
+        #define ARRAY_SIZE_X( x )    ( ( BaseType_t ) sizeof( x ) / ( BaseType_t ) sizeof( x[ 0 ] ) )
     #else
         #define ARRAY_SIZE_X( x )    ( sizeof( x ) / sizeof( x[ 0 ] ) )
     #endif
@@ -665,7 +636,7 @@ enum eSOCKET_EVENT
     eSOCKET_BOUND = 0x0010,
     eSOCKET_CLOSED = 0x0020,
     eSOCKET_INTR = 0x0040,
-    eSOCKET_ALL = 0x007F,
+    eSOCKET_ALL = 0x007F
 };
 
 
@@ -889,7 +860,10 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );
+void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
+
+/* Mark whether all interfaces are up or at least one interface is down. */
+void vSetAllNetworksUp( BaseType_t xIsAllNetworksUp );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

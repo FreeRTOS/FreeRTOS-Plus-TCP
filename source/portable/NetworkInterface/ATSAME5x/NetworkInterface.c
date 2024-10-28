@@ -59,15 +59,21 @@
 
 /* Check for optimal performance parameters */
 #if ( CONF_GMAC_NCFGR_RXCOEN == 0 )
-    #warning This driver works best with RX CRC offloading enabled.
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning This driver works best with RX CRC offloading enabled.
+    #endif
 #endif
 
 #if ( CONF_GMAC_DCFGR_TXCOEN == 0 )
-    #warning This driver works best with TX CRC offloading enabled.
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning This driver works best with TX CRC offloading enabled.
+    #endif
 #endif
 
 #if ( CONF_GMAC_NCFGR_CAF != 0 )
-    #warning This driver includes GMAC hardware frame filtering for better performance.
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning This driver includes GMAC hardware frame filtering for better performance.
+    #endif
 #endif
 
 
@@ -80,9 +86,12 @@
 #endif
 
 /* Setup LLMNR specific multicast address. */
-#if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
-    static const uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+#if ( ipconfigUSE_LLMNR == 1 )
+static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
+
+/* Check if the raw Ethernet frame is ICMP */
+static BaseType_t isICMP( const NetworkBufferDescriptor_t * pxDescriptor );
 
 /* Receive task refresh time */
 #define RECEIVE_BLOCK_TIME_MS    100
@@ -116,13 +125,13 @@
  * static allocation with a non zero-copy driver.
  */
 #define ipUSE_STATIC_ALLOCATION    0
-#if ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 ) )
+#if ( ipUSE_STATIC_ALLOCATION == 1 )
 
 /* 1536 bytes is more than needed, 1524 would be enough.
  * But 1536 is a multiple of 32, which gives a great alignment for cached memories. */
     #define NETWORK_BUFFER_SIZE    1536
     static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ NETWORK_BUFFER_SIZE ];
-#endif /* ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 )) */
+#endif /* if ( ipUSE_STATIC_ALLOCATION == 1 ) */
 
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
@@ -131,9 +140,12 @@
 TaskHandle_t xEMACTaskHandle = NULL;
 
 /* The PING response queue */
-#if ( defined( ipconfigSUPPORT_OUTGOING_PINGS ) && ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) )
+#if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     QueueHandle_t xPingReplyQueue = NULL;
 #endif
+
+/* GMAC HW Init */
+void vGMACInit( void );
 
 /* GMAC interrupt callbacks. */
 void xRxCallback( void );
@@ -154,7 +166,9 @@ static inline void prvGMACEnablePHYManagementPort( bool enable );
 /* GMAC registers configuration functions. */
 static inline void prvGMACEnable100Mbps( bool enable );
 static inline void prvGMACEnableFullDuplex( bool enable );
-
+static inline void prvGMACClearMulticastHashTable();
+static inline void prvGMACEnableMulticastHashTable( bool enable );
+static inline void prvGMACEnableUnicastHashTable( bool enable );
 
 /***********************************************/
 /*                PHY variables                */
@@ -175,7 +189,7 @@ const PhyProperties_t xPHYProperties =
 
 static void prvPHYLinkReset( void );
 static void prvPHYInit( void );
-static inline bool bPHYGetLinkStatus( void );
+static inline BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * );
 
 /* PHY read and write functions. */
 static BaseType_t xPHYRead( BaseType_t xAddress,
@@ -185,12 +199,45 @@ static BaseType_t xPHYWrite( BaseType_t xAddress,
                              BaseType_t xRegister,
                              uint32_t pulValue );
 
+/* Pointer to the interface object of this NIC */
+static NetworkInterface_t * pxMyInterface = NULL;
 
 /*********************************************************************/
 /*                      FreeRTOS+TCP functions                       */
 /*********************************************************************/
 
-BaseType_t xNetworkInterfaceInitialise( void )
+/*-----------------------------------------------------------*/
+/* Function to initialise the network interface */
+BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                            NetworkBufferDescriptor_t * const pxDescriptor,
+                                            BaseType_t xReleaseAfterSend );
+
+NetworkInterface_t * pxATSAM5x_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                        NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+/* This function pxATSAM5x_FillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xATSAM5x_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xATSAM5x_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xATSAM5x_PHYGetLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+
+BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     /*
      * Perform the hardware specific network initialization here.  Typically
@@ -200,6 +247,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     if( xEMACTaskHandle == NULL )
     {
+        pxMyInterface = pxInterface;
+
         /* Initialize MAC and PHY */
         prvGMACInit();
         prvPHYInit();
@@ -208,7 +257,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         prvPHYLinkReset();
 
         /* Initialize PING capability */
-        #if ( defined( ipconfigSUPPORT_OUTGOING_PINGS ) && ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) )
+        #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
             xPingReplyQueue = xQueueCreate( ipconfigPING_QUEUE_SIZE, sizeof( uint16_t ) );
         #endif
 
@@ -223,9 +272,37 @@ BaseType_t xNetworkInterfaceInitialise( void )
         configASSERT( xEMACTaskHandle );
     }
 
-    return bPHYGetLinkStatus();
+    return xATSAM5x_PHYGetLinkStatus( NULL );
 }
 
+/* Check if the raw Ethernet frame is ICMP */
+static BaseType_t isICMP( const NetworkBufferDescriptor_t * pxDescriptor )
+{
+    BaseType_t xReturn = pdFALSE;
+
+    const IPPacket_t * pkt = ( const IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
+
+    if( pkt->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+    {
+        if( pkt->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+        {
+            xReturn = pdTRUE;
+        }
+    }
+
+    #if ipconfigUSE_IPv6 != 0
+        else if( pkt->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+        {
+            ICMPPacket_IPv6_t * icmp6 = ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer;
+
+            if( icmp6->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 )
+            {
+                xReturn = pdTRUE;
+            }
+        }
+    #endif
+    return xReturn;
+}
 
 static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 {
@@ -233,7 +310,6 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     size_t xBytesReceived = 0, xBytesRead = 0;
 
     uint16_t xICMPChecksumResult = ipCORRECT_CRC;
-    const IPPacket_t * pxIPPacket;
 
 
     /* Used to indicate that xSendEventStructToIPTask() is being called because
@@ -242,6 +318,8 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
     for( ; ; )
     {
+        BaseType_t xRelease = pdFALSE;
+
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
          * has been received.  The task notification is used in a similar way to a
          * counting semaphore to count Rx events, but is a lot more efficient than
@@ -273,62 +351,80 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                  * is provided further down this page. */
                 xBytesRead = mac_async_read( &ETH_MAC, pxBufferDescriptor->pucEthernetBuffer, xBytesReceived );
                 pxBufferDescriptor->xDataLength = xBytesRead;
+                pxBufferDescriptor->pxInterface = pxMyInterface;
+                pxBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxBufferDescriptor->pucEthernetBuffer );
 
-
-                #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+                if( pxBufferDescriptor->pxEndPoint == NULL )
+                {
+                    /* Couldn't find a proper endpoint for the incoming packet, drop it. */
+                    FreeRTOS_printf( ( "NetworkInterface: can not find a proper endpoint\n" ) );
+                    xRelease = pdTRUE;
+                }
+                else
+                {
+                    #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
                     {
                         /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
                          * It must therefore be implemented in software. */
-                        pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxBufferDescriptor->pucEthernetBuffer );
-
-                        if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+                        if( isICMP( pxBufferDescriptor ) == pdTRUE )
                         {
                             xICMPChecksumResult = usGenerateProtocolChecksum( pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength, pdFALSE );
                         }
                         else
                         {
-                            xICMPChecksumResult = ipCORRECT_CRC; /* Reset the result value in case this is not an ICMP packet. */
+                            xICMPChecksumResult = ipCORRECT_CRC; /* Checksum already verified by GMAC */
                         }
                     }
-                #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
+                    #endif /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
-                /* See if the data contained in the received Ethernet frame needs
-                * to be processed.  NOTE! It is preferable to do this in
-                * the interrupt service routine itself, which would remove the need
-                * to unblock this task for packets that don't need processing. */
-                if( ( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer ) &&
-                    ( xICMPChecksumResult == ipCORRECT_CRC ) )
-                {
-                    /* The event about to be sent to the TCP/IP is an Rx event. */
-                    xRxEvent.eEventType = eNetworkRxEvent;
-
-                    /* pvData is used to point to the network buffer descriptor that
-                     * now references the received data. */
-                    xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-
-                    /* Send the data to the TCP/IP stack. */
-                    if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+                    /* See if the data contained in the received Ethernet frame needs
+                    * to be processed.  NOTE! It is preferable to do this in
+                    * the interrupt service routine itself, which would remove the need
+                    * to unblock this task for packets that don't need processing. */
+                    if( ( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer ) &&
+                        ( xICMPChecksumResult == ipCORRECT_CRC ) )
                     {
-                        /* The buffer could not be sent to the IP task so the buffer
-                         * must be released. */
-                        vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                        /* The event about to be sent to the TCP/IP is an Rx event. */
+                        xRxEvent.eEventType = eNetworkRxEvent;
 
-                        /* Make a call to the standard trace macro to log the
-                         * occurrence. */
-                        iptraceETHERNET_RX_EVENT_LOST();
+                        /* pvData is used to point to the network buffer descriptor that
+                         * now references the received data. */
+                        xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+
+                        /* Send the data to the TCP/IP stack. */
+                        if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+                        {
+                            /* The buffer could not be sent to the IP task so the buffer
+                             * must be released. */
+                            xRelease = pdTRUE;
+
+                            /* Make a call to the standard trace macro to log the
+                             * occurrence. */
+                            iptraceETHERNET_RX_EVENT_LOST();
+                        }
+                        else
+                        {
+                            /* The message was successfully sent to the TCP/IP stack.
+                            * Call the standard trace macro to log the occurrence. */
+                            iptraceNETWORK_INTERFACE_RECEIVE();
+                        }
                     }
                     else
                     {
-                        /* The message was successfully sent to the TCP/IP stack.
-                        * Call the standard trace macro to log the occurrence. */
-                        iptraceNETWORK_INTERFACE_RECEIVE();
+                        /* The Ethernet frame can be dropped, but the Ethernet buffer
+                         * must be released. */
+                        xRelease = pdTRUE;
                     }
                 }
-                else
+
+                /* Release the descriptor in case it can not be delivered. */
+                if( xRelease == pdTRUE )
                 {
-                    /* The Ethernet frame can be dropped, but the Ethernet buffer
-                     * must be released. */
+                    /* The buffer could not be sent to the stack so must be released
+                     * again. */
                     vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                    iptraceETHERNET_RX_EVENT_LOST();
+                    FreeRTOS_printf( ( "prvEMACDeferredInterruptHandlerTask: Can not queue RX packet!\n" ) );
                 }
             }
             else
@@ -350,8 +446,9 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     }
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                            NetworkBufferDescriptor_t * const pxDescriptor,
+                                            BaseType_t xReleaseAfterSend )
 {
     /* Simple network interfaces (as opposed to more efficient zero copy network
      * interfaces) just use Ethernet peripheral driver library functions to copy
@@ -362,20 +459,21 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
      * by pxDescriptor->pucEthernetBuffer.  The length of the data is located
      * by pxDescriptor->xDataLength. */
 
-    if( bPHYGetLinkStatus() )
+    /* As there is only a single instance of the EMAC, there is only one pxInterface object. */
+    ( void ) pxInterface;
+
+    if( xATSAM5x_PHYGetLinkStatus( NULL ) )
     {
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 )
+        {
+            /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
+             * It must therefore be implemented in software. */
+            if( isICMP( pxDescriptor ) == pdTRUE )
             {
-                /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
-                 * It must therefore be implemented in software. */
-                const IPPacket_t * pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxDescriptor->pucEthernetBuffer );
-
-                if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
-                {
-                    ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
-                }
+                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
             }
-        #endif
+        }
+        #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
 
         mac_async_write( &ETH_MAC, pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
 
@@ -399,7 +497,7 @@ void xRxCallback( void )
     vTaskNotifyGiveFromISR( xEMACTaskHandle, 0 );
 }
 
-#if ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 ) )
+#if ( ipUSE_STATIC_ALLOCATION == 1 )
 
 /* Next provide the vNetworkInterfaceAllocateRAMToBuffers() function, which
  * simply fills in the pucEthernetBuffer member of each descriptor. */
@@ -418,7 +516,7 @@ void xRxCallback( void )
             *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
         }
     }
-#endif /* ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 )) */
+#endif /* if ( ipUSE_STATIC_ALLOCATION == 1 ) */
 
 
 /*********************************************************************/
@@ -432,26 +530,67 @@ void xRxCallback( void )
  * configuration is saved in "hpl_gmac_config.h". */
 static void prvGMACInit()
 {
+    NetworkEndPoint_t * pxEndPointIter;
+
     /* Call MAC initialization function here: */
     vGMACInit();
     prvGMACEnablePHYManagementPort( false );
     mac_async_disable_irq( &ETH_MAC );
 
-    /* Set GMAC Filtering for own MAC address */
-    struct mac_async_filter mac_filter;
-    memcpy( mac_filter.mac, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
-    mac_filter.tid_enable = false;
-    mac_async_set_filter( &ETH_MAC, 0, &mac_filter );
+    /* Clear the MAC address hash table and enable multicast and unicast
+     * MAC address hash table. */
+    prvGMACClearMulticastHashTable();
+    prvGMACEnableUnicastHashTable( true );
+    prvGMACEnableMulticastHashTable( true );
 
-    /* Set GMAC filtering for LLMNR, if defined. */
-    #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
-        {
-            memcpy( mac_filter.mac, ucLLMNR_MAC_address, ipMAC_ADDRESS_LENGTH_BYTES );
-            /* LLMNR requires responders to listen to both TCP and UDP protocols. */
-            mac_filter.tid_enable = false;
-            mac_async_set_filter( &ETH_MAC, 1, &mac_filter );
-        }
+    /* Enable traffic for LLMNR, if defined. */
+    #if ( ipconfigUSE_LLMNR == 1 )
+    {
+        mac_async_set_filter_ex( &ETH_MAC, ucLLMNR_MAC_address );
+    }
     #endif
+
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+    {
+        /* Allow all nodes IPv6 multicast MAC */
+        uint8_t ucMACAddressAllNodes[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0, 0, 0, 1 };
+        mac_async_set_filter_ex( &ETH_MAC, ucMACAddressAllNodes );
+
+        #if ( ipconfigUSE_LLMNR == 1 )
+        {
+            uint8_t ucMACAddressLLMNRIPv6[ ipMAC_ADDRESS_LENGTH_BYTES ];
+            /* Avoid warning */
+            memcpy( ucMACAddressLLMNRIPv6, xLLMNR_MacAddressIPv6.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            mac_async_set_filter_ex( &ETH_MAC, ucMACAddressLLMNRIPv6 );
+        }
+        #endif /* ipconfigUSE_LLMNR */
+    }
+    #endif /* ipconfigUSE_IPv6 */
+
+    for( pxEndPointIter = FreeRTOS_FirstEndPoint( pxMyInterface );
+         pxEndPointIter != NULL;
+         pxEndPointIter = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPointIter ) )
+    {
+        #if ( ipconfigUSE_IPv6 != 0 )
+        {
+            if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
+            {
+                /* Allow traffic from IPv6 solicited-node multicast MAC address for
+                 * each endpoint */
+                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+
+                ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                ucMACAddress[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                ucMACAddress[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                mac_async_set_filter_ex( &ETH_MAC, ucMACAddress );
+            }
+        }
+        #endif /* ipconfigUSE_IPv6 */
+
+        /* Allow endpoint MAC */
+        mac_async_set_filter_ex( &ETH_MAC, pxEndPointIter->xMACAddress.ucBytes );
+    }
 
     /* Set GMAC interrupt priority to be compatible with FreeRTOS API */
     NVIC_SetPriority( GMAC_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY >> ( 8 - configPRIO_BITS ) );
@@ -497,6 +636,37 @@ static inline void prvGMACEnableFullDuplex( bool enable )
     else
     {
         ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_FD;
+    }
+}
+
+static inline void prvGMACClearMulticastHashTable()
+{
+    /* First clear Hash Register Bottom and then Top */
+    ( ( Gmac * ) ETH_MAC.dev.hw )->HRB.reg = 0;
+    ( ( Gmac * ) ETH_MAC.dev.hw )->HRT.reg = 0;
+}
+
+static inline void prvGMACEnableMulticastHashTable( bool enable )
+{
+    if( enable )
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg |= GMAC_NCFGR_MTIHEN;
+    }
+    else
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_MTIHEN;
+    }
+}
+
+static inline void prvGMACEnableUnicastHashTable( bool enable )
+{
+    if( enable )
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg |= GMAC_NCFGR_UNIHEN;
+    }
+    else
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_UNIHEN;
     }
 }
 
@@ -568,7 +738,8 @@ static BaseType_t xPHYWrite( BaseType_t xAddress,
     return writeStatus;
 }
 
-static inline bool bPHYGetLinkStatus( void )
+static inline BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * pxInterface )
 {
+    ( void ) pxInterface;
     return( xPhyObject.ulLinkStatusMask != 0 );
 }

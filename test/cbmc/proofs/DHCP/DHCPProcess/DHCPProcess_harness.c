@@ -166,6 +166,13 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
     return retVal;
 }
 
+void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "Closing socket cannot be NULL." );
+
+    return NULL;
+}
+
 /****************************************************************
 * The proof of vDHCPProcess
 ****************************************************************/

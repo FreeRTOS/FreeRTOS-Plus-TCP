@@ -591,7 +591,7 @@ void test_vSocketBind_TCP( void )
 /**
  * @brief Address passed is NULL.
  */
-void test_vSocketBind_TCPNULLAddress( void )
+void test_vSocketBind_TCPNULLAddress_v4( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
@@ -603,6 +603,30 @@ void test_vSocketBind_TCPNULLAddress( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = 0;
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
+    xReturn = vSocketBind( &xSocket, NULL, uxAddressLength, xInternal );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xReturn );
+}
+
+/**
+ * @brief Address passed is NULL.
+ */
+void test_vSocketBind_TCPNULLAddress_v6( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xBindAddress;
+    size_t uxAddressLength;
+    BaseType_t xInternal = pdFALSE;
+
+    memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = 1;
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
     xReturn = vSocketBind( &xSocket, NULL, uxAddressLength, xInternal );
@@ -1062,6 +1086,7 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
     void * pvReturn;
     ListItem_t xLocalList;
     NetworkBufferDescriptor_t xNetworkBuffer;
+    int i;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
 
@@ -1072,7 +1097,7 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), 5 );
 
-    for( int i = 0; i < 5; i++ )
+    for( i = 0; i < 5; i++ )
     {
         listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
@@ -1883,8 +1908,10 @@ void test_ucASCIIToHex( void )
 
     ucInput = '0';
     IdealValue = 0;
+    int i;
+    char j;
 
-    for( int i = 0; i <= 9; i++ )
+    for( i = 0; i <= 9; i++ )
     {
         ucHex = ucASCIIToHex( ucInput + i );
         TEST_ASSERT_EQUAL( IdealValue + i, ucHex );
@@ -1893,7 +1920,7 @@ void test_ucASCIIToHex( void )
     ucInput = 'a';
     IdealValue = 10;
 
-    for( int i = 0; i < 6; i++ )
+    for( i = 0; i < 6; i++ )
     {
         ucHex = ucASCIIToHex( ucInput + i );
         TEST_ASSERT_EQUAL( IdealValue + i, ucHex );
@@ -1902,23 +1929,23 @@ void test_ucASCIIToHex( void )
     ucInput = 'A';
     IdealValue = 10;
 
-    for( int i = 0; i < 6; i++ )
+    for( i = 0; i < 6; i++ )
     {
         ucHex = ucASCIIToHex( ucInput + i );
         TEST_ASSERT_EQUAL( IdealValue + i, ucHex );
     }
 
-    for( char i = 0; ; i++ )
+    for( j = 0; ; j++ )
     {
-        if( !( ( ( i >= 'a' ) && ( i <= 'f' ) ) ||
-               ( ( i >= 'A' ) && ( i <= 'F' ) ) ||
-               ( ( i >= '0' ) && ( i <= '9' ) ) ) )
+        if( !( ( ( j >= 'a' ) && ( j <= 'f' ) ) ||
+               ( ( j >= 'A' ) && ( j <= 'F' ) ) ||
+               ( ( j >= '0' ) && ( j <= '9' ) ) ) )
         {
-            ucHex = ucASCIIToHex( i );
+            ucHex = ucASCIIToHex( j );
             TEST_ASSERT_EQUAL( 0xFF, ucHex );
         }
 
-        if( i == 125 )
+        if( j == 125 )
         {
             break;
         }
@@ -2281,6 +2308,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     uint8_t ucStream[ 1500 ];
     eIPTCPState_t array[] = { eCLOSED, eCLOSE_WAIT, eCLOSING };
     StreamBuffer_t xLocalStreamBuffer;
+    unsigned int i;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
@@ -2296,17 +2324,17 @@ void test_prvTCPSendCheck_InvalidValues( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lReturn );
 
     /* No memory. */
-    xSocket.u.xTCP.bits.bMallocError = pdTRUE;
+    xSocket.u.xTCP.bits.bMallocError = pdTRUE_UNSIGNED;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
     lReturn = prvTCPSendCheck( &xSocket, uxDataLength );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOMEM, lReturn );
 
     /* Invalid states. */
-    xSocket.u.xTCP.bits.bMallocError = pdFALSE;
+    xSocket.u.xTCP.bits.bMallocError = pdFALSE_UNSIGNED;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    for( unsigned int i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t ); i++ )
+    for( i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t ); i++ )
     {
         xSocket.u.xTCP.eTCPState = array[ i ];
         listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );

@@ -31,7 +31,7 @@
 *
 * See the following web page for essential buffer allocation scheme usage and
 * configuration details:
-* http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
+* https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/05-Buffer-management
 *
 ******************************************************************************/
 
@@ -63,20 +63,12 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
-/* Compile time assertion with zero runtime effects
- * it will assert on 'e' not being zero, as it tries to divide by it,
- * will also print the line where the error occured in case of failure */
-/* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
-/* coverity[misra_c_2012_rule_20_10_violation] */
-#if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-    #define ASSERT_CONCAT_( a, b )    a ## b
-    #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
-    #define STATIC_ASSERT( e ) \
-    enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
+#define baALIGNMENT_BYTES            ( sizeof( size_t ) )
+#define baALIGNMENT_MASK             ( baALIGNMENT_BYTES - 1U )
+#define baADD_WILL_OVERFLOW( a, b )    ( ( a ) > ( SIZE_MAX - ( b ) ) )
 
-    STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
-#endif
+STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
+
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
 static List_t xFreeBuffersList;
 
@@ -108,17 +100,17 @@ BaseType_t xNetworkBuffersInitialise( void )
     if( xNetworkBufferSemaphore == NULL )
     {
         #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-            {
-                static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
-                xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
-                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
-                    ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
-                    &xNetworkBufferSemaphoreBuffer );
-            }
+        {
+            static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+            xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
+                ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                &xNetworkBufferSemaphoreBuffer );
+        }
         #else
-            {
-                xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
-            }
+        {
+            xNetworkBufferSemaphore = xSemaphoreCreateCounting( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+        }
         #endif /* configSUPPORT_STATIC_ALLOCATION */
 
         configASSERT( xNetworkBufferSemaphore != NULL );
@@ -126,19 +118,19 @@ BaseType_t xNetworkBuffersInitialise( void )
         if( xNetworkBufferSemaphore != NULL )
         {
             #if ( configQUEUE_REGISTRY_SIZE > 0 )
-                {
-                    vQueueAddToRegistry( xNetworkBufferSemaphore, "NetBufSem" );
-                }
+            {
+                vQueueAddToRegistry( xNetworkBufferSemaphore, "NetBufSem" );
+            }
             #endif /* configQUEUE_REGISTRY_SIZE */
 
             /* If the trace recorder code is included name the semaphore for viewing
              * in FreeRTOS+Trace.  */
             #if ( ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 )
-                {
-                    extern QueueHandle_t xNetworkEventQueue;
-                    vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
-                    vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
-                }
+            {
+                extern QueueHandle_t xNetworkEventQueue;
+                vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
+                vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
+            }
             #endif /*  ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 */
 
             vListInitialise( &xFreeBuffersList );
@@ -175,8 +167,11 @@ BaseType_t xNetworkBuffersInitialise( void )
 
 uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
 {
-    uint8_t * pucEthernetBuffer;
+    uint8_t * pucEthernetBuffer = NULL;
+    size_t uxMaxAllowedBytes = ( SIZE_MAX >> 1 );
     size_t xSize = *pxRequestedSizeBytes;
+    size_t xBytesRequiredForAlignment, xAllocatedBytes;
+    BaseType_t xIntegerOverflowed = pdFALSE;
 
     if( xSize < baMINIMAL_BUFFER_SIZE )
     {
@@ -187,25 +182,50 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
 
     /* Round up xSize to the nearest multiple of N bytes,
      * where N equals 'sizeof( size_t )'. */
-    if( ( xSize & ( sizeof( size_t ) - 1U ) ) != 0U )
+    if( ( xSize & baALIGNMENT_MASK ) != 0U )
     {
-        xSize = ( xSize | ( sizeof( size_t ) - 1U ) ) + 1U;
+        xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xSize & baALIGNMENT_MASK );
+
+        if( baADD_WILL_OVERFLOW( xSize, xBytesRequiredForAlignment ) == pdFAIL )
+        {
+            xSize += xBytesRequiredForAlignment;
+        }
+        else
+        {
+            xIntegerOverflowed = pdTRUE;
+        }
     }
 
-    *pxRequestedSizeBytes = xSize;
-
-    /* Allocate a buffer large enough to store the requested Ethernet frame size
-     * and a pointer to a network buffer structure (hence the addition of
-     * ipBUFFER_PADDING bytes). */
-    pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xSize + ipBUFFER_PADDING );
-    configASSERT( pucEthernetBuffer != NULL );
-
-    if( pucEthernetBuffer != NULL )
+    if( baADD_WILL_OVERFLOW( xSize, ipBUFFER_PADDING ) == pdFAIL )
     {
-        /* Enough space is left at the start of the buffer to place a pointer to
-         * the network buffer structure that references this Ethernet buffer.
-         * Return a pointer to the start of the Ethernet buffer itself. */
-        pucEthernetBuffer += ipBUFFER_PADDING;
+        xAllocatedBytes = xSize + ipBUFFER_PADDING;
+    }
+    else
+    {
+        xIntegerOverflowed = pdTRUE;
+    }
+
+    if( ( xIntegerOverflowed == pdFALSE ) && ( xAllocatedBytes <= uxMaxAllowedBytes ) )
+    {
+        *pxRequestedSizeBytes = xSize;
+
+        /* Allocate a buffer large enough to store the requested Ethernet frame size
+         * and a pointer to a network buffer structure (hence the addition of
+         * ipBUFFER_PADDING bytes). */
+        pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xAllocatedBytes );
+        configASSERT( pucEthernetBuffer != NULL );
+
+        if( pucEthernetBuffer != NULL )
+        {
+            /* Enough space is left at the start of the buffer to place a pointer to
+             * the network buffer structure that references this Ethernet buffer.
+             * Return a pointer to the start of the Ethernet buffer itself. */
+
+            /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
+            pucEthernetBuffer += ipBUFFER_PADDING;
+        }
     }
 
     return pucEthernetBuffer;
@@ -221,6 +241,9 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
      * space before freeing the buffer. */
     if( pucEthernetBufferCopy != NULL )
     {
+        /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+        /* coverity[misra_c_2012_rule_18_4_violation] */
         pucEthernetBufferCopy -= ipBUFFER_PADDING;
         vPortFree( ( void * ) pucEthernetBufferCopy );
     }
@@ -234,8 +257,51 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     size_t uxCount;
     size_t uxMaxAllowedBytes = ( SIZE_MAX >> 1 );
     size_t xRequestedSizeBytesCopy = xRequestedSizeBytes;
+    size_t xBytesRequiredForAlignment, xAllocatedBytes;
+    BaseType_t xIntegerOverflowed = pdFALSE;
 
-    if( ( xRequestedSizeBytesCopy <= uxMaxAllowedBytes ) && ( xNetworkBufferSemaphore != NULL ) )
+    if( ( xRequestedSizeBytesCopy < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
+    {
+        /* ARP packets can replace application packets, so the storage must be
+         * at least large enough to hold an ARP. */
+        xRequestedSizeBytesCopy = baMINIMAL_BUFFER_SIZE;
+    }
+
+    /* Add 2 bytes to xRequestedSizeBytesCopy and round up xRequestedSizeBytesCopy
+     * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2U ) == pdFAIL )
+    {
+        xRequestedSizeBytesCopy += 2U;
+    }
+    else
+    {
+        xIntegerOverflowed = pdTRUE;
+    }
+
+    if( ( xRequestedSizeBytesCopy & baALIGNMENT_MASK ) != 0U )
+    {
+        xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xRequestedSizeBytesCopy & baALIGNMENT_MASK );
+
+        if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, xBytesRequiredForAlignment ) == pdFAIL )
+        {
+            xRequestedSizeBytesCopy += xBytesRequiredForAlignment;
+        }
+        else
+        {
+            xIntegerOverflowed = pdTRUE;
+        }
+    }
+
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, ipBUFFER_PADDING ) == pdFAIL )
+    {
+        xAllocatedBytes = xRequestedSizeBytesCopy + ipBUFFER_PADDING;
+    }
+    else
+    {
+        xIntegerOverflowed = pdTRUE;
+    }
+
+    if( ( xIntegerOverflowed == pdFALSE ) && ( xAllocatedBytes <= uxMaxAllowedBytes ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         /* If there is a semaphore available, there is a network buffer available. */
         if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
@@ -261,25 +327,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
             if( xRequestedSizeBytesCopy > 0U )
             {
-                if( ( xRequestedSizeBytesCopy < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
-                {
-                    /* ARP packets can replace application packets, so the storage must be
-                     * at least large enough to hold an ARP. */
-                    xRequestedSizeBytesCopy = baMINIMAL_BUFFER_SIZE;
-                }
-
-                /* Add 2 bytes to xRequestedSizeBytesCopy and round up xRequestedSizeBytesCopy
-                 * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
-                xRequestedSizeBytesCopy += 2U;
-
-                if( ( xRequestedSizeBytesCopy & ( sizeof( size_t ) - 1U ) ) != 0U )
-                {
-                    xRequestedSizeBytesCopy = ( xRequestedSizeBytesCopy | ( sizeof( size_t ) - 1U ) ) + 1U;
-                }
-
                 /* Extra space is obtained so a pointer to the network buffer can
                  * be stored at the beginning of the buffer. */
-                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xRequestedSizeBytesCopy + ipBUFFER_PADDING );
+                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xAllocatedBytes );
 
                 if( pxReturn->pucEthernetBuffer == NULL )
                 {
@@ -299,6 +349,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     *( ( NetworkBufferDescriptor_t ** ) ( pxReturn->pucEthernetBuffer ) ) = pxReturn;
+
+                    /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                    /* coverity[misra_c_2012_rule_18_4_violation] */
                     pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
 
                     /* Store the actual size of the allocated buffer, which may be
@@ -308,10 +362,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     pxReturn->pxEndPoint = NULL;
 
                     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                        {
-                            /* make sure the buffer is not linked */
-                            pxReturn->pxNextBuffer = NULL;
-                        }
+                    {
+                        /* make sure the buffer is not linked */
+                        pxReturn->pxNextBuffer = NULL;
+                    }
                     #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
                 }
             }
@@ -403,32 +457,44 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     size_t uxSizeBytes = xNewSizeBytes;
     NetworkBufferDescriptor_t * pxNetworkBufferCopy = pxNetworkBuffer;
 
-
-
     xOriginalLength = pxNetworkBufferCopy->xDataLength + ipBUFFER_PADDING;
-    uxSizeBytes = uxSizeBytes + ipBUFFER_PADDING;
 
-    pucBuffer = pucGetNetworkBuffer( &( uxSizeBytes ) );
-
-    if( pucBuffer == NULL )
+    if( baADD_WILL_OVERFLOW( uxSizeBytes, ipBUFFER_PADDING ) == pdFAIL )
     {
-        /* In case the allocation fails, return NULL. */
-        pxNetworkBufferCopy = NULL;
+        uxSizeBytes = uxSizeBytes + ipBUFFER_PADDING;
+
+        pucBuffer = pucGetNetworkBuffer( &( uxSizeBytes ) );
+
+        if( pucBuffer == NULL )
+        {
+            /* In case the allocation fails, return NULL. */
+            pxNetworkBufferCopy = NULL;
+        }
+        else
+        {
+            pxNetworkBufferCopy->xDataLength = uxSizeBytes;
+
+            if( uxSizeBytes > xOriginalLength )
+            {
+                uxSizeBytes = xOriginalLength;
+            }
+
+            /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
+            ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
+                             /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+                             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                             /* coverity[misra_c_2012_rule_18_4_violation] */
+                             pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
+                             uxSizeBytes );
+            vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
+            pxNetworkBufferCopy->pucEthernetBuffer = pucBuffer;
+        }
     }
     else
     {
-        pxNetworkBufferCopy->xDataLength = uxSizeBytes;
-
-        if( uxSizeBytes > xOriginalLength )
-        {
-            uxSizeBytes = xOriginalLength;
-        }
-
-        ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
-                         pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
-                         uxSizeBytes );
-        vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
-        pxNetworkBufferCopy->pucEthernetBuffer = pucBuffer;
+        pxNetworkBufferCopy = NULL;
     }
 
     return pxNetworkBufferCopy;

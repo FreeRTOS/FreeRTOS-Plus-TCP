@@ -133,11 +133,13 @@ static void vSetIPTaskHandle( TaskHandle_t xTaskHandleToSet )
     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
     NetworkEndPoint_t xFirstEndPoint = { 0 }, * pxFirstEndPoint = &xFirstEndPoint;
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
     FreeRTOS_FillEndPoint_Ignore();
 
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 
@@ -194,14 +196,16 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     TaskHandle_t xTaskHandleToSet = ( TaskHandle_t ) 0xCDBA9087;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
-
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 
@@ -247,16 +251,16 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = NULL;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 
@@ -287,16 +291,16 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 
@@ -335,16 +339,16 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 
@@ -437,7 +441,7 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfigBackwardCompatible(
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
-    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer + ipIP_TYPE_OFFSET;
     pxNetworkBuffer->xDataLength = 0;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
@@ -738,7 +742,7 @@ void test_FreeRTOS_GetMACAddress_ValidEndpoint( void )
 {
     NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
-    uint8_t * pucReturn = NULL;
+    const uint8_t * pucReturn = NULL;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
     memcpy( pxEndpoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
@@ -754,7 +758,7 @@ void test_FreeRTOS_GetMACAddress_ValidEndpoint( void )
  */
 void test_FreeRTOS_GetMACAddress_NullEndpoint( void )
 {
-    uint8_t * pucReturn = NULL;
+    const uint8_t * pucReturn = NULL;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
 
@@ -781,4 +785,27 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig_IPv6NotSupported( 
     pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv6 );
 
     TEST_ASSERT_EQUAL_PTR( NULL, pvReturn );
+}
+
+/**
+ * @brief test_eConsiderFrameForProcessing_IPv6_FrameType_But_Disabled
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is IPv6 but
+ * ipconfigUSE_IPv6 is disabled.
+ */
+void test_eConsiderFrameForProcessing_IPv6_FrameType_But_Disabled( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigNETWORK_MTU );
+
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }

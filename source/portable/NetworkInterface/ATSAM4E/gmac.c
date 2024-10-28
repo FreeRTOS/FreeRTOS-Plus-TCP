@@ -58,11 +58,9 @@
 #include "ethernet_phy.h"
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
-/**INDENT-ON**/
 /*/ @endcond */
 
 #ifndef ARRAY_SIZE
@@ -219,13 +217,13 @@ static void gmac_reset_tx_mem( gmac_device_t * p_dev )
     for( ul_index = 0; ul_index < p_dev->ul_tx_list_size; ul_index++ )
     {
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                ul_address = ( uint32_t ) 0u;
-            }
+        {
+            ul_address = ( uint32_t ) 0u;
+        }
         #else
-            {
-                ul_address = ( uint32_t ) ( &( p_tx_buff[ ul_index * GMAC_TX_UNITSIZE ] ) );
-            }
+        {
+            ul_address = ( uint32_t ) ( &( p_tx_buff[ ul_index * GMAC_TX_UNITSIZE ] ) );
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
         p_td[ ul_index ].addr = ul_address;
         p_td[ ul_index ].status.val = GMAC_TXD_USED;
@@ -476,13 +474,13 @@ void gmac_dev_init( Gmac * p_gmac,
     gmac_dev_mm.us_rx_size = GMAC_RX_BUFFERS;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-        {
-            gmac_dev_mm.p_tx_buffer = NULL;
-        }
+    {
+        gmac_dev_mm.p_tx_buffer = NULL;
+    }
     #else
-        {
-            gmac_dev_mm.p_tx_buffer = gs_uc_tx_buffer;
-        }
+    {
+        gmac_dev_mm.p_tx_buffer = gs_uc_tx_buffer;
+    }
     #endif
     gmac_dev_mm.p_tx_dscr = gs_tx_desc;
     gmac_dev_mm.us_tx_size = GMAC_TX_BUFFERS;
@@ -518,9 +516,9 @@ static uint32_t gmac_dev_poll( gmac_device_t * p_gmac_dev )
         pxHead = &p_gmac_dev->p_rx_dscr[ ulIndex ];
         p_gmac_dev->ul_rx_idx = ulIndex;
         #if ( GMAC_STATS != 0 )
-            {
-                gmacStats.incompCount++;
-            }
+        {
+            gmacStats.incompCount++;
+        }
         #endif
     }
 
@@ -555,9 +553,9 @@ static uint32_t gmac_dev_poll( gmac_device_t * p_gmac_dev )
                 circ_inc32( &ulPrev, p_gmac_dev->ul_rx_list_size );
                 pxHead = &p_gmac_dev->p_rx_dscr[ ulPrev ];
                 #if ( GMAC_STATS != 0 )
-                    {
-                        gmacStats.truncCount++;
-                    }
+                {
+                    gmacStats.truncCount++;
+                }
                 #endif
             } while( ulPrev != ulIndex );
 
@@ -644,7 +642,8 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
 }
 
 
-extern void vGMACGenerateChecksum( uint8_t * apBuffer );
+extern void vGMACGenerateChecksum( uint8_t * pucBuffer,
+                                   size_t uxLength );
 
 /**
  * \brief Send ulLength bytes from pcFrom. This copies the buffer to one of the
@@ -707,17 +706,17 @@ uint32_t gmac_dev_write( gmac_device_t * p_gmac_dev,
         /* Calculating the checksum here is faster than calculating it from the GMAC buffer
          * because within p_buffer, it is well aligned */
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Zero-copy... */
-                p_tx_td->addr = ( uint32_t ) p_buffer;
-            }
+        {
+            /* Zero-copy... */
+            p_tx_td->addr = ( uint32_t ) p_buffer;
+        }
         #else
-            {
-                /* Or Memcopy... */
-                memcpy( ( void * ) p_tx_td->addr, p_buffer, ul_size );
-            }
+        {
+            /* Or Memcopy... */
+            memcpy( ( void * ) p_tx_td->addr, p_buffer, ul_size );
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
-        vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr );
+        vGMACGenerateChecksum( ( uint8_t * ) p_tx_td->addr, ( size_t ) ul_size );
     }
 
     #if ( GMAC_USES_TX_CALLBACK != 0 )
@@ -917,15 +916,15 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 /*	Why clear bits that are ignored anyway ? */
 /*	ul_isr &= ~(gmac_get_interrupt_mask(p_hw) | 0xF8030300); */
     #if ( GMAC_STATS != 0 )
+    {
+        for( index = 0; index < ARRAY_SIZE( intPairs ); index++ )
         {
-            for( index = 0; index < ARRAY_SIZE( intPairs ); index++ )
+            if( ul_isr & intPairs[ index ].mask )
             {
-                if( ul_isr & intPairs[ index ].mask )
-                {
-                    gmacStats.intStatus[ intPairs[ index ].index ]++;
-                }
+                gmacStats.intStatus[ intPairs[ index ].index ]++;
             }
         }
+    }
     #endif /* GMAC_STATS != 0 */
 
     /* RX packet */
@@ -990,9 +989,9 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
                     {
                         ( *p_tx_cb )( ul_tx_status_flag, ( void * ) p_tx_td->addr );
                         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                            {
-                                p_tx_td->addr = 0ul;
-                            }
+                        {
+                            p_tx_td->addr = 0ul;
+                        }
                         #endif /* ipconfigZERO_COPY_TX_DRIVER */
                     }
 
@@ -1028,9 +1027,7 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 /*@} */
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
 #ifdef __cplusplus
-    }
+}     /* extern "C" */
 #endif
-/**INDENT-ON**/
 /*/ @endcond */

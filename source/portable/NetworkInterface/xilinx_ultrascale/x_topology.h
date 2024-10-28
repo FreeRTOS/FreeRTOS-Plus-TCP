@@ -20,7 +20,7 @@
     #define __XTOPOLOGY_H_
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
     enum xemac_types
@@ -38,13 +38,8 @@
         unsigned scugic_emac_intr; /* valid only for GEM */
     };
 
-    extern int x_topology_n_emacs;
-    extern struct xtopology_t x_topology[];
-
-    int x_topology_find_index( unsigned base );
-
     #ifdef __cplusplus
-        }
+}     /* extern "C" */
     #endif
 
-#endif /* ifndef __XTOPOLOGY_H_ */
+#endif /* __XTOPOLOGY_H_ */

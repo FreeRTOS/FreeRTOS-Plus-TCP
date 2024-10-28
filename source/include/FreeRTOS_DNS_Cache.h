@@ -81,4 +81,4 @@
                                   struct freertos_addrinfo ** ppxAddressInfo );
 #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
-#endif /* ifndef FREERTOS_DNS_CACHE_H */
+#endif /* FREERTOS_DNS_CACHE_H */

@@ -37,7 +37,6 @@
 #include "FreeRTOS_ND.h"
 
 /* CBMC includes. */
-#include "../../utility/memory_assignments.c"
 #include "cbmc.h"
 
 extern NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
@@ -73,6 +72,12 @@ void vReceiveNA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 }
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+void vReceiveRA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+}
+
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                                      TickType_t uxTimeout )
 {
@@ -97,7 +102,8 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 }
 
 /* Abstraction of this functions creates and return an endpoint, real endpoint doesn't matter in this test. */
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
+NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
+                                                           const IPv6_Address_t * pxIPAddress )
 {
     NetworkEndPoint_t * pxEndPoints = NULL;
 
@@ -105,7 +111,7 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPA
 
     pxEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
 
-    if( ensure_memory_is_valid( pxEndPoints, sizeof( NetworkEndPoint_t ) ) )
+    if( ( pxEndPoints ) && __CPROVER_w_ok( pxEndPoints, sizeof( NetworkEndPoint_t ) ) )
     {
         /* Interface init. */
         pxEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
@@ -118,21 +124,33 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPA
     return pxEndPoints;
 }
 
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    size_t uxResult;
+
+    __CPROVER_assume( ( uxResult == ipSIZE_OF_IPv4_HEADER ) || ( uxResult == ipSIZE_OF_IPv6_HEADER ) );
+
+    return uxResult;
+}
+
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
     uint32_t ulLen;
-    NetworkBufferDescriptor_t xLocalBuffer;
+    NetworkBufferDescriptor_t * pxLocalARPWaitingNetworkBuffer;
     uint16_t usEthernetBufferSize;
-
-    /* The code does not expect both of these to be equal to NULL at the same time. */
-    __CPROVER_assume( pxNetworkBuffer != NULL );
 
     __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
 
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ulLen, 0 );
+
+    /* The code does not expect pxNetworkBuffer to be NULL. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+
     pxNetworkBuffer->xDataLength = ulLen;
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen );
-    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer );
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+    __CPROVER_havoc_slice( pxNetworkBuffer->pucEthernetBuffer, ulLen );
 
     /* Add an end point to the network buffer present. Its assumed that the
      * network interface layer correctly assigns the end point to the generated buffer. */
@@ -148,19 +166,20 @@ void harness()
     /* The packet must at least be as big as an IPv6 Packet. The size is not
      * checked in the function as the pointer is stored by the IP-task itself
      * and therefore it will always be of the required size. */
-    __CPROVER_assume( usEthernetBufferSize >= sizeof( IPPacket_IPv6_t ) );
-
-    /* Add matching data length to the network buffer descriptor. */
-    __CPROVER_assume( xLocalBuffer.xDataLength == usEthernetBufferSize );
-
-    xLocalBuffer.pucEthernetBuffer = safeMalloc( usEthernetBufferSize );
+    __CPROVER_assume( ( usEthernetBufferSize >= sizeof( IPPacket_IPv6_t ) ) && ( usEthernetBufferSize < ipconfigNETWORK_MTU ) );
+    pxLocalARPWaitingNetworkBuffer = pxGetNetworkBufferWithDescriptor( usEthernetBufferSize, 0 );
 
     /* Since this pointer is maintained by the IP-task, either the pointer
-     * pxARPWaitingNetworkBuffer will be NULL or xLocalBuffer.pucEthernetBuffer
+     * pxARPWaitingNetworkBuffer will be NULL or pxLocalARPWaitingNetworkBuffer.pucEthernetBuffer
      * will be non-NULL. */
-    __CPROVER_assume( xLocalBuffer.pucEthernetBuffer != NULL );
+    __CPROVER_assume( pxLocalARPWaitingNetworkBuffer != NULL );
+    __CPROVER_assume( pxLocalARPWaitingNetworkBuffer->pucEthernetBuffer != NULL );
+    __CPROVER_havoc_slice( pxLocalARPWaitingNetworkBuffer->pucEthernetBuffer, usEthernetBufferSize );
 
-    pxARPWaitingNetworkBuffer = &xLocalBuffer;
+    /* Add matching data length to the network buffer descriptor. */
+    pxLocalARPWaitingNetworkBuffer->xDataLength = usEthernetBufferSize;
+
+    pxARPWaitingNetworkBuffer = pxLocalARPWaitingNetworkBuffer;
 
     prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 }

@@ -28,12 +28,6 @@
 #ifndef FREERTOS_IPV4_UTILS_H
 #define FREERTOS_IPV4_UTILS_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /**
  * @file FreeRTOS_IPv4_Utils.h
  * @brief Implements the utility functions for FreeRTOS_IP.c
@@ -48,6 +42,12 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
 void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
@@ -64,4 +64,4 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_UTILS_H */
+#endif /* FREERTOS_IPV4_UTILS_H */

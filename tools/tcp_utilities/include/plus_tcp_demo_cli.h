@@ -28,7 +28,7 @@
 #ifndef PLUS_TCP_DEMO_CLI_H
 
     #if __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /*
@@ -43,19 +43,16 @@
  */
     void xHandleTesting( void );
 
-    #if ( ipconfigMULTI_INTERFACE != 0 )
-
 /*
  * Show all properties of an end-point.
  */
-        void showEndPoint( NetworkEndPoint_t * pxEndPoint );
-    #endif
+    void showEndPoint( NetworkEndPoint_t * pxEndPoint );
 
 /*/ * 'xServerSemaphore' should be declared in main.c * / */
 /*extern SemaphoreHandle_t xServerSemaphore; */
 
     #if __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
     extern int verboseLevel;

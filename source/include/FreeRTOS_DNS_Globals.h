@@ -32,7 +32,8 @@
 
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
+
+#include "FreeRTOS_Sockets.h"
 
 #define dnsPARSE_ERROR              0UL
 
@@ -56,13 +57,6 @@
  * name field is an offset to the string, rather than the string itself. */
     #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
 
-/** @brief The maximum number of times a DNS request should be sent out if a response
- * is not received, before giving up. */
-    #ifndef ipconfigDNS_REQUEST_ATTEMPTS
-        #define ipconfigDNS_REQUEST_ATTEMPTS    5
-    #endif
-
-
 /* NBNS flags. */
     #if ( ipconfigUSE_NBNS == 1 )
         #define dnsNBNS_FLAGS_RESPONSE        0x8000U /**< NBNS response flag. */
@@ -82,8 +76,8 @@
 
     #ifndef _lint
         /* LLMNR constants. */
-        #define dnsLLMNR_TTL_VALUE           300U     /**< LLMNR time to live value of 5 minutes. */
-        #define dnsLLMNR_FLAGS_IS_REPONSE    0x8000U  /**< LLMNR flag value for response. */
+        #define dnsLLMNR_TTL_VALUE            300U    /**< LLMNR time to live value of 5 minutes. */
+        #define dnsLLMNR_FLAGS_IS_RESPONSE    0x8000U /**< LLMNR flag value for response. */
     #endif /* _lint */
 
 /* NBNS constants. */
@@ -98,15 +92,6 @@
  * the query will be responded to with these flags: */
         #define dnsNBNS_QUERY_RESPONSE_FLAGS    ( 0x8500U )
     #endif /* ( ipconfigUSE_NBNS != 0 ) */
-
-
-    #ifndef _lint
-        #if ( ipconfigUSE_DNS_CACHE == 0 )
-            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY != 1 )
-                #error When DNS caching is disabled, please make ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY equal to 1.
-            #endif
-        #endif
-    #endif
 
 /** @brief Define the ASCII value of '.' (Period/Full-stop). */
     #define ASCII_BASELINE_DOT    46U
@@ -187,6 +172,7 @@
     {
         DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
         uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
+        uint16_t usAnswers;                /**< The number of DNS answers that were given. */
         uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
         uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
         size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
@@ -322,4 +308,4 @@
     #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
 #endif
 
-#endif /* ifndef FREERTOS_DNS_GLOBALS_H */
+#endif /* FREERTOS_DNS_GLOBALS_H */

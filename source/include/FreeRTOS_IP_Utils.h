@@ -25,19 +25,13 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef FREERTOS_IP_UTILS_H
-#define FREERTOS_IP_UTILS_H
-
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /**
  * @file FreeRTOS_IP_Utils.h
  * @brief Implements the utility functions for FreeRTOS_IP.c
  */
+
+#ifndef FREERTOS_IP_UTILS_H
+#define FREERTOS_IP_UTILS_H
 
 /* Standard includes. */
 #include <stdint.h>
@@ -55,7 +49,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
@@ -65,7 +58,16 @@
 #include "FreeRTOS_IPv4_Utils.h"
 #include "FreeRTOS_IPv6_Utils.h"
 
-#if ( ipconfigUSE_DHCP != 0 )
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
+/* Forward declaration. */
+struct xNetworkInterface;
+
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) )
 
 /**
  * @brief Create a DHCP event.
@@ -74,6 +76,13 @@
  *         succeeded.
  */
     BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
+#endif
+
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
+
+/* Returns the current state of a DHCP process. */
+    eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
+
 #endif
 
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
@@ -98,7 +107,8 @@ void vPreCheckConfigs( void );
  * @brief Called to create a network connection when the stack is first
  *        started, or when the network connection is lost.
  */
-void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface );
+void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface );
+
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

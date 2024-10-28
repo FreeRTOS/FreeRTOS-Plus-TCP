@@ -38,6 +38,13 @@
 
 /* Standard includes. */
 #include <stdint.h>
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
 #if ( ipconfigUSE_DNS != 0 )
 
 /** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
@@ -87,4 +94,11 @@
                              size_t * uxBytesRead );
 
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
-#endif /* ifndef FREERTOS_DNS_PARSER_H */
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
+
+#endif /* FREERTOS_DNS_PARSER_H */

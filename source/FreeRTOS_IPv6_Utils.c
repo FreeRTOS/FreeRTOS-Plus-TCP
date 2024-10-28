@@ -55,8 +55,8 @@
 void vSetMultiCastIPv6MacAddress( const IPv6_Address_t * pxAddress,
                                   MACAddress_t * pxMACAddress )
 {
-    pxMACAddress->ucBytes[ 0 ] = 0x33U;
-    pxMACAddress->ucBytes[ 1 ] = 0x33U;
+    pxMACAddress->ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+    pxMACAddress->ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
     pxMACAddress->ucBytes[ 2 ] = pxAddress->ucBytes[ 12 ];
     pxMACAddress->ucBytes[ 3 ] = pxAddress->ucBytes[ 13 ];
     pxMACAddress->ucBytes[ 4 ] = pxAddress->ucBytes[ 14 ];
@@ -100,15 +100,17 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
         }
         else
         {
+            size_t uxNeeded;
+
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ] ) );
             pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
             /* For IPv6, the number of bytes in the protocol is indicated. */
-            pxSet->usProtocolBytes = pxSet->usPayloadLength - ( uint16_t ) uxExtensionHeaderLength;
+            pxSet->usProtocolBytes = ( uint16_t ) ( pxSet->usPayloadLength - uxExtensionHeaderLength );
 
-            size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
+            uxNeeded = ( size_t ) pxSet->usPayloadLength;
             uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
 
             if( uxBufferLength < uxNeeded )
@@ -162,9 +164,9 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
     {
         pxSet->uxProtocolHeaderLength = xICMPLength;
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            {
-                pxSet->pcType = "ICMP_IPv6";
-            }
+        {
+            pxSet->pcType = "ICMP_IPv6";
+        }
         #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
     }
 
@@ -221,7 +223,7 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
 
                 if( ( uxIndex + uxHopSize ) >= uxBufferLength )
                 {
-                    FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxBufferLength ) );
+                    FreeRTOS_debug_printf( ( "The length %u + %u of extension header is larger than buffer size %u \n", ( unsigned ) uxIndex, ( unsigned ) uxHopSize, ( unsigned ) uxBufferLength ) );
                     break;
                 }
 
@@ -280,6 +282,73 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
     }
 
     return uxReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Every IPv6 end-point has a solicited node multicast address and a corresponding
+ * multicast MAC address. The IPv6 solicited node address also has an MLD reports associated
+ * with it. This function manages both the MAC address and the MLD report associated with
+ * the end-point's solicited-node address. On network UP, this function registers the MAC address
+ * with the network driver's filter and creates and MLD report for the UPv6 multicast address.
+ * On network DOWN, the function unregisters the MAC address and removes the MLD report.
+ * This is a "convenience" function that keeps all these tasks under one roof for easier maintenance.
+ *
+ * @param[in] pxEndPoint The end-point for which a network up/down event is being handled.
+ * @param[in] xNetworkGoingUp pdTRUE when the network goes UP, pdFALSE when the network goes DOWN.
+ */
+void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
+                                  BaseType_t xNetworkGoingUp )
+{
+    IPv6_Type_t xAddressType;
+    MACAddress_t xMACAddress;
+
+    configASSERT( pxEndPoint != NULL );
+    configASSERT( pxEndPoint->pxNetworkInterface != NULL );
+
+    /* do{}while(0) to allow for the use of break statements */
+    do
+    {
+        /* During the very first network DOWN event, pxEndPoint->ipv6_settings does not yet hold the proper address and
+         * therefore the calculated MAC address will be incorrect. Nothing bad will happen though, because the address
+         * type check below will kick us out before the call to pfRemoveAllowedMAC(). Without the check below, the network
+         * driver ends up being called once to register 33:33:FF:00:00:00 and that MAC never gets unregistered. */
+
+        /* Solicited-node multicast addresses only apply to normal unicast non-loopback addresses. */
+        xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+        if( ( xAddressType != eIPv6_LinkLocal ) && ( xAddressType != eIPv6_SiteLocal ) && ( xAddressType != eIPv6_Global ) )
+        {
+            /* The address of this end-point is something other than a normal unicast address... Maybe it's the
+             * loopback address or maybe this is an error scenario. In any case, there is no corresponding
+             * solicited-node multicast address that we need to manage. Do nothing.*/
+            break;
+        }
+
+        /* Calculate the multicast MAC that corresponds to this endpoint's IPv6 address. */
+        xMACAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+        xMACAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+        xMACAddress.ucBytes[ 2 ] = 0xFFU;
+        xMACAddress.ucBytes[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+        xMACAddress.ucBytes[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+        xMACAddress.ucBytes[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+
+        /* Update the network driver filter */
+        if( xNetworkGoingUp == pdTRUE )
+        {
+            if( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL )
+            {
+                pxEndPoint->pxNetworkInterface->pfAddAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
+            }
+        }
+        else
+        {
+            if( pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC != NULL )
+            {
+                pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
+            }
+        }
+    } while( pdFALSE );
 }
 /*-----------------------------------------------------------*/
 

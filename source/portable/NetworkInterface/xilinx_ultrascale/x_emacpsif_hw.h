@@ -20,24 +20,21 @@
     #define __XEMACPSIF_HW_H_
 
     #include "x_emacpsif.h"
-/*#include "lwip/netif.h" */
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
     XEmacPs_Config * lookup_config( unsigned mac_base );
 
-/*void init_emacps(xemacpsif_s *xemacpsif, struct netif *netif); */
-
     int emacps_check_errors( xemacpsif_s * xemacps );
 
 /* Defined in x_emacpsif_physpeed.c. */
-    uint32_t ulDetecPHY( XEmacPs * xemacpsp );
+    uint32_t ulDetectPHY( XEmacPs * xemacpsp );
 
 
     #ifdef __cplusplus
-        }
+}     /* extern "C" */
     #endif
 
 #endif /* ifndef __XEMACPSIF_HW_H_ */

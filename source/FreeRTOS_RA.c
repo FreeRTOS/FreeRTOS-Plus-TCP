@@ -138,6 +138,7 @@
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
         IPv6_Address_t xSourceAddress;
         BaseType_t xHasLocal;
+        NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
 
         configASSERT( pxEndPoint != NULL );
         configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
@@ -151,12 +152,14 @@
         }
         else
         {
-            FreeRTOS_printf( ( "RA: source %pip\n", xSourceAddress.ucBytes ) );
+            FreeRTOS_printf( ( "RA: source %pip\n", ( void * ) xSourceAddress.ucBytes ) );
         }
 
         if( pxDescriptor->xDataLength < uxNeededSize )
         {
-            pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+            pxNewDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+            pxDescriptor = pxNewDescriptor;
         }
 
         if( pxDescriptor != NULL )
@@ -165,6 +168,10 @@
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             xRASolicitationRequest = ( ( ICMPRouterSolicitation_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
             pxDescriptor->xDataLength = uxNeededSize;
@@ -203,16 +210,16 @@
 
             /* Checksums. */
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-                {
-                    /* calculate the ICMPv6 checksum for outgoing package */
-                    ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
-                }
+            {
+                /* calculate the ICMPv6 checksum for outgoing package */
+                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+            }
             #else
-                {
-                    /* Many EMAC peripherals will only calculate the ICMP checksum
-                     * correctly if the field is nulled beforehand. */
-                    xRASolicitationRequest->usChecksum = 0U;
-                }
+            {
+                /* Many EMAC peripherals will only calculate the ICMP checksum
+                 * correctly if the field is nulled beforehand. */
+                xRASolicitationRequest->usChecksum = 0U;
+            }
             #endif
 
             /* This function will fill in the eth addresses and send the packet */
@@ -313,9 +320,9 @@
 
                     FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
                                        pxPrefixOption->ucPrefixLength,
-                                       FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
-                                       FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
-                                       pxPrefixOption->ucPrefix ) );
+                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
+                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
+                                       ( void * ) pxPrefixOption->ucPrefix ) );
                     break;
 
                 case ndICMP_REDIRECTED_HEADER: /* 4 */
@@ -482,11 +489,11 @@
                 if( pxEndPoint->xRAData.bits.bRouterReplied != pdFALSE_UNSIGNED )
                 {
                     /* Obtained configuration from a router. */
-                    uxNewReloadTime = pdMS_TO_TICKS( 1000U * pxEndPoint->xRAData.ulPreferredLifeTime );
+                    uxNewReloadTime = pdMS_TO_TICKS( ( 1000U * ( uint64_t ) pxEndPoint->xRAData.ulPreferredLifeTime ) );
                     pxEndPoint->xRAData.eRAState = eRAStatePreLease;
-                    iptraceRA_SUCCEDEED( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                    iptraceRA_SUCCEEDED( &( pxEndPoint->ipv6_settings.xIPAddress ) );
                     FreeRTOS_printf( ( "RA: succeeded, using IP address %pip Reload after %u seconds\n",
-                                       pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                       ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                        ( unsigned ) pxEndPoint->xRAData.ulPreferredLifeTime ) );
                 }
                 else
@@ -496,7 +503,7 @@
 
                     iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
-                    FreeRTOS_printf( ( "RA: failed, using default parameters and IP address %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                    FreeRTOS_printf( ( "RA: failed, using default parameters and IP address %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
                     /* Disable the timer. */
                     uxNewReloadTime = 0U;
                 }
@@ -574,7 +581,7 @@
                        FreeRTOS_printf( ( "RA: Creating a random IP-address\n" ) );
                    }
 
-                   FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                   FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
                    uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
                    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, raDONT_BLOCK );
@@ -635,11 +642,15 @@
     {
         TickType_t uxReloadTime = pdMS_TO_TICKS( 5000U );
 
+        #if ( ipconfigHAS_PRINTF == 1 )
+            eRAState_t eRAState;
+        #endif
+
         configASSERT( pxEndPoint != NULL );
 
         #if ( ipconfigHAS_PRINTF == 1 )
             /* Remember the initial state, just for logging. */
-            eRAState_t eRAState = pxEndPoint->xRAData.eRAState;
+            eRAState = pxEndPoint->xRAData.eRAState;
         #endif
 
         if( xDoReset != pdFALSE )
@@ -655,15 +666,15 @@
         uxReloadTime = xRAProcess_HandleOtherStates( pxEndPoint, uxReloadTime );
 
         #if ( ipconfigHAS_PRINTF == 1 )
-            {
-                FreeRTOS_printf( ( "vRAProcess( %ld, %pip) bRouterReplied=%d bIPAddressInUse=%d state %d -> %d\n",
-                                   xDoReset,
-                                   pxEndPoint->ipv6_defaults.xIPAddress.ucBytes,
-                                   pxEndPoint->xRAData.bits.bRouterReplied,
-                                   pxEndPoint->xRAData.bits.bIPAddressInUse,
-                                   eRAState,
-                                   pxEndPoint->xRAData.eRAState ) );
-            }
+        {
+            FreeRTOS_printf( ( "vRAProcess( %ld, %pip) bRouterReplied=%d bIPAddressInUse=%d state %d -> %d\n",
+                               xDoReset,
+                               ( void * ) pxEndPoint->ipv6_defaults.xIPAddress.ucBytes,
+                               pxEndPoint->xRAData.bits.bRouterReplied,
+                               pxEndPoint->xRAData.bits.bIPAddressInUse,
+                               eRAState,
+                               pxEndPoint->xRAData.eRAState ) );
+        }
         #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 
         if( uxReloadTime != 0U )

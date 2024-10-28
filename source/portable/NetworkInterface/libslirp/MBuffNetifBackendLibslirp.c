@@ -163,7 +163,7 @@ static THREAD_RETURN THREAD_FUNC_DEF vTransmitThread( void * pvParameters );
  *
  * @param[out] pxSendMsgBuffer Location to store the handle of the send message buffer.
  * @param[out] pxRecvMsgBuffer Location to store the handle of the receive message buffer.
- * @param[in] pvSendEvent Pointer of the event struct which the implemenbtation should pend on to receive frames.
+ * @param[in] pvSendEvent Pointer of the event struct which the implementation should pend on to receive frames.
  * @param[out] ppvBackendContext Location to store an implementation specific void pointer.
  */
 void vMBuffNetifBackendInit( MessageBufferHandle_t * pxSendMsgBuffer,
@@ -250,6 +250,12 @@ void vMBuffNetifBackendInit( MessageBufferHandle_t * pxSendMsgBuffer,
     else
     {
         pvContextBuffer = pvPortMalloc( sizeof( SlirpBackendContext_t ) );
+
+        if( pvContextBuffer == NULL )
+        {
+            FreeRTOS_printf( ( "Failed to allocate memory for pvContextBuffer" ) );
+            configASSERT( 0 );
+        }
     }
 
     if( pvContextBuffer != NULL )
@@ -396,7 +402,7 @@ void vMBuffNetifBackendDeInit( void * pvBackendContext )
 }
 
 /**
- * @brief Callback called by libslirp when an incomming frame is available.
+ * @brief Callback called by libslirp when an incoming frame is available.
  *
  * @param [in] pvBuffer Pointer to a buffer containing the incoming frame.
  * @param [in] uxLen Length of the incoming frame.
@@ -441,7 +447,7 @@ static slirp_ssize_t xSlirp_WriteCallback( const void * pvBuffer,
 
 
 /**
- * @brief Checks that pxPollFdArray is large enough to accomodate the specified number of file descriptors.
+ * @brief Checks that pxPollFdArray is large enough to accommodate the specified number of file descriptors.
  *
  * @param [in] pxCtx Pointer to the relevant SlirpBackendContext_t.
  * @param [in] xDesiredSize Desired number of file descriptors to store.
@@ -472,6 +478,12 @@ static void vEnsurePollfdSize( SlirpBackendContext_t * pxCtx,
         if( pxCtx->pxPollFdArray == NULL )
         {
             pxCtx->pxPollFdArray = ( struct pollfd * ) malloc( xNewSize * sizeof( struct pollfd ) );
+
+            if( pxCtx->pxPollFdArray == NULL )
+            {
+                FreeRTOS_printf( ( "Failed to allocate memory for pxCtx->pxPollFdArray" ) );
+                configASSERT( 0 );
+            }
         }
         else
         {
@@ -517,6 +529,10 @@ static inline int lSlirpEventsToNativePollEvents( int lSlirpPollFlags )
     {
         lPosixPollFlags |= POLLHUP;
     }
+
+    #if defined( _WIN32 )
+        lPosixPollFlags &= ~( POLLPRI | POLLERR | POLLHUP );
+    #endif
 
     return lPosixPollFlags;
 }
@@ -763,7 +779,7 @@ static THREAD_RETURN THREAD_FUNC_DEF vReceiveThread( void * pvParameters )
 #endif /* if defined( _WIN32 ) */
 
 /**
- * @brief Callback funciton passed to libslirp to report a runtime error.
+ * @brief Callback function passed to libslirp to report a runtime error.
  *
  * @param [in] msg Error message
  * @param pvOpaque Opaque context pointer (unused).
@@ -852,7 +868,7 @@ static void vSlirp_TimerModify( void * pvTimer,
 #endif /* SLIRP_CHECK_VERSION( 4U, 7U, 0U ) */
 
 /**
- * @brief Called by libslipr when a new file descriptor / socket is opened.
+ * @brief Called by libslirp when a new file descriptor / socket is opened.
  *
  * @param lFd File descriptor to watch.
  * @param pvOpaque Pointer to driver context.

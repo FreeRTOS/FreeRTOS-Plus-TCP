@@ -59,9 +59,9 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
 {
     uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
 
-    pxMACAddress->ucBytes[ 0 ] = ( uint8_t ) 0x01U;
-    pxMACAddress->ucBytes[ 1 ] = ( uint8_t ) 0x00U;
-    pxMACAddress->ucBytes[ 2 ] = ( uint8_t ) 0x5EU;
+    pxMACAddress->ucBytes[ 0 ] = ( uint8_t ) ipMULTICAST_MAC_ADDRESS_IPv4_0;
+    pxMACAddress->ucBytes[ 1 ] = ( uint8_t ) ipMULTICAST_MAC_ADDRESS_IPv4_1;
+    pxMACAddress->ucBytes[ 2 ] = ( uint8_t ) ipMULTICAST_MAC_ADDRESS_IPv4_2;
     pxMACAddress->ucBytes[ 3 ] = ( uint8_t ) ( ( ulIP >> 16 ) & 0x7fU ); /* Use 7 bits. */
     pxMACAddress->ucBytes[ 4 ] = ( uint8_t ) ( ( ulIP >> 8 ) & 0xffU );  /* Use 8 bits. */
     pxMACAddress->ucBytes[ 5 ] = ( uint8_t ) ( ( ulIP ) & 0xffU );       /* Use 8 bits. */
@@ -124,10 +124,11 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 
     if( xReturn == 0 )
     {
+        size_t uxNeeded;
         /* xIPHeader.usLength is the total length, minus the Ethernet header. */
         pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket->xIPHeader.usLength );
 
-        size_t uxNeeded = pxSet->usPayloadLength;
+        uxNeeded = pxSet->usPayloadLength;
         uxNeeded += ipSIZE_OF_ETH_HEADER;
 
         if( uxBufferLength < uxNeeded )
@@ -147,7 +148,7 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ pxSet->uxIPHeaderLength + ipSIZE_OF_ETH_HEADER ] ) );
         /* For IPv4, the number of bytes in IP-header + the protocol is indicated. */
-        pxSet->usProtocolBytes = pxSet->usPayloadLength - ( ( uint16_t ) pxSet->uxIPHeaderLength );
+        pxSet->usProtocolBytes = ( uint16_t ) ( pxSet->usPayloadLength - pxSet->uxIPHeaderLength );
     }
 
     return xReturn;

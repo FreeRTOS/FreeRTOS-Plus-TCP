@@ -170,11 +170,11 @@ void xNetworkFrameReceived( uint32_t len,
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
         if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-        {   /* failed */
+        { /* failed */
             pktLost = true;
         }
         else
-        {   /* success */
+        { /* success */
             pktSuccess = true;
             iptraceNETWORK_INTERFACE_RECEIVE();
         }
@@ -183,7 +183,7 @@ void xNetworkFrameReceived( uint32_t len,
     }
 
     if( !pktSuccess )
-    {   /* something went wrong; nothing sent to the */
+    { /* something went wrong; nothing sent to the */
         if( pxNetworkBuffer != NULL )
         {
             pxNetworkBuffer->pucEthernetBuffer = 0;

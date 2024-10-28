@@ -48,11 +48,9 @@
     #include "component/gmac.h"
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
-/**INDENT-ON**/
 /*/ @endcond */
 
 /** The buffer addresses written into the descriptors must be aligned, so the
@@ -1232,11 +1230,9 @@
     void gmac_handler( gmac_device_t * p_gmac_dev );
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
     #ifdef __cplusplus
-        }
+}     /* extern "C" */
     #endif
-/**INDENT-ON**/
 /*/ @endcond */
 
 /**
@@ -1473,7 +1469,8 @@
         };
 
         #define MK_PAIR( NAME )    # NAME, GMAC_IER_ ## NAME, GMAC_IDX_ ## NAME
-        static const struct SIntPair intPairs[] = {
+        static const struct SIntPair intPairs[] =
+        {
             { MK_PAIR( RXUBR ) }, /* Enable receive used bit read interrupt. */
             { MK_PAIR( TUR )   }, /* Enable transmit underrun interrupt. */
             { MK_PAIR( RLEX )  }, /* Enable retry limit  exceeded interrupt. */

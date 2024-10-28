@@ -53,22 +53,6 @@
     #define BMSR_LINK_STATUS    0x0004          /*!< Link status */
 #endif
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future
  * expansion. */
@@ -104,7 +88,8 @@
 static BaseType_t xGMACWaitLS( TickType_t xMaxTime );
 
 #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) && ( ipconfigHAS_TX_CRC_OFFLOADING == 0 )
-    void vGMACGenerateChecksum( uint8_t * apBuffer );
+    void vGMACGenerateChecksum( uint8_t * pucBuffer,
+                                size_t uxLength );
 #endif
 
 /*
@@ -292,19 +277,19 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                configASSERT( bReleaseAfterSend != pdFALSE );
-            }
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            configASSERT( bReleaseAfterSend != pdFALSE );
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
         gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, prvTxCallback );
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                bReleaseAfterSend = pdFALSE;
-            }
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            bReleaseAfterSend = pdFALSE;
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
         /* Not interested in a call-back after TX. */
         iptraceNETWORK_INTERFACE_TRANSMIT();
@@ -421,9 +406,10 @@ static BaseType_t xGMACWaitLS( TickType_t xMaxTime )
 
 /*#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) && ( ipconfigHAS_TX_CRC_OFFLOADING == 0 ) */
 
-void vGMACGenerateChecksum( uint8_t * apBuffer )
+void vGMACGenerateChecksum( uint8_t * pucBuffer,
+                            size_t uxLength )
 {
-    ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) apBuffer;
+    ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) pucBuffer;
 
     if( xProtPacket->xTCPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
@@ -435,7 +421,7 @@ void vGMACGenerateChecksum( uint8_t * apBuffer )
         pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
         /* Calculate the TCP checksum for an outgoing packet. */
-        usGenerateProtocolChecksum( ( uint8_t * ) apBuffer, pdTRUE );
+        usGenerateProtocolChecksum( ( uint8_t * ) pucBuffer, uxLength, pdTRUE );
     }
 }
 
@@ -553,17 +539,17 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
 
         #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-            {
-                uxCurrentCount = uxGetMinimumIPQueueSpace();
+        {
+            uxCurrentCount = uxGetMinimumIPQueueSpace();
 
-                if( uxLastMinQueueSpace != uxCurrentCount )
-                {
-                    /* The logging produced below may be helpful
-                     * while tuning +TCP: see how many buffers are in use. */
-                    uxLastMinQueueSpace = uxCurrentCount;
-                    FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-                }
+            if( uxLastMinQueueSpace != uxCurrentCount )
+            {
+                /* The logging produced below may be helpful
+                 * while tuning +TCP: see how many buffers are in use. */
+                uxLastMinQueueSpace = uxCurrentCount;
+                FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
             }
+        }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
         if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
@@ -589,23 +575,23 @@ static void prvEMACHandlerTask( void * pvParameters )
             while( xQueueReceive( xTxBufferQueue, &pucBuffer, 0 ) != pdFALSE )
             {
                 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                    {
-                        pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
+                {
+                    pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
 
-                        if( pxBuffer != NULL )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxBuffer );
-                            tx_release_count[ 0 ]++;
-                        }
-                        else
-                        {
-                            tx_release_count[ 1 ]++;
-                        }
-                    }
-                #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                    if( pxBuffer != NULL )
                     {
+                        vReleaseNetworkBufferAndDescriptor( pxBuffer );
                         tx_release_count[ 0 ]++;
                     }
+                    else
+                    {
+                        tx_release_count[ 1 ]++;
+                    }
+                }
+                #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                {
+                    tx_release_count[ 0 ]++;
+                }
                 #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
                 uxCount = uxQueueMessagesWaiting( ( QueueHandle_t ) xTXDescriptorSemaphore );
 

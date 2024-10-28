@@ -14,7 +14,6 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
-            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/semphr.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Globals.h"
@@ -34,8 +33,8 @@ list(APPEND mock_include_list
             ${CMAKE_BINARY_DIR}/Annexed_TCP/
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
         )
 
 set(mock_define_list "")

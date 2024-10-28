@@ -28,16 +28,17 @@
 #ifndef FREERTOS_ARP_H
 #define FREERTOS_ARP_H
 
+/* Application level configuration options. */
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
+
+#include "FreeRTOS_IP.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
@@ -76,6 +77,13 @@ typedef struct xCacheLocation
     BaseType_t xMacEntry; /**< The index of the matching MAC-address. */
     BaseType_t xUseEntry; /**< The index of the first free location. */
 } CacheLocation_t;
+
+/**
+ * Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
+ * is found then no action will be taken.
+ */
+void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                               const uint32_t ulIPAddress );
 
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
@@ -133,11 +141,20 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
 #endif
 
+#if ( ipconfigUSE_IPv4 != 0 )
+
 /*
  * Reduce the age count in each entry within the ARP cache.  An entry is no
  * longer considered valid and is deleted if its age reaches zero.
  */
-void vARPAgeCache( void );
+    void vARPAgeCache( void );
+
+/*
+ * After DHCP is ready and when changing IP address, force a quick send of our new IP
+ * address
+ */
+    void vARPSendGratuitous( void );
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
 /*
  * Send out an ARP request for the IP address contained in pxNetworkBuffer, and
@@ -146,31 +163,13 @@ void vARPAgeCache( void );
  */
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-/*
- * After DHCP is ready and when changing IP address, force a quick send of our new IP
- * address
- */
-void vARPSendGratuitous( void );
-
-/* This function will check if the target IP-address belongs to this device.
- * If so, the packet will be passed to the IP-stack, who will answer it.
- * The function is to be called within the function xNetworkInterfaceOutput()
- * in NetworkInterface.c as follows:
- *
- *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
- *   {
- *      / * The packet has been sent back to the IP-task.
- *        * The IP-task will further handle it.
- *        * Do not release the descriptor.
- *        * /
- *       return pdTRUE;
- *   }
- *   / * Send the packet as usual. * /
- */
-BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
-                           BaseType_t bReleaseAfterSend );
-
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
+
+/*
+ * Create and send an ARP request packet to IPv4 endpoints of an interface.
+ */
+void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
+                                      uint32_t ulIPAddress );
 
 /* Clear all entries in the ARp cache. */
 void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );

@@ -339,7 +339,7 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 
 /* Do not call the following function directly. It is there for downward compatibility.
@@ -498,7 +498,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not activate promisuous mode\n" ) );
+            FreeRTOS_printf( ( "could not activate promiscuous mode\n" ) );
             break;
         }
 
@@ -507,7 +507,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set snaplen\n" ) );
+            FreeRTOS_printf( ( "could not set snaplen\n" ) );
             break;
         }
 
@@ -515,7 +515,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set timeout\n" ) );
+            FreeRTOS_printf( ( "could not set timeout\n" ) );
             break;
         }
 
@@ -524,7 +524,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set buffer size\n" ) );
+            FreeRTOS_printf( ( "could not set buffer size\n" ) );
             break;
         }
 
@@ -589,10 +589,10 @@ static int prvOpenInterface( const char * pucName )
 
 /*!
  * @brief Open the network interface. The number of the interface to be opened is
- *	       set by the configNETWORK_INTERFACE_TO_USE constant in FreeRTOSConfig.h
- *	       Calling this function will set the pxOpenedInterfaceHandle variable
- *	       If, after calling this function, pxOpenedInterfaceHandle
- *	       is equal to NULL, then the interface could not be opened.
+ *        set by the configNETWORK_INTERFACE_TO_USE constant in FreeRTOSConfig.h
+ *        Calling this function will set the pxOpenedInterfaceHandle variable
+ *        If, after calling this function, pxOpenedInterfaceHandle
+ *        is equal to NULL, then the interface could not be opened.
  * @param [in] pxAllNetworkInterfaces network interface list to choose from
  * @returns pdPASS on success or pdFAIL when something goes wrong
  */
@@ -709,15 +709,15 @@ static int prvConfigureCaptureBehaviour( void )
      * stack.  errbuf is used for convenience to create the string.  Don't
      * confuse this with an error message. */
     sprintf( pcap_filter, "broadcast or multicast or ether host %x:%x:%x:%x:%x:%x",
-             ipLOCAL_MAC_ADDRESS[ 0 ],
-             ipLOCAL_MAC_ADDRESS[ 1 ],
-             ipLOCAL_MAC_ADDRESS[ 2 ],
-             ipLOCAL_MAC_ADDRESS[ 3 ],
-             ipLOCAL_MAC_ADDRESS[ 4 ],
-             ipLOCAL_MAC_ADDRESS[ 5 ] );
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 0 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 1 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 2 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 3 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 4 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 5 ] );
     FreeRTOS_debug_printf( ( "pcap filter to compile: %s\n", pcap_filter ) );
 
-    ulNetMask = ( configNET_MASK3 << 24UL ) | ( configNET_MASK2 << 16UL ) | ( configNET_MASK1 << 8L ) | configNET_MASK0;
+    ulNetMask = FreeRTOS_inet_addr_quick( configNET_MASK0, configNET_MASK1, configNET_MASK2, configNET_MASK3 );
 
     ret = pcap_compile( pxOpenedInterfaceHandle,
                         &xFilterCode,
@@ -858,12 +858,12 @@ static void * prvLinuxPcapSendThread( void * pvParam )
         {
             uxStreamBufferGet( xSendBuffer, 0, ( uint8_t * ) &xLength, sizeof( xLength ), pdFALSE );
             uxStreamBufferGet( xSendBuffer, 0, ( uint8_t * ) ucBuffer, xLength, pdFALSE );
-            FreeRTOS_debug_printf( ( "Sending  ========== > data pcap_sendpadcket %lu\n", xLength ) );
+            FreeRTOS_debug_printf( ( "Sending  ========== > data pcap_sendpacket %lu\n", xLength ) );
             print_hex( ucBuffer, xLength );
 
-            if( pcap_sendpacket( pxOpenedInterfaceHandle, ucBuffer, xLength ) != 0 )
+            if( pcap_sendpacket( pxOpenedInterfaceHandle, ucBuffer, ( int ) xLength ) != 0 )
             {
-                FreeRTOS_printf( ( "pcap_sendpackeet: send failed %d\n", ulPCAPSendFailures ) );
+                FreeRTOS_printf( ( "pcap_sendpacket: send failed %d\n", ulPCAPSendFailures ) );
                 ulPCAPSendFailures++;
             }
         }
@@ -960,7 +960,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                 if( pxHeader->len <= ipTOTAL_ETHERNET_FRAME_SIZE )
                 {
                     /* Obtain a buffer into which the data can be placed.  This
-                     * is only	an interrupt simulator, not a real interrupt, so it
+                     * is only an interrupt simulator, not a real interrupt, so it
                      * is ok to call the task level function here, but note that
                      * some buffer implementations cannot be called from a real
                      * interrupt. */
@@ -979,9 +979,9 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         pxNetworkBuffer->xDataLength = ( size_t ) pxHeader->len;
 
                         #if ( niDISRUPT_PACKETS == 1 )
-                            {
-                                pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
-                            }
+                        {
+                            pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
+                        }
                         #endif /* niDISRUPT_PACKETS */
 
                         if( pxNetworkBuffer != NULL )

@@ -76,8 +76,8 @@
                 BaseType_t xMatching;
                 DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                 #if ( ipconfigUSE_MDNS == 1 )
-                    /* mDNS port 5353. */
-                    if( pxSet->usPortNumber == FreeRTOS_htons( ipMDNS_PORT ) )
+                    /* mDNS port 5353. Host byte order comparison. */
+                    if( pxSet->usPortNumber == ipMDNS_PORT )
                     {
                         /* In mDNS, the query ID field is ignored and the
                          * hostname will be compared with outstanding requests. */
@@ -129,13 +129,14 @@
  * @param[in] uxIdentifier Random number used as ID in the DNS message.
  * @param[in] xIsIPv6 pdTRUE if the address type should be IPv6.
  */
-    void vDNSSetCallBack( const char * pcHostName,
-                          void * pvSearchID,
-                          FOnDNSEvent pCallbackFunction,
-                          TickType_t uxTimeout,
-                          TickType_t uxIdentifier,
-                          BaseType_t xIsIPv6 )
+    BaseType_t xDNSSetCallBack( const char * pcHostName,
+                                void * pvSearchID,
+                                FOnDNSEvent pCallbackFunction,
+                                TickType_t uxTimeout,
+                                TickType_t uxIdentifier,
+                                BaseType_t xIsIPv6 )
     {
+        BaseType_t xReturn = pdPASS;
         size_t lLength = strlen( pcHostName );
 
         /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
@@ -151,10 +152,10 @@
             if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
             {
                 /* This is the first one, start the DNS timer to check for timeouts */
-                vDNSTimerReload( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
+                vDNSTimerReload( FreeRTOS_min_uint32( 1000U, ( uint32_t ) uxTimeout ) );
             }
 
-            ( void ) strcpy( pxCallback->pcName, pcHostName );
+            ( void ) strncpy( pxCallback->pcName, pcHostName, lLength + 1U );
             pxCallback->pCallbackFunction = pCallbackFunction;
             pxCallback->pvSearchID = pvSearchID;
             pxCallback->uxRemainingTime = uxTimeout;
@@ -171,9 +172,12 @@
         }
         else
         {
-            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %u bytes",
+            xReturn = pdFAIL;
+            FreeRTOS_debug_printf( ( " xDNSSetCallBack : Could not allocate memory: %u bytes",
                                      ( unsigned ) ( sizeof( *pxCallback ) + lLength ) ) );
         }
+
+        return xReturn;
     }
 /*-----------------------------------------------------------*/
 

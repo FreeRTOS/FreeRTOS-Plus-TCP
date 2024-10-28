@@ -51,11 +51,6 @@
 
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
 
-    #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
-        #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
-        #pragma warning "ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?"
-    #endif
-
 /* When a streambuffer is allocated, 4 extra bytes will be reserved. */
 
     #define STREAM_BUFFER_ROUNDUP_BYTES    4
@@ -266,14 +261,14 @@
 
         {
             #if ( ipconfigUSE_TCP_WIN != 0 )
-                {
-                    STATS_PRINTF( ( "TCPMemStat,TCP_WIN_SEG_COUNT,%u,%u,=B%d*C%d\n",
-                                    ipconfigTCP_WIN_SEG_COUNT, sizeof( TCPSegment_t ), xCurrentLine, xCurrentLine ) );
-                }
+            {
+                STATS_PRINTF( ( "TCPMemStat,TCP_WIN_SEG_COUNT,%u,%u,=B%d*C%d\n",
+                                ipconfigTCP_WIN_SEG_COUNT, sizeof( TCPSegment_t ), xCurrentLine, xCurrentLine ) );
+            }
             #else
-                {
-                    STATS_PRINTF( ( "TCPMemStat,TCP_WIN_SEG_COUNT,%u,%u\n", 0, 0 ) );
-                }
+            {
+                STATS_PRINTF( ( "TCPMemStat,TCP_WIN_SEG_COUNT,%u,%u\n", 0, 0 ) );
+            }
             #endif
         }
         {
@@ -305,14 +300,14 @@
             uxStaticSize += uxBytes;
 
             #if ( ipconfigUSE_DNS_CACHE == 1 )
-                {
-                    uxEntrySize = 3u * sizeof( uint32_t ) + ( ( ipconfigDNS_CACHE_NAME_LENGTH + 3 ) & ~0x3u );
-                    STATS_PRINTF( ( "TCPMemStat,DNS_CACHE_ENTRIES,%u,%u,=B%d*C%d\n",
-                                    ipconfigDNS_CACHE_ENTRIES,
-                                    uxEntrySize,
-                                    xCurrentLine,
-                                    xCurrentLine ) );
-                }
+            {
+                uxEntrySize = 3u * sizeof( uint32_t ) + ( ( ipconfigDNS_CACHE_NAME_LENGTH + 3 ) & ~0x3u );
+                STATS_PRINTF( ( "TCPMemStat,DNS_CACHE_ENTRIES,%u,%u,=B%d*C%d\n",
+                                ipconfigDNS_CACHE_ENTRIES,
+                                uxEntrySize,
+                                xCurrentLine,
+                                xCurrentLine ) );
+            }
             #endif
         }
 
