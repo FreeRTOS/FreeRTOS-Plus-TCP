@@ -257,6 +257,9 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
         /* 'xFamily' might not be used when IPv6 is disabled. */
         ( void ) xFamily;
+        /* 'pcName' might not be used when DNS cache is disabled. */
+        ( void ) pcName;
+
         pvBuffer = pvPortMalloc( sizeof( *pxAddrInfo ) );
 
         if( pvBuffer != NULL )

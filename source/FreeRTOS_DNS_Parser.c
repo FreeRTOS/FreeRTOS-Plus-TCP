@@ -47,8 +47,10 @@
 
 #if ( ipconfigUSE_DNS != 0 )
 
-
-    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ||     \
+          ipconfigIS_ENABLED( ipconfigDNS_USE_CALLBACKS ) || \
+          ipconfigIS_ENABLED( ipconfigUSE_MDNS ) ||          \
+          ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
 
 /**
  * @brief Read the Name field out of a DNS response packet.
@@ -162,7 +164,7 @@
 
             return uxIndex;
         }
-    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
+    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
 
 /**
  * @brief Simple routine that jumps over the NAME field of a resource record.
@@ -288,7 +290,7 @@
              * for easier access. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             xSet.pxDNSMessageHeader = ( ( DNSMessage_t * )
                                         pucUDPPayloadBuffer );
@@ -358,7 +360,11 @@
                     }
                     #endif
 
-                    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                    #if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ||     \
+                          ipconfigIS_ENABLED( ipconfigDNS_USE_CALLBACKS ) || \
+                          ipconfigIS_ENABLED( ipconfigUSE_MDNS ) ||          \
+                          ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
+
                         if( x == 0U )
                         {
                             uxResult = DNS_ReadNameField( &xSet,
@@ -366,7 +372,7 @@
                             ( void ) uxResult;
                         }
                         else
-                    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
+                    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
                     {
                         /* Skip the variable length pcName field. */
                         uxResult = DNS_SkipNameField( xSet.pucByte,
@@ -724,7 +730,7 @@
                  * fields of the structure. */
 
                 /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
 
@@ -877,7 +883,7 @@
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
 
                 /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
 

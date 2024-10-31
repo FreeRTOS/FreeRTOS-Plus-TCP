@@ -189,7 +189,11 @@
             uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
             char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
         #endif
-        #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 ) || ( ipconfigUSE_MDNS == 1 )
+
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ||     \
+              ipconfigIS_ENABLED( ipconfigDNS_USE_CALLBACKS ) || \
+              ipconfigIS_ENABLED( ipconfigUSE_MDNS ) ||          \
+              ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
             BaseType_t xDoStore;                          /**< Becomes true when a DNS reply was requested by this device,
                                                            *   i.e. it has a matching request ID. */
             char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
