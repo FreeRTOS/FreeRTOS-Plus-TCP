@@ -2924,6 +2924,65 @@ void test_FreeRTOS_min_size_t( void )
 }
 
 /**
+ * @brief test_FreeRTOS_add_int32
+ * To validate FreeRTOS_add_int32.
+ */
+void test_FreeRTOS_add_int32( void )
+{
+    int32_t lResult;
+
+    lResult = FreeRTOS_add_int32( 1, 2 );
+    TEST_ASSERT_EQUAL( 3, lResult );
+
+    lResult = FreeRTOS_add_int32( ipINT32_MAX_VALUE, 1 );
+    TEST_ASSERT_EQUAL( ipINT32_MAX_VALUE, lResult );
+
+    lResult = FreeRTOS_add_int32( ipINT32_MIN_VALUE, -1 );
+    TEST_ASSERT_EQUAL( ipINT32_MIN_VALUE, lResult );
+
+    lResult = FreeRTOS_add_int32( -1, 1 );
+    TEST_ASSERT_EQUAL( 0, lResult );
+}
+
+/**
+ * @brief test_FreeRTOS_multiply_int32
+ * To validate FreeRTOS_multiply_int32.
+ */
+void test_FreeRTOS_multiply_int32( void )
+{
+    int32_t lResult;
+
+    /* a > 0 */
+    lResult = FreeRTOS_multiply_int32( ipINT32_MAX_VALUE, ipINT32_MAX_VALUE );
+    TEST_ASSERT_EQUAL( ipINT32_MAX_VALUE, lResult );
+
+    lResult = FreeRTOS_multiply_int32( 10, ipINT32_MIN_VALUE );
+    TEST_ASSERT_EQUAL( ipINT32_MIN_VALUE, lResult );
+
+    lResult = FreeRTOS_multiply_int32( 10, 10 );
+    TEST_ASSERT_EQUAL( 100, lResult );
+
+    lResult = FreeRTOS_multiply_int32( 10, -1 );
+    TEST_ASSERT_EQUAL( -10, lResult );
+
+    lResult = FreeRTOS_multiply_int32( 10, 0 );
+    TEST_ASSERT_EQUAL( 0, lResult );
+
+    /* a <= 0 */
+    lResult = FreeRTOS_multiply_int32( ipINT32_MIN_VALUE, 10 );
+    TEST_ASSERT_EQUAL( ipINT32_MIN_VALUE, lResult );
+
+    lResult = FreeRTOS_multiply_int32( ipINT32_MIN_VALUE, ipINT32_MIN_VALUE );
+    TEST_ASSERT_EQUAL( ipINT32_MAX_VALUE, lResult );
+
+    lResult = FreeRTOS_multiply_int32( -1, 10 );
+    TEST_ASSERT_EQUAL( -10, lResult );
+
+    lResult = FreeRTOS_multiply_int32( -2, -2 );
+    TEST_ASSERT_EQUAL( 4, lResult );
+}
+
+/**
  * @brief test_FreeRTOS_round_up
  * To validate FreeRTOS_round_up.
  */

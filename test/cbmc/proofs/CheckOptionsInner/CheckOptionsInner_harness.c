@@ -32,8 +32,6 @@ void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( const uint
 * Proof of prvReadSackOption function contract
 ****************************************************************/
 
-
-
 void harness()
 {
     /* pucPtr points into a buffer */
@@ -97,6 +95,8 @@ void harness()
     /* Assuming quite a bit more about the initialization of pxSocket */
     __CPROVER_assume( pucPtr != NULL );
     __CPROVER_assume( pxSocket != NULL );
+    /* lSRTT is guaranteed to be always greater than or equal to minimum value. */
+    __CPROVER_assume( pxSocket->u.xTCP.xTCPWindow.lSRTT >= ipconfigTCP_SRTT_MINIMUM_VALUE_MS );
 
     __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( pucPtr, uxIndex, pxSocket );
 

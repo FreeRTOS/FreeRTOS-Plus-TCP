@@ -52,6 +52,19 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6Analyse( struct xNetw
                                                                     size_t uxTotalLength,
                                                                     DHCPMessage_IPv6_t * pxDHCPMessage );
 
+/* prvDHCPv6_handleOption is tested separately. Using mock function in this test case. */
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
+                                                                          uint16_t usOption,
+                                                                          const DHCPOptionSet_t * pxSet,
+                                                                          DHCPMessage_IPv6_t * pxDHCPMessage,
+                                                                          BitConfig_t * pxMessage )
+{
+    __CPROVER_assert( __CPROVER_r_ok( pxEndPoint, sizeof( struct xNetworkEndPoint ) ), "pxEndPoint region must be readable" );
+    __CPROVER_assert( __CPROVER_r_ok( pxSet, sizeof( DHCPOptionSet_t ) ), "pxSet region must be readable" );
+    __CPROVER_assert( __CPROVER_r_ok( pxDHCPMessage, sizeof( DHCPMessage_IPv6_t ) ), "pxDHCPMessage region must be readable" );
+    __CPROVER_assert( __CPROVER_r_ok( pxMessage, sizeof( BitConfig_t ) ), "pxMessage region must be readable" );
+}
+
 void harness()
 {
     size_t uxTotalLength;

@@ -9,7 +9,6 @@
     ],
     "INSTFLAGS":
     [
-        "--remove-function-body __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleOption",
         "--malloc-may-fail"
     ],
     "OPT":

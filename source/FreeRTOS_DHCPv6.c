@@ -80,11 +80,11 @@
       ( ( ( uint32_t ) 1U ) << DHCPv6_Option_Server_Identifier ) )
 
 /** @brief The UDP socket which is shared by all end-points that need DHCPv6. */
-static Socket_t xDHCPv6Socket;
+_static Socket_t xDHCPv6Socket;
 
 /** @brief A reference count makes sure that the UDP socket will be deleted when it
  * is not used anymore. */
-static BaseType_t xDHCPv6SocketUserCount;
+_static BaseType_t xDHCPv6SocketUserCount;
 
 static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
                                           size_t uxOptionLength,
@@ -146,7 +146,7 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
 /**
  * @brief DHCP IPv6 message object
  */
-static DHCPMessage_IPv6_t xDHCPMessage;
+_static DHCPMessage_IPv6_t xDHCPMessage;
 
 /**
  * @brief Get the DHCP state from a given endpoint.
@@ -1495,7 +1495,13 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
             }
             else
             {
-                ulOptionsReceived |= ( ( ( uint32_t ) 1U ) << usOption );
+                /* ulOptionsReceived has only 32-bits, it's not allowed to shift more than 32-bits on it. */
+                if( usOption < 32 )
+                {
+                    /* Store the option by bit-map only if it's less than 32. */
+                    ulOptionsReceived |= ( ( ( uint32_t ) 1U ) << usOption );
+                }
+
                 xReady = prvDHCPv6_handleOption( pxEndPoint, usOption, &( xSet ), pxDHCPMessage, &( xMessage ) );
             }
 
