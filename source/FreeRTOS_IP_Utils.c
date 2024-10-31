@@ -1695,6 +1695,81 @@ size_t FreeRTOS_min_size_t( size_t a,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Performs a safe addition of two 32-bit integers, preventing overflow and underflow.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
+ * @return The result of a + b if no overflow/underflow occurs, or INT32_MAX/INT32_MIN if overflow/underflow would occur.
+ */
+int32_t FreeRTOS_add_int32( int32_t a,
+                            int32_t b )
+{
+    int32_t ret;
+
+    if( ( a > 0 ) && ( b > ipINT32_MAX_VALUE - a ) )
+    {
+        ret = ipINT32_MAX_VALUE; /* Positive overflow */
+    }
+    else if( ( a < 0 ) && ( b < ipINT32_MIN_VALUE - a ) )
+    {
+        ret = ipINT32_MIN_VALUE; /* Negative underflow */
+    }
+    else
+    {
+        ret = a + b;
+    }
+
+    return ret;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Performs a safe multiplication of two 32-bit integers, preventing overflow and underflow.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
+ * @return The result of a * b if no overflow occurs, or ipINT32_MAX_VALUE if an overflow would occur.
+ */
+int32_t FreeRTOS_multiply_int32( int32_t a,
+                                 int32_t b )
+{
+    int32_t ret;
+
+    /* Check for overflow/underflow */
+    if( a > 0 )
+    {
+        if( ( b > 0 ) && ( a > ipINT32_MAX_VALUE / b ) )
+        {
+            ret = ipINT32_MAX_VALUE; /* Positive overflow */
+        }
+        else if( ( b < 0 ) && ( b < ipINT32_MIN_VALUE / a ) )
+        {
+            ret = ipINT32_MIN_VALUE; /* Negative underflow */
+        }
+        else
+        {
+            ret = a * b;
+        }
+    }
+    else
+    {
+        if( ( b > 0 ) && ( a < ipINT32_MIN_VALUE / b ) )
+        {
+            ret = ipINT32_MIN_VALUE; /* Negative underflow */
+        }
+        else if( ( b < 0 ) && ( a < ipINT32_MAX_VALUE / b ) )
+        {
+            ret = ipINT32_MAX_VALUE; /* Positive overflow */
+        }
+        else
+        {
+            ret = a * b;
+        }
+    }
+
+    return ret;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Round-up a number to a multiple of 'd'.
  * @param[in] a the first value.
  * @param[in] d the second value.

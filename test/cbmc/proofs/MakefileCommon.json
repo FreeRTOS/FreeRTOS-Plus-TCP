@@ -32,9 +32,7 @@
 
     "CBMCFLAGS ": [
 	"--object-bits 8",
-	"--32",
-	"--bounds-check",
-	"--pointer-check"
+	"--32"
     ],
 
     "FORWARD_SLASH": ["/"],

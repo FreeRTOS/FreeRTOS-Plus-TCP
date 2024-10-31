@@ -1096,7 +1096,7 @@
                     /* Define the ASCII value of the capital "A". */
                     const uint8_t ucCharA = ( uint8_t ) 0x41U;
 
-                    ucByte = ( uint8_t ) ( ( ( pucSource[ 0 ] - ucCharA ) << 4 ) |
+                    ucByte = ( uint8_t ) ( ( ( ( pucSource[ 0 ] - ucCharA ) & 0x0F ) << 4 ) |
                                            ( pucSource[ 1 ] - ucCharA ) );
 
                     /* Make sure there are no trailing spaces in the name. */
