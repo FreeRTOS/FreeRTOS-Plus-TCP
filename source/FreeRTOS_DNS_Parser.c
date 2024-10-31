@@ -47,10 +47,7 @@
 
 #if ( ipconfigUSE_DNS != 0 )
 
-    #if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ||     \
-          ipconfigIS_ENABLED( ipconfigDNS_USE_CALLBACKS ) || \
-          ipconfigIS_ENABLED( ipconfigUSE_MDNS ) ||          \
-          ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
+    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
 
 /**
  * @brief Read the Name field out of a DNS response packet.
@@ -360,11 +357,7 @@
                     }
                     #endif
 
-                    #if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ||     \
-                          ipconfigIS_ENABLED( ipconfigDNS_USE_CALLBACKS ) || \
-                          ipconfigIS_ENABLED( ipconfigUSE_MDNS ) ||          \
-                          ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
-
+                    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
                         if( x == 0U )
                         {
                             uxResult = DNS_ReadNameField( &xSet,

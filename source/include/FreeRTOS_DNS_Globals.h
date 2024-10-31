@@ -190,10 +190,7 @@
             char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
         #endif
 
-        #if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ||     \
-              ipconfigIS_ENABLED( ipconfigDNS_USE_CALLBACKS ) || \
-              ipconfigIS_ENABLED( ipconfigUSE_MDNS ) ||          \
-              ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
+        #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
             BaseType_t xDoStore;                          /**< Becomes true when a DNS reply was requested by this device,
                                                            *   i.e. it has a matching request ID. */
             char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ]; /**< A copy of the name that is mentioned in the questions. */
