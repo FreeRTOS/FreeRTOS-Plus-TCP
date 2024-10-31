@@ -1,6 +1,7 @@
 {
     "ENTRY": "DHCPv6Process",
     "LOOP_UNWIND_COUNT": 4,
+    "ENDPOINT_DNS_ADDRESS_COUNT": 5,
     "CBMCFLAGS":
     [
       "--unwind {LOOP_UNWIND_COUNT}",
@@ -13,7 +14,8 @@
     "DEF":
     [
       "ipconfigUSE_DHCPv6=1",
-      "FR_RECV_FROM_SUCCESS_COUNT={LOOP_UNWIND_COUNT}"
+      "FR_RECV_FROM_SUCCESS_COUNT={LOOP_UNWIND_COUNT}",
+      "ENDPOINT_DNS_ADDRESS_COUNT={ENDPOINT_DNS_ADDRESS_COUNT}"
     ],
     "OBJS":
     [

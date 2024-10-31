@@ -82,6 +82,9 @@ void harness()
     __CPROVER_assume( pxSocket->u.xTCP.uxRxStreamSize >= 0 && pxSocket->u.xTCP.uxRxStreamSize < ipconfigTCP_RX_BUFFER_LENGTH );
     __CPROVER_assume( pxSocket->u.xTCP.uxTxStreamSize >= 0 && pxSocket->u.xTCP.uxTxStreamSize < ipconfigTCP_TX_BUFFER_LENGTH );
 
+    /* ipconfigTCP_MSS is guaranteed not less than tcpMINIMUM_SEGMENT_LENGTH by FreeRTOSIPConfigDefaults.h */
+    __CPROVER_assume( pxSocket->u.xTCP.usMSS >= tcpMINIMUM_SEGMENT_LENGTH );
+
     __CPROVER_assume( ulByteCount > 0U );
     pcData = safeMalloc( ulByteCount );
     __CPROVER_assume( pcData != NULL );

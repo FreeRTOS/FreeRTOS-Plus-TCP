@@ -256,6 +256,8 @@ void harness()
     __CPROVER_assume( pxSocket->u.xTCP.uxRxWinSize >= 0 && pxSocket->u.xTCP.uxRxWinSize <= sizeof( size_t ) );
     /* uxRxWinSize is initialized as uint16_t. This assumption is required to terminate `while(uxWinSize > 0xfffful)` loop.*/
     __CPROVER_assume( pxSocket->u.xTCP.usMSS == sizeof( uint16_t ) );
+    /* ucPeerWinScaleFactor is limited in range [0,14]. */
+    __CPROVER_assume( pxSocket->u.xTCP.ucPeerWinScaleFactor <= tcpTCP_OPT_WSOPT_MAXIMUM_VALUE );
 
     if( xIsCallingFromIPTask() == pdFALSE )
     {
@@ -275,6 +277,7 @@ void harness()
     /* Allocates min. buffer size required for the proof */
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket ) );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+    pxNetworkBuffer->xDataLength = sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket );
 
     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE )
     {
