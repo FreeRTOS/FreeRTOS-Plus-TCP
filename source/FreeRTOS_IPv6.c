@@ -499,9 +499,8 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
         BaseType_t xHasUnspecifiedAddress = pdFALSE;
 
         /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
-         * either in source or destination address. */
-        if( ( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
-            ( memcmp( pxSourceIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+         * in destination address. */
+        if( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 )
         {
             xHasUnspecifiedAddress = pdTRUE;
         }
