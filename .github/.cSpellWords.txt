@@ -936,6 +936,7 @@ Picovolts
 PIDEVAD
 pidr
 PIDR
+PINSEL
 PIOA
 PKHBT
 pkhtb
