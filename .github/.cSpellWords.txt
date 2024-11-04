@@ -89,6 +89,7 @@ BLXNS
 bmcr
 BMSR
 BPDG
+BPIALL
 brgintclr
 brginten
 brgintstat

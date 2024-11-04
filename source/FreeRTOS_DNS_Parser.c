@@ -47,6 +47,7 @@
 
 #if ( ipconfigUSE_DNS != 0 )
 
+    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
 
 /**
  * @brief Read the Name field out of a DNS response packet.
@@ -56,110 +57,111 @@
  *
  * @return If a fully formed name was found, then return the number of bytes processed in pucByte.
  */
-    size_t DNS_ReadNameField( ParseSet_t * pxSet,
-                              size_t uxDestLen )
-    {
-        size_t uxNameLen = 0U;
-        size_t uxIndex = 0U;
-        size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
-        const uint8_t * pucByte = pxSet->pucByte;
-
-        /* uxCount gets the values from pucByte and counts down to 0.
-         * No need to have a different type than that of pucByte */
-        size_t uxCount;
-
-        if( uxSourceLen == ( size_t ) 0U )
+        size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                                  size_t uxDestLen )
         {
-            /* Return 0 value in case of error. */
-            uxIndex = 0U;
-        }
+            size_t uxNameLen = 0U;
+            size_t uxIndex = 0U;
+            size_t uxSourceLen = pxSet->uxSourceBytesRemaining;
+            const uint8_t * pucByte = pxSet->pucByte;
 
-        /* Determine if the name is the fully coded name, or an offset to the name
-         * elsewhere in the message. */
-        else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
-        {
-            /* Jump over the two byte offset. */
-            if( uxSourceLen > sizeof( uint16_t ) )
+            /* uxCount gets the values from pucByte and counts down to 0.
+             * No need to have a different type than that of pucByte */
+            size_t uxCount;
+
+            if( uxSourceLen == ( size_t ) 0U )
             {
-                uxIndex += sizeof( uint16_t );
-            }
-            else
-            {
+                /* Return 0 value in case of error. */
                 uxIndex = 0U;
             }
-        }
-        else
-        {
-            /* 'uxIndex' points to the full name. Walk over the string. */
-            while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) )
+
+            /* Determine if the name is the fully coded name, or an offset to the name
+             * elsewhere in the message. */
+            else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
             {
-                /* If this is not the first time through the loop, then add a
-                 * separator in the output. */
-                if( ( uxNameLen > 0U ) )
+                /* Jump over the two byte offset. */
+                if( uxSourceLen > sizeof( uint16_t ) )
                 {
-                    /*
-                     * uxNameLen can never be greater than uxDestLen, since there are checks
-                     * outside this condition, so the check is removed.
-                     */
-                    pxSet->pcName[ uxNameLen ] = '.';
-                    uxNameLen++;
-                }
-
-                /* Process the first/next sub-string. */
-                uxCount = ( size_t ) pucByte[ uxIndex ];
-
-                /* uxIndex should point to the first character now, unless uxCount
-                 * is an offset field. */
-                uxIndex++;
-
-                if( ( uxIndex + uxCount ) > uxSourceLen )
-                {
-                    uxIndex = 0U;
-                    break;
-                }
-
-                if( ( uxNameLen + uxCount ) >= uxDestLen )
-                {
-                    uxIndex = 0U;
-                    break;
-                }
-
-                while( uxCount-- != 0U )
-                {
-                    /*
-                     * uxNameLen can never be greater than uxDestLen, since there are checks
-                     * outside this condition, so the check is removed.
-                     */
-                    pxSet->pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
-                    uxNameLen++;
-                    uxIndex++;
-                }
-            }
-
-            /* Confirm that a fully formed name was found. */
-            if( uxIndex > 0U )
-            {
-                /* Here, there is no need to check for pucByte[ uxindex ] == 0 because:
-                 * When we break out of the above while loop, uxIndex is made 0 thereby
-                 * failing above check. Whenever we exit the loop otherwise, either
-                 * pucByte[ uxIndex ] == 0 (which makes the check here unnecessary) or
-                 * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
-                 * case).
-                 */
-                if( uxIndex < uxSourceLen )
-                {
-                    pxSet->pcName[ uxNameLen ] = '\0';
-                    uxIndex++;
+                    uxIndex += sizeof( uint16_t );
                 }
                 else
                 {
                     uxIndex = 0U;
                 }
             }
-        }
+            else
+            {
+                /* 'uxIndex' points to the full name. Walk over the string. */
+                while( ( uxIndex < uxSourceLen ) && ( pucByte[ uxIndex ] != ( uint8_t ) 0x00U ) )
+                {
+                    /* If this is not the first time through the loop, then add a
+                     * separator in the output. */
+                    if( ( uxNameLen > 0U ) )
+                    {
+                        /*
+                         * uxNameLen can never be greater than uxDestLen, since there are checks
+                         * outside this condition, so the check is removed.
+                         */
+                        pxSet->pcName[ uxNameLen ] = '.';
+                        uxNameLen++;
+                    }
 
-        return uxIndex;
-    }
+                    /* Process the first/next sub-string. */
+                    uxCount = ( size_t ) pucByte[ uxIndex ];
+
+                    /* uxIndex should point to the first character now, unless uxCount
+                     * is an offset field. */
+                    uxIndex++;
+
+                    if( ( uxIndex + uxCount ) > uxSourceLen )
+                    {
+                        uxIndex = 0U;
+                        break;
+                    }
+
+                    if( ( uxNameLen + uxCount ) >= uxDestLen )
+                    {
+                        uxIndex = 0U;
+                        break;
+                    }
+
+                    while( uxCount-- != 0U )
+                    {
+                        /*
+                         * uxNameLen can never be greater than uxDestLen, since there are checks
+                         * outside this condition, so the check is removed.
+                         */
+                        pxSet->pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
+                        uxNameLen++;
+                        uxIndex++;
+                    }
+                }
+
+                /* Confirm that a fully formed name was found. */
+                if( uxIndex > 0U )
+                {
+                    /* Here, there is no need to check for pucByte[ uxindex ] == 0 because:
+                     * When we break out of the above while loop, uxIndex is made 0 thereby
+                     * failing above check. Whenever we exit the loop otherwise, either
+                     * pucByte[ uxIndex ] == 0 (which makes the check here unnecessary) or
+                     * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
+                     * case).
+                     */
+                    if( uxIndex < uxSourceLen )
+                    {
+                        pxSet->pcName[ uxNameLen ] = '\0';
+                        uxIndex++;
+                    }
+                    else
+                    {
+                        uxIndex = 0U;
+                    }
+                }
+            }
+
+            return uxIndex;
+        }
+    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
 
 /**
  * @brief Simple routine that jumps over the NAME field of a resource record.
@@ -285,7 +287,7 @@
              * for easier access. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             xSet.pxDNSMessageHeader = ( ( DNSMessage_t * )
                                         pucUDPPayloadBuffer );
@@ -355,7 +357,7 @@
                     }
                     #endif
 
-                    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+                    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
                         if( x == 0U )
                         {
                             uxResult = DNS_ReadNameField( &xSet,
@@ -363,7 +365,7 @@
                             ( void ) uxResult;
                         }
                         else
-                    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
+                    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
                     {
                         /* Skip the variable length pcName field. */
                         uxResult = DNS_SkipNameField( xSet.pucByte,
@@ -721,7 +723,7 @@
                  * fields of the structure. */
 
                 /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
 
@@ -874,7 +876,7 @@
                 /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
 
                 /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
 
@@ -1093,7 +1095,7 @@
                     /* Define the ASCII value of the capital "A". */
                     const uint8_t ucCharA = ( uint8_t ) 0x41U;
 
-                    ucByte = ( uint8_t ) ( ( ( pucSource[ 0 ] - ucCharA ) << 4 ) |
+                    ucByte = ( uint8_t ) ( ( ( ( pucSource[ 0 ] - ucCharA ) & 0x0F ) << 4 ) |
                                            ( pucSource[ 1 ] - ucCharA ) );
 
                     /* Make sure there are no trailing spaces in the name. */
