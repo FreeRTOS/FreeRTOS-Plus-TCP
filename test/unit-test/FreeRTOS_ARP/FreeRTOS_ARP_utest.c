@@ -1469,6 +1469,8 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
     xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
@@ -1497,6 +1499,8 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork_InvalidHeader( void )
 
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
@@ -1527,6 +1531,8 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork_IPv6( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
     xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
@@ -1556,6 +1562,8 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
 
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
@@ -1598,6 +1606,8 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
     xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
 
@@ -1620,6 +1630,26 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+/**
+ * @brief Trigger assertion when Ethernet frame type is not IPv6 while calling xCheckRequiresARPResolution.
+ */
+void test_xCheckRequiresARPResolution_AssertInvalidFrameType( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+
+    catch_assert( xCheckRequiresARPResolution( pxNetworkBuffer ) );
+}
 
 void test_ulARPRemoveCacheEntryByMac_NoMatch( void )
 {
