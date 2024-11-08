@@ -944,7 +944,7 @@
             IPStackEvent_t xEventMessage;
             const TickType_t xDontBlock = ( TickType_t ) 0;
 
-            FreeRTOS_printf( ( "Waiting done\n" ) );
+            FreeRTOS_debug_printf( ( "ND resolution waiting done\n" ) );
 
             xEventMessage.eEventType = eNetworkRxEvent;
             xEventMessage.pvData = ( void * ) pxNDWaitingNetworkBuffer;
