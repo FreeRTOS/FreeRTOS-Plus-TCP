@@ -1500,7 +1500,7 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork_InvalidHeader( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipARP_FRAME_TYPE;
 
     xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
