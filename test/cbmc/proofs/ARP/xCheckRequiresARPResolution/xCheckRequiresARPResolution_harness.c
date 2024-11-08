@@ -89,12 +89,10 @@ void harness()
     size_t xBufferLength;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     IPPacket_t * pxIPPacket;
-
-    const IPPacket_t * pxIPPacket;
-    const IPHeader_t * pxIPHeader;
+    IPHeader_t * pxIPHeader;
 
     /* Make sure buffer size is enough, xCheckRequiresARPResolution is only called for
-    IPv4 packets hence the minimum size should be  sizeof( IPPacket_t ) */
+     * IPv4 packets hence the minimum size should be  sizeof( IPPacket_t ) */
     __CPROVER_assume( ( xBufferLength >= sizeof( IPPacket_t ) ) && ( xBufferLength < ipconfigNETWORK_MTU ) );
 
     pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
@@ -106,11 +104,12 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Its asserted in the code that xCheckRequiresARPResolution is only called on IPv4 frame types */
+
     /* See assertion: configASSERT( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) || ( pxIPPacket->xEthernetHeader.usFrameType == ipARP_FRAME_TYPE ) );
-    in xCheckRequiresARPResolution() */
+     * in xCheckRequiresARPResolution() */
     pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    __CPROVER_assume(pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE);
+    __CPROVER_assume( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE );
 
     pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
