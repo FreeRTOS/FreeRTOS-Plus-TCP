@@ -381,7 +381,7 @@
                 else
             #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
             {
-                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_address.ulIP_IPv4, 9999 );
+                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_address.ulIP_IPv4 );
 
                 if( pxEndPoint != NULL )
                 {
