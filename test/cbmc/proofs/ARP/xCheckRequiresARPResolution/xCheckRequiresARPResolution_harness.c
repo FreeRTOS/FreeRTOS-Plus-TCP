@@ -55,11 +55,11 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
 }
 
 /* Abstraction of eNDGetCacheEntry. */
-eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                     MACAddress_t * const pxMACAddress,
-                                     struct xNetworkEndPoint ** ppxEndPoint )
+eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+                                            MACAddress_t * const pxMACAddress,
+                                            struct xNetworkEndPoint ** ppxEndPoint )
 {
-    eARPLookupResult_t xReturn;
+    eResolutionLookupResult_t xReturn;
 
     __CPROVER_assert( __CPROVER_r_ok( pxIPAddress, sizeof( IPv6_Address_t ) ), "pxIPAddress must be readable" );
     __CPROVER_assert( __CPROVER_w_ok( pxMACAddress, sizeof( MACAddress_t ) ), "pxMACAddress must be writeable" );
@@ -89,19 +89,11 @@ void harness()
     size_t xBufferLength;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     IPPacket_t * pxIPPacket;
+    IPHeader_t * pxIPHeader;
 
-    /* IPv4/IPv6 header size are different. To make sure buffer size is enough,
-     * determine the test case is for IPv4 or IPv6 at the beginning. */
-    xIsIPv6 = nondet_bool();
-
-    if( xIsIPv6 )
-    {
-        __CPROVER_assume( ( xBufferLength >= sizeof( IPPacket_IPv6_t ) ) && ( xBufferLength < ipconfigNETWORK_MTU ) );
-    }
-    else
-    {
-        __CPROVER_assume( ( xBufferLength >= sizeof( IPPacket_t ) ) && ( xBufferLength < ipconfigNETWORK_MTU ) );
-    }
+    /* Make sure buffer size is enough, xCheckRequiresARPResolution is only called for
+     * IPv4 packets hence the minimum size should be  sizeof( IPPacket_t ) */
+    __CPROVER_assume( ( xBufferLength >= sizeof( IPPacket_t ) ) && ( xBufferLength < ipconfigNETWORK_MTU ) );
 
     pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
     __CPROVER_assume( pxNetworkBuffer != NULL );
@@ -110,6 +102,14 @@ void harness()
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xBufferLength );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /* Its asserted in the code that xCheckRequiresARPResolution is only called on IPv4 frame types */
+
+    /* See assertion: configASSERT( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) || ( pxIPPacket->xEthernetHeader.usFrameType == ipARP_FRAME_TYPE ) );
+     * in xCheckRequiresARPResolution() */
+    pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    __CPROVER_assume( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE );
 
     pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );

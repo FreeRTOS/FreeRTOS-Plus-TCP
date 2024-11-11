@@ -52,7 +52,6 @@
 #include "FreeRTOS_IP_Private.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
-#include "FreeRTOS_ARP.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
 #include "FreeRTOS_TCP_IP.h"
@@ -66,10 +65,7 @@
 
     static BaseType_t prvTCPMakeSurePrepared( FreeRTOS_Socket_t * pxSocket );
 
-/*
- * Let ARP look-up the MAC-address of the peer and initialise the first SYN
- * packet.
- */
+/* Resolve the MAC-address of the peer and initialise the first SYN packet. */
     static BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t * pxSocket );
 
     #if ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN )
@@ -92,7 +88,7 @@
         {
             if( prvTCPPrepareConnect( pxSocket ) != pdTRUE )
             {
-                /* The preparation of a connection ( ARP resolution ) is not yet ready. */
+                /* The preparation of a connection ( resolution ) is not yet ready. */
                 xReturn = pdFALSE;
             }
         }
@@ -480,8 +476,7 @@
     /*-----------------------------------------------------------*/
 
 /**
- * @brief Let ARP look-up the MAC-address of the peer and initialise the first SYN
- *        packet.
+ * @brief Resolve the MAC-address of the peer and initialise the first SYN packet.
  *
  * @param[in] pxSocket The socket owning the TCP connection. The first packet shall
  *               be created in this socket.
@@ -490,9 +485,9 @@
  *         Else pdFALSE.
  *
  * @note Connecting sockets have a special state: eCONNECT_SYN. In this phase,
- *       the Ethernet address of the target will be found using ARP. In case the
- *       target IP address is not within the netmask, the hardware address of the
- *       gateway will be used.
+ *       the Ethernet address of the target will be found through address resolution.
+ *       In case the target IP address is not within the netmask, the hardware address
+ *       of the gateway will be used.
  */
     static BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t * pxSocket )
     {

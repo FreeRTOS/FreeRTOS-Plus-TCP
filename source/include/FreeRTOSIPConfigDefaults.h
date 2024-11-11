@@ -255,31 +255,6 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * ipconfigND_CACHE_ENTRIES
- *
- * Type: size_t
- * Unit: length of NDCacheRow_t array
- * Minimum: 1
- *
- * Maximum number of entries in the Neighbour Discovery cache of IPv6 addresses
- * & MAC addresses
- */
-
-#ifndef ipconfigND_CACHE_ENTRIES
-    #define ipconfigND_CACHE_ENTRIES    ( 24 )
-#endif
-
-#if ( ipconfigND_CACHE_ENTRIES < 1 )
-    #error ipconfigND_CACHE_ENTRIES must be at least 1
-#endif
-
-#if ( ipconfigND_CACHE_ENTRIES > SIZE_MAX )
-    #error ipconfigND_CACHE_ENTRIES overflows a size_t
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
  * ipconfigUSE_RA
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
@@ -2937,6 +2912,74 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*===========================================================================*/
 /*                                ARP CONFIG                                 */
+/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
+/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
+/*===========================================================================*/
+/*                                ND CONFIG                                  */
+/*===========================================================================*/
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigND_CACHE_ENTRIES
+ *
+ * Type: size_t
+ * Unit: length of NDCacheRow_t array
+ * Minimum: 1
+ *
+ * Maximum number of entries in the Neighbour Discovery cache of IPv6 addresses
+ * & MAC addresses
+ */
+
+#ifndef ipconfigND_CACHE_ENTRIES
+    #define ipconfigND_CACHE_ENTRIES    ( 24 )
+#endif
+
+#if ( ipconfigND_CACHE_ENTRIES < 1 )
+    #error ipconfigND_CACHE_ENTRIES must be at least 1
+#endif
+
+#if ( ipconfigND_CACHE_ENTRIES > SIZE_MAX )
+    #error ipconfigND_CACHE_ENTRIES overflows a size_t
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigMAX_ND_AGE
+ *
+ * Type: uint8_t
+ * Unit: decaseconds
+ * Minimum: 0
+ *
+ * Defines the maximum time between an entry in the ND table being created or
+ * refreshed and the entry being removed because it is stale. New ND requests
+ * are sent for ND cache entries that are nearing their maximum age.
+ * The maximum age of an entry in the ND cache table can be
+ * calculated as 'ipND_TIMER_PERIOD_MS' x 'ipconfigMAX_ND_AGE'.
+ *
+ * Units are derived from ipND_TIMER_PERIOD_MS, which is 10000 ms or 10 sec.
+ * So, a value of 150 is equal to 1500 seconds.
+ */
+
+#ifndef ipconfigMAX_ND_AGE
+    #define ipconfigMAX_ND_AGE    ( 150 )
+#endif
+
+#if ( ipconfigMAX_ND_AGE < 0 )
+    #error ipconfigMAX_ND_AGE must be at least 0
+#endif
+
+#if ( ipconfigMAX_ND_AGE > UINT8_MAX )
+    #error ipconfigMAX_ND_AGE overflows a uint8_t
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*===========================================================================*/
+/*                                ND CONFIG                                  */
 /*===========================================================================*/
 /*---------------------------------------------------------------------------*/
 /*===========================================================================*/

@@ -24,18 +24,18 @@
  *
  * @note Look for ulIPAddress in the ND cache.  If the IP address exists, copy the
  * associated MAC address into pxMACAddress, refresh the ND cache entry's
- * age, and return eARPCacheHit.  If the IP address does not exist in the ND
- * cache return eARPCacheMiss.  If the packet cannot be sent for any reason
+ * age, and return eResolutionCacheHit.  If the IP address does not exist in the ND
+ * cache return eResolutionCacheMiss.  If the packet cannot be sent for any reason
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
- * isn't a gateway defined) then return eCantSendPacket.
+ * isn't a gateway defined) then return eResolutionFailed.
  */
-eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                     MACAddress_t * const pxMACAddress,
-                                     struct xNetworkEndPoint ** ppxEndPoint )
+eResolutionLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+                                            MACAddress_t * const pxMACAddress,
+                                            struct xNetworkEndPoint ** ppxEndPoint )
 {
     memset( pxMACAddress, 0, sizeof( MACAddress_t ) );
 
-    return eARPCacheHit;
+    return eResolutionCacheHit;
 }
 
 /**

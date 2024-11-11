@@ -42,12 +42,14 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
     return xIsExtensionHeader( ucProtocol );
 }
 
-BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xReturn;
 
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ), "Data in pxNetworkBuffer must be readable" );
+
+    return xReturn;
 }
 
 void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,

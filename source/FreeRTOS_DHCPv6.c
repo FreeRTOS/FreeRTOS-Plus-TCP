@@ -50,16 +50,11 @@
 #include "FreeRTOS_DHCPv6.h"
 #include "FreeRTOS_DNS.h"
 #include "NetworkBufferManagement.h"
-#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_IP_Timers.h"
-
 #include "FreeRTOS_BitConfig.h"
-
 #include "FreeRTOS_Routing.h"
-
-#include "FreeRTOS_ND.h"
 
 /* Timer parameters */
 #ifndef dhcpINITIAL_DHCP_TX_PERIOD
@@ -531,7 +526,7 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 
     /* DHCP failed, the default configured IP-address will be used
      * Now call vIPNetworkUpCalls() to send the network-up event and
-     * start the ARP timer. */
+     * start the Address Resolution timer. */
     vIPNetworkUpCalls( pxEndPoint );
 }
 /*-----------------------------------------------------------*/
@@ -823,8 +818,8 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
             prvCloseDHCPv6Socket( pxEndPoint );
 
             /* DHCP failed, the default configured IP-address will be used. Now
-             * call vIPNetworkUpCalls() to send the network-up event and start the ARP
-             * timer. */
+             * call vIPNetworkUpCalls() to send the network-up event and start the
+             * Address Resolution timer. */
             vIPNetworkUpCalls( pxEndPoint );
         }
     }

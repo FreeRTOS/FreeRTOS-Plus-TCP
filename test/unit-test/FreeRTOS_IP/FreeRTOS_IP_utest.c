@@ -492,6 +492,7 @@ void test_prvIPTask( void )
     /* In prvIPTask_Initialise. */
     vTCPTimerReload_ExpectAnyArgs();
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
+    vIPSetNDResolutionTimerEnableState_Expect( pdFALSE );
     vDNSInitialise_Ignore();
     FreeRTOS_dnsclear_Ignore();
 
@@ -533,6 +534,7 @@ void test_prvIPTask_NetworkDown( void )
     /* In prvIPTask_Initialise. */
     vTCPTimerReload_ExpectAnyArgs();
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
+    vIPSetNDResolutionTimerEnableState_Expect( pdFALSE );
     vDNSInitialise_Ignore();
     FreeRTOS_dnsclear_Ignore();
 
@@ -731,7 +733,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_NullEndPoint( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eARPTimerEvent
- * Check if prvProcessIPEventsAndTimers() updates the cache for ARP/ND when timeout event triggered.
+ * Check if prvProcessIPEventsAndTimers() updates the cache for ARP when timeout event triggered.
  */
 void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
 {
@@ -746,6 +748,26 @@ void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     vARPAgeCache_Expect();
+
+    prvProcessIPEventsAndTimers();
+}
+
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eNDTimerEvent
+ * Check if prvProcessIPEventsAndTimers() updates the cache for ND when timeout event triggered.
+ */
+void test_prvProcessIPEventsAndTimers_eNDTimerEvent( void )
+{
+    IPStackEvent_t xReceivedEvent;
+
+    xReceivedEvent.eEventType = eNDTimerEvent;
+    xReceivedEvent.pvData = NULL;
+
+    /* prvProcessIPEventsAndTimers */
+    vCheckNetworkTimers_Expect();
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
     vNDAgeCache_Expect();
 
     prvProcessIPEventsAndTimers();
@@ -2116,7 +2138,7 @@ void test_prvProcessEthernetPacket_ARPFrameType2( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingResolution
  * without pxARPWaitingNetworkBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
@@ -2141,7 +2163,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
 
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingARPResolution );
+    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingResolution );
 
     vIPTimerStartARPResolution_ExpectAnyArgs();
 
@@ -2150,7 +2172,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingResolution
  * with pxARPWaitingNetworkBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
@@ -2175,7 +2197,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
 
     pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
-    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingARPResolution );
+    eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingResolution );
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
@@ -2365,6 +2387,122 @@ void test_prvProcessEthernetPacket_InterfaceNull( void )
     prvProcessEthernetPacket( pxNetworkBuffer );
 }
 
+/**
+ * @brief test_prvProcessEthernetPacket_IPv4FrameType_NeedARPResolution
+ * To validate the flow to handle IPv4 packets and it needs ARP resolution.
+ * But we already have one ARP packet pending so that buffer got released
+ * at the end.
+ */
+void test_prvProcessEthernetPacket_IPv4FrameType_NeedARPResolution( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_t * pxIPPacket;
+    IPHeader_t * pxIPHeader;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS - ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer + ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
+
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxARPWaitingNetworkBuffer = ( NetworkBufferDescriptor_t * ) 0x1234ABCD;
+
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+/**
+ * @brief test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution
+ * To validate the flow to handle IPv4 packets and it needs ND resolution.
+ * But we already have one ND packet pending so that buffer got released
+ * at the end.
+ */
+void test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_IPv6_t * pxIPv6Packet;
+    IPHeader_IPv6_t * pxIPv6Header;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS - ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer + ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    pxIPv6Packet = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPv6Header = &( pxIPv6Packet->xIPHeader );
+    pxIPv6Header->ucNextHeader = ipPROTOCOL_TCP;
+
+    pxNDWaitingNetworkBuffer = ( NetworkBufferDescriptor_t * ) 0x1234ABCD;
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPv6Header, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0, -1 );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+/**
+ * @brief test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution2
+ * To validate the flow to handle IPv6 packets and it needs ND resolution.
+ * And we don't have any pending ND packet.
+ */
+void test_prvProcessEthernetPacket_IPv6FrameType_NeedNDResolution2( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_IPv6_t * pxIPv6Packet;
+    IPHeader_IPv6_t * pxIPv6Header;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS - ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer + ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    pxIPv6Packet = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPv6Header = &( pxIPv6Packet->xIPHeader );
+    pxIPv6Header->ucNextHeader = ipPROTOCOL_TCP;
+
+    pxNDWaitingNetworkBuffer = NULL;
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPv6Header, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0, -1 );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    vIPTimerStartNDResolution_ExpectAnyArgs();
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL_PTR( pxNetworkBuffer, pxNDWaitingNetworkBuffer );
+}
 
 /**
  * @brief test_prvProcessIPPacket_HeaderLengthSmaller
@@ -2485,11 +2623,11 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
 }
 
 /**
@@ -2523,7 +2661,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2562,7 +2700,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     ProcessICMPPacket_ExpectAndReturn( pxNetworkBuffer, eReleaseBuffer );
 
@@ -2602,7 +2740,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPProcess( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     ProcessICMPPacket_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
@@ -2825,12 +2963,12 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
-    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
-    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
+    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForResolution();
+    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForResolution( &xReturnValue );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) - sizeof( UDPHeader_t ) + sizeof( UDPPacket_t ), pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
@@ -2876,12 +3014,12 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
-    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
-    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
+    xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForResolution();
+    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForResolution( &xReturnValue );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
 }
@@ -2919,7 +3057,7 @@ void test_prvProcessIPPacket_TCP( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdPASS );
 
@@ -2962,7 +3100,7 @@ void test_prvProcessIPPacket_TCPProcessFail( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdFAIL );
 
@@ -3306,7 +3444,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
     xProcessReceivedTCPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
@@ -3356,11 +3494,11 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
     eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+    TEST_ASSERT_EQUAL( eWaitingResolution, eResult );
 }
 
 /**
@@ -3403,7 +3541,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_ICMP_IPv6, 0U, 0 );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
     prvProcessICMPMessage_IPv6_ExpectAnyArgsAndReturn( eReleaseBuffer );
 
@@ -4232,7 +4370,15 @@ static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
-    vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+
+    if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        vNDTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+    }
+    else
+    {
+        vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+    }
 
     vIPNetworkUpCalls( &xEndPoint );
 

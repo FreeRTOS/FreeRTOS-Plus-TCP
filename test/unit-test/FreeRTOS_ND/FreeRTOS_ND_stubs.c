@@ -14,10 +14,10 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-/** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
+/** @brief The pointer to buffer with packet waiting for ND resolution. This variable
  *  is defined in FreeRTOS_IP.c.
  *  This pointer is for internal use only. */
-NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+NetworkBufferDescriptor_t * pxNDWaitingNetworkBuffer;
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 

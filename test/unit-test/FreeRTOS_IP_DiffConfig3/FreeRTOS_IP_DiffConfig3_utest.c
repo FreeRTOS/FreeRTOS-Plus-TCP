@@ -46,6 +46,8 @@
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_DHCPv6.h"
+#include "mock_NetworkBufferManagement.h"
+#include "mock_FreeRTOS_Routing.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -83,6 +85,14 @@ void tearDown( void )
 }
 
 /* ======================== Stub Callback Functions ========================= */
+
+eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    ( void ) ( pxNetworkBuffer );
+
+    /* Force hook function to return waiting resultion for unknown Ethernet frame type. */
+    return eWaitingResolution;
+}
 
 /* ============================== Test Cases ============================== */
 
@@ -178,4 +188,61 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent_RA( void )
     vRAProcess_Expect( pdFALSE, pxEndPoints );
 
     prvProcessIPEventsAndTimers();
+}
+
+/**
+ * @brief test_prvProcessEthernetPacket_UnknownFrameType_NeedResolution
+ * But we release the network buffer because the frame type is unknown.
+ */
+void test_prvProcessEthernetPacket_UnknownFrameType_NeedResolution( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_IPv6_t * pxIPv6Packet;
+    IPHeader_IPv6_t * pxIPv6Header;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = 0xFFFF;
+
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+/**
+ * @brief test_prvProcessEthernetPacket_UnknownFrameType_NeedResolution
+ * But we release the network buffer because the frame type is unknown.
+ */
+void test_prvProcessEthernetPacket_IPv4FrameType_CheckFrameFail( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ] = { 0 };
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_IPv6_t * pxIPv6Packet;
+    IPHeader_IPv6_t * pxIPv6Header;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
+
+    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxEthernetHeader->xDestinationAddress, NULL, NULL );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
 }

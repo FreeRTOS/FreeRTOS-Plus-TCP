@@ -97,7 +97,7 @@ void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
 BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket );
 
 /*
- * Let ARP look-up the MAC-address of the peer and initialise the first SYN
+ * Let ND look-up the MAC-address of the peer and initialise the first SYN
  * packet.
  */
 BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket );
