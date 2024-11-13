@@ -352,6 +352,62 @@ void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Join an IPv6 multicast group.
+ *
+ * @param[in] pxEndPoint The end-point that wants to join the multicast group.
+ * @param[in] pxAddress The IPv6 multicast address to join.
+ */
+void vJoinMulticastGroup( const struct xNetworkEndPoint * pxEndPoint,
+                          const IPv6_Address_t * pxAddress )
+{
+    MACAddress_t xMACAddress;
+
+    configASSERT( pxEndPoint != NULL );
+    configASSERT( pxEndPoint->pxNetworkInterface != NULL );
+
+    /* Calculate the multicast MAC that corresponds to the IPv6 address. */
+    vSetMultiCastIPv6MacAddress( pxAddress, &xMACAddress );
+
+    /* Update the network driver filter */
+    if( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL )
+    {
+        pxEndPoint->pxNetworkInterface->pfAddAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
+    }
+
+    /* Send MLDv1 report for the multicast address. */
+    vSendMLDv1Report( pxEndPoint, pxAddress );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Leave an IPv6 multicast group.
+ *
+ * @param[in] pxEndPoint The end-point that wants to leave the multicast group.
+ * @param[in] pxAddress The IPv6 multicast address to leave.
+ */
+void vLeaveMulticastGroup( const struct xNetworkEndPoint * pxEndPoint,
+                           const IPv6_Address_t * pxAddress )
+{
+    MACAddress_t xMACAddress;
+
+    configASSERT( pxEndPoint != NULL );
+    configASSERT( pxEndPoint->pxNetworkInterface != NULL );
+
+    /* Calculate the multicast MAC that corresponds to the IPv6 address. */
+    vSetMultiCastIPv6MacAddress( pxAddress, &xMACAddress );
+
+    /* Update the network driver filter */
+    if( pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC != NULL )
+    {
+        pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
+    }
+
+    /* Send MLDv1 done message for the multicast address. */
+    vSendMLDv1Done( pxEndPoint, pxAddress );
+}
+/*-----------------------------------------------------------*/
+
 /* *INDENT-OFF* */
 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /* *INDENT-ON* */

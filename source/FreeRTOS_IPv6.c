@@ -716,6 +716,34 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Send an MLDv1 report for the given multicast address.
+ *
+ * @param[in] pxEndPoint The end-point that wants to send the MLDv1 report.
+ * @param[in] pxAddress The IPv6 multicast address to report.
+ */
+void vSendMLDv1Report( const struct xNetworkEndPoint * pxEndPoint,
+                       const IPv6_Address_t * pxAddress )
+{
+    /* Implementation of MLDv1 report sending. */
+}
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Send an MLDv1 done message for the given multicast address.
+ *
+ * @param[in] pxEndPoint The end-point that wants to send the MLDv1 done message.
+ * @param[in] pxAddress The IPv6 multicast address to report.
+ */
+void vSendMLDv1Done( const struct xNetworkEndPoint * pxEndPoint,
+                     const IPv6_Address_t * pxAddress )
+{
+    /* Implementation of MLDv1 done message sending. */
+}
+
+/*-----------------------------------------------------------*/
+
 /* *INDENT-OFF* */
 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /* *INDENT-ON* */

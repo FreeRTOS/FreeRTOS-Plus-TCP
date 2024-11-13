@@ -125,6 +125,13 @@ uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
 BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
                                uint8_t ucNextHeader );
 
+/* MLDv1 group management function declarations */
+void vSendMLDv1Report( const struct xNetworkEndPoint * pxEndPoint,
+                       const IPv6_Address_t * pxAddress );
+
+void vSendMLDv1Done( const struct xNetworkEndPoint * pxEndPoint,
+                     const IPv6_Address_t * pxAddress );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
