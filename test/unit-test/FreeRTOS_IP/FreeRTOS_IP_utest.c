@@ -174,7 +174,6 @@ void test_vIPNetworkUpCalls( void )
     xEndPoint.bits.bIPv6 = pdFALSE;
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
-    vDNSInitialise_Expect();
     vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
 
     vIPNetworkUpCalls( &xEndPoint );
@@ -4369,7 +4368,6 @@ static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
     }
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
-    vDNSInitialise_Expect();
 
     if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
     {

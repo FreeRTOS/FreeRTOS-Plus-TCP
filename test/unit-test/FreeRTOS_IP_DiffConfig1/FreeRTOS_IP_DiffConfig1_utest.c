@@ -420,7 +420,6 @@ void test_vIPNetworkUpCalls_BackwardCompatible( void )
     NetworkEndPoint_t xEndPoint = { 0 };
 
     vApplicationIPNetworkEventHook_Expect( eNetworkUp );
-    vDNSInitialise_Expect();
     vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
 
     vIPNetworkUpCalls( &xEndPoint );

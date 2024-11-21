@@ -670,15 +670,6 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
     #endif
     #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
 
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-    {
-        /* The following function is declared in FreeRTOS_DNS.c and 'private' to
-         * this library */
-        extern void vDNSInitialise( void );
-        vDNSInitialise();
-    }
-    #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
-
     /* Set remaining time to 0 so it will become active immediately. */
     if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
     {
