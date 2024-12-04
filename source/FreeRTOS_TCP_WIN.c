@@ -1905,7 +1905,7 @@
             int32_t lWeight = 0;
             int32_t lDivisor = 0;
 
-            mS = mS < 0 ? ipINT32_MAX_VALUE : mS;
+            mS = ( mS < 0 ) ? ipINT32_MAX_VALUE : mS;
 
             if( pxWindow->lSRTT >= mS )
             {

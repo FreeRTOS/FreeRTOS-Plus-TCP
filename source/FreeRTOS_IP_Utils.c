@@ -1717,11 +1717,11 @@ int32_t FreeRTOS_add_int32( int32_t a,
 {
     int32_t ret;
 
-    if( ( a > 0 ) && ( b > ipINT32_MAX_VALUE - a ) )
+    if( ( a > 0 ) && ( b > ( ipINT32_MAX_VALUE - a ) ) )
     {
         ret = ipINT32_MAX_VALUE; /* Positive overflow */
     }
-    else if( ( a < 0 ) && ( b < ipINT32_MIN_VALUE - a ) )
+    else if( ( a < 0 ) && ( b < ( ipINT32_MIN_VALUE - a ) ) )
     {
         ret = ipINT32_MIN_VALUE; /* Negative underflow */
     }
@@ -1748,11 +1748,11 @@ int32_t FreeRTOS_multiply_int32( int32_t a,
     /* Check for overflow/underflow */
     if( a > 0 )
     {
-        if( ( b > 0 ) && ( a > ipINT32_MAX_VALUE / b ) )
+        if( ( b > 0 ) && ( a > ( ipINT32_MAX_VALUE / b ) ) )
         {
             ret = ipINT32_MAX_VALUE; /* Positive overflow */
         }
-        else if( ( b < 0 ) && ( b < ipINT32_MIN_VALUE / a ) )
+        else if( ( b < 0 ) && ( b < ( ipINT32_MIN_VALUE / a ) ) )
         {
             ret = ipINT32_MIN_VALUE; /* Negative underflow */
         }
@@ -1763,11 +1763,11 @@ int32_t FreeRTOS_multiply_int32( int32_t a,
     }
     else
     {
-        if( ( b > 0 ) && ( a < ipINT32_MIN_VALUE / b ) )
+        if( ( b > 0 ) && ( a < ( ipINT32_MIN_VALUE / b ) ) )
         {
             ret = ipINT32_MIN_VALUE; /* Negative underflow */
         }
-        else if( ( b < 0 ) && ( a < ipINT32_MAX_VALUE / b ) )
+        else if( ( b < 0 ) && ( a < ( ipINT32_MAX_VALUE / b ) ) )
         {
             ret = ipINT32_MAX_VALUE; /* Positive overflow */
         }
