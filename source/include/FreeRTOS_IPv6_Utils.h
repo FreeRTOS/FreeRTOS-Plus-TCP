@@ -69,6 +69,14 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
 void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
                                   BaseType_t xNetworkGoingUp );
 
+/* Declare vJoinMulticastGroup function */
+void vJoinMulticastGroup( const struct xNetworkEndPoint * pxEndPoint,
+                          const IPv6_Address_t * pxAddress );
+
+/* Declare vLeaveMulticastGroup function */
+void vLeaveMulticastGroup( const struct xNetworkEndPoint * pxEndPoint,
+                           const IPv6_Address_t * pxAddress );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
