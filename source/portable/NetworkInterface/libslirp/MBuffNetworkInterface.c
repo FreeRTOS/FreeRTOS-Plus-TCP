@@ -77,6 +77,9 @@ extern void vMBuffNetifBackendDeInit( void * pvBackendContext );
 
 static void vNetifReceiveTask( void * pvParameters );
 
+extern NetworkInterface_t * pxLibslirp_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                         NetworkInterface_t * pxInterface );
+
 /**
  * @brief Initialize the MessageBuffer backed network interface.
  *
@@ -380,6 +383,21 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxNetif )
 
     return xResult;
 }
+
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        return pxLibslirp_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif
 
 NetworkInterface_t * pxLibslirp_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                          NetworkInterface_t * pxInterface )
