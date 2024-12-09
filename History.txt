@@ -2,7 +2,7 @@ Documentation and download available at https://www.FreeRTOS.org/
 
 Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	+ Fix TCP RX sequence number when handling refusal of FIN packets.
-	+ Fix unicast packets being sent over inactive endpoints. We thanks 
+	+ Fix unicast packets being sent over inactive endpoints. We thank
 	  @AlfaSegato for this contribution.
 	+ Fix the initialization of the DNS callback list every time there is a 
 	  Network-UP event. We thank @evpopov for this contribution.
