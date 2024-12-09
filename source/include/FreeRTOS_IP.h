@@ -44,11 +44,11 @@
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-#define ipFR_TCP_VERSION_NUMBER    "V4.2.999"
+#define ipFR_TCP_VERSION_NUMBER    "V4.3.0"
 #define ipFR_TCP_VERSION_MAJOR     4
-#define ipFR_TCP_VERSION_MINOR     2
+#define ipFR_TCP_VERSION_MINOR     3
 /* Development builds are always version 999. */
-#define ipFR_TCP_VERSION_BUILD     999
+#define ipFR_TCP_VERSION_BUILD     0
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
