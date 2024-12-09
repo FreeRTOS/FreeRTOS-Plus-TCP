@@ -78,7 +78,7 @@ extern void vMBuffNetifBackendDeInit( void * pvBackendContext );
 static void vNetifReceiveTask( void * pvParameters );
 
 extern NetworkInterface_t * pxLibslirp_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface );
+                                                                NetworkInterface_t * pxInterface );
 
 /**
  * @brief Initialize the MessageBuffer backed network interface.
