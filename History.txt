@@ -5,7 +5,7 @@ Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	+ Fix unicast packets being sent over inactive endpoints. We thank
 	  @AlfaSegato for their contribution.
 	+ Fix the initialization of the DNS callback list every time there is a
-	  Network-UP event. We thank @evpopov for this contribution.
+	  Network-UP event. We thank @evpopov for their contribution.
 	+ Full ARP/ND build level separation.
 	  We thank @HTRamsey for this contribution.
 	+ Update the `eARPGetCacheEntry` to handle loopback addresses correctly
