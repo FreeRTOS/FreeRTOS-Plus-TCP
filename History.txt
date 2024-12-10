@@ -14,34 +14,34 @@ Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	+ Replace the costly `vTaskSuspendAll`/`xTaskResumeAll` locking
 	  mechanism with the more efficient `taskENTER_CRITICAL`/`taskEXIT_CRITICAL`
 	  pair in frequenly used `uxStreamBufferAdd()`.
-	  We thank @lzungri for this contribution.
+	  We thank @lzungri for their contribution.
 	+ Improve frame filtering by expanding the checks in
 	  eConsiderFrameForProcessing to drop invalid frames earlier.
-	  We thank @HTRamsey for this contribution.
+	  We thank @HTRamsey for their contribution.
 	+ Fix reception of multicast custom Ethernet frames, where custom multicast
-	  frames were filtered out. We thank @evpopov for this contribution.
+	  frames were filtered out. We thank @evpopov for their contribution.
 	+ Update the Zynq Ultrascale port to support the V4.x.x version of
-	  FreeRTOS+TCP. We thank @StefanBalt and @pete-pjb for this contribution.
+	  FreeRTOS+TCP. We thank @StefanBalt and @pete-pjb for their contribution.
 	+ New unified STM32 network interface for STM32 F4/F7/H5/H7.
 	  We thank @HTRamsey for their contribution.
 	+ Fix ATSAME5x network interface related to incorrect detection of ICMP.
-	  We thank @cruxic for this contribution.
+	  We thank @cruxic for their contribution.
 	+ Update Renesas portable layer for backward compatibility.
-	  We thank @xuan97z1 for this contribution.
+	  We thank @xuan97z1 for their contribution.
 	+ Replace any missing functions by assert-false in all CBMC proofs to
-	  improve tests. We thank @tautschnig for this contribution.
+	  improve tests. We thank @tautschnig for their contribution.
 	+ Add ipconfigEMAC_TASK_HOOK macro to allow for a configurable
-	  watchdog timer for STMH7xx MCUs. We thank @kzorer for this contribution.
+	  watchdog timer for STMH7xx MCUs. We thank @kzorer for their contribution.
 	+ Improve CMake to allow usage of `FetchContent` in external projects.
-	  We thank @nicovanduijn for this contribution.
+	  We thank @nicovanduijn for their contribution.
 	+ Add warning logs if the TCP stream buffer or window properties
-	  are changed. We thank @evpopov for this contribution.
+	  are changed. We thank @evpopov for their contribution.
 	+ Remove unused `ipconfigHAS_ROUTING_STATISTICS` macro.
-	  We thank @HTRamsey for this contribution.
+	  We thank @HTRamsey for their contribution.
 	+ Fix MISRA 2012 violations with the latest version of
 	  MISRA evalution tools.
 	+ Adjust CBMC proof tooling to support CBMC v6.
-	  We thank @tautschnig for this contribution.
+	  We thank @tautschnig for their contribution.
 
 Changes between FreeRTOS-plus-TCP V4.2.2 and V4.2.1 released July 12, 2024:
 	+ Update version information in public header file
