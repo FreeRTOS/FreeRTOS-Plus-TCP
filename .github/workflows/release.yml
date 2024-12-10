@@ -30,6 +30,19 @@ jobs:
           VERSION_NUMBER: ${{ github.event.inputs.version_number }}
           COMMIT_ID: ${{ github.event.inputs.commit_id }}
         run: git checkout -b "$VERSION_NUMBER" "$COMMIT_ID"
+      - name: Update version number in source files
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          source_folder_list: "source test"
+        run: |
+            echo "${{ env.source_folder_list }}" | \
+            xargs -n 1 sh -c \
+            'find $1 -type f \( -name "*.c" -o -name "*.h" \) \
+            -exec sed -i -b -E "0,/^ \* FreeRTOS\+TCP/s/^ \* FreeRTOS\+TCP.*/ \* FreeRTOS\+TCP $VERSION_NUMBER/g" {} +'
+            git add .
+            git commit -m '[AUTO][RELEASE]: Update version number in source files'
+            git push -u origin "$VERSION_NUMBER"
       - name: Generate SBOM
         uses: FreeRTOS/CI-CD-Github-Actions/sbom-generator@main
         with:
