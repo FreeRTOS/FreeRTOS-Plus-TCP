@@ -10,7 +10,7 @@ Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	  We thank @HTRamsey for their contribution.
 	+ Update the `eARPGetCacheEntry` to handle loopback addresses correctly
 	  and assign the loopback endpoint's MAC address as the lookup MAC address.
-	  We thank @htibosch for this contribution.
+	  We thank @htibosch for their contribution.
 	+ Replace the costly `vTaskSuspendAll`/`xTaskResumeAll` locking
 	  mechanism with the more efficient `taskENTER_CRITICAL`/`taskEXIT_CRITICAL`
 	  pair in frequenly used `uxStreamBufferAdd()`.
