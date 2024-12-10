@@ -44,10 +44,10 @@ Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	  We thank @tautschnig for their contribution.
 
 Changes between FreeRTOS-plus-TCP V4.2.2 and V4.2.1 released July 12, 2024:
-	+ Update version information in public header file
+	+ Update version information in public header file which were not present earlier.
 
 Changes between FreeRTOS-plus-TCP V4.2.1 and V4.2.0 released June 27, 2024:
-	+ Update version information in source files.
+	+ Update version information in source files which were not present earlier.
 
 Changes between FreeRTOS-plus-TCP V4.2.0 and V4.1.0 released June 24, 2024
     + It was possible for a carefully crafted DNS response with domain name
