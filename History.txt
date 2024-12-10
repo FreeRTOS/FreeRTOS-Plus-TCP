@@ -7,7 +7,7 @@ Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	+ Fix the initialization of the DNS callback list every time there is a
 	  Network-UP event. We thank @evpopov for their contribution.
 	+ Full ARP/ND build level separation.
-	  We thank @HTRamsey for this contribution.
+	  We thank @HTRamsey for their contribution.
 	+ Update the `eARPGetCacheEntry` to handle loopback addresses correctly
 	  and assign the loopback endpoint's MAC address as the lookup MAC address.
 	  We thank @htibosch for this contribution.
