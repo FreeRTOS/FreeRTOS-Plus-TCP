@@ -23,7 +23,7 @@ Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	+ Update the Zynq Ultrascale port to support the V4.x.x version of
 	  FreeRTOS+TCP. We thank @StefanBalt and @pete-pjb for this contribution.
 	+ New unified STM32 network interface for STM32 F4/F7/H5/H7.
-	  We thank @HTRamsey for this contribution.
+	  We thank @HTRamsey for their contribution.
 	+ Fix ATSAME5x network interface related to incorrect detection of ICMP.
 	  We thank @cruxic for this contribution.
 	+ Update Renesas portable layer for backward compatibility.
