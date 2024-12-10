@@ -34,7 +34,7 @@ Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
 	  watchdog timer for STMH7xx MCUs. We thank @kzorer for this contribution.
 	+ Improve CMake to allow usage of `FetchContent` in external projects.
 	  We thank @nicovanduijn for this contribution.
-	+ Adds warning logs if the TCP stream buffer or window properties
+	+ Add warning logs if the TCP stream buffer or window properties
 	  are changed. We thank @evpopov for this contribution.
 	+ Remove unused `ipconfigHAS_ROUTING_STATISTICS` macro.
 	  We thank @HTRamsey for this contribution.
