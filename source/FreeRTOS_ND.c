@@ -828,6 +828,7 @@
                     ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     /* Let vProcessGeneratedUDPPacket() know that this is an ICMP packet. */
                     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+                    pxNetworkBuffer->ucMaximumHops = ipconfigICMP_TIME_TO_LIVE;
                     /* 'uxPacketLength' is initialised due to the flow of the program. */
                     pxNetworkBuffer->xDataLength = uxPacketLength;
 
@@ -1160,6 +1161,26 @@
                             vReceiveRA( pxNetworkBuffer );
                             break;
                     #endif /* ( ipconfigUSE_RA != 0 ) */
+
+                    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                        case ipICMP_MULTICAST_LISTENER_QUERY:
+                        case ipICMP_MULTICAST_LISTENER_REPORT_V1:
+                        case ipICMP_MULTICAST_LISTENER_REPORT_V2:
+
+                            /* Note: prvProcessIPPacket() stripped the extension headers, so this packet struct is defined without them and they cannot be checked.
+                             * per RFC, MLD packets must use the RouterAlert option in a Hop By Hop extension header. */
+                            /* All MLD packets are at least as large as a v1 query packet. */
+                            uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_ICMPv6_HEADER );
+
+                            if( uxNeededSize > pxNetworkBuffer->xDataLength )
+                            {
+                                FreeRTOS_printf( ( "Too small\n" ) );
+                                break;
+                            }
+
+                            vProcessMLDPacket( pxNetworkBuffer );
+                            break;
+                    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
                 default:
                     /* All possible values are included here above. */
