@@ -22,6 +22,13 @@ Also see the [Submitting a bugs/feature request](https://github.com/FreeRTOS/Fre
 
 **Note:** All the remaining sections are generic and applies to all the versions from V3.0.0 onwards.
 
+## Upgrading to V4.3.0 and above
+
+For users of STM32 network interfaces:
+
+Starting from version V4.3.0, the STM32 network interfaces have been consolidated into a single unified implementation located at `source/portable/NetworkInterface/STM32/NetworkInterface.c`, supporting STM32 F4, F7, and H7 series microcontrollers, with newly added support for STM32 H5. The new interface has been tested with the STM32 HAL Ethernet (ETH) drivers, available at `source/portable/NetworkInterface/STM32/Drivers`. For compatibility, the legacy interfaces (`STM32Fxx` and `STM32Hxx`) have been retained and relocated to `source/portable/NetworkInterface/STM32/Legacy`.
+
+
 ## Upgrading to V3.0.0 and V3.1.0
 In version 3.0.0 or 3.1.0, the folder structure of FreeRTOS-Plus-TCP has changed and the files have been broken down into smaller logically separated modules. This change makes the code more modular and conducive to unit-tests. FreeRTOS-Plus-TCP V3.0.0 improves the robustness, security, and modularity of the library. Version 3.0.0 adds comprehensive unit test coverage for all lines and branches of code and has undergone protocol testing, and penetration testing by AWS Security to reduce the exposure to security vulnerabilities. Additionally, the source files have been moved to a `source` directory. This change requires modification of any existing project(s) to include the modified source files and directories.
 
