@@ -1,6 +1,10 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
-Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024
+Changes between FreeRTOS-plus-TCP V4.3.1 and V4.3.0 released December 16, 2024:
+	+ Update README.md with information related to migrating to V4.3.0 and above
+	  for users utilising the STM32 network interface.
+
+Changes between FreeRTOS-plus-TCP V4.3.0 and V4.2.2 released December 10, 2024:
 	+ Fix TCP RX sequence number when handling refusal of FIN packets.
 	+ Fix unicast packets being sent over inactive endpoints. We thank
 	  @AlfaSegato for their contribution.
