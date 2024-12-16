@@ -59,6 +59,9 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_Routing.h"
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    #include "FreeRTOS_IGMP.h"
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
 /** @brief Time delay between repeated attempts to initialise the network hardware. */
 #ifndef ipINITIALISATION_RETRY_DELAY
@@ -477,6 +480,20 @@ static void prvProcessIPEventsAndTimers( void )
             /* xQueueReceive() returned because of a normal time-out. */
             break;
 
+            #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                case eSocketOptAddMembership:
+                case eSocketOptDropMembership:
+                   {
+                       MulticastAction_t * pxMCA = ( MulticastAction_t * ) xReceivedEvent.pvData;
+                       vModifyMulticastMembership( pxMCA, xReceivedEvent.eEventType );
+                       break;
+                   }
+
+                case eMulticastTimerEvent:
+                    vIPMulticast_HandleTimerEvent();
+                    break;
+            #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
         default:
             /* Should not get here. */
             break;
@@ -542,6 +559,11 @@ static void prvIPTask_Initialise( void )
         FreeRTOS_dnsclear();
     }
     #endif /* ( ( ipconfigUSE_DNS_CACHE != 0 ) && ( ipconfigUSE_DNS != 0 ) ) */
+
+    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+        /* Init the list that will hold scheduled IGMP reports. */
+        ( void ) vIPMulticast_Init();
+    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
     /* Initialisation is complete and events can now be processed. */
     xIPTaskInitialised = pdTRUE;
@@ -655,6 +677,16 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
             vManageSolicitedNodeAddress( pxEndPoint, pdTRUE );
         #endif
     }
+
+    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+        /* Reschedule all multicast reports associated with this end-point.
+         * Note: countdown is in increments of ipIGMP_TIMER_PERIOD_MS. It's a good idea to spread out all reports a little.
+         * 200 to 500ms ( xMaxCountdown of 2 - 5 ) should be a good happy medium. If the network we just connected to has a IGMP/MLD querier,
+         * they will soon ask us for reports anyways, so sending these unsolicited reports is not required. It simply enhances the user
+         * experience by shortening the time it takes before we begin receiving the multicasts that we care for. */
+        vRescheduleAllMulticastReports( pxEndPoint->pxNetworkInterface, 5 );
+    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
@@ -1347,6 +1379,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
                 pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = FREERTOS_SO_UDPCKSUM_OUT;
                 pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
                 pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+                pxNetworkBuffer->ucMaximumHops = ipconfigICMP_TIME_TO_LIVE;
                 /* xDataLength is the size of the total packet, including the Ethernet header. */
                 pxNetworkBuffer->xDataLength = uxTotalLength;
 
@@ -2146,6 +2179,13 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                             eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) && ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                        case ipPROTOCOL_IGMP:
+                            /* The IP packet contained an IGMP frame.  */
+                            eReturn = eProcessIGMPPacket( pxNetworkBuffer );
+                            break;
+                    #endif /* ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) && ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) ) */
 
                     case ipPROTOCOL_UDP:
                         /* The IP packet contained a UDP frame. */
