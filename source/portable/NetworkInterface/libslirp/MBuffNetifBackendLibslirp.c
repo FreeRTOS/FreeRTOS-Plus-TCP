@@ -661,16 +661,13 @@ static THREAD_RETURN THREAD_FUNC_DEF vTransmitThread( void * pvParameters )
 
         while( xMessageBufferIsEmpty( pxCtx->xSendMsgBuffer ) == pdFALSE )
         {
-            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-            size_t uxFrameLen = xMessageBufferReceiveFromISR( pxCtx->xSendMsgBuffer, ucFrameSendBuffer, sizeof( ucFrameSendBuffer ), &xHigherPriorityTaskWoken );
+            size_t uxFrameLen = xMessageBufferReceiveFromISR( pxCtx->xSendMsgBuffer, ucFrameSendBuffer, sizeof( ucFrameSendBuffer ), NULL );
 
             vLockSlirpContext( pxCtx );
             {
                 slirp_input( pxCtx->pxSlirp, ucFrameSendBuffer, uxFrameLen );
             }
             vUnlockSlirpContext( pxCtx );
-
-            portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
         }
     }
 
