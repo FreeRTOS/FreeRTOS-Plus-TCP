@@ -414,6 +414,7 @@ static slirp_ssize_t xSlirp_WriteCallback( const void * pvBuffer,
                                            void * pvOpaque )
 {
     SlirpBackendContext_t * pxCtx = ( SlirpBackendContext_t * ) pvOpaque;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     if( uxLen > ( NETWORK_BUFFER_LEN ) )
     {
@@ -431,12 +432,14 @@ static slirp_ssize_t xSlirp_WriteCallback( const void * pvBuffer,
     {
         size_t uxBytesSent;
 
-        uxBytesSent = xMessageBufferSend( pxCtx->xRecvMsgBuffer,
-                                          pvBuffer,
-                                          uxLen,
-                                          0 );
+        uxBytesSent = xMessageBufferSendFromISR( pxCtx->xRecvMsgBuffer,
+                                                 pvBuffer,
+                                                 uxLen,
+                                                 &xHigherPriorityTaskWoken );
 
         configASSERT( uxBytesSent == uxLen );
+
+        portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
     }
 
     return 0U;
@@ -658,13 +661,16 @@ static THREAD_RETURN THREAD_FUNC_DEF vTransmitThread( void * pvParameters )
 
         while( xMessageBufferIsEmpty( pxCtx->xSendMsgBuffer ) == pdFALSE )
         {
-            size_t uxFrameLen = xMessageBufferReceive( pxCtx->xSendMsgBuffer, ucFrameSendBuffer, sizeof( ucFrameSendBuffer ), 0 );
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            size_t uxFrameLen = xMessageBufferReceiveFromISR( pxCtx->xSendMsgBuffer, ucFrameSendBuffer, sizeof( ucFrameSendBuffer ), &xHigherPriorityTaskWoken );
 
             vLockSlirpContext( pxCtx );
             {
                 slirp_input( pxCtx->pxSlirp, ucFrameSendBuffer, uxFrameLen );
             }
             vUnlockSlirpContext( pxCtx );
+
+            portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
         }
     }
 
