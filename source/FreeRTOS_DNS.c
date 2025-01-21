@@ -806,7 +806,14 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
         uxExpectedPayloadLength = sizeof( DNSMessage_t ) +
                                   strlen( pcHostName ) +
                                   sizeof( uint16_t ) +
-                                  sizeof( uint16_t ) + 2U;
+                                  sizeof( uint16_t ) + 
+                                  2U; /* Accounts for the extra length fields 
+                                  used while encoding the domain name being 
+                                  queried into sequence of labels 
+                                  (2 - length of the first label and ending NULL 
+                                  byte; rest of the length fields placed in 
+                                  the location of ASCII_BASELINE_DOT of the 
+                                  respective labels). */
 
         /* Get a buffer.  This uses a maximum delay, but the delay will be
          * capped to ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS so the return value
@@ -1504,8 +1511,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
         uxIndex = uxStart + 1U;
 
         /* Copy in the host name. */
-        ( void ) strncpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName, strlen( pcHostName ) + 1U );
-
+        ( void ) strcpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName );
+        
         /* Walk through the string to replace the '.' characters with byte
          * counts.  pucStart holds the address of the byte count.  Walking the
          * string starts after the byte count position. */

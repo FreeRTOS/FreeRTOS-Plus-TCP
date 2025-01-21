@@ -112,6 +112,7 @@ target_compile_options(freertos_plus_tcp
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wpedantic>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wconversion>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wunused-variable>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wstringop-overflow=2>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
 
     # Suppressions required to build clean with clang.
