@@ -208,6 +208,32 @@ jobs:
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
       - env:
+          stepName: Build checks (Enable all functionalities with compiler optimization (speed) enabled)
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL -DCMAKE_C_FLAGS="-O3"
+          cmake --build build --target freertos_plus_tcp_build_test
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Enable all functionalities with compiler optimization (size) enabled)
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL -DCMAKE_C_FLAGS="-Os"
+          cmake --build build --target freertos_plus_tcp_build_test
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
           stepName: Build checks (Enable all functionalities IPv4)
         name: ${{ env.stepName }}
         run: |
