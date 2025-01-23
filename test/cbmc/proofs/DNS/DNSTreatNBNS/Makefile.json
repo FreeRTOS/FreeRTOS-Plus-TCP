@@ -9,7 +9,7 @@
     "--unwindset prvFindEntryIndex.0:2",
     "--unwindset strcmp.0:{NBNS_NAME_MAX_LENGTH}",
     "--unwindset strlen.0:{NBNS_NAME_MAX_LENGTH}",
-    "--unwindset strncpy.0:{NBNS_NAME_MAX_LENGTH}"
+    "--unwindset strcpy.0:{NBNS_NAME_MAX_LENGTH}"
   ],
   "OBJS":
   [
@@ -26,3 +26,4 @@
     "ipconfigUSE_NBNS=1"
   ]
 }
+
