@@ -15,7 +15,7 @@ env:
 
 jobs:
   unittest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Clone This Repo
         uses: actions/checkout@v4
@@ -139,7 +139,7 @@ jobs:
           exclude-dirs: source/portable/NetworkInterface/STM32
 
   doxygen:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
       - name: Run doxygen build
