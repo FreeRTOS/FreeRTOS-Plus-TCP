@@ -258,8 +258,6 @@ struct xPacketSummary
     uint16_t usProtocolBytes;              /**< The total length of the protocol data. */
 };
 
-#define ipBROADCAST_IP_ADDRESS               0xffffffffU
-
 /* Offset into the Ethernet frame that is used to temporarily store information
  * on the fragmentation status of the packet being sent.  The value is important,
  * as it is past the location into which the destination address will get placed. */

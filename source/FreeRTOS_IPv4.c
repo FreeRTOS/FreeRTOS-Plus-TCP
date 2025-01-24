@@ -211,6 +211,66 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Checks if the IP address matches the global 255.255.255.255 broadcast address or
+ * the broadcast address for any of our IPv4 endpoints.
+ *
+ * @param[in] ulIPAddress The IP address being checked.
+ *
+ * @param[out] ppxEndPoint Pointer to an end-point where we store the endpoint whose broadcast address we matched. Or NULL if no IPv4 endpoints were found.
+ *
+ * @return pdTRUE if the IP address is a broadcast address or else, pdFALSE.
+ */
+BaseType_t xIsIPv4Broadcast( uint32_t ulIPAddress,
+                             struct xNetworkEndPoint ** ppxEndPoint )
+{
+    BaseType_t xIsBroadcast;
+    uint32_t ulEndPointBroadcast;
+    NetworkEndPoint_t * pxEndPoint;
+
+    /* Assign a default answer based on the "global" broadcast.	 This way
+     * we can still return the correct result even if there are no endpoints. */
+    xIsBroadcast = ( ulIPAddress == FREERTOS_INADDR_BROADCAST ) ? pdTRUE : pdFALSE;
+
+    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+         pxEndPoint != NULL;
+         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+    {
+        #if ( ipconfigUSE_IPv6 == ipconfigENABLE )
+            /* Skip over any IPv6 endpoints. */
+            if( pxEndPoint->bits.bIPv6 == pdTRUE )
+            {
+                continue;
+            }
+        #endif /* ( ipconfigUSE_IPv6 == ipconfigENABLE ) */
+
+        /* If we already know if ulIPAddress is a broadcast,
+         * simply return this first matching IPv4 endpoint. */
+        if( xIsBroadcast == pdTRUE )
+        {
+            break;
+        }
+        else if( ulIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress )
+        {
+            xIsBroadcast = pdTRUE;
+            break;
+        }
+    }
+
+    /* If the caller wants to know the corresponding endpoint, copy the result.
+     * Note that this may be null if ulIPAddress is 255.255.255.255 AND there are
+     * no IPv4 endpoints.
+     * Also, when ulIPAddress is 255.255.255.255, we will
+     * return the first IPv4 endpoint that we run across. */
+    if( xIsBroadcast && ( ppxEndPoint != NULL ) )
+    {
+        *ppxEndPoint = pxEndPoint;
+    }
+
+    return xIsBroadcast;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Check if the packet is an illegal loopback packet.
  *
  * @param[in] pxIPHeader The IP-header being checked.
@@ -284,9 +344,11 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
     {
         /* In systems with a very small amount of RAM, it might be advantageous
          * to have incoming messages checked earlier, by the network card driver.
-         * This method may decrease the usage of sparse network buffers. */
+         * This method may decrease the usage of scarce network buffers. */
         uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
         uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
+        /* Get a reference to the endpoint that the packet was assigned to during pxEasyFit() */
+        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
         /* Ensure that the incoming packet is not fragmented because the stack
          * doesn't not support IP fragmentation. All but the last fragment coming in will have their
@@ -318,16 +380,20 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
             }
         }
         else if(
-            ( FreeRTOS_FindEndPointOnIP_IPv4( ulDestinationIPAddress ) == NULL ) &&
-            /* Is it an IPv4 broadcast address x.x.x.255 ? */
-            ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) &&
+            /* Not destined for the assigned endpoint IPv4 address? */
+            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulIPAddress ) &&
+            /* Also not an IPv4 broadcast address ? */
+            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) &&
+            ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) &&
+            /* And not an IPv4 multicast address ? */
             ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) )
         {
             /* Packet is not for this node, release it */
             eReturn = eReleaseBuffer;
         }
         /* Is the source address correct? */
-        else if( ( FreeRTOS_ntohl( ulSourceIPAddress ) & 0xffU ) == 0xffU )
+        else if( ( ulSourceIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ||
+                 ( ulSourceIPAddress == FREERTOS_INADDR_BROADCAST ) )
         {
             /* The source address cannot be broadcast address. Replying to this
              * packet may cause network storms. Drop the packet. */
@@ -336,7 +402,7 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
         else if( ( memcmp( xBroadcastMACAddress.ucBytes,
                            pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
                            sizeof( MACAddress_t ) ) == 0 ) &&
-                 ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) )
+                 ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) && ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) )
         {
             /* Ethernet address is a broadcast address, but the IP address is not a
              * broadcast address. */
