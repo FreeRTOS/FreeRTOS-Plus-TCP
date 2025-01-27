@@ -213,7 +213,7 @@ jobs:
         run: |
           # ${{ env.stepName }}
           echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
-
+          gcc --version
           cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL -DCMAKE_C_FLAGS="-O3"
           cmake --build build --target freertos_plus_tcp_build_test
 
