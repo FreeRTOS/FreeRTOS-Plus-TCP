@@ -3185,7 +3185,7 @@ void test_vSocketSelect_UDPSocketsOnly( void )
     xSocket4.pxSocketSet = &xSocketSet;
 
     /* Round 0. Not same socket set. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundUDPSocketsList ), &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     /* Round 1. Same socket set. No select bits. */
@@ -3210,7 +3210,7 @@ void test_vSocketSelect_UDPSocketsOnly( void )
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
     /* Last item. Nothing in TCP. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundTCPSocketsList ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
     xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, 0 );
 
@@ -3249,10 +3249,10 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     xSocket[ 0 ].ucProtocol = FREERTOS_IPPROTO_TCP;
 
     /* Last item. Nothing in UDP. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundUDPSocketsList ), ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
     /* Round 0. Not same socket set. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundTCPSocketsList ), &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[ 0 ] );
 
     /* Round 1. Same socket set. No bits Set. */
@@ -3354,10 +3354,10 @@ void test_vSocketSelect_NoSocketsAtAll( void )
     uint8_t ucStream[ 20 ];
 
     /* Last item. Nothing in UDP. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundUDPSocketsList ), ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
     /* Last item. Nothing in TCP. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundTCPSocketsList ),  ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
     xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, eSELECT_READ );
     xEventGroupClearBits_ExpectAnyArgsAndReturn( pdPASS );
