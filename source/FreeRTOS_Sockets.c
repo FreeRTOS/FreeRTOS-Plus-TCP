@@ -2285,7 +2285,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
         if( pxSocketToDelete->u.xTCP.eTCPState == eTCP_LISTEN )
         {
-            pxIterator = listGET_NEXT( pxEnd );
+            pxIterator = listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
 
             while( pxIterator != pxEnd )
             {
@@ -2309,7 +2309,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            for( pxIterator = listGET_NEXT( pxEnd );
+            for( pxIterator = listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {
@@ -3054,7 +3054,7 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
-        for( pxIterator = listGET_NEXT( pxEnd );
+        for( pxIterator = listGET_HEAD_ENTRY( pxList );
              pxIterator != pxEnd;
              pxIterator = listGET_NEXT( pxIterator ) )
         {
@@ -4961,7 +4961,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         ( void ) ulLocalIP;
 
-        for( pxIterator = listGET_NEXT( pxEnd );
+        for( pxIterator = listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
              pxIterator != pxEnd;
              pxIterator = listGET_NEXT( pxIterator ) )
         {
@@ -6085,6 +6085,7 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
         {
             const ListItem_t * pxIterator;
             const ListItem_t * pxEnd;
+            const List_t * pxList;
 
             if( xRound == 0 )
             {
@@ -6092,6 +6093,7 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxEnd = ( ( const ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
+                pxList = &xBoundUDPSocketsList;
             }
 
             #if ipconfigUSE_TCP == 1
@@ -6101,10 +6103,11 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+                    pxList = &xBoundTCPSocketsList;
                 }
             #endif /* ipconfigUSE_TCP == 1 */
 
-            for( pxIterator = listGET_NEXT( pxEnd );
+            for( pxIterator = listGET_HEAD_ENTRY( pxList );
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {

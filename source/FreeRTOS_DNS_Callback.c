@@ -58,7 +58,7 @@
     {
         BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
-        const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
+        const ListItem_t * pxEnd = listGET_END_MARKER( &xCallbackList );
         TickType_t uxIdentifier = ( TickType_t ) pxSet->pxDNSMessageHeader->usIdentifier;
 
         /* While iterating through the list, the scheduler is suspended.
@@ -69,8 +69,8 @@
 
         vTaskSuspendAll();
         {
-            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
-                 pxIterator != ( const ListItem_t * ) xEnd;
+            for( pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xCallbackList );
+                 pxIterator != ( const ListItem_t * ) pxEnd;
                  pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator ) )
             {
                 BaseType_t xMatching;
@@ -194,7 +194,7 @@
     void vDNSCheckCallBack( void * pvSearchID )
     {
         const ListItem_t * pxIterator;
-        const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
+        const ListItem_t * pxEnd = listGET_END_MARKER( &xCallbackList );
 
         /* When a DNS-search times out, the call-back function shall
          * be called. Store theses item in a temporary list.
@@ -206,8 +206,8 @@
 
         vTaskSuspendAll();
         {
-            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
-                 pxIterator != xEnd; )
+            for( pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xCallbackList );
+                 pxIterator != pxEnd; )
             {
                 DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                 /* Move to the next item because we might remove this item */
@@ -239,10 +239,10 @@
         if( listLIST_IS_EMPTY( &xTempList ) == pdFALSE )
         {
             /* There is at least one item in xTempList which must be removed and deleted. */
-            xEnd = listGET_END_MARKER( &xTempList );
+            pxEnd = listGET_END_MARKER( &xTempList );
 
-            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
-                 pxIterator != xEnd;
+            for( pxIterator = ( const ListItem_t * ) listGET_HEAD_ENTRY( &xTempList );
+                 pxIterator != pxEnd;
                  )
             {
                 DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
