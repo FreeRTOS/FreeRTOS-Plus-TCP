@@ -3054,7 +3054,7 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( pxList->xListEnd ) );
 
-        for( pxIterator = listGET_HEAD_ENTRY( ( const List_t * ) pxList );
+        for( pxIterator = listGET_HEAD_ENTRY( pxList );
              pxIterator != pxEnd;
              pxIterator = listGET_NEXT( pxIterator ) )
         {
@@ -6107,7 +6107,7 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
                 }
             #endif /* ipconfigUSE_TCP == 1 */
 
-            for( pxIterator = listGET_HEAD_ENTRY( ( const List_t * ) pxList );
+            for( pxIterator = listGET_HEAD_ENTRY( pxList );
                  pxIterator != pxEnd;
                  pxIterator = listGET_NEXT( pxIterator ) )
             {

@@ -2,7 +2,7 @@
   "ENTRY": "DNS_TreatNBNS",
   "USE_CACHE":1,
   "NBNS_NAME_MAX_LENGTH":17,
-  "DNS_CACHE_NAME_LENGTH": 254,
+  "DNS_CACHE_NAME_LENGTH": 255,
   "CBMCFLAGS":
   [
   	"--unwind 1",
