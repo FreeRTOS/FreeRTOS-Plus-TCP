@@ -1429,17 +1429,21 @@ struct xIPv6_Couple
 
                 if( xIPCouples[ xIndex ].eType == eIPv6_Loopback )
                 {
+                    /* Checking for the loopback address requires an explicit full-length test */
                     if( xIsIPv6Loopback( pxAddress ) != pdFALSE )
                     {
                         eResult = eIPv6_Loopback;
                         break;
                     }
                 }
-
-                if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+                else if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
                 {
                     eResult = xIPCouples[ xIndex ].eType;
                     break;
+                }
+                else
+                {
+                    /* Keep on checking... */
                 }
             }
         }
