@@ -2,6 +2,7 @@
   "ENTRY": "DNS_TreatNBNS",
   "USE_CACHE":1,
   "NBNS_NAME_MAX_LENGTH":17,
+  "DNS_CACHE_NAME_LENGTH": 255,
   "CBMCFLAGS":
   [
   	"--unwind 1",
@@ -9,7 +10,7 @@
     "--unwindset prvFindEntryIndex.0:2",
     "--unwindset strcmp.0:{NBNS_NAME_MAX_LENGTH}",
     "--unwindset strlen.0:{NBNS_NAME_MAX_LENGTH}",
-    "--unwindset strncpy.0:{NBNS_NAME_MAX_LENGTH}"
+    "--unwindset strncpy.0:{DNS_CACHE_NAME_LENGTH}"
   ],
   "OBJS":
   [

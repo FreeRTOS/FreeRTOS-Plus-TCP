@@ -7,7 +7,7 @@
   [
     "--unwind 1",
     "--unwindset strlen.0:{HOSTNAME_UNWIND}",
-    "--unwindset strncpy.0:{HOSTNAME_UNWIND}",
+    "--unwindset strcpy.0:{HOSTNAME_UNWIND}",
     "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.0:{HOSTNAME_UNWIND}",
     "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.1:{HOSTNAME_UNWIND}",
     "--nondet-static"

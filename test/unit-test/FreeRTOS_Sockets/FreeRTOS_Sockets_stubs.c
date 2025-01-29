@@ -98,7 +98,7 @@ static void vpxListFindListItemWithValue_Found( const List_t * pxList,
 {
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) ( pxList ), ( ListItem_t * ) pxReturn );
 
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
 }
