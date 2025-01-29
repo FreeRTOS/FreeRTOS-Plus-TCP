@@ -118,7 +118,7 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
     listGET_LIST_ITEM_OWNER_IgnoreAndReturn( ( DNSCallback_t * ) 1234 );
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 ); /* xEnd */
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
     listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 12345 );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
@@ -149,7 +149,7 @@ void test_xDNSDoCallback_success_equal_identifier( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
 
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
@@ -183,7 +183,7 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
     /* Expectations */
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
@@ -224,7 +224,7 @@ void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
     /* Expectations */
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( pxDnsCallback );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
@@ -264,7 +264,7 @@ void test_xDNSDoCallback_fail_equal_port_number_not_equal_name( void )
     /* Expectations */
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
@@ -367,7 +367,7 @@ void test_vDNSCheckCallback_success_search_id_not_null( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
     vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
     uxListRemove_ExpectAnyArgsAndReturn( pdFALSE );
@@ -395,7 +395,7 @@ void test_vDNSCheckCallback_success_search_id_not_null_list_empty( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
     vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
     uxListRemove_ExpectAnyArgsAndReturn( pdFALSE );
@@ -422,7 +422,7 @@ void test_vDNSCheckCallback_success_search_id_null( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
     vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
 
@@ -454,7 +454,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
     vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
 
@@ -466,7 +466,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout( void )
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
@@ -498,7 +498,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout_IPv6( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
     vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
 
@@ -510,7 +510,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout_IPv6( void )
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
@@ -542,7 +542,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
     vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
 
@@ -554,7 +554,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2( void )
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
@@ -586,7 +586,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2_IPv6( void )
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
     vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
 
@@ -598,7 +598,7 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2_IPv6( void )
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
     listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
