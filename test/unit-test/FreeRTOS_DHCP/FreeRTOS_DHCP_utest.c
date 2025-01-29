@@ -4695,7 +4695,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress2( void )
     prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SUBNET_MASK_OPTION_CODE, ulSubnetMask );
     prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_GATEWAY_OPTION_CODE, ulGateway );
     prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_LEASE_TIME_OPTION_CODE, ulLeaseTime );
-    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_DNS_SERVER_OPTIONS_CODE, ipBROADCAST_IP_ADDRESS );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_DNS_SERVER_OPTIONS_CODE, FREERTOS_INADDR_BROADCAST );
 
     *DHCPOption++ = 0xFF;
     TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, xTotalLength );

@@ -2154,7 +2154,7 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     struct xNetworkEndPoint * pxEndPoint, xEndPoint;
 
     /* =================================================== */
-    ulIPAddress = FreeRTOS_ntohl( ipBROADCAST_IP_ADDRESS );
+    ulIPAddress = FreeRTOS_ntohl( FREERTOS_INADDR_BROADCAST );
     /* Not worried about what these functions do. */
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
     xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );

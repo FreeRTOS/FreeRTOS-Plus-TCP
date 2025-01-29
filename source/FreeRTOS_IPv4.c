@@ -224,7 +224,6 @@ BaseType_t xIsIPv4Broadcast( uint32_t ulIPAddress,
                              struct xNetworkEndPoint ** ppxEndPoint )
 {
     BaseType_t xIsBroadcast;
-    uint32_t ulEndPointBroadcast;
     NetworkEndPoint_t * pxEndPoint;
 
     /* Assign a default answer based on the "global" broadcast.	 This way
