@@ -440,7 +440,7 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                             if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
                             {
                                 FreeRTOS_printf( ( "prvAllowIPPacket: UDP packet from %lxip without CRC dropped\n",
-                                                   FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
+                                                   ( unsigned long ) FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
                                 xCount++;
                             }
                         }
