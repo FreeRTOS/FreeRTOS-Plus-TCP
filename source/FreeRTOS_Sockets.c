@@ -52,7 +52,9 @@
 #include "FreeRTOS_DNS.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
-
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    #include "FreeRTOS_IGMP.h"
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
     #include "tcp_mem_stats.h"
 #endif
@@ -368,6 +370,15 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
 /** @brief A helper function of vTCPNetStat(), see below. */
     static void vTCPNetStat_TCPSocket( const FreeRTOS_Socket_t * pxSocket );
 #endif
+
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    static BaseType_t prvSetOptionMulticast( Socket_t xSocket,
+                                             int32_t lLevel,
+                                             int32_t lOptionName,
+                                             const void * pvOptionValue,
+                                             size_t uxOptionLength );
+    static void prvDropMulticastMembership( FreeRTOS_Socket_t * pxSocket );
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
 /*-----------------------------------------------------------*/
 
@@ -737,6 +748,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                     pxSocket->u.xUDP.uxMaxPackets = ( UBaseType_t ) ipconfigUDP_MAX_RX_PACKETS;
                 }
                 #endif /* ipconfigUDP_MAX_RX_PACKETS > 0 */
+
+                #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                    pxSocket->u.xUDP.ucMulticastMaxHops = ipconfigMULTICAST_DEFAULT_TTL;
+                    memset( &( pxSocket->u.xUDP.xMulticastAddress ), 0, sizeof( pxSocket->u.xUDP.xMulticastAddress ) );
+                #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
             }
 
             #if ( ipconfigUSE_TCP == 1 )
@@ -1412,12 +1428,38 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
         #if ( ipconfigUSE_IPv6 != 0 )
             case FREERTOS_AF_INET6:
                 ( void ) xSend_UDP_Update_IPv6( pxNetworkBuffer, pxDestinationAddress );
+                #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                    /* _EP_ Verify if using xIsIPv6AllowedMulticast is appropriate or if we need to check for any multicast */
+                    if( xIsIPv6AllowedMulticast( &( pxDestinationAddress->sin_address.xIP_IPv6 ) ) )
+                    {
+                        /* Sending a multicast, so use whatever outgoing multicast HopLimit value was configured. */
+                        pxNetworkBuffer->ucMaximumHops = ( uint8_t ) pxSocket->u.xUDP.ucMulticastMaxHops;
+                    }
+                    else
+                #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+                {
+                    /* If multicasts are not enabled or if the destination is an unicast, use the default TTL value. */
+                    pxNetworkBuffer->ucMaximumHops = ipconfigUDP_TIME_TO_LIVE;
+                }
                 break;
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         #if ( ipconfigUSE_IPv4 != 0 )
             case FREERTOS_AF_INET4:
                 ( void ) xSend_UDP_Update_IPv4( pxNetworkBuffer, pxDestinationAddress );
+
+                #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                    if( xIsIPv4Multicast( pxDestinationAddress->sin_address.ulIP_IPv4 ) )
+                    {
+                        /* Sending a multicast, so use whatever outgoing multicast TTL value was configured. */
+                        pxNetworkBuffer->ucMaximumHops = ( uint8_t ) pxSocket->u.xUDP.ucMulticastMaxHops;
+                    }
+                    else
+                #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+                {
+                    /* If multicasts are not enabled or if the destination is an unicast, use the default TTL value. */
+                    pxNetworkBuffer->ucMaximumHops = ipconfigUDP_TIME_TO_LIVE;
+                }
                 break;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -2139,6 +2181,13 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         }
         #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
     }
+
+    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+        if( pxSocket->ucProtocol == ipPROTOCOL_UDP )
+        {
+            prvDropMulticastMembership( pxSocket );
+        }
+    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
     /* Now the socket is not bound the list of waiting packets can be
      * drained. */
@@ -2947,6 +2996,14 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         xReturn = prvSetOptionStopRX( pxSocket, pvOptionValue );
                         break;
                 #endif /* ipconfigUSE_TCP == 1 */
+
+                #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                    case FREERTOS_SO_IP_MULTICAST_TTL:
+                    case FREERTOS_SO_IP_ADD_MEMBERSHIP:
+                    case FREERTOS_SO_IP_DROP_MEMBERSHIP:
+                        xReturn = prvSetOptionMulticast( xSocket, lLevel, lOptionName, pvOptionValue, uxOptionLength );
+                        break;
+                #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
             default:
                 /* No other options are handled. */
@@ -6358,3 +6415,491 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
 
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 #endif /* 0 */
+
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+/**
+ * @brief Set the multicast-specific socket options for the given socket.
+ * This is an internal function that should only get called from
+ * FreeRTOS_setsockopt() in an attempt to keep the FreeRTOS_setsockopt()
+ * function clean.
+ *
+ * @param[in] xSocket: The socket for which the options are to be set.
+ * @param[in] lLevel: Not used. Parameter is used to maintain the Berkeley sockets
+ *                    standard.
+ * @param[in] lOptionName: The name of the option to be set.
+ * @param[in] pvOptionValue: The value of the option to be set.
+ * @param[in] uxOptionLength: Not used. Parameter is used to maintain the Berkeley
+ *                            sockets standard.
+ *
+ * @return If the option can be set with the given value, then 0 is returned. Else,
+ *         an error code is returned.
+ */
+    static BaseType_t prvSetOptionMulticast( Socket_t xSocket,
+                                             int32_t lLevel,
+                                             int32_t lOptionName,
+                                             const void * pvOptionValue,
+                                             size_t uxOptionLength )
+    {
+        BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
+        FreeRTOS_Socket_t * pxSocket;
+
+        pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+
+        /* The function prototype is designed to maintain the expected Berkeley
+         * sockets standard, but this implementation does not use all the parameters. */
+        ( void ) lLevel;
+
+        if( ( pxSocket == NULL ) || ( pxSocket == FREERTOS_INVALID_SOCKET ) || ( pxSocket->ucProtocol != ipPROTOCOL_UDP ) || ( pvOptionValue == NULL ) )
+        {
+            xReturn = -pdFREERTOS_ERRNO_EINVAL;
+            return xReturn;
+        }
+
+        switch( lOptionName )
+        {
+            case FREERTOS_SO_IP_MULTICAST_TTL:
+
+                if( ( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_UDP ) ||
+                    ( uxOptionLength != sizeof( uint8_t ) ) )
+                {
+                    break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                }
+
+                /* Set the new TTL/HOPS value. */
+                pxSocket->u.xUDP.ucMulticastMaxHops = *( ( uint8_t * ) pvOptionValue );
+
+                xReturn = pdFREERTOS_ERRNO_NONE;
+                break;
+
+            case FREERTOS_SO_IP_ADD_MEMBERSHIP:
+               {
+                   IP_MReq_t * pxMReq = ( IP_MReq_t * ) pvOptionValue;
+                   IPStackEvent_t xSockOptsEvent = { eSocketOptAddMembership, NULL };
+
+                   if( ( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_UDP ) ||
+                       ( uxOptionLength != sizeof( IP_MReq_t ) ) )
+                   {
+                       break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                   }
+
+                   if( pxSocket->bits.bIsIPv6 == pdTRUE )
+                   {
+                       #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                           if( pdFALSE == xIsIPv6AllowedMulticast( &( pxMReq->xMulticastGroup.xIP_IPv6 ) ) )
+                           {
+                               /* Invalid multicast group address */
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
+                       #else
+                           break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                       #endif
+                   }
+                   else
+                   {
+                       #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                           if( pdFALSE == xIsIPv4Multicast( pxMReq->xMulticastGroup.ulIP_IPv4 ) )
+                           {
+                               /* Invalid multicast group address */
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
+                       #else
+                           break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                       #endif
+                   }
+
+                   /* Check if the interface is pointer to valid network interface or NULL */
+                   if( pxMReq->pxMulticastNetIf != NULL )
+                   {
+                       NetworkInterface_t * pxNetIf;
+
+                       for( pxNetIf = FreeRTOS_FirstNetworkInterface(); pxNetIf != NULL; pxNetIf = pxNetIf->pxNext )
+                       {
+                           if( pxNetIf == pxMReq->pxMulticastNetIf )
+                           {
+                               break;
+                           }
+                       }
+
+                       if( pxNetIf == NULL )
+                       {
+                           /* No matching interface found */
+                           break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                       }
+                   }
+
+                   /* From here on down, pxMReq->pxMulticastNetIf is either NULL or a pointer to a valid interface */
+
+                   /* Allocate some RAM to remember what the user code is requesting */
+                   MulticastAction_t * pxMCA = ( MulticastAction_t * ) pvPortMalloc( sizeof( MulticastAction_t ) );
+                   MCastReportData_t * pxMRD = ( MCastReportData_t * ) pvPortMalloc( sizeof( MCastReportData_t ) );
+
+                   if( NULL == pxMCA )
+                   {
+                       xReturn = -pdFREERTOS_ERRNO_ENOMEM;
+                       break;
+                   }
+
+                   if( NULL == pxMRD )
+                   {
+                       xReturn = -pdFREERTOS_ERRNO_ENOMEM;
+                       vPortFree( pxMCA );
+                       pxMCA = NULL;
+                       break;
+                   }
+
+                   pxMCA->pxSocket = pxSocket;
+                   pxMCA->pxInterface = pxMReq->pxMulticastNetIf;
+
+                   /* Store the multicast address in the action and report structs.
+                    * Note: multicast report fields like xNumSockets and xCountDown don't need to be initialized. They will
+                    * be set to their proper values if this reports is added to the global list. */
+                   if( pxSocket->bits.bIsIPv6 == pdTRUE )
+                   {
+                       memcpy( pxMCA->xMulticastGroup.xIP_IPv6.ucBytes, pxMReq->xMulticastGroup.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                       memcpy( pxMRD->xMCastGroupAddress.xIPAddress.xIP_IPv6.ucBytes, pxMReq->xMulticastGroup.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                   }
+                   else
+                   {
+                       pxMCA->xMulticastGroup.ulIP_IPv4 = pxMReq->xMulticastGroup.ulIP_IPv4;
+                       pxMRD->xMCastGroupAddress.xIPAddress.ulIP_IPv4 = pxMReq->xMulticastGroup.ulIP_IPv4;
+                   }
+
+                   /* There is no direct link between a multicast report and the socket(s) that require it.
+                    * Store the IP version information in the report so the timer event knows whether to send an IGMP or MLD report. */
+                   pxMRD->xMCastGroupAddress.xIs_IPv6 = pxSocket->bits.bIsIPv6;
+                   listSET_LIST_ITEM_OWNER( &( pxMRD->xListItem ), ( void * ) pxMRD );
+                   pxMRD->pxInterface = pxMReq->pxMulticastNetIf;
+
+                   /* Pass the multicast report data inside the multicast group descriptor,
+                    * so we can easily pass it to the IP task in one message. */
+                   pxMCA->pxMCastReportData = pxMRD;
+
+                   xSockOptsEvent.pvData = ( void * ) pxMCA;
+
+                   if( xSendEventStructToIPTask( &( xSockOptsEvent ), portMAX_DELAY ) != pdPASS )
+                   {
+                       vPortFree( pxMCA );
+                       xReturn = -pdFREERTOS_ERRNO_ECANCELED;
+                   }
+                   else
+                   {
+                       xReturn = pdFREERTOS_ERRNO_NONE;
+                   }
+               }
+               break;
+
+            case FREERTOS_SO_IP_DROP_MEMBERSHIP:
+               {
+                   IP_MReq_t * pMReq = ( IP_MReq_t * ) pvOptionValue;
+                   IPStackEvent_t xSockOptsEvent = { eSocketOptDropMembership, NULL };
+
+                   if( ( pxSocket->ucProtocol != ( uint8_t ) FREERTOS_IPPROTO_UDP ) ||
+                       ( uxOptionLength != sizeof( IP_MReq_t ) ) )
+                   {
+                       break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                   }
+
+                   /* When unsubscribing from a multicast group, the socket option values must
+                   * be exactly the same as when the user subscribed to the multicast group */
+                   if( pxSocket->bits.bIsIPv6 == pdTRUE )
+                   {
+                       #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                           if( pdFALSE == xIsIPv6AllowedMulticast( &( pMReq->xMulticastGroup.xIP_IPv6 ) ) )
+                           {
+                               /* Invalid multicast group address */
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
+
+                           if( memcmp( pxSocket->u.xUDP.xMulticastAddress.xIP_IPv6.ucBytes, pMReq->xMulticastGroup.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                           {
+                               /* The socket was not subscribed to this multicast group. */
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
+                       #else /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+                           break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                       #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+                   }
+                   else
+                   {
+                       #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                           if( pdFALSE == xIsIPv4Multicast( pMReq->xMulticastGroup.ulIP_IPv4 ) )
+                           {
+                               /* Invalid multicast group address */
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
+
+                           if( pxSocket->u.xUDP.xMulticastAddress.ulIP_IPv4 != pMReq->xMulticastGroup.ulIP_IPv4 )
+                           {
+                               /* The socket was not subscribed to this multicast group. */
+                               break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                           }
+                       #else /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) ) */
+                           break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                       #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) ) */
+                   }
+
+                   if( pMReq->pxMulticastNetIf != pxSocket->u.xUDP.pxMulticastNetIf )
+                   {
+                       /* The socket was not subscribed on this interface or we are given a bad interface pointer. */
+                       break; /* will return -pdFREERTOS_ERRNO_EINVAL */
+                   }
+
+                   /* Allocate some RAM to remember the multicast group that is being dropped */
+                   MulticastAction_t * pxMCA = ( MulticastAction_t * ) pvPortMalloc( sizeof( MulticastAction_t ) );
+
+                   if( NULL == pxMCA )
+                   {
+                       xReturn = -pdFREERTOS_ERRNO_ENOMEM;
+                       break;
+                   }
+
+                   pxMCA->pxSocket = pxSocket;
+
+                   /* When dropping memberships, we don't need a multicast report data. */
+                   pxMCA->pxMCastReportData = NULL;
+
+                   xSockOptsEvent.pvData = ( void * ) pxMCA;
+
+                   if( xSendEventStructToIPTask( &( xSockOptsEvent ), portMAX_DELAY ) != pdPASS )
+                   {
+                       vPortFree( pxMCA );
+                       xReturn = -pdFREERTOS_ERRNO_ECANCELED;
+                   }
+                   else
+                   {
+                       xReturn = pdFREERTOS_ERRNO_NONE;
+                   }
+               }
+               break;
+
+            default:
+                /* This function doesn't handle any other options. */
+                xReturn = -pdFREERTOS_ERRNO_ENOPROTOOPT;
+                break;
+        } /* switch */
+
+        return xReturn;
+    }
+
+/**
+ * @brief Adds or drops a multicast group to/from a socket.
+ *
+ * @param[in] pxMulticastGroup: The multicast group descriptor. Also holds the socket that this call is for.
+ * @param[in] bAction: MUST be eSocketOptAddMembership or eSocketOptDropMembership.
+ */
+    void vModifyMulticastMembership( MulticastAction_t * pxMulticastAction,
+                                     uint8_t bAction )
+    {
+        MACAddress_t xMCastMAC;
+        FreeRTOS_Socket_t * pxSocket = pxMulticastAction->pxSocket;
+        uint8_t bFreeMatchedItem = pdFALSE;
+        NetworkInterface_t * pxNetIf = pxMulticastAction->pxInterface;
+        BaseType_t xReportDataConsumed = pdFALSE;
+
+        configASSERT( pxSocket != NULL );
+
+        /* Note: This function is only called with eSocketOptDropMembership or eSocketOptAddMembership*/
+
+        /* This TCP stack does NOT support sockets subscribing to more than one multicast group.
+         * If the socket is already subscribed to a multicast group, we need to unsubscribe it and remove the
+         * IGMP/MLD reports corresponding to that group address.  */
+        prvDropMulticastMembership( pxSocket );
+
+        if( eSocketOptAddMembership == bAction )
+        {
+            /* Store the multicast IP address and calculate the multicast MAC. */
+
+            if( pxSocket->bits.bIsIPv6 == pdFALSE )
+            {
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                    pxSocket->u.xUDP.xMulticastAddress.ulIP_IPv4 = pxMulticastAction->xMulticastGroup.ulIP_IPv4;
+                    vSetMultiCastIPv4MacAddress( pxMulticastAction->xMulticastGroup.ulIP_IPv4, &xMCastMAC );
+                #else
+                    /* FreeRTOS_setsockopt() will prevent this case */
+                #endif
+            }
+            else
+            {
+                #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                    ( void ) memcpy( &( pxSocket->u.xUDP.xMulticastAddress.xIP_IPv6.ucBytes ), &( pxMulticastAction->xMulticastGroup.xIP_IPv6.ucBytes ), ipSIZE_OF_IPv6_ADDRESS );
+                    vSetMultiCastIPv6MacAddress( &( pxMulticastAction->xMulticastGroup.xIP_IPv6 ), &xMCastMAC );
+                #else
+                    /* FreeRTOS_setsockopt() will prevent this case */
+                #endif
+            }
+
+            /* Inform the network driver that it needs to begin receiving the multicast MAC address */
+            if( pxNetIf != NULL )
+            {
+                /* We were given a specific interface to subsribe on. Use it. */
+                if( pxNetIf->pfAddAllowedMAC != NULL )
+                {
+                    pxNetIf->pfAddAllowedMAC( pxNetIf, xMCastMAC.ucBytes );
+                }
+            }
+            else
+            {
+                /* pxNetIf is NULL. In FreeRTOS+TCP that means "use all interfaces". */
+                for( pxNetIf = FreeRTOS_FirstNetworkInterface(); pxNetIf != NULL; pxNetIf = FreeRTOS_NextNetworkInterface( pxNetIf ) )
+                {
+                    if( pxNetIf->pfAddAllowedMAC != NULL )
+                    {
+                        pxNetIf->pfAddAllowedMAC( pxNetIf, xMCastMAC.ucBytes );
+                    }
+                }
+            }
+
+            /* Remember which interface(s) this socket is subscribed on. */
+            pxSocket->u.xUDP.pxMulticastNetIf = pxMulticastAction->pxInterface;
+
+            /* Since we've added a multicast group to this socket, we need to prepare an IGMP/MLD report
+             * for when we receive an IGMP/MLD query. Keep in mind that such a report might already exist.
+             * If such an IGMP/MLD report is already present in the list, we will increment it's socket
+             * count and free the report we have here. In either case, the MulticastAction_t that we were
+             * passed, no longer needs to hold a reference to this multicast report. */
+            do
+            {
+                if( pxMulticastAction->pxMCastReportData == NULL )
+                {
+                    break;
+                }
+
+                if( pxMulticastAction->pxMCastReportData->xMCastGroupAddress.xIs_IPv6 == pdTRUE )
+                {
+                    /* RFC2710 end of section section 5 and RFC3810 section 6:
+                     * ff02::1 is a special case and we do not send reports for it. */
+                    static const struct xIPv6_Address FreeRTOS_in6addr_allnodes = { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+
+                    if( memcmp( pxMulticastAction->pxMCastReportData->xMCastGroupAddress.xIPAddress.xIP_IPv6.ucBytes, FreeRTOS_in6addr_allnodes.ucBytes, sizeof( IPv6_Address_t ) ) == 0 )
+                    {
+                        break;
+                    }
+
+                    /* RFC2710 end of section section 5 and RFC3810 section 6:
+                     * Never send reports for multicast scopes of: 0 (reserved) or 1 (node-local).
+                     * Note: the address was already checked to be a valid multicast in FreeRTOS_setsockopt()*/
+                    if( ( pxMulticastAction->pxMCastReportData->xMCastGroupAddress.xIPAddress.xIP_IPv6.ucBytes[ 1 ] & 0x0FU ) <= 1 )
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    /* RFC2236 end of section 6:
+                     * 224.0.0.1 is a special case and we do not send reports for it. */
+                    if( pxMulticastAction->pxMCastReportData->xMCastGroupAddress.xIPAddress.ulIP_IPv4 == igmpIGMP_IP_ADDR )
+                    {
+                        break;
+                    }
+                }
+
+                xReportDataConsumed = xEnlistMulticastReport( pxMulticastAction->pxMCastReportData );
+            } while( pdFALSE );
+
+            /* If the report was a special case address or was not consumed by
+             * xEnlistMulticastReport(), free the multicast report. */
+            if( xReportDataConsumed == pdFALSE )
+            {
+                vPortFree( pxMulticastAction->pxMCastReportData );
+                pxMulticastAction->pxMCastReportData = NULL;
+            }
+        }
+
+        /* Free the message that was sent to us. */
+        vPortFree( pxMulticastAction );
+    }
+
+    static void prvDropMulticastMembership( FreeRTOS_Socket_t * pxSocket )
+    {
+        MACAddress_t xMCastMAC;
+        BaseType_t xAddressIsGood = pdFALSE;
+        NetworkInterface_t * pxNetIf = pxSocket->u.xUDP.pxMulticastNetIf;
+
+        if( pxSocket->bits.bIsIPv6 == pdTRUE_UNSIGNED )
+        {
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                /* IPv6 */
+                if( xIsIPv6AllowedMulticast( &( pxSocket->u.xUDP.xMulticastAddress.xIP_IPv6 ) ) )
+                {
+                    xAddressIsGood = pdTRUE;
+
+                    vSetMultiCastIPv6MacAddress( &( pxSocket->u.xUDP.xMulticastAddress.xIP_IPv6 ), &xMCastMAC );
+
+                    if( pxNetIf != NULL )
+                    {
+                        if( pxNetIf->pfRemoveAllowedMAC != NULL )
+                        {
+                            pxNetIf->pfRemoveAllowedMAC( pxNetIf, xMCastMAC.ucBytes );
+                        }
+                    }
+                    else
+                    {
+                        /* pxNetIf is NULL. That means "all interfaces", so unsubscribe from all. */
+                        for( pxNetIf = FreeRTOS_FirstNetworkInterface(); pxNetIf != NULL; pxNetIf = FreeRTOS_NextNetworkInterface( pxNetIf ) )
+                        {
+                            if( pxNetIf->pfRemoveAllowedMAC != NULL )
+                            {
+                                pxNetIf->pfRemoveAllowedMAC( pxNetIf, xMCastMAC.ucBytes );
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    /* Whatever is stored in pxSocket->u.xUDP.xMulticastAddress is not a valid multicast group
+                     * or prvDropMulticastMembership was called for a socket that is not still subscribed to a multicast group.
+                     * Do nothing. */
+                }
+            #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+        }
+        else
+        {
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                /* IPv4 */
+                if( xIsIPv4Multicast( pxSocket->u.xUDP.xMulticastAddress.ulIP_IPv4 ) )
+                {
+                    xAddressIsGood = pdTRUE;
+
+                    vSetMultiCastIPv4MacAddress( pxSocket->u.xUDP.xMulticastAddress.ulIP_IPv4, &xMCastMAC );
+
+                    if( pxNetIf != NULL )
+                    {
+                        if( pxNetIf->pfRemoveAllowedMAC != NULL )
+                        {
+                            pxNetIf->pfRemoveAllowedMAC( pxNetIf, xMCastMAC.ucBytes );
+                        }
+                    }
+                    else
+                    {
+                        /* pxNetIf is NULL. That means "all interfaces", so unsubscribe from all. */
+                        for( pxNetIf = FreeRTOS_FirstNetworkInterface(); pxNetIf != NULL; pxNetIf = FreeRTOS_NextNetworkInterface( pxNetIf ) )
+                        {
+                            if( pxNetIf->pfRemoveAllowedMAC != NULL )
+                            {
+                                pxNetIf->pfRemoveAllowedMAC( pxNetIf, xMCastMAC.ucBytes );
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    /* Whatever is stored in pxSocket->u.xUDP.xMulticastAddress is not a valid multicast group
+                     * or prvDropMulticastMembership was called for a socket that is not still subscribed to a multicast group.
+                     * Do nothing. */
+                }
+            #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) ) */
+        }
+
+        if( xAddressIsGood == pdTRUE )
+        {
+            vDelistMulticastReport( pxSocket->u.xUDP.pxMulticastNetIf, &( pxSocket->u.xUDP.xMulticastAddress ), ( UBaseType_t ) pxSocket->bits.bIsIPv6 );
+        }
+
+        /* Invalidate the multicast group address to prevent erroneous matches if someone calls
+         * FREERTOS_SO_IP_DROP_MEMBERSHIP multiple times. */
+        memset( &pxSocket->u.xUDP.xMulticastAddress, 0x00, sizeof( pxSocket->u.xUDP.xMulticastAddress ) );
+        pxSocket->u.xUDP.pxMulticastNetIf = NULL; /* not really needed, but just looks cleaner when debugging. */
+    }
+
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */

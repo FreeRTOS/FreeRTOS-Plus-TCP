@@ -58,6 +58,16 @@ typedef struct xxIPv46_Address
 struct xNetworkEndPoint;
 struct xNetworkInterface;
 
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+/** @brief The structure is used to join/leave an IPv4/IPv6 multicast group. */
+    typedef struct freertos_ip_mreq
+    {
+        IP_Address_t xMulticastGroup;                /**< The address of the multicast group */
+        struct xNetworkInterface * pxMulticastNetIf; /**< A pointer to the network interface on which the above
+                                                      * multicast group is to be joined or left. NULL means "on all interfaces" */
+    } IP_MReq_t;
+#endif /* if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) ) */
+
 /* Return true if a given end-point is up and running.
 * When FreeRTOS_IsNetworkUp() is called with NULL as a parameter,
 * it will return pdTRUE when all end-points are up. */
