@@ -522,7 +522,7 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
     void vDHCP_RATimerReload( NetworkEndPoint_t * pxEndPoint,
                               TickType_t uxClockTicks )
     {
-        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
+        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", ( unsigned long ) uxClockTicks ) );
         prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
     }
 #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
