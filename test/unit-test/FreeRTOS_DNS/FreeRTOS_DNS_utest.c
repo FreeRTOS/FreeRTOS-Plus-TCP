@@ -1033,7 +1033,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWithDot( void )
 
     xEndPoint[ 2 ].bits.bIPv6 = pdFALSE;
     xEndPoint[ 2 ].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[ 2 ].ipv4_settings.ulDNSServerAddresses[ 0 ] = ipBROADCAST_IP_ADDRESS;
+    xEndPoint[ 2 ].ipv4_settings.ulDNSServerAddresses[ 0 ] = FREERTOS_INADDR_BROADCAST;
 
     xEndPoint[ 3 ].bits.bIPv6 = pdFALSE;
     xEndPoint[ 3 ].ipv4_settings.ucDNSIndex = 0;

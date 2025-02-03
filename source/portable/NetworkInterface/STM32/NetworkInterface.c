@@ -602,7 +602,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
             break;
         }
 
-        // ETH_TxPacketConfigTypeDef
+        /* ETH_TxPacketConfigTypeDef */
         ETH_TxPacketConfig xTxConfig =
         {
             .CRCPadCtrl = ETH_CRC_PAD_INSERT,
@@ -1178,8 +1178,8 @@ static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle,
                         xL3FilterConfig.DestAddrFilterMatch = ETH_L3_DEST_ADDR_PERFECT_MATCH_ENABLE;
                         xL3FilterConfig.SrcAddrHigherBitsMatch = 0x1FU;
                         xL3FilterConfig.DestAddrHigherBitsMatch = 0x1FU;
-                        xL3FilterConfig.Ip4SrcAddr = ipBROADCAST_IP_ADDRESS;
-                        xL3FilterConfig.Ip4DestAddr = ipBROADCAST_IP_ADDRESS;
+                        xL3FilterConfig.Ip4SrcAddr = FREERTOS_INADDR_BROADCAST;
+                        xL3FilterConfig.Ip4DestAddr = FREERTOS_INADDR_BROADCAST;
                         ( void ) HAL_ETHEx_SetL3FilterConfig( pxEthHandle, ETH_L3_FILTER_0, &xL3FilterConfig );
                     #endif /* if ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) */
 

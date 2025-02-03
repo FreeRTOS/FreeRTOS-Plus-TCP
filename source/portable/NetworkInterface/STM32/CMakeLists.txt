@@ -24,7 +24,7 @@ target_sources( freertos_plus_tcp_network_if
       Drivers/H7/stm32h7xx_hal_eth.c>
 )
 
-target_include_directories( freertos_plus_tcp_network_if 
+target_include_directories( freertos_plus_tcp_network_if
   PUBLIC
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_STM32_IF_DRIVER},F4>:
       Drivers/F4>
