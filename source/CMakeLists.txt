@@ -54,6 +54,7 @@ target_sources( freertos_plus_tcp
       FreeRTOS_DNS_Parser.c
       FreeRTOS_ICMP.c
       FreeRTOS_IP.c
+      FreeRTOS_IP_Multicast.c
       FreeRTOS_IP_Timers.c
       FreeRTOS_IP_Utils.c
       FreeRTOS_IPv4.c

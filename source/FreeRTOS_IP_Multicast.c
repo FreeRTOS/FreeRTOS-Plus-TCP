@@ -255,7 +255,11 @@ void vRescheduleAllMulticastReports( NetworkInterface_t * pxInterface,
     uint32_t ulRandom;
     MCastReportData_t * pxMRD;
 
-    xMaxCountdown = min( 1, xMaxCountdown );
+    if( xMaxCountdown < 1 )
+    {
+        xMaxCountdown = 1;
+    }
+
     xEnd = listGET_END_MARKER( &prvMulticastReportsList );
 
     for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
@@ -308,8 +312,16 @@ void prvScheduleMulticastReports( BaseType_t xIsIPv6,
     /* Go through the list of IGMP reports and schedule them. Note, the IGMP event is set at 100ms */
 
     /* Sanity enforcement. Technically, there is nothing wrong with trying to schedule reports "right away",
-     * but having xMaxCountdown = 0 will cause problems with the modulo operation further down. */
-    xMaxCountdown = max( 1, xMaxCountdown );
+     * but having xMaxCountdown = 0 will cause problems with the modulo operation further down.
+     * IGMP maximum response time is stored in single byte. Every count represents 0.1s */
+    if( xMaxCountdown < 1 )
+    {
+        xMaxCountdown = 1;
+    }
+    else if( xMaxCountdown > UINT8_MAX )
+    {
+        xMaxCountdown = UINT8_MAX;
+    }
 
     xEnd = listGET_END_MARKER( &prvMulticastReportsList );
 
@@ -330,19 +342,9 @@ void prvScheduleMulticastReports( BaseType_t xIsIPv6,
         {
             /* IPv6 MLD */
             pxIPv6_GroupAddress = ( const IPv6_Address_t * ) pvGroupAddress;
-            BaseType_t i, xSpecificQuery = pdFALSE;
-
-            for( i = 0; i < ipSIZE_OF_IPv6_ADDRESS; i++ )
-            {
-                if( pxIPv6_GroupAddress->ucBytes[ i ] != 0 )
-                {
-                    xSpecificQuery = pdTRUE;
-                    break;
-                }
-            }
 
             /* Skip ahead for specific queries that do not match this report's address. */
-            if( ( xSpecificQuery == pdTRUE ) &&
+            if( ( memcmp( pxIPv6_GroupAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) != 0 ) &&
                 ( ( memcmp( pxIPv6_GroupAddress->ucBytes, pxMRD->xMCastGroupAddress.xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) ) != 0 ) )
             {
                 continue;
@@ -370,8 +372,6 @@ void prvScheduleMulticastReports( BaseType_t xIsIPv6,
             if( ( pxMRD->pxInterface == NULL ) || ( pxMRD->pxInterface == pxInterface ) )
             {
                 xReschedule = pdTRUE;
-                /* IGMP maximum response time is stored in single byte. Every count represents 0.1s */
-                xMaxCountdown = min( 255, xMaxCountdown );
             }
         }
 
