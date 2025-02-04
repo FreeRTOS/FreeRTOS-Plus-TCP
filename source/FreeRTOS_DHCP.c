@@ -402,7 +402,7 @@
 
                     if( prvSendDHCPDiscover( pxEndPoint ) == pdPASS )
                     {
-                        FreeRTOS_debug_printf( ( "vDHCPProcess: timeout %lu ticks\n", EP_DHCPData.xDHCPTxPeriod ) );
+                        FreeRTOS_debug_printf( ( "vDHCPProcess: timeout %lu ticks\n", ( unsigned long ) EP_DHCPData.xDHCPTxPeriod ) );
                     }
                     else
                     {
@@ -419,7 +419,7 @@
             }
             else
             {
-                FreeRTOS_debug_printf( ( "vDHCPProcess: giving up %lu > %lu ticks\n", EP_DHCPData.xDHCPTxPeriod, ipconfigMAXIMUM_DISCOVER_TX_PERIOD ) );
+                FreeRTOS_debug_printf( ( "vDHCPProcess: giving up %lu > %lu ticks\n", ( unsigned long ) EP_DHCPData.xDHCPTxPeriod, ( unsigned long ) ipconfigMAXIMUM_DISCOVER_TX_PERIOD ) );
 
                 #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
                 {
@@ -950,7 +950,7 @@
 
             /* Create the DHCP socket if it has not already been created. */
             prvCreateDHCPSocket( pxEndPoint );
-            FreeRTOS_debug_printf( ( "prvInitialiseDHCP: start after %lu ticks\n", dhcpINITIAL_TIMER_PERIOD ) );
+            FreeRTOS_debug_printf( ( "prvInitialiseDHCP: start after %lu ticks\n", ( unsigned long ) dhcpINITIAL_TIMER_PERIOD ) );
             vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
         }
         else
