@@ -545,11 +545,22 @@
                             if( ( pxNetworkBuffer != NULL ) )
                             {
                                 pxAnswer = ( ( LLMNRAnswer_t * ) xSet.pucByte );
+
                                 /* We leave 'usIdentifier' and 'usQuestions' untouched */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_RESPONSE ); /* Set the response flag */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                        /* Provide a single answer */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                   /* No authority */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                  /* No additional info */
+                                if( xSet.usPortNumber == ipMDNS_PORT )
+                                {
+                                    /* Follow RFC6762 to set QR bit (section 18.2) and authoritative answer (AA) bit (section 18.4). */
+                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsMDNS_FLAGS_IS_RESPONSE );
+                                }
+                                else
+                                {
+                                    /* Follow RFC4795 to set QR bit (section 2.1.1) */
+                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_RESPONSE );
+                                }
+
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );       /* Provide a single answer */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );  /* No authority */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 ); /* No additional info */
 
                                 pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );

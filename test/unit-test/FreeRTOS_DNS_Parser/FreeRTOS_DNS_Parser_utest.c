@@ -1776,7 +1776,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_xBufferAllocFixedsize( void )
     uint8_t * pucUDPPayloadBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
 
     xBufferAllocFixedSize = pdTRUE;
     uint8_t * nullAddress = NULL;
@@ -1854,7 +1854,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply( void )
     uint8_t * pucUDPPayloadBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -1927,7 +1927,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply2( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv6;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2000,7 +2000,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply3( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4 - 1;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2074,7 +2074,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_diffUsType( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2151,7 +2151,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_NullNetworkBuffer( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2228,7 +2228,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply4( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
@@ -2299,7 +2299,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply5( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
@@ -2371,7 +2371,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_query_hook_false( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     struct freertos_addrinfo * pxAddressInfo;
     struct xNetworkEndPoint xEndPoint = { 0 };
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
 
     memset( pucUDPPayloadBuffer, 0x0, 250 );
     size_t uxBufferLength = 250;
@@ -2443,7 +2443,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2517,7 +2517,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer2( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2591,7 +2591,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2683,7 +2683,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer2( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2775,7 +2775,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer3( void )
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
-    uint16_t usPort;
+    uint16_t usPort = ipLLMNR_PORT;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
@@ -2853,6 +2853,89 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer3( void )
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+/**
+ * @brief ensures that the ip set in Setup is passed to the network with
+ *        vReturnEthernetFrame
+ */
+void test_DNS_ParseDNSReply_prepare_mdns_answer( void )
+{
+    uint32_t ret;
+    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 + sizeof( LLMNRAnswer_t ) ] = { 0 };
+    uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
+    struct freertos_addrinfo * pxAddressInfo;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    uint16_t usPort = ipMDNS_PORT;
+    UDPPacket_t * pxUDPPacket;
+
+    memset( pucUDPPayloadBuffer, 0x0, 250 + sizeof( LLMNRAnswer_t ) );
+    size_t uxBufferLength = 250 + sizeof( LLMNRAnswer_t );
+
+    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    pxNetworkBuffer.xDataLength = uxBufferLength;
+    pxNetworkBuffer.pxEndPoint = &xEndPoint;
+
+    /* The second network buffer is used to store MDNS answer. */
+    NetworkBufferDescriptor_t pxNewBuffer;
+    memcpy( &pxNewBuffer, &pxNetworkBuffer, sizeof( NetworkBufferDescriptor_t ) );
+    pxNewBuffer.xDataLength = uxBufferLength;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer;
+
+    pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer.pucEthernetBuffer );
+    pxUDPPacket->xIPHeader.ulDestinationIPAddress = ipMDNS_IP_ADDRESS;
+    pxUDPPacket->xUDPHeader.usSourcePort = usPort;
+    pxUDPPacket->xUDPHeader.usDestinationPort = usPort;
+
+    char dns[ 64 ];
+    memset( dns, 'a', 64 );
+    dns[ 63 ] = 0;
+    BaseType_t xExpected = pdFALSE;
+    size_t beg = sizeof( DNSMessage_t );
+
+    DNSMessage_t * dns_header;
+
+    dns_header = ( DNSMessage_t * ) pucUDPPayloadBuffer;
+
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 0 );
+    dns_header->usFlags = dnsDNS_PORT;
+
+    pucUDPPayloadBuffer[ beg ] = 38;
+    beg++;
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    beg += 38;
+    pucUDPPayloadBuffer[ beg ] = '\0';
+    beg++;
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+
+    hook_return = pdTRUE;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNewBuffer );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 555 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 444 );
+    vReturnEthernetFrame_Expect( &pxNewBuffer, pdFALSE );
+    vReleaseNetworkBufferAndDescriptor_Expect( &pxNewBuffer );
+
+    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
+                             uxBufferLength,
+                             &pxAddressInfo,
+                             xExpected,
+                             usPort );
+
+    TEST_ASSERT_EQUAL( 0, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+    TEST_ASSERT_EQUAL( dnsMDNS_FLAGS_IS_RESPONSE, FreeRTOS_ntohs( dns_header->usFlags ) );
+    TEST_ASSERT_EQUAL( 1, FreeRTOS_ntohs( dns_header->usAnswers ) );
+    TEST_ASSERT_EQUAL( ipMDNS_TIME_TO_LIVE, pxUDPPacket->xIPHeader.ucTimeToLive );
+    TEST_ASSERT_EQUAL( ipMDNS_PORT, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( ipMDNS_PORT, pxUDPPacket->xUDPHeader.usDestinationPort );
 }
 
 /**
