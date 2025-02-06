@@ -2077,7 +2077,7 @@ void test_eARPGetCacheEntry_IPMatchesBroadcastAddr( void )
     xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Broadcast_ExpectAnyArgsAndReturn( 1UL );
-    xIsIPv4Broadcast_ReturnThruPtr_ppxEndPoint(&pxEndPoint2);
+    xIsIPv4Broadcast_ReturnThruPtr_ppxEndPoint( &pxEndPoint2 );
 
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 
@@ -2102,7 +2102,7 @@ void test_eARPGetCacheEntry_IPMatchesBroadcastAddr_NullEndPointOnNetMask( void )
     xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Broadcast_ExpectAnyArgsAndReturn( 1UL );
-    xIsIPv4Broadcast_ReturnThruPtr_ppxEndPoint(&pxEndPoint2);
+    xIsIPv4Broadcast_ReturnThruPtr_ppxEndPoint( &pxEndPoint2 );
 
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
 
@@ -2155,14 +2155,14 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     struct xNetworkInterface * xInterface;
     struct xNetworkEndPoint * pxEndPoint, xEndPoint;
     struct xNetworkEndPoint * pxEndPoint2 = &xEndPoint;
-    
+
     /* =================================================== */
     ulIPAddress = FreeRTOS_ntohl( FREERTOS_INADDR_BROADCAST );
     /* Not worried about what these functions do. */
     xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Broadcast_ExpectAnyArgsAndReturn( 1UL );
-    xIsIPv4Broadcast_ReturnThruPtr_ppxEndPoint(&pxEndPoint2);
+    xIsIPv4Broadcast_ReturnThruPtr_ppxEndPoint( &pxEndPoint2 );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &pxEndPoint );
     TEST_ASSERT_EQUAL_MESSAGE( eResolutionCacheHit, eResult, "Test 3" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );

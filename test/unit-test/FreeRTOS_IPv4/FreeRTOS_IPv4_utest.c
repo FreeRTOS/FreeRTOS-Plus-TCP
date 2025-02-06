@@ -131,7 +131,7 @@ void test_xIsIPv4Broadcast_BroadcastAddress( void )
 {
     BaseType_t xIsBroadcast;
     NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
-    NetworkEndPoint_t *pxEndPoint = NULL;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
     memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
     xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
@@ -142,7 +142,7 @@ void test_xIsIPv4Broadcast_BroadcastAddress( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
 
-    xIsBroadcast = xIsIPv4Broadcast(FREERTOS_INADDR_BROADCAST, &pxEndPoint);
+    xIsBroadcast = xIsIPv4Broadcast( FREERTOS_INADDR_BROADCAST, &pxEndPoint );
 
     TEST_ASSERT_EQUAL( pdTRUE, xIsBroadcast );
     TEST_ASSERT_EQUAL( &xEndPoints[ 1 ], pxEndPoint );
@@ -150,7 +150,7 @@ void test_xIsIPv4Broadcast_BroadcastAddress( void )
 
 /**
  * @brief test_xIsIPv4Broadcast_BroadcastAddressNoPtr
- * To validate if xIsIPv4Broadcast() when given broadcast address but 
+ * To validate if xIsIPv4Broadcast() when given broadcast address but
  * no input EP pointer.
  */
 void test_xIsIPv4Broadcast_BroadcastAddressNoPtr( void )
@@ -167,22 +167,22 @@ void test_xIsIPv4Broadcast_BroadcastAddressNoPtr( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
 
-    xIsBroadcast = xIsIPv4Broadcast(FREERTOS_INADDR_BROADCAST, NULL);
+    xIsBroadcast = xIsIPv4Broadcast( FREERTOS_INADDR_BROADCAST, NULL );
 
     TEST_ASSERT_EQUAL( pdTRUE, xIsBroadcast );
 }
 
 /**
  * @brief test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST
- * To validate if 
- * test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST() 
+ * To validate if
+ * test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST()
  * when given broadcast address but not FREERTOS_INADDR_BROADCAST.
  */
 void test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST( void )
 {
     BaseType_t xIsBroadcast;
     NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
-    NetworkEndPoint_t *pxEndPoint = NULL;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
     memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
     xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
@@ -193,7 +193,7 @@ void test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
 
-    xIsBroadcast = xIsIPv4Broadcast(0xFFFF1234, &pxEndPoint);
+    xIsBroadcast = xIsIPv4Broadcast( 0xFFFF1234, &pxEndPoint );
 
     TEST_ASSERT_EQUAL( pdTRUE, xIsBroadcast );
     TEST_ASSERT_EQUAL( &xEndPoints[ 1 ], pxEndPoint );
@@ -207,7 +207,7 @@ void test_xIsIPv4Broadcast_NotBroadcastAddress( void )
 {
     BaseType_t xIsBroadcast;
     NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
-    NetworkEndPoint_t *pxEndPoint = NULL;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
     memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
     xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
@@ -219,7 +219,7 @@ void test_xIsIPv4Broadcast_NotBroadcastAddress( void )
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 1 ], NULL );
 
-    xIsBroadcast = xIsIPv4Broadcast(0xABCD1235, &pxEndPoint);
+    xIsBroadcast = xIsIPv4Broadcast( 0xABCD1235, &pxEndPoint );
 
     TEST_ASSERT_EQUAL( pdFALSE, xIsBroadcast );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
@@ -232,11 +232,11 @@ void test_xIsIPv4Broadcast_NotBroadcastAddress( void )
 void test_xIsIPv4Broadcast_NoEndPoints( void )
 {
     BaseType_t xIsBroadcast;
-    NetworkEndPoint_t *pxEndPoint = NULL;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
 
-    xIsBroadcast = xIsIPv4Broadcast(0xABCD1235, &pxEndPoint);
+    xIsBroadcast = xIsIPv4Broadcast( 0xABCD1235, &pxEndPoint );
 
     TEST_ASSERT_EQUAL( pdFALSE, xIsBroadcast );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
@@ -244,16 +244,16 @@ void test_xIsIPv4Broadcast_NoEndPoints( void )
 
 /**
  * @brief test_xIsIPv4Broadcast_NoEndPointsNoPtr
- * To validate if xIsIPv4Broadcast() when no endpoints are there 
+ * To validate if xIsIPv4Broadcast() when no endpoints are there
  * and no pointer given.
  */
 void test_xIsIPv4Broadcast_NoEndPointsNoPtr( void )
 {
     BaseType_t xIsBroadcast;
-    
+
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
 
-    xIsBroadcast = xIsIPv4Broadcast(0xABCD1235, NULL);
+    xIsBroadcast = xIsIPv4Broadcast( 0xABCD1235, NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, xIsBroadcast );
 }
