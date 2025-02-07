@@ -6,6 +6,7 @@
       "--unwindset prvCacheLookup.0:7",
       "--unwindset FreeRTOS_FindEndPointOnIP_IPv4.0:3",
       "--unwindset FreeRTOS_InterfaceEndPointOnNetMask.0:3",
+      "--unwindset xIsIPv4Broadcast.0:3",
       "--unwindset eARPGetCacheEntry.0:3",
       "--unwindset FreeRTOS_FindGateWay.0:3",
       "--nondet-static"

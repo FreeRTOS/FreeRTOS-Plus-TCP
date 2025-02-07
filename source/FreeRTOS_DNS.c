@@ -1006,7 +1006,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
                                 ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
-                                if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
+                                if( ( ulIPAddress != 0U ) && ( ulIPAddress != FREERTOS_INADDR_BROADCAST ) )
                                 {
                                     pxAddress->sin_family = FREERTOS_AF_INET;
                                     pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );

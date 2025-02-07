@@ -150,9 +150,10 @@
     #if ( ipconfigUSE_TCP == 1 )
         #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
     #endif
-    #define FREERTOS_INADDR_ANY                           ( 0U ) /* The 0.0.0.0 IPv4 address. */
+    #define FREERTOS_INADDR_ANY                           ( 0U )           /* The 0.0.0.0 IPv4 address. */
+    #define FREERTOS_INADDR_BROADCAST                     ( 0xffffffffUL ) /* 255.255.255.255 is a special broadcast address that represents all host attached to the physical network. */
 
-    #if ( 0 )                                                    /* Not Used */
+    #if ( 0 )                                                              /* Not Used */
         #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 )
         #define FREERTOS_FRAGMENTED_PACKET                ( 0x40 )
     #endif
