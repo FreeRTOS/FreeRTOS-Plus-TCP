@@ -84,6 +84,10 @@ uint32_t FreeRTOS_GetIPAddress( void );
 /* Return pdTRUE if the IPv4 address is a multicast address. */
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
+/* Return pdTRUE if the IPv4 address is a broadcast address. */
+BaseType_t xIsIPv4Broadcast( uint32_t ulIPAddress,
+                             struct xNetworkEndPoint ** ppxEndPoint );
+
 /* Return pdTRUE if the IPv4 address is a loopback address. */
 BaseType_t xIsIPv4Loopback( uint32_t ulAddress );
 

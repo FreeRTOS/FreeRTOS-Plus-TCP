@@ -124,6 +124,141 @@ void test_xIsIPv4Multicast_IsMultiCast( void )
 }
 
 /**
+ * @brief test_xIsIPv4Broadcast_BroadcastAddress
+ * To validate if xIsIPv4Broadcast() when given broadcast address.
+ */
+void test_xIsIPv4Broadcast_BroadcastAddress( void )
+{
+    BaseType_t xIsBroadcast;
+    NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 1 ].bits.bIPv6 = pdFALSE;
+    xEndPoints[ 1 ].ipv4_settings.ulIPAddress = FREERTOS_INADDR_BROADCAST;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
+
+    xIsBroadcast = xIsIPv4Broadcast( FREERTOS_INADDR_BROADCAST, &pxEndPoint );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xIsBroadcast );
+    TEST_ASSERT_EQUAL( &xEndPoints[ 1 ], pxEndPoint );
+}
+
+/**
+ * @brief test_xIsIPv4Broadcast_BroadcastAddressNoPtr
+ * To validate if xIsIPv4Broadcast() when given broadcast address but
+ * no input EP pointer.
+ */
+void test_xIsIPv4Broadcast_BroadcastAddressNoPtr( void )
+{
+    BaseType_t xIsBroadcast;
+    NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
+
+    memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 1 ].bits.bIPv6 = pdFALSE;
+    xEndPoints[ 1 ].ipv4_settings.ulIPAddress = FREERTOS_INADDR_BROADCAST;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
+
+    xIsBroadcast = xIsIPv4Broadcast( FREERTOS_INADDR_BROADCAST, NULL );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xIsBroadcast );
+}
+
+/**
+ * @brief test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST
+ * To validate if
+ * test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST()
+ * when given broadcast address but not FREERTOS_INADDR_BROADCAST.
+ */
+void test_xIsIPv4Broadcast_BroadcastAddressNotFREERTOS_INADDR_BROADCAST( void )
+{
+    BaseType_t xIsBroadcast;
+    NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 1 ].bits.bIPv6 = pdFALSE;
+    xEndPoints[ 1 ].ipv4_settings.ulBroadcastAddress = 0xFFFF1234;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
+
+    xIsBroadcast = xIsIPv4Broadcast( 0xFFFF1234, &pxEndPoint );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xIsBroadcast );
+    TEST_ASSERT_EQUAL( &xEndPoints[ 1 ], pxEndPoint );
+}
+
+/**
+ * @brief test_xIsIPv4Broadcast_NotBroadcastAddress
+ * To validate if xIsIPv4Broadcast() when given not a broadcast address.
+ */
+void test_xIsIPv4Broadcast_NotBroadcastAddress( void )
+{
+    BaseType_t xIsBroadcast;
+    NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 1 ].bits.bIPv6 = pdFALSE;
+    xEndPoints[ 1 ].ipv4_settings.ulIPAddress = FREERTOS_INADDR_BROADCAST;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 1 ], NULL );
+
+    xIsBroadcast = xIsIPv4Broadcast( 0xABCD1235, &pxEndPoint );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xIsBroadcast );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+/**
+ * @brief test_xIsIPv4Broadcast_NoEndPoints
+ * To validate if xIsIPv4Broadcast() when no endpoints are there.
+ */
+void test_xIsIPv4Broadcast_NoEndPoints( void )
+{
+    BaseType_t xIsBroadcast;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
+
+    xIsBroadcast = xIsIPv4Broadcast( 0xABCD1235, &pxEndPoint );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xIsBroadcast );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+/**
+ * @brief test_xIsIPv4Broadcast_NoEndPointsNoPtr
+ * To validate if xIsIPv4Broadcast() when no endpoints are there
+ * and no pointer given.
+ */
+void test_xIsIPv4Broadcast_NoEndPointsNoPtr( void )
+{
+    BaseType_t xIsBroadcast;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
+
+    xIsBroadcast = xIsIPv4Broadcast( 0xABCD1235, NULL );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xIsBroadcast );
+}
+
+/**
  * @brief test_prvAllowIPPacketIPv4_LessHeaderLength
  * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when ucVersionHeaderLength
  * is less than ipIPV4_VERSION_HEADER_LENGTH_MIN.
@@ -252,7 +387,7 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -260,8 +395,6 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress + 1;
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -299,8 +432,6 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( pxEndpoint ); /* From prvAllowIPPacketIPv4() */
-
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -327,7 +458,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = pxEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -338,8 +469,6 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -366,7 +495,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = pxEndpoint;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
@@ -378,8 +507,6 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -400,12 +527,13 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -413,9 +541,6 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
     pxIPHeader->ulDestinationIPAddress = 0;
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
-
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -436,12 +561,13 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -452,7 +578,45 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPBroadcastAndIncorrectChkSum
+ * To validate if prvAllowIPPacketIPv4() when
+ * destination MAC address is broadcast address and the IP address is broadcast address.
+ * And the endpoint is up.
+ */
+void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPBroadcastAndIncorrectChkSum( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = 0xABCDFFFF;
+    xEndpoint.ipv4_settings.ulBroadcastAddress = 0xABCDFFFF;
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC - 1 );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -472,12 +636,13 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -487,8 +652,6 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -509,12 +672,13 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCastDestMACBrdCast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -524,9 +688,6 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCastDestMACBrdCast( void )
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
-
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -556,7 +717,7 @@ void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
 
     pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
@@ -568,8 +729,6 @@ void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
 
     pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( 0xE0000000 + 1 );
 
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -596,7 +755,7 @@ void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
     pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -609,9 +768,6 @@ void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
@@ -642,7 +798,7 @@ void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -655,9 +811,6 @@ void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
@@ -703,8 +856,6 @@ void test_prvAllowIPPacketIPv4_HappyPath( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
@@ -788,9 +939,6 @@ void test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( pxEndpoint ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -957,8 +1105,6 @@ void test_xBadIPv4Loopback_0_test( void )
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( pxEndpoint );
 
     FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 

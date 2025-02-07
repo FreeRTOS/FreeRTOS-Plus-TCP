@@ -157,6 +157,7 @@ void harness()
     NetworkBufferDescriptor_t * const pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
     uint8_t * pucEthernetBuffer = ( uint8_t * ) safeMalloc( ipTOTAL_ETHERNET_FRAME_SIZE + ipIP_TYPE_OFFSET );
     EthernetHeader_t * pxHeader;
+    NetworkEndPoint_t xEndPoint;
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pucEthernetBuffer != NULL );
@@ -165,6 +166,19 @@ void harness()
      * to the pxGetNetworkBufferWithDescriptor */
     pxNetworkBuffer->pucEthernetBuffer = &( pucEthernetBuffer[ ipIP_TYPE_OFFSET ] );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /* prvProcessIPPacket is guranteed to receive a network buffer that has a valid
+     * endpoint, hence no NULL checks are needed to be performed inside prvProcessIPPacket.
+     * See the check:
+     *
+     *  if( ( pxNetworkBuffer->pxInterface == NULL ) || ( pxNetworkBuffer->pxEndPoint == NULL ) )
+     *  {
+     *      break;
+     *  }
+     *
+     * inside the prvProcessEthernetPacket before which prvProcessIPPacket is called.
+     */
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t. */
     __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );

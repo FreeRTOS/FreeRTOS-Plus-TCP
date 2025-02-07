@@ -1047,7 +1047,7 @@
                         const void * pvCopySource = &( pxSet->pucByte[ uxByteIndex ] );
                         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxSet->ulParameter ) );
 
-                        if( ( pxSet->ulParameter != FREERTOS_INADDR_ANY ) && ( pxSet->ulParameter != ipBROADCAST_IP_ADDRESS ) )
+                        if( ( pxSet->ulParameter != FREERTOS_INADDR_ANY ) && ( pxSet->ulParameter != FREERTOS_INADDR_BROADCAST ) )
                         {
                             EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = pxSet->ulParameter;
                             uxTargetIndex++;
@@ -1470,7 +1470,7 @@
                              pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
             /* Set the addressing. */
-            pxAddress->sin_address.ulIP_IPv4 = ipBROADCAST_IP_ADDRESS;
+            pxAddress->sin_address.ulIP_IPv4 = FREERTOS_INADDR_BROADCAST;
             pxAddress->sin_port = ( uint16_t ) dhcpSERVER_PORT_IPv4;
             pxAddress->sin_family = FREERTOS_AF_INET4;
         }
@@ -1676,7 +1676,7 @@
             EP_IPv4_SETTINGS.ulIPAddress = EP_DHCPData.ulOfferedIPAddress;
 
             /* Setting the 'local' broadcast address, something like 192.168.1.255' */
-            EP_IPv4_SETTINGS.ulBroadcastAddress = ( EP_DHCPData.ulOfferedIPAddress & EP_IPv4_SETTINGS.ulNetMask ) | ~EP_IPv4_SETTINGS.ulNetMask;
+            EP_IPv4_SETTINGS.ulBroadcastAddress = ( EP_DHCPData.ulOfferedIPAddress | ( ~EP_IPv4_SETTINGS.ulNetMask ) );
 
             /* Close socket to ensure packets don't queue on it. not needed anymore as DHCP failed. but still need timer for ARP testing. */
             prvCloseDHCPSocket( pxEndPoint );
