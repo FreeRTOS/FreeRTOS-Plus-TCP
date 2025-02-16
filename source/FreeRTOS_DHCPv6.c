@@ -422,7 +422,7 @@ void vDHCPv6Process( BaseType_t xReset,
         BaseType_t lBytes;
         size_t uxLength;
         struct freertos_sockaddr xSourceAddress;
-        uint8_t ucFirstIter = 1U;
+        BaseType_t xFristIter = pdTRUE;
 
         memset(&xSourceAddress, 0, sizeof(xSourceAddress));
 
@@ -444,7 +444,7 @@ void vDHCPv6Process( BaseType_t xReset,
                     FreeRTOS_printf( ( "vDHCPProcess: FreeRTOS_recvfrom returns %d\n", ( int ) lBytes ) );
                 }
 
-                if(pucUDPPayload != NULL)
+                if((lBytes == 0) && (pucUDPPayload != NULL))
                 {
                     FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
                 }
@@ -452,10 +452,10 @@ void vDHCPv6Process( BaseType_t xReset,
                 break;
             }
 
-            if( ucFirstIter != 0U )
+            if( xFristIter == pdTRUE )
             {
-                memcpy(&xSourceAddress, &xSourceAddressCurrent, xSourceAddressCurrentLength);
-                ucFirstIter = 0U;
+                memcpy(&xSourceAddress, &xSourceAddressCurrent, sizeof(xSourceAddress));
+                xFristIter = pdFALSE;
             }
 
             /* Verify DHCPv6 server address. */

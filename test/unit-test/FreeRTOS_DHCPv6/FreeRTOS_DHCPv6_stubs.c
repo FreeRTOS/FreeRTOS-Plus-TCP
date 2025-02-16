@@ -506,7 +506,7 @@ void vPortExitCritical( void )
 {
 }
 
-int32_t FreeRTOS_recvfrom__DHCPv6_LoopedCall( const ConstSocket_t xSocket,
+int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall( const ConstSocket_t xSocket,
                                                 void * pvBuffer,
                                                 size_t uxBufferLength,
                                                 BaseType_t xFlags,
@@ -533,6 +533,11 @@ int32_t FreeRTOS_recvfrom__DHCPv6_LoopedCall( const ConstSocket_t xSocket,
 
     if(pxSourceAddress != NULL)
     {
+        if(callbacks == 0)
+        {
+            memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAB, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
+            xSourceAddress.sin_port = 6060;
+        }
         if(callbacks == 1)
         {
             memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
@@ -547,6 +552,95 @@ int32_t FreeRTOS_recvfrom__DHCPv6_LoopedCall( const ConstSocket_t xSocket,
     }
 
     memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    /* Put in correct DHCP cookie. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
+
+    return xSizeRetBufferSize;
+}
+
+int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall_DifferentPort( const ConstSocket_t xSocket,
+                                                void * pvBuffer,
+                                                size_t uxBufferLength,
+                                                BaseType_t xFlags,
+                                                struct freertos_sockaddr * pxSourceAddress,
+                                                socklen_t * pxSourceAddressLength,
+                                                int callbacks )
+{
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+    size_t xSizeRetBufferSize = xSizeofUDPBuffer;
+
+    if(callbacks == 1)
+    {
+        pxNetworkEndPoints->xDHCPData.eDHCPState = eInitialWait;
+    }
+    else if(callbacks == 2)
+    {
+        xSizeRetBufferSize = -pdFREERTOS_ERRNO_EAGAIN;
+    }
+
+    if( ( xFlags & FREERTOS_ZERO_COPY ) != 0 )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    if(pxSourceAddress != NULL)
+    {
+        if(callbacks == 0)
+        {
+            memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
+            xSourceAddress.sin_port = 6060;
+        }
+        else if(callbacks == 1)
+        {
+            memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
+            xSourceAddress.sin_port = 5050;
+        }
+        memcpy(pxSourceAddress, &xSourceAddress, sizeof(xSourceAddress));
+    }
+
+    if(pxSourceAddressLength != NULL)
+    {
+        *pxSourceAddressLength = sizeof(xSourceAddress);
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    /* Put in correct DHCP cookie. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
+
+    return xSizeRetBufferSize;
+}
+
+
+int32_t FreeRTOS_recvfrom_DHCPv6_ReturnZero( const ConstSocket_t xSocket,
+                                                void * pvBuffer,
+                                                size_t uxBufferLength,
+                                                BaseType_t xFlags,
+                                                struct freertos_sockaddr * pxSourceAddress,
+                                                socklen_t * pxSourceAddressLength,
+                                                int callbacks )
+{
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+    size_t xSizeRetBufferSize = 0;
+
+    if( ( xFlags & FREERTOS_ZERO_COPY ) != 0 )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    if(pxSourceAddress != NULL)
+    {
+        memcpy(pxSourceAddress, &xSourceAddress, sizeof(xSourceAddress));
+    }
+
+    if(pxSourceAddressLength != NULL)
+    {
+        *pxSourceAddressLength = sizeof(xSourceAddress);
+    }
+
     /* Put in correct DHCP cookie. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;

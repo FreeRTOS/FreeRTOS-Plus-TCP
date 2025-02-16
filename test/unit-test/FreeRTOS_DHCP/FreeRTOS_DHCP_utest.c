@@ -921,6 +921,38 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWFails( void )
     TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
 }
 
+void test_vDHCPProcess_RecvFromReturnsTimeout( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+
+    /* This should remain unchanged. */
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
+    /* Put the required state. */
+    pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+    pxEndPoint->xDHCPData.eExpectedState = eSendDHCPRequest;
+
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, -pdFREERTOS_ERRNO_EAGAIN );
+    /* Ignore the buffer, source address and source address
+    length argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
+
+    /* Get the hostname. */
+    pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
+    /* Return NULL network buffer. */
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
+
+    vDHCPProcess( pdFALSE, pxEndPoint );
+
+}
+
+
 void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
 {
     struct xSOCKET xTestSocket;
