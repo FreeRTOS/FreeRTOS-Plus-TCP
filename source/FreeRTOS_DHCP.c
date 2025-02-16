@@ -209,14 +209,19 @@
             uint8_t * pucUDPPayload = NULL;
             const DHCPMessage_IPv4_t * pxDHCPMessage;
             int32_t lBytes;
+            struct freertos_sockaddr xSourceAddress;
+
+            memset(&xSourceAddress, 0, sizeof(xSourceAddress));
 
             while( EP_DHCPData.xDHCPSocket != NULL )
             {
                 BaseType_t xRecvFlags = FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK;
                 NetworkEndPoint_t * pxIterator = NULL;
+                struct freertos_sockaddr xSourceAddressCurrent;
+                socklen_t xSourceAddressCurrentLength = 0;
 
                 /* Peek the next UDP message. */
-                lBytes = FreeRTOS_recvfrom( EP_DHCPData.xDHCPSocket, &( pucUDPPayload ), 0, xRecvFlags, NULL, NULL );
+                lBytes = FreeRTOS_recvfrom( EP_DHCPData.xDHCPSocket, &( pucUDPPayload ), 0, xRecvFlags, &xSourceAddressCurrent, &xSourceAddressCurrentLength );
 
                 if( lBytes < ( ( int32_t ) sizeof( DHCPMessage_IPv4_t ) ) )
                 {
@@ -226,6 +231,11 @@
                     }
 
                     break;
+                }
+
+                if( xSourceAddress.sin_address.ulIP_IPv4 == 0U )
+                {
+                    memcpy(&xSourceAddress, &xSourceAddressCurrent, xSourceAddressCurrentLength);
                 }
 
                 /* Map a DHCP structure onto the received data. */
@@ -239,10 +249,12 @@
                 {
                     pxIterator = pxNetworkEndPoints;
 
-                    /* Find the end-point with given transaction ID. */
+                    /* Find the end-point with given transaction ID and verify DHCP server address. */
                     while( pxIterator != NULL )
                     {
-                        if( pxDHCPMessage->ulTransactionID == FreeRTOS_htonl( pxIterator->xDHCPData.ulTransactionId ) )
+                        if( (pxDHCPMessage->ulTransactionID == FreeRTOS_htonl( pxIterator->xDHCPData.ulTransactionId )) && 
+                        ((xSourceAddress.sin_address.ulIP_IPv4 == xSourceAddressCurrent.sin_address.ulIP_IPv4) &&
+                        (xSourceAddress.sin_port == xSourceAddressCurrent.sin_port)))
                         {
                             break;
                         }
