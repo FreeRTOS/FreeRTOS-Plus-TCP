@@ -1598,6 +1598,7 @@ void test_vDHCPv6Process_AdvertiseHappyPath()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -1646,6 +1647,7 @@ void test_vDHCPv6Process_AdvertiseIATA()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 93 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -1694,6 +1696,7 @@ void test_vDHCPv6Process_ReplyHappyPath()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -1904,6 +1907,7 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_UnknownMsgType()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -1944,6 +1948,7 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_WrongTransactionID()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -1984,6 +1989,7 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_ReadTransactionIDError()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2024,6 +2030,7 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_ReadOptionError()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2063,7 +2070,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_LackServerID()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 126 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 126);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2104,6 +2112,7 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_ExtraOptionValue32()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 150 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2151,7 +2160,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_BitConfigInitError()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 126 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 126);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
     xBitConfig_init_IgnoreAndReturn( pdFAIL );
@@ -2191,6 +2201,7 @@ void test_vDHCPv6Process_prvIsOptionLengthValid_OptionLessThanMinLength()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 500 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2231,6 +2242,7 @@ void test_vDHCPv6Process_prvIsOptionLengthValid_OptionLargerThanMaxLength()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 500 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2271,6 +2283,7 @@ void test_vDHCPv6Process_prvDHCPv6_handleStatusCode_MessageTooLong()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 71 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2279,6 +2292,49 @@ void test_vDHCPv6Process_prvDHCPv6_handleStatusCode_MessageTooLong()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief Check if vDHCPv6Process can handle packets from a different 
+ * DHCP server while vDHCPv6Process is already processing responses from
+ * another DHCP server
+ */
+void test_vDHCPv6Process_DifferentDHCPServerRespondedWhileInProcess()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom__DHCPv6_LoopedCall );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_ExpectAnyArgs();
+    FreeRTOS_ReleaseUDPPayloadBuffer_ExpectAnyArgs();
+
+    prvPrepareAdvertiseStatusCodeLongMessage();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eInitialWait, xEndPoint.xDHCPData.eDHCPState );
 }
 
 /**
@@ -2309,6 +2365,7 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_EmptyEndpointList()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2397,6 +2454,7 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_MultipleEndpoints()
     memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2446,6 +2504,7 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerDUIDT
     memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2488,7 +2547,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLengt
     xDHCPMessage.xServerID.uxLength = 10U;
     memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 100 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 100);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2531,7 +2591,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLengt
     xDHCPMessage.xServerID.uxLength = 150U;
     memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 100 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 100);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2576,6 +2637,7 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerDUID(
     memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2630,6 +2692,7 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentEndpoint()
     memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2779,6 +2842,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_WithDNS()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 122 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2823,6 +2887,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ManyDNS()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 154 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2868,6 +2933,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ShortLeaseTime()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2913,6 +2979,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_CustomLeaseTime()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -2957,6 +3024,7 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_HookFailure()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     vAddStubsOperation( eTestStubsHookFail );
     vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
@@ -2999,6 +3067,7 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_HookDefault()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     vAddStubsOperation( eTestStubsHookUseDefault );
     vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
@@ -3605,6 +3674,7 @@ void test_vDHCPv6Process_ReplyInvalidLengthIANA()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3645,6 +3715,7 @@ void test_vDHCPv6Process_ReplyInvalidLengthIAPD()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 102 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3685,6 +3756,7 @@ void test_vDHCPv6Process_ReplyInvalidSubOptionIANA()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 256 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3725,6 +3797,7 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ClientLengthTooSmall()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 256 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3764,7 +3837,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ClientLengthTooBig()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3804,19 +3878,22 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_WrongClientID()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
     prvPrepareReplyClientIDLengthWrong();
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
     prvPrepareReplyClientIDPeekFalse();
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
     prvPrepareReplyClientIDContentWrong();
@@ -3855,6 +3932,7 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ServerLengthTooSmall()
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 256 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3894,7 +3972,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ServerLengthTooBig()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3934,7 +4013,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_InvalidDNSLength()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3942,7 +4022,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_InvalidDNSLength()
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -3982,7 +4063,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_DomainSearchList()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 108 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 108);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
@@ -4057,7 +4139,8 @@ void test_vDHCPv6Process_AdvertiseStatusFail()
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_recvfrom_IgnoreAndReturn( 123 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 123);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
