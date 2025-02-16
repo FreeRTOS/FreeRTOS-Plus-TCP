@@ -341,8 +341,9 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
 
         /* Expect these arguments. */
         FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
         /* Ignore the source address and source address
-        length argument though. */
+         * length argument though. */
         FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
         FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
 
@@ -475,8 +476,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -522,8 +524,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -563,8 +566,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButHos
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -640,9 +644,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
-    
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -692,8 +696,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast_NU
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -744,8 +749,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -797,8 +803,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -851,8 +858,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -901,8 +909,9 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWFails( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -936,8 +945,9 @@ void test_vDHCPProcess_RecvFromReturnsTimeout( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, -pdFREERTOS_ERRNO_EAGAIN );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -949,7 +959,6 @@ void test_vDHCPProcess_RecvFromReturnsTimeout( void )
     xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
 
     vDHCPProcess( pdFALSE, pxEndPoint );
-
 }
 
 
@@ -968,8 +977,9 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -1009,8 +1019,9 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendSucceeds( void
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -1054,8 +1065,9 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsNoTimeout( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -1093,11 +1105,12 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void ) /* prvClo
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
-    
+
 
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
 
@@ -1150,8 +1163,9 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGFail( void 
 
     /* Expect these arguments. Return a 0 to fail. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -1195,9 +1209,10 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroa
     pxEndPoint->xDHCPData.xUseBroadcast = pdTRUE;
 
     /* Expect these arguments. Return a 0 to fail. */
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );    
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -1252,8 +1267,9 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
 
     /* Expect these arguments. Return a 0 to fail. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+
     /* Ignore the buffer, source address and source address
-    length argument though. */
+     * length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
     FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
@@ -1330,8 +1346,8 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage( void )
 
 /**
  *@brief  This test function ensures that when the DHCP states are mismatching after
- initial parsing of response from DHCP server, if a new response from a different DHCP
- server will cause a infinite loop inside the vDHCPProcess.
+ * initial parsing of response from DHCP server, if a new response from a different DHCP
+ * server will cause a infinite loop inside the vDHCPProcess.
  */
 void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
 {
@@ -1356,7 +1372,7 @@ void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
     memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
-    
+
     /* Expect these arguments. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_LoopedCall );
 
@@ -1369,13 +1385,12 @@ void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
     vDHCPProcess( pdFALSE, pxEndPoint );
 
     TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
-
 }
 
 /**
- *@brief  This test function ensures after initial parsing of response from 
- DHCP server, if a new response arrives for a different endpoint rather than
- the one with which vDHCPProcess was initially called with.
+ *@brief  This test function ensures after initial parsing of response from
+ * DHCP server, if a new response arrives for a different endpoint rather than
+ * the one with which vDHCPProcess was initially called with.
  */
 void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop2( void )
 {
@@ -1418,7 +1433,6 @@ void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop2( void )
     vDHCPProcess( pdFALSE, pxEndPoint );
 
     TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
-
 }
 
 void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TransactionIDMismatch( void )

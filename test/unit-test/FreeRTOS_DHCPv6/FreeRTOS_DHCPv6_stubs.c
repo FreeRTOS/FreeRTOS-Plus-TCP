@@ -507,21 +507,21 @@ void vPortExitCritical( void )
 }
 
 int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall( const ConstSocket_t xSocket,
-                                                void * pvBuffer,
-                                                size_t uxBufferLength,
-                                                BaseType_t xFlags,
-                                                struct freertos_sockaddr * pxSourceAddress,
-                                                socklen_t * pxSourceAddressLength,
-                                                int callbacks )
+                                             void * pvBuffer,
+                                             size_t uxBufferLength,
+                                             BaseType_t xFlags,
+                                             struct freertos_sockaddr * pxSourceAddress,
+                                             socklen_t * pxSourceAddressLength,
+                                             int callbacks )
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
     size_t xSizeRetBufferSize = xSizeofUDPBuffer;
 
-    if(callbacks == 1)
+    if( callbacks == 1 )
     {
         pxNetworkEndPoints->xDHCPData.eDHCPState = eInitialWait;
     }
-    else if(callbacks == 2)
+    else if( callbacks == 2 )
     {
         xSizeRetBufferSize = -pdFREERTOS_ERRNO_EAGAIN;
     }
@@ -531,24 +531,26 @@ int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall( const ConstSocket_t xSocket,
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }
 
-    if(pxSourceAddress != NULL)
+    if( pxSourceAddress != NULL )
     {
-        if(callbacks == 0)
+        if( callbacks == 0 )
         {
-            memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAB, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
+            memset( &xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAB, sizeof( xSourceAddress.sin_address.xIP_IPv6.ucBytes ) );
             xSourceAddress.sin_port = 6060;
         }
-        if(callbacks == 1)
+
+        if( callbacks == 1 )
         {
-            memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
+            memset( &xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof( xSourceAddress.sin_address.xIP_IPv6.ucBytes ) );
             xSourceAddress.sin_port = 6060;
         }
-        memcpy(pxSourceAddress, &xSourceAddress, sizeof(xSourceAddress));
+
+        memcpy( pxSourceAddress, &xSourceAddress, sizeof( xSourceAddress ) );
     }
 
-    if(pxSourceAddressLength != NULL)
+    if( pxSourceAddressLength != NULL )
     {
-        *pxSourceAddressLength = sizeof(xSourceAddress);
+        *pxSourceAddressLength = sizeof( xSourceAddress );
     }
 
     memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
@@ -561,21 +563,21 @@ int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall( const ConstSocket_t xSocket,
 }
 
 int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall_DifferentPort( const ConstSocket_t xSocket,
-                                                void * pvBuffer,
-                                                size_t uxBufferLength,
-                                                BaseType_t xFlags,
-                                                struct freertos_sockaddr * pxSourceAddress,
-                                                socklen_t * pxSourceAddressLength,
-                                                int callbacks )
+                                                           void * pvBuffer,
+                                                           size_t uxBufferLength,
+                                                           BaseType_t xFlags,
+                                                           struct freertos_sockaddr * pxSourceAddress,
+                                                           socklen_t * pxSourceAddressLength,
+                                                           int callbacks )
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
     size_t xSizeRetBufferSize = xSizeofUDPBuffer;
 
-    if(callbacks == 1)
+    if( callbacks == 1 )
     {
         pxNetworkEndPoints->xDHCPData.eDHCPState = eInitialWait;
     }
-    else if(callbacks == 2)
+    else if( callbacks == 2 )
     {
         xSizeRetBufferSize = -pdFREERTOS_ERRNO_EAGAIN;
     }
@@ -585,24 +587,25 @@ int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall_DifferentPort( const ConstSocket_t x
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }
 
-    if(pxSourceAddress != NULL)
+    if( pxSourceAddress != NULL )
     {
-        if(callbacks == 0)
+        if( callbacks == 0 )
         {
-            memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
+            memset( &xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof( xSourceAddress.sin_address.xIP_IPv6.ucBytes ) );
             xSourceAddress.sin_port = 6060;
         }
-        else if(callbacks == 1)
+        else if( callbacks == 1 )
         {
-            memset(&xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof(xSourceAddress.sin_address.xIP_IPv6.ucBytes));
+            memset( &xSourceAddress.sin_address.xIP_IPv6.ucBytes, 0xAD, sizeof( xSourceAddress.sin_address.xIP_IPv6.ucBytes ) );
             xSourceAddress.sin_port = 5050;
         }
-        memcpy(pxSourceAddress, &xSourceAddress, sizeof(xSourceAddress));
+
+        memcpy( pxSourceAddress, &xSourceAddress, sizeof( xSourceAddress ) );
     }
 
-    if(pxSourceAddressLength != NULL)
+    if( pxSourceAddressLength != NULL )
     {
-        *pxSourceAddressLength = sizeof(xSourceAddress);
+        *pxSourceAddressLength = sizeof( xSourceAddress );
     }
 
     memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
@@ -616,12 +619,12 @@ int32_t FreeRTOS_recvfrom_DHCPv6_LoopedCall_DifferentPort( const ConstSocket_t x
 
 
 int32_t FreeRTOS_recvfrom_DHCPv6_ReturnZero( const ConstSocket_t xSocket,
-                                                void * pvBuffer,
-                                                size_t uxBufferLength,
-                                                BaseType_t xFlags,
-                                                struct freertos_sockaddr * pxSourceAddress,
-                                                socklen_t * pxSourceAddressLength,
-                                                int callbacks )
+                                             void * pvBuffer,
+                                             size_t uxBufferLength,
+                                             BaseType_t xFlags,
+                                             struct freertos_sockaddr * pxSourceAddress,
+                                             socklen_t * pxSourceAddressLength,
+                                             int callbacks )
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
     size_t xSizeRetBufferSize = 0;
@@ -631,14 +634,14 @@ int32_t FreeRTOS_recvfrom_DHCPv6_ReturnZero( const ConstSocket_t xSocket,
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }
 
-    if(pxSourceAddress != NULL)
+    if( pxSourceAddress != NULL )
     {
-        memcpy(pxSourceAddress, &xSourceAddress, sizeof(xSourceAddress));
+        memcpy( pxSourceAddress, &xSourceAddress, sizeof( xSourceAddress ) );
     }
 
-    if(pxSourceAddressLength != NULL)
+    if( pxSourceAddressLength != NULL )
     {
-        *pxSourceAddressLength = sizeof(xSourceAddress);
+        *pxSourceAddressLength = sizeof( xSourceAddress );
     }
 
     /* Put in correct DHCP cookie. */

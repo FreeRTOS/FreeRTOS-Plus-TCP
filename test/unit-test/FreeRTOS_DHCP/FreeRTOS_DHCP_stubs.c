@@ -348,14 +348,14 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }
 
-    if(pxSourceAddress != NULL)
+    if( pxSourceAddress != NULL )
     {
-        memcpy(pxSourceAddress, &xSourceAddress, sizeof(xSourceAddress));
+        memcpy( pxSourceAddress, &xSourceAddress, sizeof( xSourceAddress ) );
     }
 
-    if(pxSourceAddressLength != NULL)
+    if( pxSourceAddressLength != NULL )
     {
-        *pxSourceAddressLength = sizeof(xSourceAddress);
+        *pxSourceAddressLength = sizeof( xSourceAddress );
     }
 
     memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
@@ -368,21 +368,21 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
 }
 
 static int32_t FreeRTOS_recvfrom_LoopedCall( const ConstSocket_t xSocket,
-                                                void * pvBuffer,
-                                                size_t uxBufferLength,
-                                                BaseType_t xFlags,
-                                                struct freertos_sockaddr * pxSourceAddress,
-                                                socklen_t * pxSourceAddressLength,
-                                                int callbacks )
+                                             void * pvBuffer,
+                                             size_t uxBufferLength,
+                                             BaseType_t xFlags,
+                                             struct freertos_sockaddr * pxSourceAddress,
+                                             socklen_t * pxSourceAddressLength,
+                                             int callbacks )
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
     size_t xSizeRetBufferSize = xSizeofUDPBuffer;
 
-    if(callbacks == 2)
+    if( callbacks == 2 )
     {
         pxNetworkEndPoints->xDHCPData.eDHCPState = eInitialWait;
     }
-    else if(callbacks == 4)
+    else if( callbacks == 4 )
     {
         xSizeRetBufferSize = 200;
     }
@@ -392,18 +392,19 @@ static int32_t FreeRTOS_recvfrom_LoopedCall( const ConstSocket_t xSocket,
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }
 
-    if(pxSourceAddress != NULL)
+    if( pxSourceAddress != NULL )
     {
-        if(callbacks == 2)
+        if( callbacks == 2 )
         {
             xSourceAddress2.sin_port = 6060;
         }
-        memcpy(pxSourceAddress, &xSourceAddress2, sizeof(xSourceAddress2));
+
+        memcpy( pxSourceAddress, &xSourceAddress2, sizeof( xSourceAddress2 ) );
     }
 
-    if(pxSourceAddressLength != NULL)
+    if( pxSourceAddressLength != NULL )
     {
-        *pxSourceAddressLength = sizeof(xSourceAddress2);
+        *pxSourceAddressLength = sizeof( xSourceAddress2 );
     }
 
     memset( pucUDPBuffer, 0, xSizeofUDPBuffer );

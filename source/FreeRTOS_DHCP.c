@@ -211,8 +211,8 @@
             int32_t lBytes;
             struct freertos_sockaddr xSourceAddress;
             BaseType_t xFristIter = pdTRUE;
-            
-            memset(&xSourceAddress, 0, sizeof(xSourceAddress));
+
+            memset( &xSourceAddress, 0, sizeof( xSourceAddress ) );
 
             while( EP_DHCPData.xDHCPSocket != NULL )
             {
@@ -242,7 +242,7 @@
 
                 if( xFristIter == pdTRUE )
                 {
-                    memcpy(&xSourceAddress, &xSourceAddressCurrent, xSourceAddressCurrentLength);
+                    memcpy( &xSourceAddress, &xSourceAddressCurrent, xSourceAddressCurrentLength );
                     xFristIter = pdFALSE;
                 }
 
@@ -260,9 +260,9 @@
                     /* Find the end-point with given transaction ID and verify DHCP server address. */
                     while( pxIterator != NULL )
                     {
-                        if( (pxDHCPMessage->ulTransactionID == FreeRTOS_htonl( pxIterator->xDHCPData.ulTransactionId )) && 
-                        ((xSourceAddress.sin_address.ulIP_IPv4 == xSourceAddressCurrent.sin_address.ulIP_IPv4) &&
-                        (xSourceAddress.sin_port == xSourceAddressCurrent.sin_port)))
+                        if( ( pxDHCPMessage->ulTransactionID == FreeRTOS_htonl( pxIterator->xDHCPData.ulTransactionId ) ) &&
+                            ( ( xSourceAddress.sin_address.ulIP_IPv4 == xSourceAddressCurrent.sin_address.ulIP_IPv4 ) &&
+                              ( xSourceAddress.sin_port == xSourceAddressCurrent.sin_port ) ) )
                         {
                             break;
                         }
