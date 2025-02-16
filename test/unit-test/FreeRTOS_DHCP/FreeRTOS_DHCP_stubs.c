@@ -41,6 +41,8 @@ static int32_t ulGenericLength;
 static NetworkBufferDescriptor_t * pxGlobalNetworkBuffer[ 10 ];
 static uint8_t GlobalBufferCounter = 0;
 
+struct freertos_sockaddr xSourceAddress, xSourceAddress2;
+
 static uint8_t pucUDPBuffer[ xSizeofUDPBuffer ];
 
 static uint8_t DHCP_header[] =
@@ -346,6 +348,16 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }
 
+    if(pxSourceAddress != NULL)
+    {
+        memcpy(pxSourceAddress, &xSourceAddress, sizeof(xSourceAddress));
+    }
+
+    if(pxSourceAddressLength != NULL)
+    {
+        *pxSourceAddressLength = sizeof(xSourceAddress);
+    }
+
     memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
     /* Put in correct DHCP cookie. */
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
@@ -353,6 +365,54 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
 
     return xSizeofUDPBuffer;
+}
+
+static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_LoopedCall( const ConstSocket_t xSocket,
+                                                                                                 void * pvBuffer,
+                                                                                                 size_t uxBufferLength,
+                                                                                                 BaseType_t xFlags,
+                                                                                                 struct freertos_sockaddr * pxSourceAddress,
+                                                                                                 socklen_t * pxSourceAddressLength,
+                                                                                                 int callbacks )
+{
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+    size_t xSizeRetBufferSize = xSizeofUDPBuffer;
+
+    if(callbacks == 2)
+    {
+        pxNetworkEndPoints->xDHCPData.eDHCPState = eInitialWait;
+    }
+    else if(callbacks == 4)
+    {
+        xSizeRetBufferSize = 200;
+    }
+
+    if( ( xFlags & FREERTOS_ZERO_COPY ) != 0 )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    if(pxSourceAddress != NULL)
+    {
+        if(callbacks == 2)
+        {
+            xSourceAddress2.sin_port = 6060;
+        }
+        memcpy(pxSourceAddress, &xSourceAddress2, sizeof(xSourceAddress2));
+    }
+
+    if(pxSourceAddressLength != NULL)
+    {
+        *pxSourceAddressLength = sizeof(xSourceAddress2);
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    /* Put in correct DHCP cookie. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
+
+    return xSizeRetBufferSize;
 }
 
 static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_TwoFlagOptions_nullbytes( const ConstSocket_t xSocket,

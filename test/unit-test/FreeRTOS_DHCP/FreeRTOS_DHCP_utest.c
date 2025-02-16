@@ -341,6 +341,11 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
 
         /* Expect these arguments. */
         FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+        /* Ignore the source address and source address
+        length argument though. */
+        FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+        FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
+
         /* Ignore the buffer argument though. */
         FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
         /* Make random number generation pass. */
@@ -420,6 +425,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
+
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
@@ -467,8 +475,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -511,8 +522,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -549,8 +563,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButHos
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -621,8 +638,14 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
+    
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -669,8 +692,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast_NU
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -718,8 +744,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -768,8 +797,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -819,8 +851,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -866,8 +901,11 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWFails( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Return NULL network buffer. */
@@ -898,8 +936,11 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
@@ -936,8 +977,11 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendSucceeds( void
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
@@ -978,8 +1022,11 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsNoTimeout( void )
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
@@ -1014,7 +1061,12 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void ) /* prvClo
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the source address and source address
+    length argument though. */
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
+    
+
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
@@ -1066,8 +1118,11 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGFail( void 
 
     /* Expect these arguments. Return a 0 to fail. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
@@ -1108,9 +1163,12 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroa
     pxEndPoint->xDHCPData.xUseBroadcast = pdTRUE;
 
     /* Expect these arguments. Return a 0 to fail. */
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );    
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
@@ -1162,8 +1220,11 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
 
     /* Expect these arguments. Return a 0 to fail. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
-    /* Ignore the buffer argument though. */
+    /* Ignore the buffer, source address and source address
+    length argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddress();
+    FreeRTOS_recvfrom_IgnoreArg_pxSourceAddressLength();
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
@@ -1233,6 +1294,99 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage( void )
 
     /* Still in this phase. */
     TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
+}
+
+/**
+ *@brief  This test function ensures that when the DHCP states are mismatching after
+ initial parsing of response from DHCP server, if a new response from a different DHCP
+ server will cause a infinite loop inside the vDHCPProcess.
+ */
+void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    uint8_t * pucUDPPayload;
+
+    /* This should remain unchanged. */
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
+    /* Put the required state. */
+    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    /* Make sure that the local IP address is uninitialised. */
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
+    /* Put a verifiable value. */
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    /* Put a verifiable value. */
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+
+    pxNetworkEndPoints = pxEndPoint;
+    
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_LoopedCall );
+
+    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
+
+    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdFALSE );
+
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
+
+    vDHCPProcess( pdFALSE, pxEndPoint );
+
+    TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
+
+}
+
+/**
+ *@brief  This test function ensures after initial parsing of response from 
+ DHCP server, if a new response arrives for a different endpoint rather than
+ the one with which vDHCPProcess was initially called with.
+ */
+void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop2( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint = { 0 }, xEndPoint2 = { 0 }, * pxEndPoint = &xEndPoint;
+    uint8_t * pucUDPPayload;
+
+    /* This should remain unchanged. */
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
+    /* Put the required state. */
+    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDFF;
+
+    xEndPoint2.xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    /* Make sure that the local IP address is uninitialised. */
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
+    /* Put a verifiable value. */
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    /* Put a verifiable value. */
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+
+    pxNetworkEndPoints = pxEndPoint;
+    pxEndPoint->pxNext = &xEndPoint2;
+    xEndPoint2.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint2.xDHCPData.eExpectedState = eInitialWait;
+
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_LoopedCall );
+
+    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
+
+    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdFALSE );
+
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
+
+    vDHCPProcess( pdFALSE, pxEndPoint );
+
+    TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
+
 }
 
 void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TransactionIDMismatch( void )
