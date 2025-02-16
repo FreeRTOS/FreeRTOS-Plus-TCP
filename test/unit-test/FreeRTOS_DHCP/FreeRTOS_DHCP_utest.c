@@ -1326,7 +1326,7 @@ void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
     pxNetworkEndPoints = pxEndPoint;
     
     /* Expect these arguments. */
-    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_LoopedCall );
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_LoopedCall );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 
@@ -1375,7 +1375,7 @@ void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop2( void )
     xEndPoint2.xDHCPData.eExpectedState = eInitialWait;
 
     /* Expect these arguments. */
-    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_LoopedCall );
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_LoopedCall );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
 

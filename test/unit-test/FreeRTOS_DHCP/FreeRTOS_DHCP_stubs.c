@@ -367,13 +367,13 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_LoopedCall( const ConstSocket_t xSocket,
-                                                                                                 void * pvBuffer,
-                                                                                                 size_t uxBufferLength,
-                                                                                                 BaseType_t xFlags,
-                                                                                                 struct freertos_sockaddr * pxSourceAddress,
-                                                                                                 socklen_t * pxSourceAddressLength,
-                                                                                                 int callbacks )
+static int32_t FreeRTOS_recvfrom_LoopedCall( const ConstSocket_t xSocket,
+                                                void * pvBuffer,
+                                                size_t uxBufferLength,
+                                                BaseType_t xFlags,
+                                                struct freertos_sockaddr * pxSourceAddress,
+                                                socklen_t * pxSourceAddressLength,
+                                                int callbacks )
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
     size_t xSizeRetBufferSize = xSizeofUDPBuffer;
