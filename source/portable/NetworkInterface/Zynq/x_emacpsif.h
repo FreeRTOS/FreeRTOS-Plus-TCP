@@ -50,7 +50,7 @@
         #if ( XPAR_XEMACPS_NUM_INSTANCES > 1 )
             #define ZYNQ_ETHERNET_1_BASEADDR    XPAR_PS7_ETHERNET_1_BASEADDR
         #endif
-    #endif
+    #endif /* ifdef SDT */
 
     extern XEmacPs_Config mac_configs[ XPAR_XEMACPS_NUM_INSTANCES ];
 
