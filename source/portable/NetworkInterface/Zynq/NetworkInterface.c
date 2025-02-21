@@ -176,7 +176,7 @@ XEmacPs_Config mac_configs[ XPAR_XEMACPS_NUM_INSTANCES ] =
         #ifndef SDT
             .DeviceId = XPAR_PS7_ETHERNET_0_DEVICE_ID, /**< Unique ID  of device, used for 'xEMACIndex' */
         #endif
-        .BaseAddress = ZYNQ_ETHERNET_0_BASEADDR   /**< Physical base address of IPIF registers */
+        .BaseAddress  = ZYNQ_ETHERNET_0_BASEADDR       /**< Physical base address of IPIF registers */
         },
     #if ( XPAR_XEMACPS_NUM_INSTANCES > 1 )
         [ 1 ] =
@@ -184,7 +184,7 @@ XEmacPs_Config mac_configs[ XPAR_XEMACPS_NUM_INSTANCES ] =
         #ifndef SDT
             .DeviceId = XPAR_PS7_ETHERNET_1_DEVICE_ID, /**< Unique ID  of device */
         #endif
-        .BaseAddress = ZYNQ_ETHERNET_1_BASEADDR   /**< Physical base address of IPIF registers */
+        .BaseAddress  = ZYNQ_ETHERNET_1_BASEADDR       /**< Physical base address of IPIF registers */
         },
     #endif
 };
