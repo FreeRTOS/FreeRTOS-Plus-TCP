@@ -38,8 +38,19 @@
     extern "C" {
     #endif
 
-    #define XPAR_PS7_ETHERNET_1_DEVICE_ID    1
-    #define XPAR_PS7_ETHERNET_1_BASEADDR     0xE000C000
+    #ifdef SDT
+        #define ZYNQ_SCUGIC_0_BASEADDR XPAR_XSCUGIC_0_BASEADDR
+        #define ZYNQ_ETHERNET_0_BASEADDR XPAR_XEMACPS_0_BASEADDR
+        #if ( XPAR_XEMACPS_NUM_INSTANCES > 1 )
+            #define ZYNQ_ETHERNET_1_BASEADDR XPAR_XEMACPS_1_BASEADDR
+        #endif
+    #else
+        #define ZYNQ_SCUGIC_0_BASEADDR XPAR_PS7_SCUGIC_0_BASEADDR
+        #define ZYNQ_ETHERNET_0_BASEADDR XPAR_PS7_ETHERNET_0_BASEADDR
+        #if ( XPAR_XEMACPS_NUM_INSTANCES > 1 )
+            #define ZYNQ_ETHERNET_1_BASEADDR XPAR_PS7_ETHERNET_1_BASEADDR
+        #endif
+    #endif
 
     extern XEmacPs_Config mac_configs[ XPAR_XEMACPS_NUM_INSTANCES ];
 
@@ -144,6 +155,8 @@
 
     void clean_dma_txdescs( xemacpsif_s * xemacpsif );
     void resetrx_on_no_rxdata( xemacpsif_s * xemacpsif );
+
+    BaseType_t get_xEMACIndex( const XEmacPs * xemacpsp );
 
 /**
  * @brief Initialise the interface number 'xIndex'. Do not call directly.
