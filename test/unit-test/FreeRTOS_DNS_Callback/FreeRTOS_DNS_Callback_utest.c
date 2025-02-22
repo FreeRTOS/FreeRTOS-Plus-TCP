@@ -66,7 +66,7 @@ typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
 static int callback_called = 0;
 
 /* The second element is for the flexible array member
- * /* when pvPortMalloc is mocked to return this object.
+ * when pvPortMalloc is mocked to return this object.
  */
 static DNSCallback_t dnsCallback[ 2 ];
 

@@ -127,6 +127,11 @@ static void vAddBitOperation( eTestDHCPv6BitOperationType_t eType,
             TEST_ASSERT_LESS_THAN( TEST_DHCPv6_BIT_OPERATION_MAX_SIZE, ulSize );
             memcpy( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationWriteIndex ].val.ucValCustom, pvVal, ulSize );
             break;
+
+        case eTestDHCPv6BitOperationNone:
+        case eTestDHCPv6BitOperationSetError:
+        case eTestDHCPv6BitOperationReturnFalse:
+            break;
     }
 
     TEST_ASSERT_LESS_THAN_size_t( TEST_DHCPv6_BIT_OPERATION_DEBUG_MSG_MAX_SIZE, strlen( pucDebugMsg ) );
