@@ -613,7 +613,7 @@ void test_xProcessReceivedUDPPacket_IPv6_Pass()
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
     UDPPacket_IPv6_t * pxUDPv6Packet;
     FreeRTOS_Socket_t xSocket;
-    EventGroupHandle_t xEventGroup;
+    EventGroupHandle_t xEventGroup = ( EventGroupHandle_t ) 0xBA5EBALL;
     struct xSOCKET_SET xSocketSet;
     SemaphoreHandle_t xSocketSem;
 
@@ -744,7 +744,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
     UDPPacket_IPv6_t * pxUDPv6Packet;
     FreeRTOS_Socket_t xSocket;
-    EventGroupHandle_t xEventGroup;
+    EventGroupHandle_t xEventGroup = ( EventGroupHandle_t ) 0xBA5EBALL;
     struct xSOCKET_SET xSocketSet;
     SemaphoreHandle_t xSocketSem;
 
@@ -809,7 +809,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
     UDPPacket_IPv6_t * pxUDPv6Packet;
     FreeRTOS_Socket_t xSocket;
-    EventGroupHandle_t xEventGroup;
+    EventGroupHandle_t xEventGroup = ( EventGroupHandle_t ) 0xBA5EBALL;
     SemaphoreHandle_t xSocketSem;
 
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
@@ -871,7 +871,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
     UDPPacket_IPv6_t * pxUDPv6Packet;
     FreeRTOS_Socket_t xSocket;
-    EventGroupHandle_t xEventGroup;
+    EventGroupHandle_t xEventGroup = ( EventGroupHandle_t ) 0xBA5EBALL;
     struct xSOCKET_SET xSocketSet;
 
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
@@ -933,7 +933,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
     UDPPacket_IPv6_t * pxUDPv6Packet;
     FreeRTOS_Socket_t xSocket;
-    EventGroupHandle_t xEventGroup;
+    EventGroupHandle_t xEventGroup = ( EventGroupHandle_t ) 0xBA5EBALL;
     struct xSOCKET_SET xSocketSet;
     SemaphoreHandle_t xSocketSem;
 

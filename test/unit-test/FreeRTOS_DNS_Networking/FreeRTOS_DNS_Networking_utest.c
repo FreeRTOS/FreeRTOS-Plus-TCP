@@ -133,35 +133,17 @@ void test_CreateSocket_success( void )
 }
 
 /**
- * @brief Ensures that when the socket could not be created or could not be found, null is returned
- */
-void test_BindSocket_fail( void )
-{
-    struct freertos_sockaddr xAddress;
-    Socket_t xSocket;
-    uint16_t usPort;
-    uint32_t ret;
-
-    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
-
-    ret = DNS_BindSocket( xSocket, usPort );
-
-    TEST_ASSERT_EQUAL( 0, ret );
-}
-
-/**
  * @brief  Happy path!
  */
 void test_BindSocket_success( void )
 {
     struct freertos_sockaddr xAddress;
-    Socket_t xSocket;
-    uint16_t usPort;
+    struct xSOCKET xSocket;
     uint32_t ret;
 
     FreeRTOS_bind_ExpectAnyArgsAndReturn( 1 );
 
-    ret = DNS_BindSocket( xSocket, usPort );
+    ret = DNS_BindSocket( &xSocket, 80 );
 
     TEST_ASSERT_EQUAL( 1, ret );
 }
