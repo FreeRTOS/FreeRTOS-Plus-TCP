@@ -1348,13 +1348,12 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NoNetworkDownEvent( void )
 {
     BaseType_t xReturn;
     IPStackEvent_t xEvent;
-    TickType_t uxTimeout;
 
     xIPTaskInitialised = pdFALSE;
 
     xEvent.eEventType = eNetworkDownEvent + 1;
 
-    xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
+    xReturn = xSendEventStructToIPTask( &xEvent, pdMS_TO_TICKS( 0 ) );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -3982,31 +3981,6 @@ void test_FreeRTOS_GetIPAddress_NoValidEndpoints( void )
     ulIPAddress = FreeRTOS_GetIPAddress();
 
     TEST_ASSERT_EQUAL( 0, ulIPAddress );
-}
-
-/**
- * @brief test_CastingFunctions
- * Casting.
- */
-void test_CastingFunctions( void )
-{
-    void * pvPtr;
-
-    const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pvPtr );
-    const IPHeader_t * pxIPHeader = ( ( const IPHeader_t * ) pvPtr );
-    const TCPPacket_t * pxConstTCPPacket = ( ( const TCPPacket_t * ) pvPtr );
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pvPtr );
-    ProtocolPacket_t * pxProtPacket = ( ( ProtocolPacket_t * ) pvPtr );
-    const ProtocolPacket_t * pxConstProtPacket = ( ( const ProtocolPacket_t * ) pvPtr );
-    const SocketSelect_t * pxSockSelPtr = ( ( const SocketSelect_t * ) pvPtr );
-    const SocketSelectMessage_t * pxConstSockSelMsgPtr = ( ( const SocketSelectMessage_t * ) pvPtr );
-    SocketSelectMessage_t * pxSockSelMsgPtr = ( ( SocketSelectMessage_t * ) pvPtr );
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) pvPtr );
-    ListItem_t * pxList = ( ( ListItem_t * ) pvPtr );
-    const ListItem_t * pxConstList = ( ( const ListItem_t * ) pvPtr );
-    const FreeRTOS_Socket_t * pxSocket = ( ( const FreeRTOS_Socket_t * ) pvPtr );
-    const ProtocolHeaders_t * pxConstProtHeader = ( ( const ProtocolHeaders_t * ) pvPtr );
-    ProtocolHeaders_t * pxProtHeader = ( ( ProtocolHeaders_t * ) pvPtr );
 }
 
 /**

@@ -113,7 +113,6 @@ void test_FreeRTOS_IPInit_HappyPathDHCP( void )
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
     BaseType_t xReturn;
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
-    NetworkInterface_t * pxNetworkInterface;
     NetworkEndPoint_t xEndPoint = { 0 };
 
     /* Set the local IP to something other than 0. */
@@ -121,8 +120,8 @@ void test_FreeRTOS_IPInit_HappyPathDHCP( void )
     pxNetworkEndPoints = &xEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( NULL );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( NULL );
 
     vPreCheckConfigs_Expect();
 

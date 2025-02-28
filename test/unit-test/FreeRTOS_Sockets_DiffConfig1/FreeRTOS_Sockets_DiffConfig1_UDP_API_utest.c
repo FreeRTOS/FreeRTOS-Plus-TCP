@@ -57,16 +57,14 @@ BaseType_t xTCPWindowLoggingLevel = 0;
 void test_FreeRTOS_sendto_MoreDataThanUDPPayload_UseTempDestinationAddress( void )
 {
     int32_t lResult;
-    Socket_t xSocket;
-    char pvBuffer[ ipconfigTCP_MSS ];
+    FreeRTOS_Socket_t xSocket = { 0 };
+    char pvBuffer[ ipconfigTCP_MSS ] = { 0 };
     size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH + 1;
-    BaseType_t xFlags;
     struct freertos_sockaddr xDestinationAddress;
-    socklen_t xDestinationAddressLength;
 
     xDestinationAddress.sin_family = FREERTOS_AF_INET + 1;
 
-    lResult = FreeRTOS_sendto( xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
+    lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, 0, &xDestinationAddress, sizeof( xDestinationAddress ) );
 
     TEST_ASSERT_EQUAL( 0, lResult );
 }
@@ -78,16 +76,14 @@ void test_FreeRTOS_sendto_MoreDataThanUDPPayload_UseTempDestinationAddress( void
 void test_FreeRTOS_sendto_MoreDataThanUDPPayload_IPv6DestinationAddress( void )
 {
     int32_t lResult;
-    Socket_t xSocket;
-    char pvBuffer[ ipconfigTCP_MSS ];
+    FreeRTOS_Socket_t xSocket = { 0 };
+    char pvBuffer[ ipconfigTCP_MSS ] = { 0 };
     size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH + 1;
-    BaseType_t xFlags;
     struct freertos_sockaddr xDestinationAddress;
-    socklen_t xDestinationAddressLength;
 
     xDestinationAddress.sin_family = FREERTOS_AF_INET6;
 
-    lResult = FreeRTOS_sendto( xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
+    lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, 0, &xDestinationAddress, sizeof( xDestinationAddress ) );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lResult );
 }
@@ -99,16 +95,14 @@ void test_FreeRTOS_sendto_MoreDataThanUDPPayload_IPv6DestinationAddress( void )
 void test_FreeRTOS_sendto_MoreDataThanUDPPayload_IPv4DestinationAddress( void )
 {
     int32_t lResult;
-    Socket_t xSocket;
-    char pvBuffer[ ipconfigTCP_MSS ];
+    FreeRTOS_Socket_t xSocket = { 0 };
+    char pvBuffer[ ipconfigTCP_MSS ] = { 0 };
     size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH + 1;
-    BaseType_t xFlags;
     struct freertos_sockaddr xDestinationAddress;
-    socklen_t xDestinationAddressLength;
 
     xDestinationAddress.sin_family = FREERTOS_AF_INET;
 
-    lResult = FreeRTOS_sendto( xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
+    lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, 0, &xDestinationAddress, sizeof( xDestinationAddress ) );
 
     TEST_ASSERT_EQUAL( 0, lResult );
 }
@@ -120,11 +114,9 @@ void test_FreeRTOS_sendto_MoreDataThanUDPPayload_IPv4DestinationAddress( void )
 void test_FreeRTOS_sendto_MoreDataThanUDPPayload_NullDestinationAddress( void )
 {
     int32_t lResult;
-    Socket_t xSocket;
-    char pvBuffer[ ipconfigTCP_MSS ];
+    Socket_t xSocket = { 0 };
+    char pvBuffer[ ipconfigTCP_MSS ] = { 0 };
     size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH + 1;
-    BaseType_t xFlags;
-    socklen_t xDestinationAddressLength;
 
-    catch_assert( FreeRTOS_sendto( xSocket, pvBuffer, uxTotalDataLength, xFlags, NULL, xDestinationAddressLength ) );
+    catch_assert( FreeRTOS_sendto( xSocket, pvBuffer, uxTotalDataLength, 0, NULL, 0 ) );
 }
