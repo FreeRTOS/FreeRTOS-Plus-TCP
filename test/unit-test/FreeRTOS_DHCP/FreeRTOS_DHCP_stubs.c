@@ -715,4 +715,38 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalMACAddrNotMat
 
     return xSizeofUDPBuffer;
 }
+
+static int32_t FreeRTOS_recvfrom_LoopedCall( const ConstSocket_t xSocket,
+                                             void * pvBuffer,
+                                             size_t uxBufferLength,
+                                             BaseType_t xFlags,
+                                             struct freertos_sockaddr * pxSourceAddress,
+                                             socklen_t * pxSourceAddressLength,
+                                             int callbacks )
+{
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+    size_t xSizeRetBufferSize = xSizeofUDPBuffer;
+
+    if( callbacks == 2 )
+    {
+        pxNetworkEndPoints->xDHCPData.eDHCPState = eInitialWait;
+    }
+    else if( callbacks == 4 )
+    {
+        xSizeRetBufferSize = 200;
+    }
+
+    if( ( xFlags & FREERTOS_ZERO_COPY ) != 0 )
+    {
+        *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
+    }
+
+    memset( pucUDPBuffer, 0, xSizeofUDPBuffer );
+    /* Put in correct DHCP cookie. */
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulDHCPCookie = dhcpCOOKIE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
+    ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
+
+    return xSizeRetBufferSize;
+}
 /*-----------------------------------------------------------*/
