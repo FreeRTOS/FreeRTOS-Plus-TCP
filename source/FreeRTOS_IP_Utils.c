@@ -1829,7 +1829,7 @@ uint32_t FreeRTOS_round_down( uint32_t a,
  * @brief Release single UDP packet from a given socket
  * @param[in] xSocket UDP Socket from which the packet should be released.
  */
-void vSingleReleasePacketFromUDPSocket( const ConstSocket_t xSocket )
+void vReleaseSinglePacketFromUDPSocket( const ConstSocket_t xSocket )
 {
         
     uint8_t * pucUDPPayload = NULL;

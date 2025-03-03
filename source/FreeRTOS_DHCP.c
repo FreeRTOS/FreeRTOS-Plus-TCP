@@ -226,7 +226,7 @@
                     }
                     else if( lBytes >= 0 )
                     {
-                        vSingleReleasePacketFromUDPSocket( EP_DHCPData.xDHCPSocket );
+                        vReleaseSinglePacketFromUDPSocket( EP_DHCPData.xDHCPSocket );
                     }
                     else
                     {

@@ -438,7 +438,7 @@ void vDHCPv6Process( BaseType_t xReset,
                 }
                 else if( lBytes == 0 )
                 {
-                    vSingleReleasePacketFromUDPSocket( EP_DHCPData.xDHCPSocket );
+                    vReleaseSinglePacketFromUDPSocket( EP_DHCPData.xDHCPSocket );
                 }
                 else
                 {

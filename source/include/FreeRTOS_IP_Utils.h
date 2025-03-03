@@ -112,7 +112,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface );
 /**
  * @brief Release single UDP packet from a given socket
  */
-void vSingleReleasePacketFromUDPSocket( const ConstSocket_t xSocket );
+void vReleaseSinglePacketFromUDPSocket( const ConstSocket_t xSocket );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -344,7 +344,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
         FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
         /* Ignore the buffer argument though. */
         FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-        vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+        vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
         /* Make random number generation pass. */
         xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdTRUE );
         /* See if the timer is reloaded. */
@@ -496,7 +496,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -544,7 +544,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -589,7 +589,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -628,7 +628,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButHos
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -701,7 +701,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -750,7 +750,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast_NU
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -800,7 +800,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -851,7 +851,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -903,7 +903,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
@@ -951,7 +951,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWFails( void )
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Return NULL network buffer. */
@@ -984,7 +984,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
@@ -1023,7 +1023,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendSucceeds( void
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
@@ -1066,7 +1066,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsNoTimeout( void )
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
 
     /* Make sure that there is no timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference just equal to the period. */
@@ -1103,7 +1103,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutGiveUp( void ) /* prvClo
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
@@ -1156,7 +1156,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGFail( void 
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
@@ -1200,7 +1200,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroa
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
@@ -1254,7 +1254,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
-    vSingleReleasePacketFromUDPSocket_Expect(xDHCPv4Socket);
+    vReleaseSinglePacketFromUDPSocket_Expect(xDHCPv4Socket);
 
     /* Make sure that there is timeout. The expression is: xTaskGetTickCount() - pxEndPoint->xDHCPData.xDHCPTxTime ) > pxEndPoint->xDHCPData.xDHCPTxPeriod  */
     /* Return a value which makes the difference greater than the period. */
