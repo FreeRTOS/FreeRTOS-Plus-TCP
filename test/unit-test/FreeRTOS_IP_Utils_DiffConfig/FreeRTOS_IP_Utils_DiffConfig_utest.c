@@ -50,6 +50,7 @@
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_ARP.h"
 #include "mock_FreeRTOS_DHCP.h"
+#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_IPv4_Utils.h"
