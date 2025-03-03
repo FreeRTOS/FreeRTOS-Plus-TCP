@@ -1837,6 +1837,8 @@ void vReleaseSinglePacketFromUDPSocket( const ConstSocket_t xSocket )
     /* Passing the address of a pointer (pucUDPPayload) because FREERTOS_ZERO_COPY is used. */
     lBytes = FreeRTOS_recvfrom( xSocket, &pucUDPPayload, 0U, FREERTOS_ZERO_COPY, NULL, NULL );
 
+    ( void ) lBytes;
+
     if( pucUDPPayload != NULL )
     {
         FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
