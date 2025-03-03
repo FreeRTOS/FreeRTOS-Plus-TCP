@@ -3341,16 +3341,14 @@ void test_eGetDHCPState( void )
  */
 void test_vReleaseSinglePacketFromUDPSocket_HappyPath( void )
 {
-
     Socket_t xSocket;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_StubHappyPath );
 
-    FreeRTOS_ReleaseUDPPayloadBuffer_Expect(RELEASE_UDP_SOCKET_NETWORK_BUFFER_ADDRESS);
+    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( RELEASE_UDP_SOCKET_NETWORK_BUFFER_ADDRESS );
 
-    vReleaseSinglePacketFromUDPSocket(xSocket);
-
+    vReleaseSinglePacketFromUDPSocket( xSocket );
 }
 
 /**
@@ -3361,9 +3359,9 @@ void test_vReleaseSinglePacketFromUDPSocket_HappyPath( void )
 void test_vReleaseSinglePacketFromUDPSocket_NonHappyPath( void )
 {
     Socket_t xSocket;
+
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_StubNonHappyPath );
 
-    vReleaseSinglePacketFromUDPSocket(xSocket);
-
+    vReleaseSinglePacketFromUDPSocket( xSocket );
 }

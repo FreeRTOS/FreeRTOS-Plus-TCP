@@ -42,8 +42,8 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-#define RELEASE_UDP_SOCKET_NETWORK_BUFFER_ADDRESS       ((uint8_t *) 0xABCD1234)
-#define RELEASE_UDP_SOCKET_NETWORK_BUFFER_SIZE          256
+#define RELEASE_UDP_SOCKET_NETWORK_BUFFER_ADDRESS    ( ( uint8_t * ) 0xABCD1234 )
+#define RELEASE_UDP_SOCKET_NETWORK_BUFFER_SIZE       256
 
 NetworkInterface_t xInterfaces[ 1 ];
 
@@ -157,12 +157,12 @@ static int32_t FreeRTOS_recvfrom_StubHappyPath( const ConstSocket_t xSocket,
                                                 socklen_t * pxSourceAddressLength,
                                                 int callbacks )
 {
-    configASSERT(uxBufferLength == 0);
-    configASSERT(xFlags == FREERTOS_ZERO_COPY);
-    configASSERT(pxSourceAddress == NULL);
-    configASSERT(pxSourceAddressLength == NULL);
+    configASSERT( uxBufferLength == 0 );
+    configASSERT( xFlags == FREERTOS_ZERO_COPY );
+    configASSERT( pxSourceAddress == NULL );
+    configASSERT( pxSourceAddressLength == NULL );
 
-    (void) callbacks;
+    ( void ) callbacks;
 
     *( ( uint8_t ** ) pvBuffer ) = RELEASE_UDP_SOCKET_NETWORK_BUFFER_ADDRESS;
 
@@ -170,19 +170,19 @@ static int32_t FreeRTOS_recvfrom_StubHappyPath( const ConstSocket_t xSocket,
 }
 
 static int32_t FreeRTOS_recvfrom_StubNonHappyPath( const ConstSocket_t xSocket,
-                                                    void * pvBuffer,
-                                                    size_t uxBufferLength,
-                                                    BaseType_t xFlags,
-                                                    struct freertos_sockaddr * pxSourceAddress,
-                                                    socklen_t * pxSourceAddressLength,
-                                                    int callbacks )
+                                                   void * pvBuffer,
+                                                   size_t uxBufferLength,
+                                                   BaseType_t xFlags,
+                                                   struct freertos_sockaddr * pxSourceAddress,
+                                                   socklen_t * pxSourceAddressLength,
+                                                   int callbacks )
 {
-    configASSERT(uxBufferLength == 0);
-    configASSERT(xFlags == FREERTOS_ZERO_COPY);
-    configASSERT(pxSourceAddress == NULL);
-    configASSERT(pxSourceAddressLength == NULL);
+    configASSERT( uxBufferLength == 0 );
+    configASSERT( xFlags == FREERTOS_ZERO_COPY );
+    configASSERT( pxSourceAddress == NULL );
+    configASSERT( pxSourceAddressLength == NULL );
 
-    (void) callbacks;
+    ( void ) callbacks;
 
     *( ( uint8_t ** ) pvBuffer ) = NULL;
 

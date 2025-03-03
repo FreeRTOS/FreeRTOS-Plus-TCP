@@ -442,9 +442,8 @@ void vDHCPv6Process( BaseType_t xReset,
                 }
                 else
                 {
-                    
                 }
-                
+
                 break;
             }
 
@@ -460,7 +459,6 @@ void vDHCPv6Process( BaseType_t xReset,
             }
 
             FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
-
         }
     }
 
