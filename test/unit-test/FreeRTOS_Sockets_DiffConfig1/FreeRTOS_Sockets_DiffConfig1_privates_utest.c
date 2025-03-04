@@ -99,12 +99,7 @@ void test_prvDetermineSocketSize_TCPv6Socket( void )
  */
 void test_vSocketBind_CatchAssert( void )
 {
-    BaseType_t xReturn;
-    FreeRTOS_Socket_t xSocket;
-    size_t uxAddressLength;
-    BaseType_t xInternal;
+    FreeRTOS_Socket_t xSocket = { 0 };
 
-    memset( &xSocket, 0, sizeof( xSocket ) );
-
-    catch_assert( vSocketBind( &xSocket, NULL, uxAddressLength, xInternal ) );
+    catch_assert( vSocketBind( &xSocket, NULL, 0, 0 ) );
 }

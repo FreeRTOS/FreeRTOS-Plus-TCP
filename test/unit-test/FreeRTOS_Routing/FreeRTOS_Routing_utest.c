@@ -3757,10 +3757,9 @@ void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_DifferentInterface( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
-    NetworkInterface_t xNetworkInterface[ 2 ];
+    NetworkInterface_t xNetworkInterface[ 2 ] = { 0 };
 
-    /* Initialize network interface and add it to the list. */
-    memset( &xNetworkInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
+    /* Add the network interface to the list. */
     pxNetworkInterfaces = &xNetworkInterface[ 0 ];
 
     /* Initialize network endpoint and add it to the list. */

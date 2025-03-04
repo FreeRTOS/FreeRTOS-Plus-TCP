@@ -331,8 +331,6 @@ void test_processDNS_CACHE_exceed_IP_entry_limit( void )
     pxIP_2.xIs_IPv6 = 0;
     pxIP_2.xIPAddress.ulIP_IPv4 = pulIP;
 
-    memset( pulIP_arr, 123, ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY );
-
     for( i = 0; i < ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
     {
         pxIP[ i ].xIPAddress.ulIP_IPv4 = pulIP_arr[ i ];

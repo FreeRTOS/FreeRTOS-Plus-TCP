@@ -249,10 +249,3 @@ void test_ProcessICMPPacket_ICMPEchoReply_ImproperData( void )
 
     TEST_ASSERT_EQUAL( eSuccess, eResult );
 }
-
-void test_CastingFunctions( void )
-{
-    void * pvTemp;
-
-    const ICMPHeader_t * pxICMPHeader = ( ( const ICMPHeader_t * ) pvTemp );
-}

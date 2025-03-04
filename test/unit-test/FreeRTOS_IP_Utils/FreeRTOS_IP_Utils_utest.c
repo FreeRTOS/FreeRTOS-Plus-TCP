@@ -123,7 +123,7 @@ void test_pxDuplicateNetworkBufferWithDescriptor_NULLReturned( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    size_t uxNewLength;
+    size_t uxNewLength = 0;
 
     pxNetworkBuffer = &xNetworkBuffer;
 
@@ -287,10 +287,8 @@ void test_pxDuplicateNetworkBufferWithDescriptor_IPv6( void )
 void test_prvPacketBuffer_to_NetworkBuffer_NULLParam( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    const void * pvBuffer = NULL;
-    size_t uxOffset;
 
-    pxNetworkBuffer = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
+    pxNetworkBuffer = prvPacketBuffer_to_NetworkBuffer( NULL, 0 );
 
     TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer );
 }
@@ -820,7 +818,7 @@ void test_usGenerateProtocolChecksum_InvalidLength( void )
     uint16_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = sizeof( IPPacket_t ) - 1;
-    BaseType_t xOutgoingPacket;
+    BaseType_t xOutgoingPacket = pdFALSE;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
     ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
