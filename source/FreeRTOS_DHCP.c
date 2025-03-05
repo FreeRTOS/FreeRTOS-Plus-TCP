@@ -224,6 +224,13 @@
                     {
                         FreeRTOS_printf( ( "vDHCPProcess: FreeRTOS_recvfrom returns %d\n", ( int ) lBytes ) );
                     }
+                    else if( lBytes >= 0 )
+                    {
+                        vReleaseSinglePacketFromUDPSocket( EP_DHCPData.xDHCPSocket );
+                    }
+                    else
+                    {
+                    }
 
                     break;
                 }

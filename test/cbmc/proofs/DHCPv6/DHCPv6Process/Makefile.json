@@ -5,6 +5,7 @@
     "CBMCFLAGS":
     [
       "--unwind {LOOP_UNWIND_COUNT}",
+      "--unwindset memcmp.0:17",
       "--nondet-static --flush"
     ],
     "OPT":

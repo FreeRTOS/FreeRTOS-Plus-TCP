@@ -1826,6 +1826,27 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Release single UDP packet from a given socket
+ * @param[in] xSocket UDP Socket from which the packet should be released.
+ */
+void vReleaseSinglePacketFromUDPSocket( const ConstSocket_t xSocket )
+{
+    uint8_t * pucUDPPayload = NULL;
+    int32_t lBytes;
+
+    /* Passing the address of a pointer (pucUDPPayload) because FREERTOS_ZERO_COPY is used. */
+    lBytes = FreeRTOS_recvfrom( xSocket, &pucUDPPayload, 0U, FREERTOS_ZERO_COPY, NULL, NULL );
+
+    ( void ) lBytes;
+
+    if( pucUDPPayload != NULL )
+    {
+        FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+    }
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Convert character array (of size 4) to equivalent 32-bit value.
  * @param[in] pucPtr The character array.
  * @return 32-bit equivalent value extracted from the character array.
