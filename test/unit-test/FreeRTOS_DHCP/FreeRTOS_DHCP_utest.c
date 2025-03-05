@@ -1327,7 +1327,7 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage( void )
 /**
  *@brief  This test function ensures that when the DHCP states are mismatching after
  * initial parsing of response from DHCP server, if a new response from a different DHCP
- * server will cause a infinite loop inside the vDHCPProcess.
+ * server will not cause a infinite loop inside the vDHCPProcess.
  */
 void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
 {
@@ -1361,6 +1361,7 @@ void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
     FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdFALSE );
 
     FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
+    vReleaseSinglePacketFromUDPSocket_Ignore();
 
     vDHCPProcess( pdFALSE, pxEndPoint );
 
