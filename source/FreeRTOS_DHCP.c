@@ -264,7 +264,7 @@
                     pxIterator = NULL;
                 }
 
-                if( pxIterator != NULL )
+                if( ( pxIterator != NULL ) && ( pxIterator->xDHCPData.eDHCPState == pxIterator->xDHCPData.eExpectedState ) )
                 {
                     /* The second parameter pdTRUE tells to check for a UDP message. */
                     vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxIterator );
@@ -276,7 +276,7 @@
                 }
                 else
                 {
-                    /* Target not found, fetch the message and delete it. */
+                    /* Target not found or there is a state mismatch, fetch the message and delete it. */
                     /* PAss the address of a pointer pucUDPPayload, because zero-copy is used. */
                     lBytes = FreeRTOS_recvfrom( EP_DHCPData.xDHCPSocket, &( pucUDPPayload ), 0, FREERTOS_ZERO_COPY, NULL, NULL );
 
@@ -284,7 +284,16 @@
                     {
                         /* Remove it now, destination not found. */
                         FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
-                        FreeRTOS_printf( ( "vDHCPProcess: Removed a %d-byte message: target not found\n", ( int ) lBytes ) );
+
+                        if( pxIterator == NULL )
+                        {
+                            FreeRTOS_printf( ( "vDHCPProcess: Removed a %d-byte message: target not found\n", ( int ) lBytes ) );
+                        }
+                        else
+                        {
+                            FreeRTOS_printf( ( "vDHCPProcess: Wrong state: expected: %d got: %d : ignore\n",
+                                               pxIterator->xDHCPData.eExpectedState, pxIterator->xDHCPData.eDHCPState ) );
+                        }
                     }
                 }
             }
@@ -496,6 +505,11 @@
                 {
                     /* Give up, start again. */
                     EP_DHCPData.eDHCPState = eInitialWait;
+
+                    /* Reset expected state so that DHCP packets from
+                     * different DHCP servers if available already in the DHCP socket can
+                     * be processed */
+                    EP_DHCPData.eExpectedState = eInitialWait;
                 }
             }
         }
@@ -999,6 +1013,11 @@
                         {
                             /* Start again. */
                             EP_DHCPData.eDHCPState = eInitialWait;
+
+                            /* Reset expected state so that DHCP packets from
+                             * different DHCP servers if available already in the DHCP socket can
+                             * be processed */
+                            EP_DHCPData.eExpectedState = eInitialWait;
                         }
                     }
 

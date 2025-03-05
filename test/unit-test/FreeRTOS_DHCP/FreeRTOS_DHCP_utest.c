@@ -1324,6 +1324,49 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage( void )
     TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
+/**
+ *@brief  This test function ensures that when the DHCP states are mismatching after
+ * initial parsing of response from DHCP server, if a new response from a different DHCP
+ * server will cause a infinite loop inside the vDHCPProcess.
+ */
+void test_vDHCPProcess_eLeasedAddress_InCorrectState_Loop( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    uint8_t * pucUDPPayload;
+
+    /* This should remain unchanged. */
+    xDHCPv4Socket = &xTestSocket;
+    xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
+    /* Put the required state. */
+    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
+    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
+    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+
+    /* Make sure that the local IP address is uninitialised. */
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
+    /* Put a verifiable value. */
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    /* Put a verifiable value. */
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+
+    pxNetworkEndPoints = pxEndPoint;
+
+    /* Expect these arguments. */
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_LoopedCall );
+
+    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
+
+    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdFALSE );
+
+    FreeRTOS_ReleaseUDPPayloadBuffer_Ignore();
+
+    vDHCPProcess( pdFALSE, pxEndPoint );
+
+    TEST_ASSERT_EQUAL( eInitialWait, pxEndPoint->xDHCPData.eDHCPState );
+}
+
 void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TransactionIDMismatch( void )
 {
     struct xSOCKET xTestSocket;
