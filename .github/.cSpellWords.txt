@@ -1593,6 +1593,7 @@ XPBL
 Xplorer
 XPROT
 xpsr
+XSCUGIC
 xtopology
 xtopologyp
 xzvf
