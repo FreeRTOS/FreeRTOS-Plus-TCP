@@ -153,6 +153,16 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
     return retVal;
 }
 
+/* For the purpose of this proof we stub the
+ * implementation of FreeRTOS_ReleaseUDPPayloadBuffer here, but make sure that
+ * the pvBuffer is not NULL, its not verified here if the pointer is a valid
+ * payload buffer as its proved in other proofs */
+void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
+{
+    __CPROVER_assert( pvBuffer != NULL,
+                      "FreeRTOS precondition: pvBuffer != NULL" );
+}
+
 void harness()
 {
     BaseType_t xReset;

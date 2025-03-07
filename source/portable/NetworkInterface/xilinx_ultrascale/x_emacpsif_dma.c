@@ -405,7 +405,7 @@ BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 
         /* Ensure that the incoming packet is not fragmented (only outgoing packets
          * can be fragmented) as these are the only handled IP frames currently. */
-        if( ( pxIPHeader->usFragmentOffset & FreeRTOS_ntohs( ipFRAGMENT_OFFSET_BIT_MASK ) ) != 0U )
+        if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
         {
             return pdFALSE;
         }
