@@ -51,6 +51,7 @@
 #include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_DHCPv6.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IPv4_Utils.h"
 #include "mock_FreeRTOS_IPv6_Utils.h"
 #include "mock_NetworkBufferManagement.h"
@@ -3329,4 +3330,36 @@ void test_eGetDHCPState( void )
         eReturn = eGetDHCPState( &xEndPoint );
         TEST_ASSERT_EQUAL( i, eReturn );
     }
+}
+
+/**
+ * @brief Test vReleaseSinglePacketFromUDPSocket
+ * To validate if vReleaseSinglePacketFromUDPSocket
+ * releases the buffer in happy path case.
+ */
+void test_vReleaseSinglePacketFromUDPSocket_HappyPath( void )
+{
+    Socket_t xSocket;
+
+    /* Get a stub. */
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_StubHappyPath );
+
+    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( RELEASE_UDP_SOCKET_NETWORK_BUFFER_ADDRESS );
+
+    vReleaseSinglePacketFromUDPSocket( xSocket );
+}
+
+/**
+ * @brief Test vReleaseSinglePacketFromUDPSocket
+ * To validate if vReleaseSinglePacketFromUDPSocket does not try to
+ * release the buffer if receive from fails.
+ */
+void test_vReleaseSinglePacketFromUDPSocket_NonHappyPath( void )
+{
+    Socket_t xSocket;
+
+    /* Get a stub. */
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_StubNonHappyPath );
+
+    vReleaseSinglePacketFromUDPSocket( xSocket );
 }
