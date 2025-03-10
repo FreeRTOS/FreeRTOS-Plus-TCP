@@ -106,7 +106,7 @@ void test_prvAllowIPPacketIPv4_BroadcastSourceIP( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
-    FreeRTOS_IsEndPointUp_ExpectAndReturn(&xEndpoint, pdTRUE);
+    FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -147,7 +147,7 @@ void test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_IsEndPointUp_ExpectAndReturn(&xEndpoint, pdTRUE);
+    FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -192,7 +192,7 @@ void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_IsEndPointUp_ExpectAndReturn(&xEndpoint, pdTRUE);
+    FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -243,7 +243,7 @@ void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
     /* Non-zero checksum. */
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0xFF12;
 
-    FreeRTOS_IsEndPointUp_ExpectAndReturn(&xEndpoint, pdTRUE);
+    FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -287,7 +287,7 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-    FreeRTOS_IsEndPointUp_ExpectAndReturn(&xEndpoint, pdTRUE);
+    FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 

@@ -390,8 +390,9 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
             /* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
             eReturn = eReleaseBuffer;
         }
-        /* Use ipv4_settings for filtering only after the endpoint is up, 
-         * so that DHCP packets that are echanged for DHCP (example, DHCP unicast offers)
+
+        /* Use ipv4_settings for filtering only after the endpoint is up,
+         * so that DHCP packets that are exchanged for DHCP (example, DHCP unicast offers)
          * are not dropped/filtered. */
         else if( FreeRTOS_IsEndPointUp( pxEndPoint ) != pdFALSE )
         {
@@ -442,8 +443,8 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
              * clients that cannot accept hardware unicast datagrams before the
              * TCP/IP software is configured. */
             if( ( memcmp( pxEndPoint->xMACAddress.ucBytes,
-                pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                sizeof( MACAddress_t ) ) != 0 ) )
+                          pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                          sizeof( MACAddress_t ) ) != 0 ) )
             {
                 /* The endpoint is not up, and the destination MAC address of the
                  * packet is not matching the endpoint's MAC address. Drop the
@@ -456,7 +457,6 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                  * packet as per RFC 2131 */
             }
         }
-
     }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
 
