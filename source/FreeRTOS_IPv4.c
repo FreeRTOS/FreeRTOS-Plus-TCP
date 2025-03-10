@@ -378,35 +378,6 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                 eReturn = eReleaseBuffer;
             }
         }
-        else if(
-            /* Not destined for the assigned endpoint IPv4 address? */
-            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulIPAddress ) &&
-            /* Also not an IPv4 broadcast address ? */
-            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) &&
-            ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) &&
-            /* And not an IPv4 multicast address ? */
-            ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) )
-        {
-            /* Packet is not for this node, release it */
-            eReturn = eReleaseBuffer;
-        }
-        /* Is the source address correct? */
-        else if( ( ulSourceIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ||
-                 ( ulSourceIPAddress == FREERTOS_INADDR_BROADCAST ) )
-        {
-            /* The source address cannot be broadcast address. Replying to this
-             * packet may cause network storms. Drop the packet. */
-            eReturn = eReleaseBuffer;
-        }
-        else if( ( memcmp( xBroadcastMACAddress.ucBytes,
-                           pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                           sizeof( MACAddress_t ) ) == 0 ) &&
-                 ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) && ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) )
-        {
-            /* Ethernet address is a broadcast address, but the IP address is not a
-             * broadcast address. */
-            eReturn = eReleaseBuffer;
-        }
         else if( memcmp( xBroadcastMACAddress.ucBytes,
                          pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes,
                          sizeof( MACAddress_t ) ) == 0 )
@@ -418,6 +389,59 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
         {
             /* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
             eReturn = eReleaseBuffer;
+        }
+        /* Use ipv4_settings for filtering only after the endpoint is up, 
+         * so that DHCP packets that are echanged for DHCP (example, DHCP unicast offers)
+         * are not dropped/filtered. */
+        else if( FreeRTOS_IsEndPointUp( pxEndPoint ) != pdFALSE )
+        {
+            if(
+                /* Not destined for the assigned endpoint IPv4 address? */
+                ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulIPAddress ) &&
+                /* Also not an IPv4 broadcast address ? */
+                ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) &&
+                ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) &&
+                /* And not an IPv4 multicast address ? */
+                ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) )
+            {
+                /* Packet is not for this node, release it */
+                eReturn = eReleaseBuffer;
+            }
+            /* Is the source address correct? */
+            else if( ( ulSourceIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ||
+                     ( ulSourceIPAddress == FREERTOS_INADDR_BROADCAST ) )
+            {
+                /* The source address cannot be broadcast address. Replying to this
+                 * packet may cause network storms. Drop the packet. */
+                eReturn = eReleaseBuffer;
+            }
+            else if( ( memcmp( xBroadcastMACAddress.ucBytes,
+                               pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                               sizeof( MACAddress_t ) ) == 0 ) &&
+                     ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) && ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
+        }
+        else if( FreeRTOS_IsEndPointUp( pxEndPoint ) == pdFALSE )
+        {
+            /* RFC 2131: https://datatracker.ietf.org/doc/html/rfc2131#autoid-8
+             * The TCP/IP software SHOULD accept and
+             * forward to the IP layer any IP packets delivered to the client's
+             * hardware address before the IP address is configured; DHCP servers
+             * and BOOTP relay agents may not be able to deliver DHCP messages to
+             * clients that cannot accept hardware unicast datagrams before the
+             * TCP/IP software is configured. */
+            if( ( memcmp( pxEndPoint->xMACAddress.ucBytes,
+                pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                sizeof( MACAddress_t ) ) != 0 ) )
+            {
+                /* The endpoint is not up, but the destination MAC address of the
+                 * packet is not matching the endpoint's MAC address. */
+                eReturn = eReleaseBuffer;
+            }
         }
         else
         {
