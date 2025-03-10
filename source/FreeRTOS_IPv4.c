@@ -424,9 +424,16 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                  * broadcast address. */
                 eReturn = eReleaseBuffer;
             }
+            else
+            {
+                /* Packet is not fragmented, destination is this device, source IP and MAC
+                 * addresses are correct. */
+            }
         }
-        else if( FreeRTOS_IsEndPointUp( pxEndPoint ) == pdFALSE )
+        else
         {
+            /* Endpoint is down */
+
             /* RFC 2131: https://datatracker.ietf.org/doc/html/rfc2131#autoid-8
              * The TCP/IP software SHOULD accept and
              * forward to the IP layer any IP packets delivered to the client's
@@ -438,16 +445,18 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                 pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
                 sizeof( MACAddress_t ) ) != 0 ) )
             {
-                /* The endpoint is not up, but the destination MAC address of the
-                 * packet is not matching the endpoint's MAC address. */
+                /* The endpoint is not up, and the destination MAC address of the
+                 * packet is not matching the endpoint's MAC address. Drop the
+                 * packet. */
                 eReturn = eReleaseBuffer;
             }
+            else
+            {
+                /* Endpoint is down, but the hardware address matches. Accept the
+                 * packet as per RFC 2131 */
+            }
         }
-        else
-        {
-            /* Packet is not fragmented, destination is this device, source IP and MAC
-             * addresses are correct. */
-        }
+
     }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
 
