@@ -82,7 +82,11 @@
     #ifndef uncMEMORY_SIZE
         #define uncMEMORY_SIZE        uncMINIMAL_MEMORY_SIZE
     #endif
-    #define DDR_MEMORY_END            ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
+    #ifndef SDT
+        #define DDR_MEMORY_END        ( XPAR_PS7_DDR_0_S_AXI_HIGHADDR + 1 )
+    #else
+        #define DDR_MEMORY_END        ( XPAR_PS7_DDR_0_HIGHADDRESS + 1 )
+    #endif
     #define uncMEMORY_ATTRIBUTE       0x1C02
 #endif /* ( ipconfigULTRASCALE == 1 ) */
 
