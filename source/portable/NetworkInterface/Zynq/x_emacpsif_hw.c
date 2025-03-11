@@ -91,7 +91,7 @@ void emacps_error_handler( void * arg,
     BaseType_t xEMACIndex;
 
     xemacpsif = ( xemacpsif_s * ) ( arg );
-    xEMACIndex = xemacpsif->emacps.Config.DeviceId;
+    xEMACIndex = get_xEMACIndex( &xemacpsif->emacps );
 
     if( ( Direction != XEMACPS_SEND ) || ( ErrorWord != XEMACPS_TXSR_USEDREAD_MASK ) )
     {
@@ -158,7 +158,7 @@ static void emacps_handle_error( void * arg,
     xemacpsif = ( xemacpsif_s * ) ( arg );
 
     xemacps = &xemacpsif->emacps;
-    xEMACIndex = xemacps->Config.DeviceId;
+    xEMACIndex = get_xEMACIndex( xemacps );
 
     last_err_msg = NULL;
 
@@ -252,4 +252,18 @@ void HandleTxErrors( xemacpsif_s * xemacpsif )
                           XEMACPS_NWCTRL_OFFSET, netctrlreg );
     }
     /*taskEXIT_CRITICAL( ); */
+}
+
+BaseType_t get_xEMACIndex( const XEmacPs * xemacpsp )
+{
+    #if ( XPAR_XEMACPS_NUM_INSTANCES == 1 )
+        ( void ) xemacpsp;
+        return 0;
+    #else
+        #ifndef SDT
+            return xemacpsp->Config.DeviceId;
+        #else
+            return xemacpsp->Config.BaseAddress != ZYNQ_ETHERNET_0_BASEADDR;
+        #endif
+    #endif
 }

@@ -173,7 +173,7 @@ static int detect_phy( XEmacPs * xemacpsp )
         {
             /* Found a valid PHY address */
             FreeRTOS_printf( ( "XEmacPs detect_phy: PHY detected at address %d.\n", ( unsigned ) phy_addr ) );
-            phy_detected[ xemacpsp->Config.DeviceId ] = phy_addr;
+            phy_detected[ get_xEMACIndex( xemacpsp ) ] = phy_addr;
             return phy_addr;
         }
     }
@@ -506,7 +506,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
     volatile u32 slcrBaseAddress;
 
     #ifndef PEEP
-        u32 SlcrDiv0;
+        u32 SlcrDiv0 = 0;
         u32 SlcrDiv1 = 0;
         u32 SlcrTxClkCntrl;
     #endif
@@ -591,11 +591,19 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
             }
         }
 
-        SlcrTxClkCntrl = *( volatile unsigned int * ) ( slcrBaseAddress );
-        SlcrTxClkCntrl &= EMACPS_SLCR_DIV_MASK;
-        SlcrTxClkCntrl |= ( SlcrDiv1 << 20 );
-        SlcrTxClkCntrl |= ( SlcrDiv0 << 8 );
-        *( volatile unsigned int * ) ( slcrBaseAddress ) = SlcrTxClkCntrl;
+        /* SDT drivers should not write to the register */
+        #ifndef SDT
+            SlcrTxClkCntrl = *( volatile unsigned int * ) ( slcrBaseAddress );
+            SlcrTxClkCntrl &= EMACPS_SLCR_DIV_MASK;
+            SlcrTxClkCntrl |= ( SlcrDiv1 << 20 );
+            SlcrTxClkCntrl |= ( SlcrDiv0 << 8 );
+            *( volatile unsigned int * ) ( slcrBaseAddress ) = SlcrTxClkCntrl;
+        #else
+            ( void ) SlcrTxClkCntrl;
+            ( void ) SlcrDiv0;
+            ( void ) SlcrDiv1;
+            ( void ) slcrBaseAddress;
+        #endif
     #endif /* ifdef PEEP */
     *( volatile unsigned int * ) ( SLCR_LOCK_ADDR ) = SLCR_LOCK_KEY_VALUE;
 }
