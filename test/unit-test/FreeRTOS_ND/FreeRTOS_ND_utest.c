@@ -483,8 +483,8 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
  */
 void test_vNDRefreshCacheEntry_NoMatchingEntryCacheFull( void )
 {
-    MACAddress_t xMACAddress;
-    IPv6_Address_t xIPAddress;
+    MACAddress_t xMACAddress = { 0 };
+    IPv6_Address_t xIPAddress = { 0 };
     NetworkEndPoint_t xEndPoint;
     int i;
 
@@ -795,7 +795,7 @@ void test_FreeRTOS_ClearND( void )
 void test_FreeRTOS_ClearND_WithEndPoint( void )
 {
     NDCacheRow_t xTempNDCache[ ipconfigND_CACHE_ENTRIES ];
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = { 0 };
 
     /* Set xNDCache to non zero entries*/
     ( void ) memset( xNDCache, 1, sizeof( xNDCache ) );
@@ -813,7 +813,7 @@ void test_FreeRTOS_ClearND_WithEndPoint( void )
 void test_FreeRTOS_ClearND_EndPointNotFound( void )
 {
     NDCacheRow_t xTempNDCache[ ipconfigND_CACHE_ENTRIES ];
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = { 0 };
 
     /* Set xNDCache to non zero entries*/
     ( void ) memset( xNDCache, 1, sizeof( xNDCache ) );
@@ -1834,13 +1834,12 @@ void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
  */
 void test_FreeRTOS_CreateIPv6Address_RandomFail( void )
 {
-    IPv6_Address_t * pxIPAddress, * pxPrefix;
-    size_t uxPrefixLength;
+    IPv6_Address_t xIPAddress, xPrefix = { 0 };
     BaseType_t xDoRandom = pdTRUE, xReturn;
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xReturn = FreeRTOS_CreateIPv6Address( pxIPAddress, pxPrefix, uxPrefixLength, xDoRandom );
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, sizeof( xPrefix ), xDoRandom );
 
     TEST_ASSERT_EQUAL( xReturn, pdFAIL );
 }
@@ -1852,8 +1851,7 @@ void test_FreeRTOS_CreateIPv6Address_RandomFail( void )
  */
 void test_FreeRTOS_CreateIPv6Address_Assert1( void )
 {
-    IPv6_Address_t * pxIPAddress, * pxPrefix;
-    size_t uxPrefixLength = 0;
+    IPv6_Address_t xIPAddress, xPrefix = { 0 };
     BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
 
     for( xIndex = 0; xIndex < 4; xIndex++ )
@@ -1861,7 +1859,7 @@ void test_FreeRTOS_CreateIPv6Address_Assert1( void )
         xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     }
 
-    catch_assert( FreeRTOS_CreateIPv6Address( pxIPAddress, pxPrefix, uxPrefixLength, xDoRandom ) );
+    catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, 0, xDoRandom ) );
 }
 
 /**

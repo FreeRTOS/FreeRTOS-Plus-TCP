@@ -68,7 +68,6 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_UseTempDestinationAddress( void )
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength;
 
     memset( &xAddress, 0, sizeof( xAddress ) );
     xAddress.sin_family = FREERTOS_AF_INET + 1;
@@ -77,7 +76,7 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_UseTempDestinationAddress( void )
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
+    xReturn = FreeRTOS_bind( &xSocket, &xAddress, sizeof( xAddress ) );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
@@ -91,7 +90,6 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_IPv6DestinationAddress( void )
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength;
 
     memset( &xAddress, 0, sizeof( xAddress ) );
     xAddress.sin_family = FREERTOS_AF_INET6;
@@ -100,7 +98,7 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_IPv6DestinationAddress( void )
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
+    xReturn = FreeRTOS_bind( &xSocket, &xAddress, sizeof( xAddress ) );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
@@ -114,7 +112,6 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_IPv4DestinationAddress( void )
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength;
 
     memset( &xAddress, 0, sizeof( xAddress ) );
     xAddress.sin_family = FREERTOS_AF_INET;
@@ -123,7 +120,7 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_IPv4DestinationAddress( void )
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
+    xReturn = FreeRTOS_bind( &xSocket, &xAddress, sizeof( xAddress ) );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
@@ -136,13 +133,12 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_NullDestinationAddress( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
-    socklen_t xAddressLength;
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    xReturn = FreeRTOS_bind( &xSocket, NULL, xAddressLength );
+    xReturn = FreeRTOS_bind( &xSocket, NULL, 0 );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
@@ -155,14 +151,13 @@ void test_FreeRTOS_connect_SocketValuesNULL_UseTempDestinationAddress( void )
     BaseType_t xResult;
     FreeRTOS_Socket_t xSocket;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength;
 
     memset( &xAddress, 0, sizeof( xAddress ) );
     xAddress.sin_family = FREERTOS_AF_INET6 + 1;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
+    xResult = FreeRTOS_connect( &xSocket, &xAddress, sizeof( xAddress ) );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EBADF, xResult );
 }
@@ -176,14 +171,13 @@ void test_FreeRTOS_connect_SocketValuesNULL_IPv6DestinationAddress( void )
     BaseType_t xResult;
     FreeRTOS_Socket_t xSocket;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength;
 
     memset( &xAddress, 0, sizeof( xAddress ) );
     xAddress.sin_family = FREERTOS_AF_INET6;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
+    xResult = FreeRTOS_connect( &xSocket, &xAddress, sizeof( xAddress ) );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EBADF, xResult );
 }
@@ -197,14 +191,13 @@ void test_FreeRTOS_connect_SocketValuesNULL_IPv4DestinationAddress( void )
     BaseType_t xResult;
     FreeRTOS_Socket_t xSocket;
     struct freertos_sockaddr xAddress;
-    socklen_t xAddressLength;
 
     memset( &xAddress, 0, sizeof( xAddress ) );
     xAddress.sin_family = FREERTOS_AF_INET;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xResult = FreeRTOS_connect( &xSocket, &xAddress, xAddressLength );
+    xResult = FreeRTOS_connect( &xSocket, &xAddress, sizeof( xAddress ) );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EBADF, xResult );
 }
@@ -217,11 +210,10 @@ void test_FreeRTOS_connect_SocketValuesNULL_NullDestinationAddress( void )
 {
     BaseType_t xResult;
     FreeRTOS_Socket_t xSocket;
-    socklen_t xAddressLength;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
-    xResult = FreeRTOS_connect( &xSocket, NULL, xAddressLength );
+    xResult = FreeRTOS_connect( &xSocket, NULL, 0 );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xResult );
 }
