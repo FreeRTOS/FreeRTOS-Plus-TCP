@@ -301,9 +301,8 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
 void test_prvCheckIP4HeaderOptions_AlwaysRelease( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-    eResult = prvCheckIP4HeaderOptions( pxNetworkBuffer );
+    eResult = prvCheckIP4HeaderOptions( NULL );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 
