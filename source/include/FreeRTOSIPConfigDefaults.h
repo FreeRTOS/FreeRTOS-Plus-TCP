@@ -2166,13 +2166,13 @@ STATIC_ASSERT( ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME <= portMAX_DELAY );
 /*
  * pvPortMemCpyStreamBuffer
  *
- * Function to copy data into the stream buffer when sending 
+ * Function to copy data into the stream buffer when sending
  * and copy data from the stream buffer when receiving.
  */
 
- #ifndef pvPortMemCpyStreamBuffer
- #define pvPortMemCpyStreamBuffer( dst, src, count ) memcpy( dst, src, count )
- #endif
+#ifndef pvPortMemCpyStreamBuffer
+    #define pvPortMemCpyStreamBuffer( dst, src, count )    memcpy( dst, src, count )
+#endif
 
 /*---------------------------------------------------------------------------*/
 
