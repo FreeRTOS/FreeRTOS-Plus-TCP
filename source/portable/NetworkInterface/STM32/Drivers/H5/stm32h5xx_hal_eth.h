@@ -243,7 +243,7 @@
                 ChecksumOffload;                         /*!< Enables or Disable the checksum checking for received packet payloads TCP, UDP or ICMP headers */
 
             uint32_t InterPacketGapVal;                  /*!< Sets the minimum IPG between Packet during transmission.
-                                                          *    This parameter can be a value of @ref ETH_Inter_Packet_Gap */
+                                                         *    This parameter can be a value of @ref ETH_Inter_Packet_Gap */
 
             FunctionalState GiantPacketSizeLimitControl; /*!< Enables or disables the Giant Packet Size Limit Control. */
 
@@ -299,9 +299,9 @@
 
             uint32_t
                 GiantPacketSizeLimit;               /*!< Specifies the packet size that the MAC will declare it as Giant, If it's size is
-                                                    *                   greater than the value programmed in this field in units of bytes
-                                                    *                   This parameter must be a number between
-                                                    *                   Min_Data = 0x618 (1518 byte) and Max_Data = 0x3FFF (32 Kbyte). */
+                                                     *                   greater than the value programmed in this field in units of bytes
+                                                     *                   This parameter must be a number between
+                                                     *                   Min_Data = 0x618 (1518 byte) and Max_Data = 0x3FFF (32 Kbyte). */
 
             FunctionalState ExtendedInterPacketGap; /*!< Enable or disables the extended inter packet gap. */
 
@@ -314,9 +314,9 @@
                                                      *      This parameter can be a value of @ref ETH_Watchdog_Timeout */
 
             uint32_t
-                PauseTime; /*!< This field holds the value to be used in the Pause Time field in the transmit control packet.
-                            *                  This parameter must be a number between
-                            *                  Min_Data = 0x0 and Max_Data = 0xFFFF.*/
+                PauseTime;     /*!< This field holds the value to be used in the Pause Time field in the transmit control packet.
+                                *                  This parameter must be a number between
+                                *                  Min_Data = 0x0 and Max_Data = 0xFFFF.*/
 
             FunctionalState
                 ZeroQuantaPause; /*!< Enable or disables the automatic generation of Zero Quanta Pause Control packets.*/
@@ -401,8 +401,8 @@
  */
         typedef enum
         {
-            HAL_ETH_MII_MODE = 0x00U, /*!<  Media Independent Interface               */
-            HAL_ETH_RMII_MODE = 0x01U /*!<   Reduced Media Independent Interface       */
+            HAL_ETH_MII_MODE = 0x00U,     /*!<  Media Independent Interface               */
+            HAL_ETH_RMII_MODE = 0x01U     /*!<   Reduced Media Independent Interface       */
         } ETH_MediaInterfaceTypeDef;
 
 /**
@@ -436,7 +436,7 @@
             ETH_MediaInterfaceTypeDef MediaInterface; /*!< Selects the MII interface or the RMII interface. */
 
             ETH_DMADescTypeDef
-            * TxDesc; /*!< Provides the address of the first DMA Tx descriptor in the list */
+            * TxDesc;        /*!< Provides the address of the first DMA Tx descriptor in the list */
 
             ETH_DMADescTypeDef
             * RxDesc;           /*!< Provides the address of the first DMA Rx descriptor in the list */
@@ -494,7 +494,7 @@
 /**
  * @brief  HAL ETH Rx Get Buffer Function definition
  */
-        typedef  void (* pETH_rxAllocateCallbackTypeDef)( uint8_t ** buffer ); /*!< pointer to an ETH Rx Get Buffer Function */
+        typedef  void (* pETH_rxAllocateCallbackTypeDef)( uint8_t ** buffer );/*!< pointer to an ETH Rx Get Buffer Function */
 
 /**
  *
@@ -515,7 +515,7 @@
 /**
  * @brief  HAL ETH Tx Free Function definition
  */
-        typedef  void (* pETH_txFreeCallbackTypeDef)( uint32_t * buffer ); /*!< pointer to an ETH Tx Free function */
+        typedef  void (* pETH_txFreeCallbackTypeDef)( uint32_t * buffer );/*!< pointer to an ETH Tx Free function */
 
 /**
  *
@@ -540,26 +540,26 @@
             typedef struct
         #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
             {
-                ETH_TypeDef * Instance;           /*!< Register base address       */
+                ETH_TypeDef * Instance;                 /*!< Register base address       */
 
-                ETH_InitTypeDef Init;             /*!< Ethernet Init Configuration */
+                ETH_InitTypeDef Init;                   /*!< Ethernet Init Configuration */
 
-                ETH_TxDescListTypeDef TxDescList; /*!< Tx descriptor wrapper: holds all Tx descriptors list
-                                                   *  addresses and current descriptor index  */
+                ETH_TxDescListTypeDef TxDescList;       /*!< Tx descriptor wrapper: holds all Tx descriptors list
+                                                         *  addresses and current descriptor index  */
 
-                ETH_RxDescListTypeDef RxDescList; /*!< Rx descriptor wrapper: holds all Rx descriptors list
-                                                   *  addresses and current descriptor index  */
+                ETH_RxDescListTypeDef RxDescList;       /*!< Rx descriptor wrapper: holds all Rx descriptors list
+                                                         *  addresses and current descriptor index  */
 
                 #ifdef HAL_ETH_USE_PTP
-                    ETH_TimeStampTypeDef TxTimestamp; /*!< Tx Timestamp */
+                    ETH_TimeStampTypeDef TxTimestamp;   /*!< Tx Timestamp */
                 #endif /* HAL_ETH_USE_PTP */
 
-                __IO HAL_ETH_StateTypeDef gState; /*!< ETH state information related to global Handle management
-                                                   *     and also related to Tx operations. This parameter can
-                                                   *     be a value of @ref ETH_State_Codes */
+                __IO HAL_ETH_StateTypeDef gState;      /*!< ETH state information related to global Handle management
+                                                        *     and also related to Tx operations. This parameter can
+                                                        *     be a value of @ref ETH_State_Codes */
 
-                __IO uint32_t ErrorCode;          /*!< Holds the global Error code of the ETH HAL status machine
-                                                   *   This parameter can be a value of @ref ETH_Error_Code.*/
+                __IO uint32_t ErrorCode;               /*!< Holds the global Error code of the ETH HAL status machine
+                                                        *   This parameter can be a value of @ref ETH_Error_Code.*/
 
                 __IO uint32_t
                     DMAErrorCode; /*!< Holds the DMA Rx Tx Error code when a DMA AIS interrupt occurs
@@ -624,7 +624,7 @@
 /**
  * @brief  HAL ETH Callback pointer definition
  */
-                typedef  void (* pETH_CallbackTypeDef)( ETH_HandleTypeDef * heth ); /*!< pointer to an ETH callback function */
+                typedef  void (* pETH_CallbackTypeDef)( ETH_HandleTypeDef * heth );/*!< pointer to an ETH callback function */
 
         #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
@@ -1665,7 +1665,7 @@
         ( __INTERRUPT__ ) ) == ( __INTERRUPT__ ) )
 
 /*!< External interrupt line 46 Connected to the ETH wakeup EXTI Line */
-        #define ETH_WAKEUP_EXTI_LINE    0x00004000U /* !<  46 - 32 = 14 */
+        #define ETH_WAKEUP_EXTI_LINE    0x00004000U/* !<  46 - 32 = 14 */
 
 /**
  * @brief Enable the ETH WAKEUP Exti Line.

@@ -1531,7 +1531,7 @@
                             #endif /* HAL_ETH_USE_PTP */
                             /* Release the packet.  */
                             heth->txFreeCallback( dmatxdesclist->PacketAddress[ idx ] );
-                        #else /* if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 ) */
+                        #else  /* if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 ) */
                             /* Call callbacks */
                             #ifdef HAL_ETH_USE_PTP
                                 /* Handle Ptp  */
