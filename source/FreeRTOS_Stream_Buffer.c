@@ -293,7 +293,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
             const size_t uxFirst = FreeRTOS_min_size_t( uxLength - uxNextHead, uxCount );
 
             /* Write as many bytes as can be written in the first write. */
-            ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
+            ( void ) pvPortMemCpyStreamBuffer( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
 
             /* If the number of bytes written was less than the number that
              * could be written in the first write... */
@@ -301,7 +301,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
             {
                 /* ...then write the remaining bytes to the start of the
                  * buffer. */
-                ( void ) memcpy( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
+                ( void ) pvPortMemCpyStreamBuffer( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
             }
         }
 
@@ -394,14 +394,14 @@ size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
 
             /* Obtain the number of bytes it is possible to obtain in the first
              * read. */
-            ( void ) memcpy( pucData, &( pxBuffer->ucArray[ uxNextTail ] ), uxFirst );
+            ( void ) pvPortMemCpyStreamBuffer( pucData, &( pxBuffer->ucArray[ uxNextTail ] ), uxFirst );
 
             /* If the total number of wanted bytes is greater than the number
              * that could be read in the first read... */
             if( uxCount > uxFirst )
             {
                 /* ...then read the remaining bytes from the start of the buffer. */
-                ( void ) memcpy( &( pucData[ uxFirst ] ), pxBuffer->ucArray, uxCount - uxFirst );
+                ( void ) pvPortMemCpyStreamBuffer( &( pucData[ uxFirst ] ), pxBuffer->ucArray, uxCount - uxFirst );
             }
         }
 
