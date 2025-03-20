@@ -882,7 +882,7 @@
                                                           pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength ) != pdFALSE ) )
                             {
                                 /* Send a challenge ACK. */
-                                ( void ) prvTCPSendChallengeAck( pxNetworkBuffer );
+                                ( void ) prvTCPSendChallengeAck( pxNetworkBuffer, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber );
                             }
                             else
                             {

@@ -1352,11 +1352,20 @@
  *        unexpected but still within the window.
  *
  * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
+ * @param[in] ulCurrentSequenceNumber The current sequence number of the connection.
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */
-    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer )
+    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                       uint32_t ulCurrentSequenceNumber )
     {
+        ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                                  &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
+
+        /* Correct the sequence number to avoid an endless ACK/RST sequence. When sending the
+         * same number again the next RST will not match as well. */
+        pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulCurrentSequenceNumber );
+
         return prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
     }
     /*-----------------------------------------------------------*/

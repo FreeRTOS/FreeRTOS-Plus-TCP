@@ -2610,7 +2610,7 @@ void test_prvTCPSendChallengeAck( void )
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
-    Return = prvTCPSendChallengeAck( pxNetworkBuffer );
+    Return = prvTCPSendChallengeAck( pxNetworkBuffer, 0x3333 );
     TEST_ASSERT_EQUAL( pdFALSE, Return );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK, pxTCPPacket->xTCPHeader.ucTCPFlags );
