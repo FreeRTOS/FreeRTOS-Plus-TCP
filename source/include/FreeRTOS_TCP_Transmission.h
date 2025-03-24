@@ -150,7 +150,8 @@ BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
  * unexpected but still within the window.
  */
 BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                   uint32_t ulCurrentSequenceNumber );
+                                   uint32_t ulCurrentSequenceNumber,
+                                   uint32_t ulOurSequenceNumber );
 
 /*
  * Reply to a peer with the RST flag on, in case a packet can not be handled.
