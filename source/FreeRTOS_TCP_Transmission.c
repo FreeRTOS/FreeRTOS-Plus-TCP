@@ -1352,7 +1352,7 @@
  *        unexpected but still within the window.
  *
  * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
- * @param[in] ulCurrentSequenceNumber The current sequence number of the connection.
+ * @param[in] ulCurrentSequenceNumber The current expected sequence value by the connection.
  * @param[in] ulOurSequenceNumber The SEQ number to send out.
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
