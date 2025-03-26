@@ -2610,11 +2610,13 @@ void test_prvTCPSendChallengeAck( void )
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
-    Return = prvTCPSendChallengeAck( pxNetworkBuffer );
+    Return = prvTCPSendChallengeAck( pxNetworkBuffer, 0x3333, 0x4444 );
     TEST_ASSERT_EQUAL( pdFALSE, Return );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK, pxTCPPacket->xTCPHeader.ucTCPFlags );
     TEST_ASSERT_EQUAL( 0x50, pxTCPPacket->xTCPHeader.ucTCPOffset );
+    TEST_ASSERT_EQUAL( 0x3333, FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulAckNr ) );
+    TEST_ASSERT_EQUAL( 0x4444, FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber ) );
 }
 
 /* test prvTCPSendReset function */

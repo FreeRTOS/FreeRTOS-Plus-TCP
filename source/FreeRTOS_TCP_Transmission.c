@@ -1352,11 +1352,28 @@
  *        unexpected but still within the window.
  *
  * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
+ * @param[in] ulCurrentSequenceNumber The current expected sequence value by the connection.
+ * @param[in] ulOurSequenceNumber The SEQ number to send out.
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */
-    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer )
+    BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                       uint32_t ulCurrentSequenceNumber,
+                                       uint32_t ulOurSequenceNumber )
     {
+        ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                                  &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
+
+        /* In https://tools.ietf.org/html/rfc5961#section-3.2 the field values are defined as follows:
+         *  <SEQ=SND.NXT>
+         *  <ACK=RCV.NXT>
+         *
+         * The prvTCPSendSpecialPacketHelper function uses the sequence number of the packet as the
+         * ACK number and the ACK number as the sequence number, therefore the values are set swapped
+         * here to match the RFC. */
+        pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulCurrentSequenceNumber );
+        pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( ulOurSequenceNumber );
+
         return prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
     }
     /*-----------------------------------------------------------*/
