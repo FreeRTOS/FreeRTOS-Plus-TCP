@@ -71,10 +71,10 @@ ctest --test-dir ${BUILD_DIR} -E system --output-on-failure
 cmake --build ${BUILD_DIR} --target coverage
 lcov --summary --rc branch_coverage=1 ${BUILD_DIR}/coverage.info
 
-# For file specific coverage list uncomment the following lines 
+# For file specific coverage list uncomment the following lines
 
 # wget https://github.com/linux-test-project/lcov/releases/download/v2.3.1/lcov-2.3.1.tar.gz
-# tar -xvzf lcov-2.3.1.tar.gz 
+# tar -xvzf lcov-2.3.1.tar.gz
 # ./lcov-2.3.1/bin/lcov --list --rc branch_coverage=1  ${BUILD_DIR}/coverage.info
 
 ```
@@ -89,8 +89,8 @@ Overall coverage rate:
   branches......: 100.0% (4920 of 4920 branches)
 ```
 
-Note: If file specific coverage list is required the lcov version should be updated to 
-the newer version (for example, [v2.3.1](https://github.com/linux-test-project/lcov/releases/tag/v2.3.1)) 
+Note: If file specific coverage list is required the lcov version should be updated to
+the newer version (for example, [v2.3.1](https://github.com/linux-test-project/lcov/releases/tag/v2.3.1))
 as the default version of `lcov` in Ubuntu 24.04 results in incorrect parsing of
 `coverage.info`.
 
@@ -98,7 +98,7 @@ Sample file specific coverage data:
 
 
 ```
-                                    |Lines      |Functions |Branches  
+                                    |Lines      |Functions |Branches
 Filename                            |Rate    Num|Rate  Num|Rate   Num
 =====================================================================
 [/home/ubuntu/FreeRTOS-Plus-TCP/source/]
