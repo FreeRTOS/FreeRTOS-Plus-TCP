@@ -127,7 +127,7 @@ void test_prvFindSelectedSocket_SendSuccess( void )
     SocketSelect_t xSocketSet;
 
     xSocketSet.xSelectGroup = NULL;
-    
+
     xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, ( BaseType_t ) eSELECT_CALL_IP, pdFALSE );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );

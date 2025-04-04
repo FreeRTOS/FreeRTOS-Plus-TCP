@@ -437,8 +437,8 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
 
             /* Check if the destination MAC address is a broadcast MAC address. */
             if( memcmp( xBroadcastMACAddress.ucBytes,
-                               pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                               sizeof( MACAddress_t ) ) == 0 )
+                        pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                        sizeof( MACAddress_t ) ) == 0 )
             {
                 if( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST )
                 {
@@ -451,6 +451,7 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                     /* Accept valid broadcast packet. */
                 }
             }
+
             /* RFC 2131: https://datatracker.ietf.org/doc/html/rfc2131#autoid-8
              * The TCP/IP software SHOULD accept and
              * forward to the IP layer any IP packets delivered to the client's
@@ -459,8 +460,8 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
              * clients that cannot accept hardware unicast datagrams before the
              * TCP/IP software is configured. */
             else if( ( memcmp( pxEndPoint->xMACAddress.ucBytes,
-                          pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                          sizeof( MACAddress_t ) ) != 0 ) )
+                               pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                               sizeof( MACAddress_t ) ) != 0 ) )
             {
                 /* The endpoint is not up, and the destination MAC address of the
                  * packet is not matching the endpoint's MAC address nor broadcast

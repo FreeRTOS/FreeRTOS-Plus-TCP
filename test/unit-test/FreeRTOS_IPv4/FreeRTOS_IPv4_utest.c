@@ -675,7 +675,7 @@ void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPath( void )
 /**
  * @brief test_prvAllowIPPacketIPv4_EndpointDown_HappyPath
  * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer when
- * endpoint is down and the packet is broadcast packet with destination 
+ * endpoint is down and the packet is broadcast packet with destination
  * MAC address as broadcast MAC and the destination IP as broadcast IP
  */
 void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPathBroadcast( void )
@@ -718,7 +718,7 @@ void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPathBroadcast( void )
 /**
  * @brief test_prvAllowIPPacketIPv4_EndpointDown_HappyPath
  * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
- * endpoint is down and the packet is malformed broadcast packet with  destination 
+ * endpoint is down and the packet is malformed broadcast packet with  destination
  * MAC address as broadcast MAC and but the destination IP not broadcast IP
  */
 void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPathIncorrectBroadcast( void )
