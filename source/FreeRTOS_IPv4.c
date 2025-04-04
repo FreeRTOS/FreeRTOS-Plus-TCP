@@ -435,6 +435,7 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
         {
             /* Endpoint is down */
 
+            /* Check if the destination MAC address is a broadcast MAC address. */
             if( memcmp( xBroadcastMACAddress.ucBytes,
                                pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
                                sizeof( MACAddress_t ) ) == 0 )
@@ -447,7 +448,7 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                 }
                 else
                 {
-                    /* Accept valid broadcast packet */
+                    /* Accept valid broadcast packet. */
                 }
             }
             /* RFC 2131: https://datatracker.ietf.org/doc/html/rfc2131#autoid-8
@@ -462,8 +463,8 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                           sizeof( MACAddress_t ) ) != 0 ) )
             {
                 /* The endpoint is not up, and the destination MAC address of the
-                 * packet is not matching the endpoint's MAC address. Drop the
-                 * packet. */
+                 * packet is not matching the endpoint's MAC address nor broadcast
+                 * MAC address. Drop the packet. */
                 eReturn = eReleaseBuffer;
             }
             else
