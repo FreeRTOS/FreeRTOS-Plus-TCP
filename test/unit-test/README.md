@@ -36,8 +36,10 @@ project successfully, you must have the following:
      - Go to the extracted folder (`cd cmake-3.15.0`) and run `./bootstrap`.
      - Run `make -j$(nproc)' and then run `sudo make install`.
      - Check the version using `cmake --version` command.
-4. lcov version 1.14 ( check with --version option )
+4. lcov ( check with `lcov --version` option )
    - `sudo apt-get install lcov`
+   - If file specific coverage list is required check the note in the below section
+     for the required version.
 5. unifdef version 2.10 ( check with -V option )
    - `sudo apt-get install unifdef`
 
