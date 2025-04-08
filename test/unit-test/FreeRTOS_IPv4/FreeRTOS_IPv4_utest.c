@@ -673,6 +673,88 @@ void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPath( void )
 }
 
 /**
+ * @brief test_prvAllowIPPacketIPv4_EndpointDown_HappyPath
+ * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer when
+ * endpoint is down and the packet is broadcast packet with destination
+ * MAC address as broadcast MAC and the destination IP as broadcast IP
+ */
+void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPathBroadcast( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = 0xFFFFFFFF;
+
+    memset( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, 0xFF, sizeof( MACAddress_t ) );
+    memset( xEndpoint.xMACAddress.ucBytes, 0xCD, sizeof( MACAddress_t ) );
+
+    FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdFALSE );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
+
+    usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
+
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv4_EndpointDown_HappyPath
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * endpoint is down and the packet is malformed broadcast packet with  destination
+ * MAC address as broadcast MAC and but the destination IP not broadcast IP
+ */
+void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPathIncorrectBroadcast( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = 0xFFFFABCD;
+
+    memset( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, 0xFF, sizeof( MACAddress_t ) );
+    memset( xEndpoint.xMACAddress.ucBytes, 0xCD, sizeof( MACAddress_t ) );
+
+    FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdFALSE );
+
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+
+/**
  * @brief test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPBroadcastAndIncorrectChkSum
  * To validate if prvAllowIPPacketIPv4() when
  * destination MAC address is broadcast address and the IP address is broadcast address.
