@@ -322,7 +322,7 @@
     #error ipconfigRA_SEARCH_TIME_OUT_MSEC must be at least 0
 #endif
 
-STATIC_ASSERT( ipconfigRA_SEARCH_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PERIOD_MS ) );
+STATIC_ASSERT( pdMS_TO_TICKS( ipconfigRA_SEARCH_TIME_OUT_MSEC ) <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
@@ -370,7 +370,7 @@ STATIC_ASSERT( ipconfigRA_SEARCH_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PER
     #error ipconfigRA_IP_TEST_TIME_OUT_MSEC must be at least 0
 #endif
 
-STATIC_ASSERT( ipconfigRA_IP_TEST_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PERIOD_MS ) );
+STATIC_ASSERT( pdMS_TO_TICKS( ipconfigRA_IP_TEST_TIME_OUT_MSEC ) <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
