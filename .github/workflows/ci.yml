@@ -304,6 +304,20 @@ jobs:
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
       - env:
+          stepName: Build checks (Disable DNS features)
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_DNS_FEATURES
+          cmake --build build --target clean
+          cmake --build build --target freertos_plus_tcp_build_test
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
           stepName: Build checks (Disable all functionalities)
         name: ${{ env.stepName }}
         run: |
