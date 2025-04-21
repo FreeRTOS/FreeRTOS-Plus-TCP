@@ -111,6 +111,7 @@ target_compile_options(freertos_plus_tcp
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wpedantic>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wconversion>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wredundant-decls>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wunused-variable>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
 
