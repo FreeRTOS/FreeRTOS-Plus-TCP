@@ -500,9 +500,9 @@ unsigned configure_IEEE_phy_speed( XEmacPs * xemacpsp,
     return 0;
 }
 
-static void WriteSLCRDivisors(int mac_baseaddr, 
-                              u32 SlcrDiv0, 
-                              u32 SlcrDiv1)
+static void WriteSLCRDivisors( int mac_baseaddr, 
+                               u32 SlcrDiv0, 
+                               u32 SlcrDiv1)
 {
     volatile u32 slcrBaseAddress;
     if( ( unsigned long ) mac_baseaddr == EMAC0_BASE_ADDRESS )
@@ -558,7 +558,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
                 #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0
                     u32 SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV0;
                     u32 SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_1000MBPS_DIV1;
-                    WriteSLCRDivisors(mac_baseaddr, SlcrDiv0, SlcrDiv1);
+                    WriteSLCRDivisors( mac_baseaddr, SlcrDiv0, SlcrDiv1 );
                 #endif
             }
             else
@@ -566,7 +566,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
                 #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0
                     u32 SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV0;
                     u32 SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_1000MBPS_DIV1;
-                    WriteSLCRDivisors(mac_baseaddr, SlcrDiv0, SlcrDiv1);
+                    WriteSLCRDivisors( mac_baseaddr, SlcrDiv0, SlcrDiv1 );
                 #endif
             }
         }
@@ -577,7 +577,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
                 #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0
                     u32 SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0;
                     u32 SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV1;
-                    WriteSLCRDivisors(mac_baseaddr, SlcrDiv0, SlcrDiv1);
+                    WriteSLCRDivisors( mac_baseaddr, SlcrDiv0, SlcrDiv1 );
                 #endif
             }
             else
@@ -585,7 +585,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
                 #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0
                     u32 SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV0;
                     u32 SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_100MBPS_DIV1;
-                    WriteSLCRDivisors(mac_baseaddr, SlcrDiv0, SlcrDiv1);
+                    WriteSLCRDivisors( mac_baseaddr, SlcrDiv0, SlcrDiv1 );
                 #endif
             }
         }
@@ -596,7 +596,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
                 #ifdef XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0
                     u32 SlcrDiv0 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV0;
                     u32 SlcrDiv1 = XPAR_PS7_ETHERNET_0_ENET_SLCR_10MBPS_DIV1;
-                    WriteSLCRDivisors(mac_baseaddr, SlcrDiv0, SlcrDiv1);
+                    WriteSLCRDivisors( mac_baseaddr, SlcrDiv0, SlcrDiv1 );
                 #endif
             }
             else
@@ -604,7 +604,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
                 #ifdef XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0
                     u32 SlcrDiv0 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV0;
                     u32 SlcrDiv1 = XPAR_PS7_ETHERNET_1_ENET_SLCR_10MBPS_DIV1;
-                    WriteSLCRDivisors(mac_baseaddr, SlcrDiv0, SlcrDiv1);
+                    WriteSLCRDivisors( mac_baseaddr, SlcrDiv0, SlcrDiv1 );
                 #endif
             }
         }
