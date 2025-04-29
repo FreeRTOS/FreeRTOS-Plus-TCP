@@ -502,7 +502,7 @@ unsigned configure_IEEE_phy_speed( XEmacPs * xemacpsp,
 
 static void WriteSLCRDivisors( int mac_baseaddr, 
                                u32 SlcrDiv0, 
-                               u32 SlcrDiv1)
+                               u32 SlcrDiv1 )
 {
     volatile u32 slcrBaseAddress;
     if( ( unsigned long ) mac_baseaddr == EMAC0_BASE_ADDRESS )
