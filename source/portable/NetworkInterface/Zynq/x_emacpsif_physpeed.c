@@ -538,7 +538,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
         {
             slcrBaseAddress = SLCR_GEM1_CLK_CTRL_ADDR;
         }
-        
+
         if( speed == 1000 )
         {
             *( volatile unsigned int * ) ( slcrBaseAddress ) =
