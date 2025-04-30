@@ -8,6 +8,7 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     ENABLE_ALL_IPV4_TCP     # Enable all configuration settings IPv4 TCP
     ENABLE_ALL_IPV6_TCP     # Enable all configuration settings IPv6 TCP
     ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6 UDP
+    DISABLE_DNS_FEATURES    # Enable all except DNS caching, callbacks, mDNS
     DISABLE_ALL             # Disable all configuration settings
     HEADER_SELF_CONTAIN     # Enable header self contain test
     DEFAULT_CONF            # Default (typical) configuration
@@ -60,6 +61,11 @@ target_include_directories(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFAC
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_disable_dns_features INTERFACE)
+target_include_directories(freertos_plus_tcp_config_disable_dns_features INTERFACE DisableDnsFeatures)
+target_link_libraries(freertos_plus_tcp_config_disable_dns_features INTERFACE freertos_plus_tcp_config_common)
+
+# -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_header_self_contain INTERFACE)
 target_include_directories(freertos_plus_tcp_config_header_self_contain INTERFACE Header_Self_Contain)
 target_link_libraries(freertos_plus_tcp_config_header_self_contain INTERFACE freertos_plus_tcp_config_common)
@@ -90,6 +96,8 @@ elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV6_TCP" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_ipv6_tcp)
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV4_IPV6" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_ipv4_ipv6)
+elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "DISABLE_DNS_FEATURES" )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_disable_dns_features)
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "HEADER_SELF_CONTAIN" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_header_self_contain)
     include( Header_Self_Contain/headerSelfContain.cmake )
