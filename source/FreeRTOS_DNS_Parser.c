@@ -737,10 +737,12 @@
                                          &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
                                          ipSIZE_OF_IPv6_ADDRESS );
 
-                        if( ppxAddressInfo != NULL )
-                        {
-                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xIPAddress.xIP_IPv6.ucBytes );
-                        }
+                        #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                            if( ppxAddressInfo != NULL )
+                            {
+                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xIPAddress.xIP_IPv6.ucBytes );
+                            }
+                        #endif
 
                         xIP_Address.xIs_IPv6 = pdTRUE;
 
@@ -765,12 +767,14 @@
                         pvCopyDest = &( pxSet->ulIPAddress );
                         ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
 
-                        if( ppxAddressInfo != NULL )
-                        {
-                            const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
+                        #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                            if( ppxAddressInfo != NULL )
+                            {
+                                const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
 
-                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
-                        }
+                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
+                            }
+                        #endif
 
                         xIP_Address.xIPAddress.ulIP_IPv4 = pxSet->ulIPAddress;
                         xIP_Address.xIs_IPv6 = pdFALSE;
