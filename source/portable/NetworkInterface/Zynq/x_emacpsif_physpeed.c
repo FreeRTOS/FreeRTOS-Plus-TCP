@@ -500,11 +500,12 @@ unsigned configure_IEEE_phy_speed( XEmacPs * xemacpsp,
     return 0;
 }
 
-static void WriteSLCRDivisors( int mac_baseaddr, 
-                               u32 SlcrDiv0, 
+static void WriteSLCRDivisors( int mac_baseaddr,
+                               u32 SlcrDiv0,
                                u32 SlcrDiv1 )
 {
     volatile u32 slcrBaseAddress;
+
     if( ( unsigned long ) mac_baseaddr == EMAC0_BASE_ADDRESS )
     {
         slcrBaseAddress = SLCR_GEM0_CLK_CTRL_ADDR;
@@ -513,6 +514,7 @@ static void WriteSLCRDivisors( int mac_baseaddr,
     {
         slcrBaseAddress = SLCR_GEM1_CLK_CTRL_ADDR;
     }
+
     u32 SlcrTxClkCntrl = *( volatile unsigned int * ) ( slcrBaseAddress );
     SlcrTxClkCntrl &= EMACPS_SLCR_DIV_MASK;
     SlcrTxClkCntrl |= ( SlcrDiv1 << 20 );
@@ -527,6 +529,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
 
     #ifdef PEEP
         volatile u32 slcrBaseAddress;
+
         if( ( unsigned long ) mac_baseaddr == EMAC0_BASE_ADDRESS )
         {
             slcrBaseAddress = SLCR_GEM0_CLK_CTRL_ADDR;
@@ -535,6 +538,7 @@ static void SetUpSLCRDivisors( int mac_baseaddr,
         {
             slcrBaseAddress = SLCR_GEM1_CLK_CTRL_ADDR;
         }
+        
         if( speed == 1000 )
         {
             *( volatile unsigned int * ) ( slcrBaseAddress ) =
