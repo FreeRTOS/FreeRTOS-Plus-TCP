@@ -308,7 +308,7 @@
  * Type: TickType_t
  * Unit: milliseconds
  * Minimum: 0
- * Maximum: portMAX_DELAY * portTICK_PERIOD_MS
+ * Maximum: ( portMAX_DELAY / configTICK_RATE_HZ ) * 1000
  *
  * Sets the timeout to wait for a response to a router
  * solicitation message.
@@ -322,7 +322,7 @@
     #error ipconfigRA_SEARCH_TIME_OUT_MSEC must be at least 0
 #endif
 
-STATIC_ASSERT( ipconfigRA_SEARCH_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PERIOD_MS ) );
+STATIC_ASSERT( pdMS_TO_TICKS( ipconfigRA_SEARCH_TIME_OUT_MSEC ) <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
@@ -357,7 +357,7 @@ STATIC_ASSERT( ipconfigRA_SEARCH_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PER
  * Type: TickType_t
  * Unit: milliseconds
  * Minimum: 0
- * Maximum: portMAX_DELAY * portTICK_PERIOD_MS
+ * Maximum: ( portMAX_DELAY / configTICK_RATE_HZ ) * 1000
  *
  * Sets the timeout to wait for a response to a neighbour solicitation message.
  */
@@ -370,7 +370,7 @@ STATIC_ASSERT( ipconfigRA_SEARCH_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PER
     #error ipconfigRA_IP_TEST_TIME_OUT_MSEC must be at least 0
 #endif
 
-STATIC_ASSERT( ipconfigRA_IP_TEST_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PERIOD_MS ) );
+STATIC_ASSERT( pdMS_TO_TICKS( ipconfigRA_IP_TEST_TIME_OUT_MSEC ) <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
@@ -1726,8 +1726,7 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
  * network buffers are themselves blocked waiting for a network buffer.
  *
  * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks. A time in
- * milliseconds can be converted to a time in ticks by dividing the time in
- * milliseconds by portTICK_PERIOD_MS.
+ * milliseconds can be converted to a time in ticks using pdMS_TO_TICKS().
  */
 
 #ifndef ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS

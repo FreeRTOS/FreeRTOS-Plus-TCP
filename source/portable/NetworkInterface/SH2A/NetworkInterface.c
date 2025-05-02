@@ -55,7 +55,7 @@
  * task performing the transmit will block for niTX_BUFFER_FREE_WAIT
  * milliseconds.  It will do this a maximum of niMAX_TX_ATTEMPTS before giving
  * up. */
-#define niTX_BUFFER_FREE_WAIT       ( ( TickType_t ) 2UL / portTICK_PERIOD_MS )
+#define niTX_BUFFER_FREE_WAIT       ( pdMS_TO_TICKS( 2UL ) )
 #define niMAX_TX_ATTEMPTS           ( 5 )
 
 /* The length of the queue used to send interrupt status words from the

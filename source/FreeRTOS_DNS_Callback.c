@@ -125,7 +125,7 @@
  * @param[in] pcHostName The hostname whose IP address is being searched for.
  * @param[in] pvSearchID The search ID of the DNS callback function to set.
  * @param[in] pCallbackFunction The callback function pointer.
- * @param[in] uxTimeout Timeout of the callback function.
+ * @param[in] uxTimeout Timeout of the callback function in ms.
  * @param[in] uxIdentifier Random number used as ID in the DNS message.
  * @param[in] xIsIPv6 pdTRUE if the address type should be IPv6.
  */
@@ -145,7 +145,7 @@
         DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
 
         /* Translate from ms to number of clock ticks. */
-        uxTimeout /= portTICK_PERIOD_MS;
+        uxTimeout = pdMS_TO_TICKS( uxTimeout );
 
         if( pxCallback != NULL )
         {
