@@ -290,7 +290,7 @@
 
 /* The windows simulator cannot really simulate MAC interrupts, and needs to
  * block occasionally to allow other tasks to run. */
-#define configWINDOWS_MAC_INTERRUPT_SIMULATOR_DELAY    ( 20 / portTICK_PERIOD_MS )
+#define configWINDOWS_MAC_INTERRUPT_SIMULATOR_DELAY    pdMS_TO_TICKS( 20 )
 
 /* Advanced only: in order to access 32-bit fields in the IP packets with
  * 32-bit memory instructions, all packets will be stored 32-bit-aligned,
