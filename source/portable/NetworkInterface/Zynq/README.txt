@@ -43,7 +43,7 @@ It is obligatory to define:
 
 If using SDT drivers, it may be necessary to define certain link speed divisor values.
 This is to work around a driver issue where certain link speeds will not transmit any data
-without defining the values.
+without defining the values.  These macros can be defined in the FreeRTOSIPConfig.h
 For example, it may be necessary to define:
 
 #define XPAR_PS7_ETHERNET_0_ENET_SLCR_100MBPS_DIV0 8
