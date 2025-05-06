@@ -273,8 +273,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 
             /* 'ulIPAddress' might have become the address of the Gateway.
              * Find the route again. */
-
-            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
+            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress );
 
             if( pxNetworkBuffer->pxEndPoint == NULL )
             {
