@@ -3900,12 +3900,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             if( pxParentSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
             {
                 pxClientSocket = pxParentSocket->u.xTCP.pxPeerSocket;
-
-                if( pxClientSocket != NULL )
-                {
-                    FreeRTOS_printf( ( "prvAcceptWaitClient: client %p parent %p\n",
-                                       ( void * ) pxClientSocket, ( void * ) pxParentSocket ) );
-                }
             }
             else
             {
@@ -3931,6 +3925,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             }
         }
         ( void ) xTaskResumeAll();
+
+        if( ( pxClientSocket != NULL ) && ( pxParentSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) )
+        {
+            FreeRTOS_printf( ( "prvAcceptWaitClient: client %p parent %p\n",
+                               ( void * ) pxClientSocket, ( void * ) pxParentSocket ) );
+        }
 
         if( pxClientSocket != NULL )
         {
