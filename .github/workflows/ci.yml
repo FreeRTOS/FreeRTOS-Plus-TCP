@@ -106,9 +106,7 @@ jobs:
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} Built Coverage Tests ${{ env.bashEnd }}"
 
-          wget https://github.com/linux-test-project/lcov/releases/download/v2.3.1/lcov-2.3.1.tar.gz
-          tar -xvzf lcov-2.3.1.tar.gz 
-          ./lcov-2.3.1/bin/lcov --list --rc branch_coverage=1  test/unit-test/build/coverage.info
+          lcov --summary --rc lcov_branch_coverage=1 test/unit-test/build/coverage.info
 
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
