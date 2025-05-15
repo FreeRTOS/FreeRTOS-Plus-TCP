@@ -220,7 +220,7 @@
             pxIP->xIPAddress.ulIP_IPv4 = 0U;
         }
 
-        ulCurrentTimeSeconds = ( uint32_t ) ( ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U );
+        ulCurrentTimeSeconds = ( uint32_t ) ( ( xCurrentTickCount / configTICK_RATE_HZ ) );
         xResult = prvFindEntryIndex( pcName, pxIP, &uxIndex );
 
         if( xResult == pdTRUE )

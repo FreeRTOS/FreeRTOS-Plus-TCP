@@ -44,9 +44,9 @@
 #define ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS     1
 #define ipconfigDHCP_FALL_BACK_AUTO_IP             1
 #define ipconfigARP_USE_CLASH_DETECTION            1
-#define ipconfigUSE_LLMNR                          1
+#define ipconfigUSE_LLMNR                          0
 #define ipconfigUSE_NBNS                           1
-#define ipconfigUSE_MDNS                           1
+#define ipconfigUSE_MDNS                           0
 #define ipconfigSUPPORT_OUTGOING_PINGS             1
 #define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    1
 #define ipconfigZERO_COPY_TX_DRIVER                1
@@ -56,7 +56,7 @@
 #define ipconfigSELECT_USES_NOTIFY                 1
 #define ipconfigSUPPORT_SIGNALS                    1
 #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES     1
-#define ipconfigDNS_USE_CALLBACKS                  1
+#define ipconfigDNS_USE_CALLBACKS                  0
 #define ipconfigCOMPATIBLE_WITH_SINGLE             1
 #define ipconfigIGNORE_UNKNOWN_PACKETS             1
 #define ipconfigCHECK_IP_QUEUE_SPACE               1
@@ -105,7 +105,7 @@
  * call to FreeRTOS_gethostbyname() will return immediately, without even creating
  * a socket.
  */
-#define ipconfigUSE_DNS_CACHE                      ( 1 )
+#define ipconfigUSE_DNS_CACHE                      ( 0 )
 #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
@@ -143,9 +143,10 @@
  * maximum allowable send block time prevents prevents a deadlock occurring when
  * all the network buffers are in use and the tasks that process (and subsequently
  * free) the network buffers are themselves blocked waiting for a network buffer.
- * ipconfigMAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks. A time in
- * milliseconds can be converted to a time in ticks using pdMS_TO_TICKS().*/
-#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS      pdMS_TO_TICKS( 5000U )
+ * ipconfigMAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks.  A time in
+ * milliseconds can be converted to a time in ticks by dividing the time in
+ * milliseconds by portTICK_PERIOD_MS. */
+#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS      ( 5000U / portTICK_PERIOD_MS )
 
 /* If ipconfigUSE_DHCP is 1 then FreeRTOS+TCP will attempt to retrieve an IP
  * address, netmask, DNS server address and gateway address from a DHCP server.  If
@@ -170,7 +171,8 @@
  * static IP address passed as a parameter to FreeRTOS_IPInit() if the
  * re-transmission time interval reaches ipconfigMAXIMUM_DISCOVER_TX_PERIOD without
  * a DHCP reply being received. */
-#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD         pdMS_TO_TICKS( 120000U )
+#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD \
+    ( 120000U / portTICK_PERIOD_MS )
 
 /* The ARP cache is a table that maps IP addresses to MAC addresses.  The IP
  * stack can only send a UDP message to a remove IP address if it knowns the MAC
@@ -181,19 +183,19 @@
  * cache then the UDP message is replaced by a ARP message that solicits the
  * required MAC address information.  ipconfigARP_CACHE_ENTRIES defines the maximum
  * number of entries that can exist in the ARP table at any one time. */
-#define ipconfigARP_CACHE_ENTRIES                  6
+#define ipconfigARP_CACHE_ENTRIES                 6
 
 /* ARP requests that do not result in an ARP response will be re-transmitted a
  * maximum of ipconfigMAX_ARP_RETRANSMISSIONS times before the ARP request is
  * aborted. */
-#define ipconfigMAX_ARP_RETRANSMISSIONS            ( 5 )
+#define ipconfigMAX_ARP_RETRANSMISSIONS           ( 5 )
 
 /* ipconfigMAX_ARP_AGE defines the maximum time between an entry in the ARP
  * table being created or refreshed and the entry being removed because it is stale.
  * New ARP requests are sent for ARP cache entries that are nearing their maximum
  * age.  ipconfigMAX_ARP_AGE is specified in tens of seconds, so a value of 150 is
  * equal to 1500 seconds (or 25 minutes). */
-#define ipconfigMAX_ARP_AGE                        150
+#define ipconfigMAX_ARP_AGE                       150
 
 /* Implementing FreeRTOS_inet_addr() necessitates the use of string handling
  * routines, which are relatively large.  To save code space the full
@@ -205,13 +207,13 @@
  * ipconfigINCLUDE_FULL_INET_ADDR is set to 1 then both FreeRTOS_inet_addr() and
  * FreeRTOS_indet_addr_quick() are available.  If ipconfigINCLUDE_FULL_INET_ADDR is
  * not set to 1 then only FreeRTOS_indet_addr_quick() is available. */
-#define ipconfigINCLUDE_FULL_INET_ADDR             1
+#define ipconfigINCLUDE_FULL_INET_ADDR            1
 
 /* ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS defines the total number of network buffer that
  * are available to the IP stack.  The total number of network buffers is limited
  * to ensure the total amount of RAM that can be consumed by the IP stack is capped
  * to a pre-determinable value. */
-#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS     60
+#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    60
 
 /* A FreeRTOS queue is used to send events from application tasks to the IP
  * stack.  ipconfigEVENT_QUEUE_LENGTH sets the maximum number of events that can
@@ -285,7 +287,7 @@
 
 /* The windows simulator cannot really simulate MAC interrupts, and needs to
  * block occasionally to allow other tasks to run. */
-#define configWINDOWS_MAC_INTERRUPT_SIMULATOR_DELAY    pdMS_TO_TICKS( 20 )
+#define configWINDOWS_MAC_INTERRUPT_SIMULATOR_DELAY    ( 20 / portTICK_PERIOD_MS )
 
 /* Advanced only: in order to access 32-bit fields in the IP packets with
  * 32-bit memory instructions, all packets will be stored 32-bit-aligned,

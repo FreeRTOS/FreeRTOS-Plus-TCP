@@ -118,10 +118,9 @@
  * maximum allowable send block time prevents prevents a deadlock occurring when
  * all the network buffers are in use and the tasks that process (and subsequently
  * free) the network buffers are themselves blocked waiting for a network buffer.
- * ipconfigMAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks.  A time in
- * milliseconds can be converted to a time in ticks by dividing the time in
- * milliseconds by portTICK_PERIOD_MS. */
-#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS      ( 5000U / portTICK_PERIOD_MS )
+ * ipconfigMAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks. A time in
+ * milliseconds can be converted to a time in ticks using pdMS_TO_TICKS().*/
+#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS      pdMS_TO_TICKS( 5000U )
 
 /* If ipconfigUSE_DHCP is 1 then FreeRTOS+TCP will attempt to retrieve an IP
  * address, netmask, DNS server address and gateway address from a DHCP server.  If
