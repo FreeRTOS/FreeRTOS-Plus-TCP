@@ -955,12 +955,12 @@ enum smsc9220_error_t smsc9220_read_mac_address( const struct smsc9220_eth_dev_t
         return SMSC9220_ERROR_INTERNAL;
     }
 
-    mac[ 0 ] = mac_low & 0xFF;
-    mac[ 1 ] = ( mac_low >> 8 ) & 0xFF;
-    mac[ 2 ] = ( mac_low >> 16 ) & 0xFF;
-    mac[ 3 ] = ( mac_low >> 24 ) & 0xFF;
-    mac[ 4 ] = mac_high & 0xFF;
-    mac[ 5 ] = ( mac_high >> 8 ) & 0xFF;
+    mac[ 0 ] = ( char ) ( mac_low & 0xFF );
+    mac[ 1 ] = ( char ) ( ( mac_low >> 8 ) & 0xFF );
+    mac[ 2 ] = ( char ) ( ( mac_low >> 16 ) & 0xFF );
+    mac[ 3 ] = ( char ) ( ( mac_low >> 24 ) & 0xFF );
+    mac[ 4 ] = ( char ) ( mac_high & 0xFF );
+    mac[ 5 ] = ( char ) ( ( mac_high >> 8 ) & 0xFF );
 
     return SMSC9220_ERROR_NONE;
 }
@@ -1223,7 +1223,7 @@ uint32_t smsc9220_peek_next_packet_size( const struct
     }
     else
     {
-        rx_status_from_peek = -1;
+        rx_status_from_peek = ( uint32_t ) -1;
     }
 
     return packet_size;
