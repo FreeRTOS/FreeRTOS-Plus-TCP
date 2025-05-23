@@ -1786,8 +1786,6 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
 
 void ETH_IRQHandler( void )
 {
-    traceISR_ENTER();
-
     ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
 
     xSwitchRequired = pdFALSE;
