@@ -697,7 +697,6 @@ struct xIPv6_Couple
         BaseType_t xGatewayTarget = pdFALSE;
         BaseType_t xTargetGlobal = pdFALSE;
 
-        ( void ) pxIPAddressFrom;
         ( void ) xGatewayTarget;
         ( void ) xTargetGlobal;
 
