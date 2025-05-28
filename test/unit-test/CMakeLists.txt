@@ -176,46 +176,52 @@ foreach( file ${TCP_INCLUDES} )
     endif()
 
 
+    # Find the unifdefall executable
+    find_program(UNIFDEFALL_EXECUTABLE unifdefall)
 
-    # Use this tool to process all conditional declarations.
-    if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Routing" OR ${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
-        execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT
-                            -UipTRUE_BOOL
-                            -UipFALSE_BOOL
-                            -UFreeRTOS_htonl
-                            -D__COVERITY__
-                            -DTEST
-                            -DipconfigIS_ENABLED
-                            -DipconfigUSE_IPv6
-                            -DipconfigUSE_RA
-                            -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
-                            -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-                            -I ${UNIT_TEST_DIR}/ConfigFiles
-                            -I ${MODULE_ROOT_DIR}/source/include
-                            -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
-                            ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
-                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                        OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
-                        OUTPUT_QUIET
-                        ERROR_QUIET  )
+    if (UNIFDEFALL_EXECUTABLE)
+        # Use this tool to process all conditional declarations.
+        if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Routing" OR ${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
+            execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT
+                                -UipTRUE_BOOL
+                                -UipFALSE_BOOL
+                                -UFreeRTOS_htonl
+                                -D__COVERITY__
+                                -DTEST
+                                -DipconfigIS_ENABLED
+                                -DipconfigUSE_IPv6
+                                -DipconfigUSE_RA
+                                -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+                                -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+                                -I ${UNIT_TEST_DIR}/ConfigFiles
+                                -I ${MODULE_ROOT_DIR}/source/include
+                                -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+                                ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
+                            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                            OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
+                            OUTPUT_QUIET
+                            ERROR_QUIET  )
+        else()
+            execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT
+                                -UipTRUE_BOOL
+                                -UipFALSE_BOOL
+                                -UFreeRTOS_htonl
+                                -D__COVERITY__
+                                -DTEST
+                                -DipconfigIS_ENABLED
+                                -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+                                -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+                                -I ${UNIT_TEST_DIR}/ConfigFiles
+                                -I ${MODULE_ROOT_DIR}/source/include
+                                -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+                                ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
+                            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                            OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
+                            OUTPUT_QUIET
+                            ERROR_QUIET  )
+        endif()
     else()
-        execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT
-                            -UipTRUE_BOOL
-                            -UipFALSE_BOOL
-                            -UFreeRTOS_htonl
-                            -D__COVERITY__
-                            -DTEST
-                            -DipconfigIS_ENABLED
-                            -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
-                            -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-                            -I ${UNIT_TEST_DIR}/ConfigFiles
-                            -I ${MODULE_ROOT_DIR}/source/include
-                            -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
-                            ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
-                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                        OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
-                        OUTPUT_QUIET
-                        ERROR_QUIET  )
+        message(FATAL_ERROR  "Error: unifdefall command not found.")
     endif()
 
     # Remove the temporary files
