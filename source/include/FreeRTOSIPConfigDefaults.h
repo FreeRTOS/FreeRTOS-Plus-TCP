@@ -3456,6 +3456,62 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * ipconfigSUPPORT_IP_MULTICAST
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When set to ipconfigENABLE, this macro will
+ * enable the reception of multicast groups addresses. When enabled,
+ * It is highly recommended to enable ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
+ * and use a network driver that supports MAC filtering through the
+ * pfAddAllowedMAC/pfRemoveAllowedMAC functions.
+ */
+#ifndef ipconfigSUPPORT_IP_MULTICAST
+    #define ipconfigSUPPORT_IP_MULTICAST    ipconfigDISABLE
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigPERIODIC_MULTICAST_REPORT_INTERVAL
+ *
+ * Type: BaseType_t
+ * Unit: count of igmpMULTICAST_EVENT_PERIOD_MS
+ *
+ * When set to -1, no periodic unsolicited multicast reports are sent out.
+ * This is the correct behavior. For debug purposes, set to > 0 to cause
+ * periodic sending of multicast reports even if there are no IGMP/MLD
+ * queries heard. Example: 150 = 15.0 seconds.
+ * Note: Maybe remove that ?
+ */
+#ifndef ipconfigPERIODIC_MULTICAST_REPORT_INTERVAL
+    #define ipconfigPERIODIC_MULTICAST_REPORT_INTERVAL    ( -1 )
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigMULTICAST_DEFAULT_TTL
+ *
+ * Type: uint8_t
+ * Unit: 'hops'
+ * Minimum: 0
+ *
+ * Specifies the TTL value that will be used for multicast
+ * UDP packets by default. Can be overridden per socket by
+ * setting the FREERTOS_SO_IP_MULTICAST_TTL socket option or by
+ * setting the FREERTOS_SO_IPV6_MULTICAST_HOPS in case of an IPv6 socket.
+ * Please note that in certain situations, RFCs or standards may require
+ * a certain value to be used,like in Neighbor Solicitation where the hop
+ * limit field must be set to 255. In those cases, the value is hard-coded
+ * instead of being controlled by this define. */
+#ifndef ipconfigMULTICAST_DEFAULT_TTL
+    #define ipconfigMULTICAST_DEFAULT_TTL    ( 1 )
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 /* Should only be included here, ensures trace config is set first. */
 #include "IPTraceMacroDefaults.h"
 

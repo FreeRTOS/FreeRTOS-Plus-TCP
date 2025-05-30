@@ -211,6 +211,78 @@ typedef struct xICMPRouterAdvertisement_IPv6 ICMPRouterAdvertisement_IPv6_t;
     typedef struct xICMPPrefixOption_IPv6 ICMPPrefixOption_IPv6_t;
 #endif /* ipconfigUSE_RA != 0 */
 
+#if ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST )
+    #include "pack_struct_start.h"
+    struct xIP_HOP_BY_HOP_EXT_ROUTER_ALERT_IPv6
+    {
+        uint8_t ucNextHeader;      /**< Next header: TCP, UDP, or ICMP.                                            0 +  1 =  1 */
+        uint8_t ucHeaderExtLength; /**< Length of this header in 8-octet units, not including the first 8 octets.  1 +  1 =  2 */
+        struct
+        {
+            uint8_t ucType;
+            uint8_t ucLength;
+            uint16_t usValue;
+        }
+        xRouterAlert;
+        struct
+        {
+            uint8_t ucType;
+            uint8_t ucLength;
+        }
+        xPadding;
+    }
+    #include "pack_struct_end.h"
+    typedef struct xIP_HOP_BY_HOP_EXT_ROUTER_ALERT_IPv6 IPHopByHopExtRouterAlert_IPv6_t;
+
+    #include "pack_struct_start.h"
+    struct xICMPv6_MLDv1
+    {
+        uint8_t ucTypeOfMessage;      /**< The message type.     0 +  1 = 1 */
+        uint8_t ucTypeOfService;      /**< Type of service.      1 +  1 = 2 */
+        uint16_t usChecksum;          /**< Checksum.             2 +  2 = 4 */
+        uint16_t usMaxResponseDelay;  /**< Max Response Delay.   4 +  2 = 6 */
+        uint16_t usReserved;          /**< Reserved.             6 +  2 = 8 */
+        IPv6_Address_t xGroupAddress; /**< The IPv6 address.     8 + 16 = 24 */
+    }
+    #include "pack_struct_end.h"
+    typedef struct xICMPv6_MLDv1 ICMPv6_MLDv1_t;
+
+/* Note: MLD packets are required to use the Router-Alert option
+ * in an IPv6 extension header. */
+    #include "pack_struct_start.h"
+    struct xICMPv6_MLDv1_TX_PACKET
+    {
+        EthernetHeader_t xEthernetHeader;          /*  0 + 14 = 14 */
+        IPHeader_IPv6_t xIPHeader;                 /* 14 + 40 = 54 */
+        IPHopByHopExtRouterAlert_IPv6_t xRAOption; /* 54 +  8 = 62 */
+        ICMPv6_MLDv1_t xMLD;                       /* 62 + 24 = 86 */
+    }
+    #include "pack_struct_end.h"
+    typedef struct xICMPv6_MLDv1_TX_PACKET MLDv1_Tx_Packet_t;
+
+/* This TCP stack strips the extension headers from IPv6 packets, so even though
+ * MLD packets include a Router-Alert option in an IPv6 extension header, the ICMP
+ * layer will not see it in the packet prvProcessIPPacket() stripped the extension headers. */
+    #include "pack_struct_start.h"
+    struct xICMPv6_MLDv1_RX_PACKET
+    {
+        EthernetHeader_t xEthernetHeader; /*  0 + 14 = 14 */
+        IPHeader_IPv6_t xIPHeader;        /* 14 + 40 = 54 */
+        ICMPv6_MLDv1_t xMLD;              /* 54 + 24 = 78 */
+    }
+    #include "pack_struct_end.h"
+    typedef struct xICMPv6_MLDv1_RX_PACKET MLDv1_Rx_Packet_t;
+
+/** @brief Options that can be sent in a Multicast Listener Report packet.
+ * more info at https://www.rfc-editor.org/rfc/rfc2711#section-2.0 */
+    #define ipROUTER_ALERT_VALUE_MLD     0
+
+/** from https://www.iana.org/assignments/ipv6-parameters/ipv6-parameters.xhtml#ipv6-parameters-2 */
+    #define ipHOP_BY_HOP_ROUTER_ALERT    5
+    #define ipHOP_BY_HOP_PadN            1
+
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
 /*-----------------------------------------------------------*/
 /* Nested protocol packets.                                  */
 /*-----------------------------------------------------------*/
