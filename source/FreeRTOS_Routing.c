@@ -658,10 +658,11 @@ struct xIPv6_Couple
  * @brief Check IP-type, IP- and MAC-address found in the network packet.
  */
     #define rMATCH_IP_ADDR      0   /**< Find an endpoint with a matching IP-address. */
-    #define rMATCH_IPv6_TYPE    1   /**< Find an endpoint with a matching IPv6 type (both global or non global). */
-    #define rMATCH_MAC_ADDR     2   /**< Find an endpoint with a matching MAC-address. */
-    #define rMATCH_IP_TYPE      3   /**< Find an endpoint with a matching IP-type, v4 or v6. */
-    #define rMATCH_COUNT        4   /**< The number of methods. */
+    #define rMATCH_NETMASK      1   /**< Find an endpoint with a matching NetMask. */
+    #define rMATCH_IPv6_TYPE    2   /**< Find an endpoint with a matching IPv6 type (both global or non global). */
+    #define rMATCH_MAC_ADDR     3   /**< Find an endpoint with a matching MAC-address. */
+    #define rMATCH_IP_TYPE      4   /**< Find an endpoint with a matching IP-type, v4 or v6. */
+    #define rMATCH_COUNT        5   /**< The number of methods. */
 
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
@@ -688,15 +689,14 @@ struct xIPv6_Couple
     {
         NetworkEndPoint_t * pxEndPoint;
         NetworkEndPoint_t * pxReturn = NULL;
-        /* endpoints found for IP-type, IP-address, and MAC-address. */
-        NetworkEndPoint_t * pxFound[ rMATCH_COUNT ] = { NULL, NULL, NULL, NULL };
-        BaseType_t xCount[ rMATCH_COUNT ] = { 0, 0, 0, 0 };
+        /* endpoints found for IP-type, IP-address, NetMask and MAC-address. */
+        NetworkEndPoint_t * pxFound[ rMATCH_COUNT ] = { NULL, NULL, NULL, NULL, NULL };
+        BaseType_t xCount[ rMATCH_COUNT ] = { 0, 0, 0, 0, 0 };
         BaseType_t xIndex;
         BaseType_t xIsIPv6 = ( usFrameType == ipIPv6_FRAME_TYPE ) ? pdTRUE : pdFALSE;
         BaseType_t xGatewayTarget = pdFALSE;
         BaseType_t xTargetGlobal = pdFALSE;
 
-        ( void ) pxIPAddressFrom;
         ( void ) xGatewayTarget;
         ( void ) xTargetGlobal;
 
@@ -777,6 +777,11 @@ struct xIPv6_Couple
                             {
                                 pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
                                 xCount[ rMATCH_IP_ADDR ]++;
+                            }
+                            else if( FreeRTOS_InterfaceEndPointOnNetMask( pxNetworkInterface, pxIPAddressFrom->ulIP_IPv4 ) == pxEndPoint )
+                            {
+                                pxFound[ rMATCH_NETMASK ] = pxEndPoint;
+                                xCount[ rMATCH_NETMASK ]++;
                             }
                             else
                             {
@@ -912,15 +917,10 @@ struct xIPv6_Couple
                         /* coverity[misra_c_2012_rule_11_3_violation] */
                         const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
 
-                        if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
+                        if( ( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST ) || ( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY ) )
                         {
                             ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
                             xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
-                        }
-                        else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
-                        {
-                            ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
-                            xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
                         }
                         else
                         {
