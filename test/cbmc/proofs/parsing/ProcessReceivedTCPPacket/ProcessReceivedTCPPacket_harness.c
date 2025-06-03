@@ -178,6 +178,7 @@ void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     size_t tcpPacketSize;
+
     __CPROVER_assume( tcpPacketSize >= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + sizeof( TCPHeader_t ) ) );
 
     pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( tcpPacketSize, 0 );

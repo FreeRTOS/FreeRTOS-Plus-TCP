@@ -63,6 +63,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 uint32_t ulChar2u32( const uint8_t * pucPtr )
 {
     uint32_t ret;
+
     __CPROVER_assert( __CPROVER_r_ok( pucPtr, 4 ), "must be 4 bytes legal address to read" );
     return ret;
 }
@@ -70,6 +71,7 @@ uint32_t ulChar2u32( const uint8_t * pucPtr )
 uint16_t usChar2u16( const uint8_t * pucPtr )
 {
     uint16_t ret;
+
     __CPROVER_assert( __CPROVER_r_ok( pucPtr, 2 ), "must be 2 bytes legal address to read" );
     return ret;
 }
