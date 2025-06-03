@@ -1,5 +1,15 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.3.2 and V4.3.1 released June 03, 2025:
+	+ It was possible to cause an out-of-bounds write when processing LLMNR 
+	  or mDNS queries with very long DNS names. This issue only affects systems 
+	  using Buffer Allocation Scheme 1 with LLMNR or mDNS enabled. 
+	  This issue has been fixed by adding checks to prevent out of bounds write.
+	  We would like to thank Paschal Amusuo (@AmPaschal), 
+	  James C Davis (@davisjam), Taylor Le Lievre (@tlelievre26), and 
+	  Aravind Kumar Machiry (@machiry) of Purdue University for collaborating 
+	  on this issue through the coordinated vulnerability disclosure process.
+
 Changes between FreeRTOS-plus-TCP V4.3.1 and V4.3.0 released December 16, 2024:
 	+ Update README.md with information related to migrating to V4.3.0 and above
 	  for users utilising the STM32 network interface.
