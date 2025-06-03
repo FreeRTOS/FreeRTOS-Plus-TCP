@@ -1,16 +1,18 @@
 {
   "ENTRY": "DNS_ParseDNSReply",
-  "TEST_PAYLOAD_SIZE": 2,
-  "TEST_IPV4_PACKET_SIZE": 29,
-  "TEST_IPV6_PACKET_SIZE": 49,
+  "TEST_MAX_TEST_UNWIND_LOOP": 8,
+  "TEST_MIN_TEST_DNS_HEADER": 12,
+  "TEST_MIN_IPV4_UDP_PACKET_SIZE": 42,
+  "TEST_MIN_IPV6_UDP_PACKET_SIZE": 62,
+  "TEST_IPV4_NETWORK_MTU": "__eval {TEST_MIN_IPV4_UDP_PACKET_SIZE} + {TEST_MIN_TEST_DNS_HEADER} + {TEST_MAX_TEST_UNWIND_LOOP}",
+  "TEST_IPV6_NETWORK_MTU": "__eval {TEST_MIN_IPV6_UDP_PACKET_SIZE} + {TEST_MIN_TEST_DNS_HEADER} + {TEST_MAX_TEST_UNWIND_LOOP}",
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset DNS_ParseDNSReply.0:{TEST_PAYLOAD_SIZE}",
-    "--unwindset DNS_ReadNameField.0:{TEST_PAYLOAD_SIZE}",
-    "--unwindset DNS_ReadNameField.1:{TEST_PAYLOAD_SIZE}",
-    "--unwindset parseDNSAnswer.0:{TEST_PAYLOAD_SIZE}",
-    "--unwindset strncpy.0:{TEST_PAYLOAD_SIZE}"
+    "--unwindset strlen.0:{TEST_MAX_TEST_UNWIND_LOOP}",
+    "--unwindset DNS_ParseDNSReply.0:{TEST_MAX_TEST_UNWIND_LOOP}",
+    "--unwindset DNS_ReadNameField.0:{TEST_MAX_TEST_UNWIND_LOOP}",
+    "--unwindset DNS_ReadNameField.1:{TEST_MAX_TEST_UNWIND_LOOP}"
   ],
   "OPT":
   [
@@ -25,21 +27,63 @@
   "DEF":
   [
     {
-      "IPv4":
+      "IPv4_FixedNetworkBufferSize":
       [
-        "TEST_PACKET_SIZE={TEST_IPV4_PACKET_SIZE}",
+        "TEST_MAX_PAYLOAD_SIZE={TEST_MAX_TEST_UNWIND_LOOP}",
         "ipconfigUSE_LLMNR=1",
         "ipconfigUSE_MDNS=1",
-        "IS_TESTING_IPV6=0"
+        "IS_TESTING_IPV6=0",
+        "IS_BUFFER_ALLOCATE_FIXED=1",
+        "ipconfigNETWORK_MTU={TEST_IPV4_NETWORK_MTU}",
+        "ipconfigUSE_TCP=0",
+        "ipconfigUSE_DHCP=0",
+        "ipconfigTCP_MSS=536",
+        "ipconfigDNS_CACHE_NAME_LENGTH={TEST_MAX_TEST_UNWIND_LOOP}"
       ]
     },
     {
-      "IPv6":
+      "IPv6_FixedNetworkBufferSize":
       [
-        "TEST_PACKET_SIZE={TEST_IPV6_PACKET_SIZE}",
+        "TEST_MAX_PAYLOAD_SIZE={TEST_MAX_TEST_UNWIND_LOOP}",
         "ipconfigUSE_LLMNR=1",
         "ipconfigUSE_MDNS=1",
-        "IS_TESTING_IPV6=1"
+        "IS_TESTING_IPV6=1",
+        "IS_BUFFER_ALLOCATE_FIXED=1",
+        "ipconfigNETWORK_MTU={TEST_IPV6_NETWORK_MTU}",
+        "ipconfigUSE_TCP=0",
+        "ipconfigUSE_DHCP=0",
+        "ipconfigTCP_MSS=536",
+        "ipconfigDNS_CACHE_NAME_LENGTH={TEST_MAX_TEST_UNWIND_LOOP}"
+      ]
+    },
+    {
+      "IPv4_DynamicNetworkBufferSize":
+      [
+        "TEST_MAX_PAYLOAD_SIZE={TEST_MAX_TEST_UNWIND_LOOP}",
+        "ipconfigUSE_LLMNR=1",
+        "ipconfigUSE_MDNS=1",
+        "IS_TESTING_IPV6=0",
+        "IS_BUFFER_ALLOCATE_FIXED=0",
+        "ipconfigNETWORK_MTU={TEST_IPV4_NETWORK_MTU}",
+        "ipconfigUSE_TCP=0",
+        "ipconfigUSE_DHCP=0",
+        "ipconfigTCP_MSS=536",
+        "ipconfigDNS_CACHE_NAME_LENGTH={TEST_MAX_TEST_UNWIND_LOOP}"
+      ]
+    },
+    {
+      "IPv6_DynamicNetworkBufferSize":
+      [
+        "TEST_MAX_PAYLOAD_SIZE={TEST_MAX_TEST_UNWIND_LOOP}",
+        "ipconfigUSE_LLMNR=1",
+        "ipconfigUSE_MDNS=1",
+        "IS_TESTING_IPV6=1",
+        "IS_BUFFER_ALLOCATE_FIXED=0",
+        "ipconfigNETWORK_MTU={TEST_IPV6_NETWORK_MTU}",
+        "ipconfigUSE_TCP=0",
+        "ipconfigUSE_DHCP=0",
+        "ipconfigTCP_MSS=536",
+        "ipconfigDNS_CACHE_NAME_LENGTH={TEST_MAX_TEST_UNWIND_LOOP}"
       ]
     }
   ],

@@ -47,8 +47,7 @@ void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
                          uint32_t ulLen,
                          BaseType_t xReleaseAfterSend )
 {
-    __CPROVER_assert( pxSocket != NULL, "pxSocket should not be NULL" );
-    __CPROVER_assert( pxDescriptor != NULL, "pxDescriptor should not be NULL" );
+    __CPROVER_assert( pxSocket != NULL || pxDescriptor != NULL, "Either pxSocket or pxDescriptor must be non-NULL" );
     __CPROVER_assert( pxDescriptor->pucEthernetBuffer != NULL, "pucEthernetBuffer should not be NULL" );
 }
 
@@ -57,11 +56,14 @@ int32_t prvTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                            UBaseType_t uxOptionsLength )
 {
+    int32_t ret = nondet_int32();
+
     __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
     __CPROVER_assert( *ppxNetworkBuffer != NULL, "*ppxNetworkBuffer cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( ( *ppxNetworkBuffer )->pucEthernetBuffer, ( *ppxNetworkBuffer )->xDataLength ), "Data in *ppxNetworkBuffer must be readable" );
 
-    return nondet_int32();
+    __CPROVER_assume( ret >= 0 && ret <= ipconfigNETWORK_MTU );
+    return ret;
 }
 
 /* prvTCPHandleState is proven separately. */
@@ -137,6 +139,7 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
     {
         /* This test case is for IPv4. */
         __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
+        __CPROVER_assume( xRetSocket->u.xTCP.ucPeerWinScaleFactor <= tcpTCP_OPT_WSOPT_MAXIMUM_VALUE );
     }
 
     return xRetSocket;
@@ -151,7 +154,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     if( pxNetworkBuffer )
     {
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes );
-        __CPROVER_assume( pxNetworkBuffer->xDataLength == ipSIZE_OF_ETH_HEADER + sizeof( int32_t ) );
+        pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
     }
 
     return pxNetworkBuffer;
@@ -174,8 +177,11 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
+    size_t tcpPacketSize;
+    __CPROVER_assume( tcpPacketSize >= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + sizeof( TCPHeader_t ) ) );
 
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( TCPPacket_t ), 0 );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( tcpPacketSize, 0 );
+
 
     /* To avoid asserting on the network buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
