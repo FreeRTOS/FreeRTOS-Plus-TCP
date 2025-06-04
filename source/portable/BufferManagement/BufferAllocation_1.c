@@ -429,7 +429,7 @@ UBaseType_t uxGetNumberOfFreeNetworkBuffers( void )
 NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                                                  size_t xNewSizeBytes )
 {
-    if( xNewSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )  )
+    if( xNewSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) )
     {
         /* In BufferAllocation_1.c all network buffer are allocated with a
          * maximum size of 'ipTOTAL_ETHERNET_FRAME_SIZE'.No need to resize the

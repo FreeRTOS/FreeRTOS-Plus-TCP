@@ -2997,11 +2997,12 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
     dns_header->usFlags = dnsDNS_PORT;
 
     /* First 5 queries have maximum length. */
+
     /* DNS name field format requirements:
      * - First two bits must be zero to indicate real length
      * - Maximum length of a single label is 63 bytes (due to first two bits requirement)
      * - Total DNS name is set to 254 bytes to match ipconfigDNS_CACHE_NAME_LENGTH
-     * 
+     *
      * Format breakdown:
      * [label1].[label2].[label3].[label4][\0]
      * where:
@@ -3009,39 +3010,39 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
      * - label4: 61 bytes
      * - Total: 63 + 63 + 63 + 61 + 4 (length) + 1 (null terminator) = 255 bytes
      */
-    for( i=0; i<5; i++ )
+    for( i = 0; i < 5; i++ )
     {
         pucUDPPayloadBuffer[ beg ] = 63;
         beg++;
         strcpy( pucUDPPayloadBuffer + beg,
-            "FreeRTOSFreeRTOSFree" // 20
-            "FreeRTOSFreeRTOSFree" // 40
-            "FreeRTOSFreeRTOSFree" // 60
-            "Fre" ); // 63
+                "FreeRTOSFreeRTOSFree" /* 20 */
+                "FreeRTOSFreeRTOSFree" /* 40 */
+                "FreeRTOSFreeRTOSFree" /* 60 */
+                "Fre" );               /* 63 */
         beg += 63;
         pucUDPPayloadBuffer[ beg ] = 63;
         beg++;
         strcpy( pucUDPPayloadBuffer + beg,
-            "FreeRTOSFreeRTOSFree" // 20
-            "FreeRTOSFreeRTOSFree" // 40
-            "FreeRTOSFreeRTOSFree" // 60
-            "Fre" ); // 63
+                "FreeRTOSFreeRTOSFree" /* 20 */
+                "FreeRTOSFreeRTOSFree" /* 40 */
+                "FreeRTOSFreeRTOSFree" /* 60 */
+                "Fre" );               /* 63 */
         beg += 63;
         pucUDPPayloadBuffer[ beg ] = 63;
         beg++;
         strcpy( pucUDPPayloadBuffer + beg,
-            "FreeRTOSFreeRTOSFree" // 20
-            "FreeRTOSFreeRTOSFree" // 40
-            "FreeRTOSFreeRTOSFree" // 60
-            "Fre" ); // 63
+                "FreeRTOSFreeRTOSFree" /* 20 */
+                "FreeRTOSFreeRTOSFree" /* 40 */
+                "FreeRTOSFreeRTOSFree" /* 60 */
+                "Fre" );               /* 63 */
         beg += 63;
         pucUDPPayloadBuffer[ beg ] = 61;
         beg++;
         strcpy( pucUDPPayloadBuffer + beg,
-            "FreeRTOSFreeRTOSFree" // 20
-            "FreeRTOSFreeRTOSFree" // 40
-            "FreeRTOSFreeRTOSFree" // 60
-            "F" ); // 61
+                "FreeRTOSFreeRTOSFree" /* 20 */
+                "FreeRTOSFreeRTOSFree" /* 40 */
+                "FreeRTOSFreeRTOSFree" /* 60 */
+                "F" );                 /* 61 */
         beg += 61;
         pucUDPPayloadBuffer[ beg++ ] = '\0';
 
@@ -3053,12 +3054,13 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
      * - Header:        12 bytes
      * - Query section: (255 + 4) * 5 bytes = 1295 bytes
      * - Total used:    1307 bytes
-     * 
+     *
      * Available space in UDP payload:
      * - Total UDP payload: 1472 bytes
      * - Used space:        1307 bytes
      * - Remaining space:   165 bytes
      */
+
     /* Last query to fill the remaining 165 bytes. Reserve 4 bytes for type and class fields.
      *
      * Format breakdown:
@@ -3070,24 +3072,24 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
     pucUDPPayloadBuffer[ beg ] = 63;
     beg++;
     strcpy( pucUDPPayloadBuffer + beg,
-        "FreeRTOSFreeRTOSFree" // 20
-        "FreeRTOSFreeRTOSFree" // 40
-        "FreeRTOSFreeRTOSFree" // 60
-        "Fre" ); // 63
+            "FreeRTOSFreeRTOSFree" /* 20 */
+            "FreeRTOSFreeRTOSFree" /* 40 */
+            "FreeRTOSFreeRTOSFree" /* 60 */
+            "Fre" );               /* 63 */
     beg += 63;
     pucUDPPayloadBuffer[ beg ] = 63;
     beg++;
     strcpy( pucUDPPayloadBuffer + beg,
-        "FreeRTOSFreeRTOSFree" // 20
-        "FreeRTOSFreeRTOSFree" // 40
-        "FreeRTOSFreeRTOSFree" // 60
-        "Fre" ); // 63
+            "FreeRTOSFreeRTOSFree" /* 20 */
+            "FreeRTOSFreeRTOSFree" /* 40 */
+            "FreeRTOSFreeRTOSFree" /* 60 */
+            "Fre" );               /* 63 */
     beg += 63;
     pucUDPPayloadBuffer[ beg ] = 31;
     beg++;
     strcpy( pucUDPPayloadBuffer + beg,
-        "FreeRTOSFreeRTOSFree" // 20
-        "FreeRTOSFre" ); // 31
+            "FreeRTOSFreeRTOSFree" /* 20 */
+            "FreeRTOSFre" );       /* 31 */
     beg += 31;
     pucUDPPayloadBuffer[ beg++ ] = '\0';
 
