@@ -1174,6 +1174,12 @@ static void prvEMACHandlerTask( void * pvParameters )
              */
             if( xSTM32H_GetPhyLinkStatus( pxMyInterface ) == pdFALSE )
             {
+                #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+                {
+                    FreeRTOS_NetworkDown( pxMyInterface );
+                }
+                #endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
+
                 /* Stop the DMA transfer. */
                 HAL_ETH_Stop_IT( &( xEthHandle ) );
                 /* Clear the Transmit buffers. */

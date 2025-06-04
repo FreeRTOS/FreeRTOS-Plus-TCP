@@ -47,6 +47,7 @@
 
 /* Static members defined in FreeRTOS_DHCP.c */
 extern Socket_t xDHCPv6Socket;
+extern BaseType_t xDHCPv6SocketUserCount;
 void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
 
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
@@ -75,6 +76,18 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     __CPROVER_assume( pxSocket != NULL );
 
     return pxSocket;
+}
+
+void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "Endpoint cannot be NULL" );
+}
+
+void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "Closing socket cannot be NULL." );
+
+    return NULL;
 }
 
 /**
@@ -134,6 +147,8 @@ void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint( BaseType_t x
 void harness()
 {
     BaseType_t xReset, xGivingUp;
+
+    __CPROVER_assume( xDHCPv6SocketUserCount >= 0 && xDHCPv6SocketUserCount <= ENDPOINT_DNS_ADDRESS_COUNT );
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
 

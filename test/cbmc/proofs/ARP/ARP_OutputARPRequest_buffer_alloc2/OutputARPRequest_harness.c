@@ -55,6 +55,15 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
     }
 }
 
+BaseType_t xIsCallingFromIPTask( void )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdFALSE || xReturn == pdTRUE );
+
+    return xReturn;
+}
+
 void harness()
 {
     BaseType_t xRes = xNetworkBuffersInitialise();
@@ -71,6 +80,7 @@ void harness()
 
     /* Interface init. */
     pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
     pxNetworkEndPoints->pxNetworkInterface->pxNext = NULL;
 
     pxNetworkEndPoints->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;

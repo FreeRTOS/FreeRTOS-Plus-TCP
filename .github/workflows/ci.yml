@@ -128,7 +128,7 @@ jobs:
           path: ./
 
   formatting:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Check formatting
@@ -406,7 +406,7 @@ jobs:
       - name: Set up CBMC runner
         uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@main
         with:
-          cbmc_version: "5.95.1"
+          cbmc_version: "6.3.1"
 
       - env:
           stepName: Install Dependencies

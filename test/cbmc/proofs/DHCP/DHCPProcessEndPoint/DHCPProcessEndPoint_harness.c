@@ -51,6 +51,7 @@
 /* Static members defined in FreeRTOS_DHCP.c */
 extern DHCPData_t xDHCPData;
 extern Socket_t xDHCPv4Socket;
+extern BaseType_t xDHCPSocketUserCount;
 void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
 /* Static member defined in freertos_api.c */
@@ -145,6 +146,35 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     return ensure_FreeRTOS_Socket_t_is_allocated();
 }
 
+void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                           struct xNetworkEndPoint * pxEndPoint )
+{
+    __CPROVER_assert( eNetworkEvent == eNetworkUp || eNetworkEvent == eNetworkDown, "Network event is not correct" );
+    __CPROVER_assert( pxEndPoint != NULL, "Endpoint cannot be NULL" );
+}
+
+BaseType_t xIsCallingFromIPTask( void )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdFALSE || xReturn == pdTRUE );
+
+    return xReturn;
+}
+
+void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "Closing socket cannot be NULL" );
+
+    return NULL;
+}
+
+void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
+                                  BaseType_t xNetworkGoingUp )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "Endpoint cannot be NULL" );
+    __CPROVER_assert( pxEndPoint->pxNetworkInterface != NULL, "The network interface cannot be NULL" );
+}
 
 /****************************************************************
 * The proof of vDHCPProcess
@@ -154,6 +184,9 @@ void harness()
 {
     BaseType_t xReset;
     BaseType_t xDoCheck;
+
+    /* The only possibility of making xDHCPSocketUserCount overflow is having more than BaseType_t endpoints, which is assumed not possible here. */
+    __CPROVER_assume( xDHCPSocketUserCount >= 0 && xDHCPSocketUserCount <= ENDPOINT_DNS_ADDRESS_COUNT );
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
@@ -178,6 +211,7 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
     pxNetworkEndPoint_Temp->pxNext = NULL;
     pxNetworkEndPoint_Temp->xDHCPData.xDHCPSocket = NULL;
+    pxNetworkEndPoint_Temp->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
 
     /****************************************************************
     * Initialize the counter used to bound the number of times

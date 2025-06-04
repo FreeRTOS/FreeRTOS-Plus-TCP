@@ -31,7 +31,7 @@
 * concrete implementations of the functions in this file.
 *
 * See the following URL for an explanation of this file and its functions:
-* https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Porting.html
+* https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/10-Porting/03-Embedded_Ethernet_Porting
 *
 *****************************************************************************/
 

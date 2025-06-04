@@ -35,6 +35,8 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
 
+/* CBMC includes. */
+#include "cbmc.h"
 
 ARPPacket_t xARPPacket;
 NetworkBufferDescriptor_t xNetworkBuffer;
@@ -56,20 +58,35 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 {
     #ifdef CBMC_PROOF_ASSUMPTION_HOLDS
         #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
-            xNetworkBuffer.pucEthernetBuffer = malloc( ipconfigETHERNET_MINIMUM_PACKET_BYTES );
+            xNetworkBuffer.pucEthernetBuffer = safeMalloc( ipconfigETHERNET_MINIMUM_PACKET_BYTES );
         #else
-            xNetworkBuffer.pucEthernetBuffer = malloc( xRequestedSizeBytes );
+            xNetworkBuffer.pucEthernetBuffer = safeMalloc( xRequestedSizeBytes );
         #endif
     #else
         uint32_t malloc_size;
         __CPROVER_assert( !__CPROVER_overflow_mult( 2, xRequestedSizeBytes ) );
         __CPROVER_assume( malloc_size > 0 && malloc_size < 2 * xRequestedSizeBytes );
-        xNetworkBuffer.pucEthernetBuffer = malloc( malloc_size );
+        xNetworkBuffer.pucEthernetBuffer = safeMalloc( malloc_size );
     #endif
     __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
 
     xNetworkBuffer.xDataLength = xRequestedSizeBytes;
     return &xNetworkBuffer;
+}
+
+/* STUB!
+ * In this function, it only allocates network buffer by pxGetNetworkBufferWithDescriptor
+ * stub function above here. In this case, we should just free the allocated pucEthernetBuffer.
+ */
+void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "Precondition: pxNetworkBuffer != NULL" );
+
+    if( pxNetworkBuffer->pucEthernetBuffer != NULL )
+    {
+        free( pxNetworkBuffer->pucEthernetBuffer );
+    }
 }
 
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
@@ -81,6 +98,14 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
     __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
 }
 
+BaseType_t xIsCallingFromIPTask( void )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdFALSE || xReturn == pdTRUE );
+
+    return xReturn;
+}
 
 void harness()
 {
@@ -92,16 +117,16 @@ void harness()
      * Assumes one endpoint and interface is present.
      */
 
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
     /* Interface init. */
-    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
 
     if( nondet_bool() )
     {
-        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
         pxNetworkEndPoints->pxNext->pxNext = NULL;
         pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;

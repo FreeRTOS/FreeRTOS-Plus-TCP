@@ -730,6 +730,34 @@ static void prvPrepareAdvertiseNoServerID()
 }
 
 /**
+ * @brief Prepare buffer content as DHCPv6 advertise with extra option value 32.
+ */
+static void prvPrepareAdvertiseExtraOptionValue32()
+{
+    /* We hard code the option sequence in advertise message.
+     * 1. Client ID
+     * 2. Server ID
+     * 3. IA_NA
+     *     - Sub-option IA Address
+     *     - Sub-option IA Prefix
+     *     - Sub-option Status Code
+     * 4. Status Code
+     * 5. Preference
+     * 6. Extra Option 32
+     */
+    uint16_t usVal;
+
+    prvPrepareAdvertise();
+    /* Add extra option with value 32. */
+    usVal = 32;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "ExtraOption32" );
+    usVal = 2U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "ExtraOption32Length" );
+    usVal = 0U;
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &usVal, 2, "ExtraOptionStatusValue" );
+}
+
+/**
  * @brief Prepare buffer content as DHCPv6 advertise.
  */
 static void prvPrepareAdvertiseSubStatusCodeFail()
@@ -2044,6 +2072,54 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_LackServerID()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief Check if vDHCPv6Process can skip setting bit map when the option value is 32.
+ */
+void test_vDHCPv6Process_prvDHCPv6Analyse_ExtraOptionValue32()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 150 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareAdvertiseExtraOptionValue32();
+
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+
+    prvPrepareRequest();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    /* The endpoint receives the DHCPv6 Advertise message from DHCPv6 server.
+     * Then change the state to eWaitingAcknowledge. */
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
 }
 
 /**

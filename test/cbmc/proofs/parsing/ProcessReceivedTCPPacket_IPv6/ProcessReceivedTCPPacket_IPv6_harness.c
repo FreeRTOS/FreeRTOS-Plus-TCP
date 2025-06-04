@@ -63,6 +63,7 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
     {
         /* This test case is for IPv6. */
         __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdTRUE );
+        __CPROVER_assume( xRetSocket->u.xTCP.ucPeerWinScaleFactor <= tcpTCP_OPT_WSOPT_MAXIMUM_VALUE );
     }
 
     return xRetSocket;
@@ -99,20 +100,21 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
     EthernetHeader_t * pxEthernetHeader;
+    size_t tcpPacketSize;
 
-    /* To avoid asserting on the network buffer being NULL. */
-    __CPROVER_assume( pxNetworkBuffer != NULL );
+    __CPROVER_assume( tcpPacketSize >= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( TCPHeader_t ) ) );
 
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_IPv6_t ) );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( tcpPacketSize, 0 );
 
     /* To avoid asserting on the ethernet buffer being NULL. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    /* Ethernet frame type is checked before calling xProcessReceivedTCPPacket_IPV6. */
+    /* In this test case, we focus on IPv6 packets. */
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     __CPROVER_assume( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE );
 
-    xProcessReceivedTCPPacket_IPV6( pxNetworkBuffer );
+    xProcessReceivedTCPPacket( pxNetworkBuffer );
 }

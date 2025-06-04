@@ -53,6 +53,66 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     return ensure_FreeRTOS_Socket_t_is_allocated();
 }
 
+BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
+                        struct freertos_sockaddr * pxBindAddress,
+                        size_t uxAddressLength,
+                        BaseType_t xInternal )
+{
+    BaseType_t xRet;
+
+    __CPROVER_assert( pxSocket != NULL,
+                      "FreeRTOS precondition: pxSocket != NULL" );
+    __CPROVER_assert( pxBindAddress != NULL,
+                      "FreeRTOS precondition: pxBindAddress != NULL" );
+
+    return xRet;
+}
+
+void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "Closing socket cannot be NULL" );
+
+    return NULL;
+}
+
+void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
+}
+
+BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
+                      enum eTCP_STATE eTCPState )
+{
+}
+
+BaseType_t prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
+                                 struct freertos_sockaddr * pxAddress )
+{
+    size_t uxReturn;
+
+    __CPROVER_assert( pxAddress != NULL, "pxAddress cannot be NULL" );
+
+    return uxReturn;
+}
+
 void harness()
 {
     size_t xDataLength;

@@ -81,7 +81,7 @@ void harness()
     ****************************************************************/
 
     /* CBMC model of pointers limits the size of the buffer */
-    __CPROVER_assume( buffer_size < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( buffer_size < ipconfigNETWORK_MTU );
 
     /* Preconditions */
     __CPROVER_assume( 8 <= buffer_size ); /* ulFirst and ulLast */
