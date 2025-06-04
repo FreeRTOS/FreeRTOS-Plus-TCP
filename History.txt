@@ -1,5 +1,19 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.2.3 and V4.2.2 released June 04, 2025:
+	+ It was possible to cause an out-of-bounds write when processing LLMNR
+	  or mDNS queries with very long DNS names. This issue only affects systems
+	  using Buffer Allocation Scheme 1 with LLMNR or mDNS enabled.
+	  This issue has been fixed by adding checks to prevent out of bounds write.
+	  We would like to thank Paschal Amusuo (@AmPaschal),
+	  James C Davis (@davisjam), Taylor Le Lievre (@tlelievre26), and
+	  Aravind Kumar Machiry (@machiry) of Purdue University for collaborating
+	  on this issue through the coordinated vulnerability disclosure process.
+	+ Replace any missing functions by assert-false in all CBMC proofs to
+	  improve tests. We would like to thank @tautschnig for their contribution.
+	+ Adjust CBMC proof tooling to support CBMC v6.
+	  We would like to thank @tautschnig for their contribution.
+
 Changes between FreeRTOS-plus-TCP V4.2.2 and V4.2.1 released July 12, 2024
     + Update version information in public header file
 
