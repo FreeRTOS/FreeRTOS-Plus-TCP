@@ -20,31 +20,56 @@ jobs:
         with:
           ref: ${{ github.event.inputs.commit_id }}
       - name: Configure git identity
+        env:
+          ACTOR: ${{ github.actor }}
         run: |
-          git config --global user.name ${{ github.actor }}
-          git config --global user.email ${{ github.actor }}@users.noreply.github.com
+          git config --global user.name "$ACTOR"
+          git config --global user.email "$ACTOR"@users.noreply.github.com
       - name: create a new branch that references commit id
-        run: git checkout -b ${{ github.event.inputs.version_number }} ${{ github.event.inputs.commit_id }}
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
+          COMMIT_ID: ${{ github.event.inputs.commit_id }}
+        run: git checkout -b "$VERSION_NUMBER" "$COMMIT_ID"
+      - name: Update version number in source files
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          source_folder_list: "source test"
+        run: |
+            echo "${{ env.source_folder_list }}" | \
+            xargs -n 1 sh -c \
+            'find $1 -type f \( -name "*.c" -o -name "*.h" \) \
+            -exec sed -i -b -E "0,/^ \* FreeRTOS\+TCP/s/^ \* FreeRTOS\+TCP.*/ \* FreeRTOS\+TCP $VERSION_NUMBER/g" {} +'
+            git add .
+            git commit -m '[AUTO][RELEASE]: Update version number in source files'
+            git push -u origin "$VERSION_NUMBER"
       - name: Generate SBOM
         uses: FreeRTOS/CI-CD-Github-Actions/sbom-generator@main
         with:
           repo_path: ./
           source_path: ./source
       - name: commit SBOM file
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
         run: |
           git add .
           git commit -m 'Update SBOM'
-          git push -u origin ${{ github.event.inputs.version_number }}
+          git push -u origin "$VERSION_NUMBER"
       - name: Tag Commit and Push to remote
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
         run: |
-          git tag ${{ github.event.inputs.version_number }} -a -m "FreeRTOS-Plus-TCP Library ${{ github.event.inputs.version_number }}"
+          git tag "$VERSION_NUMBER" -a -m "FreeRTOS-Plus-TCP Library $VERSION_NUMBER"
           git push origin --tags
       - name: Verify tag on remote
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
+          COMMIT_ID: ${{ github.event.inputs.commit_id }}
         run: |
-          git tag -d ${{ github.event.inputs.version_number }}
+          git tag -d "$VERSION_NUMBER"
           git remote update
-          git checkout tags/${{ github.event.inputs.version_number }}
-          git diff ${{ github.event.inputs.commit_id }} tags/${{ github.event.inputs.version_number }}
+          git checkout tags/"$VERSION_NUMBER"
+          git diff "$COMMIT_ID" tags/"$VERSION_NUMBER"
   create-zip:
     needs: tag-commit
     name: Create ZIP and verify package for release asset.
@@ -55,7 +80,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.commit_id }}
+          ref: ${{ github.event.inputs.version_number }}
           path: FreeRTOS-Plus-TCP
           submodules: recursive
       - name: Checkout disabled submodules
@@ -63,28 +88,36 @@ jobs:
           cd FreeRTOS-Plus-TCP
           git submodule update --init --checkout --recursive
       - name: Create ZIP
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
         run: |
-          zip -r FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip FreeRTOS-Plus-TCP -x "*.git*"
+          zip -r FreeRTOS-Plus-TCP-"$VERSION_NUMBER".zip FreeRTOS-Plus-TCP -x "*.git*"
           ls ./
       - name: Validate created ZIP
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
         run: |
           mkdir zip-check
-          mv FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip zip-check
+          mv FreeRTOS-Plus-TCP-"$VERSION_NUMBER".zip zip-check
           cd zip-check
-          unzip FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip -d FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}
-          ls FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}
-          diff -r -x "*.git*" FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP/ ../FreeRTOS-Plus-TCP/
+          unzip FreeRTOS-Plus-TCP-"$VERSION_NUMBER".zip -d FreeRTOS-Plus-TCP-"$VERSION_NUMBER"
+          ls FreeRTOS-Plus-TCP-"$VERSION_NUMBER"
+          diff -r -x "*.git*" FreeRTOS-Plus-TCP-"$VERSION_NUMBER"/FreeRTOS-Plus-TCP/ ../FreeRTOS-Plus-TCP/
           cd ../
       - name: Build
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
         run: |
-          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
+          cd zip-check/FreeRTOS-Plus-TCP-"$VERSION_NUMBER"/FreeRTOS-Plus-TCP
           sudo apt-get install -y lcov
           sudo apt-get install unifdef
           cmake -S test/unit-test -B test/unit-test/build/
           make -C test/unit-test/build/ all
       - name: Test
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
         run: |
-          cd zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}/FreeRTOS-Plus-TCP
+          cd zip-check/FreeRTOS-Plus-TCP-"$VERSION_NUMBER"/FreeRTOS-Plus-TCP
           pushd test/unit-test/build/
           ctest -E system --output-on-failure
           popd
@@ -147,6 +180,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Delete branch created for Tag by SBOM generator
+        env:
+          VERSION_NUMBER: ${{ github.event.inputs.version_number }}
         run: |
           # Delete the branch created for Tag by SBOM generator
-          git push -u origin --delete refs/heads/${{ github.event.inputs.version_number }}
+          git push -u origin --delete refs/heads/"$VERSION_NUMBER"
