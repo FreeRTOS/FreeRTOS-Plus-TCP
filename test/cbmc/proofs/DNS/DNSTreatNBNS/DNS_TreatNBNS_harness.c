@@ -122,10 +122,7 @@ void harness()
 
     BaseType_t xDataSize;
 
-    /* When re-adjusting the buffer, (sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t )) more bytes are
-     * required to be added to the existing buffer. Make sure total bytes doesn't exceed  ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER
-     * when re-resizing. This will prevent hitting an assert if Buffer Allocation 1 is used. */
-    __CPROVER_assume( ( xDataSize != 0 ) && ( xDataSize < ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - ( sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) ) );
+    __CPROVER_assume( ( xDataSize > 0 ) && ( xDataSize < ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) );
 
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
     xNetworkBuffer.xDataLength = xDataSize;
