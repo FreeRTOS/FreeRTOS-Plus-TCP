@@ -4,110 +4,26 @@ SPDXID: SPDXRef-DOCUMENT
 DocumentName: FreeRTOS-Plus-TCP
 DocumentNamespace: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/V4.2.3/sbom.spdx
 Creator: Organization:Amazon Web Services
-Created: 2025-06-04T12:37:16Z
+Created: 2025-06-04T18:14:32Z
 CreatorComment: NOASSERTION
 DocumentComment: NOASSERTION
 
 PackageName: FreeRTOS-Plus-TCP
 SPDXID: SPDXRef-Package-FreeRTOS-Plus-TCP
 PackageVersion: V4.2.3
-PackageDownloadLocation: https://github.com/tony-josi-aws/FreeRTOS-Plus-TCP/tree/V4.2.3
+PackageDownloadLocation: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V4.2.3
 PackageLicenseDeclared: MIT
 PackageLicenseConcluded: MIT
 PackageLicenseInfoFromFiles: NOASSERTION
 FilesAnalyzed: true
-PackageVerificationCode: aeaa0f81dbb18ad760f610f29f57a13340306a26
+PackageVerificationCode: 367b9b408d8d9530d786353237ff930fd03be8b9
 PackageCopyrightText: NOASSERTION
 PackageSummary: NOASSERTION
 PackageDescription: Thread safe FreeRTOS TCP/IP stack working on top of the FreeRTOS-Kernel to implement the TCP/IP protocol. Suitable for microcontrollers.
 
-FileName: ./FreeRTOS_DNS.c
-SPDXID: SPDXRef-File-FreeRTOSDNS.c
-FileChecksum: SHA1: b037c1a936fdb0af008d1a078633ac64ded1abe8
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_DNS_Callback.c
-SPDXID: SPDXRef-File-FreeRTOSDNSCallback.c
-FileChecksum: SHA1: ddae1bced5cc9255287233ad9ff8bed3a16e9a3c
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_Utils_IPv6.c
-SPDXID: SPDXRef-File-FreeRTOSTCPUtilsIPv6.c
-FileChecksum: SHA1: 0912cd301b2d11e777b0d8b2c3e7e6b9109296ed
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_WIN.c
-SPDXID: SPDXRef-File-FreeRTOSTCPWIN.c
-FileChecksum: SHA1: c6ad55bffd26355ef62241158bdb54e820b17b9b
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_IPv6_Utils.c
-SPDXID: SPDXRef-File-FreeRTOSIPv6Utils.c
-FileChecksum: SHA1: 1d2ef1999eddcbc455100f09b25b3addf365d4ab
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_BitConfig.c
-SPDXID: SPDXRef-File-FreeRTOSBitConfig.c
-FileChecksum: SHA1: f759b113a0d656748128bc51ee19a8a0003c97e5
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_UDP_IPv6.c
-SPDXID: SPDXRef-File-FreeRTOSUDPIPv6.c
-FileChecksum: SHA1: 6e2562559df4c50a8d440c31493b91e79c8a7f73
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_IP_Utils.c
-SPDXID: SPDXRef-File-FreeRTOSIPUtils.c
-FileChecksum: SHA1: e956e6026184ff246c43b2ec477588a80a50a313
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_Sockets.c
-SPDXID: SPDXRef-File-FreeRTOSSockets.c
-FileChecksum: SHA1: e77b7e3abcc6ddfdd6d466c873abcb7cb7feb142
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_State_Handling_IPv6.c
-SPDXID: SPDXRef-File-FreeRTOSTCPStateHandlingIPv6.c
-FileChecksum: SHA1: 9678f9d9a9cbfba9d1ca159a40b1fe963a43b6f6
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_State_Handling.c
-SPDXID: SPDXRef-File-FreeRTOSTCPStateHandling.c
-FileChecksum: SHA1: 9cf8d04929e30fea5d2aeb11c378c012353cd003
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_DNS_Parser.c
-SPDXID: SPDXRef-File-FreeRTOSDNSParser.c
-FileChecksum: SHA1: 928fe65da4a56a9374ff774ff6a700bed014cb73
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_IPv4_Utils.c
-SPDXID: SPDXRef-File-FreeRTOSIPv4Utils.c
-FileChecksum: SHA1: a01302adb3cb1468298ee72997c51d229eba0a7c
+FileName: ./FreeRTOS_TCP_Reception.c
+SPDXID: SPDXRef-File-FreeRTOSTCPReception.c
+FileChecksum: SHA1: d142241e4ad10924b7c4cd662d4b11806fc92cea
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
@@ -119,107 +35,16 @@ LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./FreeRTOS_DHCP.c
-SPDXID: SPDXRef-File-FreeRTOSDHCP.c
-FileChecksum: SHA1: c530ae50d3d7742cec8a75de15700175c04cf779
+FileName: ./FreeRTOS_IP_Timers.c
+SPDXID: SPDXRef-File-FreeRTOSIPTimers.c
+FileChecksum: SHA1: f357aab679bda44f7d33b716562f72cda34e3e3c
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./FreeRTOS_TCP_IP_IPv4.c
-SPDXID: SPDXRef-File-FreeRTOSTCPIPIPv4.c
-FileChecksum: SHA1: 839942c4e630e37dcf189271a1330ee9373b1d61
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_IP_IPv6.c
-SPDXID: SPDXRef-File-FreeRTOSTCPIPIPv6.c
-FileChecksum: SHA1: 863d8c9dfc728fe8091e45ae5911075fa9b83a4b
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_IPv4_Sockets.c
-SPDXID: SPDXRef-File-FreeRTOSIPv4Sockets.c
-FileChecksum: SHA1: 13962d9d2186770f844ba6bde2f2eff8a51102e9
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_Transmission_IPv6.c
-SPDXID: SPDXRef-File-FreeRTOSTCPTransmissionIPv6.c
-FileChecksum: SHA1: afa02d0cc7cc743b56141409b307023a6f03ac93
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_State_Handling_IPv4.c
-SPDXID: SPDXRef-File-FreeRTOSTCPStateHandlingIPv4.c
-FileChecksum: SHA1: 614b34a32fe9eda72cf143ba56a5aec03390d53c
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_Transmission.c
-SPDXID: SPDXRef-File-FreeRTOSTCPTransmission.c
-FileChecksum: SHA1: 2ccfb6efb9b78834adcea732bdabb94b81681379
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_DNS_Networking.c
-SPDXID: SPDXRef-File-FreeRTOSDNSNetworking.c
-FileChecksum: SHA1: f093d8fea1e296fbb465158fef4714c650732165
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_Transmission_IPv4.c
-SPDXID: SPDXRef-File-FreeRTOSTCPTransmissionIPv4.c
-FileChecksum: SHA1: 113271c7db9933cccde8a3b248af1f7dd7ef0f08
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_Tiny_TCP.c
-SPDXID: SPDXRef-File-FreeRTOSTinyTCP.c
-FileChecksum: SHA1: 0fe33cc115c8055175b77a7ddbd478d71f2b70e9
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_IPv6.c
-SPDXID: SPDXRef-File-FreeRTOSIPv6.c
-FileChecksum: SHA1: ac74727c636cea9439a56d15e75cfab180884fc3
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_ARP.c
-SPDXID: SPDXRef-File-FreeRTOSARP.c
-FileChecksum: SHA1: 0ffd689389839afdfae64760581896578793a5f0
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_TCP_Reception.c
-SPDXID: SPDXRef-File-FreeRTOSTCPReception.c
-FileChecksum: SHA1: d142241e4ad10924b7c4cd662d4b11806fc92cea
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_Stream_Buffer.c
-SPDXID: SPDXRef-File-FreeRTOSStreamBuffer.c
-FileChecksum: SHA1: ac4363fa491a6e17ba83bc51c480cf57e3651de4
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_UDP_IPv4.c
-SPDXID: SPDXRef-File-FreeRTOSUDPIPv4.c
-FileChecksum: SHA1: 1ef3ee85f9b7f75aa5dc096bd5973f6b0437f323
+FileName: ./FreeRTOS_TCP_State_Handling_IPv6.c
+SPDXID: SPDXRef-File-FreeRTOSTCPStateHandlingIPv6.c
+FileChecksum: SHA1: 9678f9d9a9cbfba9d1ca159a40b1fe963a43b6f6
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
@@ -231,58 +56,9 @@ LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./FreeRTOS_IP.c
-SPDXID: SPDXRef-File-FreeRTOSIP.c
-FileChecksum: SHA1: d57a22a58fa4359174d3f32d0bafa00bcab45b3a
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_DNS_Cache.c
-SPDXID: SPDXRef-File-FreeRTOSDNSCache.c
-FileChecksum: SHA1: 05e3fe72d7ce693046b49b3446a7a4a647a4ced2
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_DHCPv6.c
-SPDXID: SPDXRef-File-FreeRTOSDHCPv6.c
-FileChecksum: SHA1: f7f94d05516af909170971649dfd6c4ba459695c
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_UDP_IP.c
-SPDXID: SPDXRef-File-FreeRTOSUDPIP.c
-FileChecksum: SHA1: 7710fe1351c4c7397064968e70de52e4fa8b8dbe
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_IPv6_Sockets.c
-SPDXID: SPDXRef-File-FreeRTOSIPv6Sockets.c
-FileChecksum: SHA1: 67806ec2b11a37186a3138dd6723764a38d7e05f
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_RA.c
-SPDXID: SPDXRef-File-FreeRTOSRA.c
-FileChecksum: SHA1: 11c46bc028483a6b67e16c398e28d311fa2ab337
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
 FileName: ./FreeRTOS_ND.c
 SPDXID: SPDXRef-File-FreeRTOSND.c
 FileChecksum: SHA1: 95a09906a42228054c2070fc314ffae55cfb7a34
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./FreeRTOS_IPv4.c
-SPDXID: SPDXRef-File-FreeRTOSIPv4.c
-FileChecksum: SHA1: 7267f4c84787cc2133f1806a483dc80eaef10310
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
@@ -294,16 +70,114 @@ LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./FreeRTOS_TCP_Utils_IPv4.c
-SPDXID: SPDXRef-File-FreeRTOSTCPUtilsIPv4.c
-FileChecksum: SHA1: 9d5e7b36ce153f8113d17b6e8507e14bda507944
+FileName: ./FreeRTOS_BitConfig.c
+SPDXID: SPDXRef-File-FreeRTOSBitConfig.c
+FileChecksum: SHA1: f759b113a0d656748128bc51ee19a8a0003c97e5
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./FreeRTOS_IP_Timers.c
-SPDXID: SPDXRef-File-FreeRTOSIPTimers.c
-FileChecksum: SHA1: f357aab679bda44f7d33b716562f72cda34e3e3c
+FileName: ./FreeRTOS_Tiny_TCP.c
+SPDXID: SPDXRef-File-FreeRTOSTinyTCP.c
+FileChecksum: SHA1: 0fe33cc115c8055175b77a7ddbd478d71f2b70e9
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_UDP_IP.c
+SPDXID: SPDXRef-File-FreeRTOSUDPIP.c
+FileChecksum: SHA1: 7710fe1351c4c7397064968e70de52e4fa8b8dbe
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_TCP_Transmission_IPv4.c
+SPDXID: SPDXRef-File-FreeRTOSTCPTransmissionIPv4.c
+FileChecksum: SHA1: 113271c7db9933cccde8a3b248af1f7dd7ef0f08
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_IPv4.c
+SPDXID: SPDXRef-File-FreeRTOSIPv4.c
+FileChecksum: SHA1: 7267f4c84787cc2133f1806a483dc80eaef10310
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_TCP_WIN.c
+SPDXID: SPDXRef-File-FreeRTOSTCPWIN.c
+FileChecksum: SHA1: c6ad55bffd26355ef62241158bdb54e820b17b9b
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_IP_Utils.c
+SPDXID: SPDXRef-File-FreeRTOSIPUtils.c
+FileChecksum: SHA1: e956e6026184ff246c43b2ec477588a80a50a313
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_UDP_IPv4.c
+SPDXID: SPDXRef-File-FreeRTOSUDPIPv4.c
+FileChecksum: SHA1: 1ef3ee85f9b7f75aa5dc096bd5973f6b0437f323
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_IPv6.c
+SPDXID: SPDXRef-File-FreeRTOSIPv6.c
+FileChecksum: SHA1: ac74727c636cea9439a56d15e75cfab180884fc3
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_TCP_Transmission_IPv6.c
+SPDXID: SPDXRef-File-FreeRTOSTCPTransmissionIPv6.c
+FileChecksum: SHA1: afa02d0cc7cc743b56141409b307023a6f03ac93
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_DNS_Networking.c
+SPDXID: SPDXRef-File-FreeRTOSDNSNetworking.c
+FileChecksum: SHA1: f093d8fea1e296fbb465158fef4714c650732165
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_DNS_Callback.c
+SPDXID: SPDXRef-File-FreeRTOSDNSCallback.c
+FileChecksum: SHA1: ddae1bced5cc9255287233ad9ff8bed3a16e9a3c
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_DHCP.c
+SPDXID: SPDXRef-File-FreeRTOSDHCP.c
+FileChecksum: SHA1: c530ae50d3d7742cec8a75de15700175c04cf779
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_Sockets.c
+SPDXID: SPDXRef-File-FreeRTOSSockets.c
+FileChecksum: SHA1: e77b7e3abcc6ddfdd6d466c873abcb7cb7feb142
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_TCP_Transmission.c
+SPDXID: SPDXRef-File-FreeRTOSTCPTransmission.c
+FileChecksum: SHA1: 2ccfb6efb9b78834adcea732bdabb94b81681379
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./FreeRTOS_DHCPv6.c
+SPDXID: SPDXRef-File-FreeRTOSDHCPv6.c
+FileChecksum: SHA1: f7f94d05516af909170971649dfd6c4ba459695c
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
@@ -315,324 +189,128 @@ LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/BufferManagement/BufferAllocation_1.c
-SPDXID: SPDXRef-File-portable-BufferManagement-BufferAllocation1.c
-FileChecksum: SHA1: 0cf6424f8975fa2b5871c9e451374a9512c3d974
+FileName: ./FreeRTOS_ARP.c
+SPDXID: SPDXRef-File-FreeRTOSARP.c
+FileChecksum: SHA1: 0ffd689389839afdfae64760581896578793a5f0
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/BufferManagement/BufferAllocation_2.c
-SPDXID: SPDXRef-File-portable-BufferManagement-BufferAllocation2.c
-FileChecksum: SHA1: 3768e02eb187953f5f5e5930623aff8588d691f9
+FileName: ./FreeRTOS_TCP_State_Handling.c
+SPDXID: SPDXRef-File-FreeRTOSTCPStateHandling.c
+FileChecksum: SHA1: 9cf8d04929e30fea5d2aeb11c378c012353cd003
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/LPC54018/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-LPC54018-NetworkInterface.c
-FileChecksum: SHA1: b633a42bd266f55fb66f675e2cd996ba1b562e9b
+FileName: ./FreeRTOS_RA.c
+SPDXID: SPDXRef-File-FreeRTOSRA.c
+FileChecksum: SHA1: 11c46bc028483a6b67e16c398e28d311fa2ab337
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/Common/phyHandling.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-Common-phyHandling.c
-FileChecksum: SHA1: dbf2a2f44b0ac1bf59f63a60b0ce9ee52c1cf10f
+FileName: ./FreeRTOS_IPv4_Sockets.c
+SPDXID: SPDXRef-File-FreeRTOSIPv4Sockets.c
+FileChecksum: SHA1: 13962d9d2186770f844ba6bde2f2eff8a51102e9
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/ThirdParty/MSP432/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ThirdParty-MSP432-NetworkInterface.c
-FileChecksum: SHA1: d8b6c4e1e1f17ab05652948e791d9575ca9ea0e4
+FileName: ./FreeRTOS_TCP_Utils_IPv4.c
+SPDXID: SPDXRef-File-FreeRTOSTCPUtilsIPv4.c
+FileChecksum: SHA1: 9d5e7b36ce153f8113d17b6e8507e14bda507944
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/ThirdParty/MSP432/NetworkMiddleware.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ThirdParty-MSP432-NetworkMiddleware.c
-FileChecksum: SHA1: 42714acb6336e7c904177914b3d71d83f0ad3f99
+FileName: ./FreeRTOS_IPv6_Sockets.c
+SPDXID: SPDXRef-File-FreeRTOSIPv6Sockets.c
+FileChecksum: SHA1: 67806ec2b11a37186a3138dd6723764a38d7e05f
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/LPC17xx/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-LPC17xx-NetworkInterface.c
-FileChecksum: SHA1: 0aac70a76805741df1e20bcca1cdd2ad300c88cb
+FileName: ./FreeRTOS_IPv6_Utils.c
+SPDXID: SPDXRef-File-FreeRTOSIPv6Utils.c
+FileChecksum: SHA1: 1d2ef1999eddcbc455100f09b25b3addf365d4ab
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/ATSAM4E/gmac.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAM4E-gmac.c
-FileChecksum: SHA1: ded6e53855e422d5445ccca15f683cc029ed638f
+FileName: ./FreeRTOS_DNS_Cache.c
+SPDXID: SPDXRef-File-FreeRTOSDNSCache.c
+FileChecksum: SHA1: 05e3fe72d7ce693046b49b3446a7a4a647a4ced2
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/ATSAM4E/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAM4E-NetworkInterface.c
-FileChecksum: SHA1: 2c25ad6c1ca07a2993e5b8602dc74f7d7634d325
+FileName: ./FreeRTOS_TCP_Utils_IPv6.c
+SPDXID: SPDXRef-File-FreeRTOSTCPUtilsIPv6.c
+FileChecksum: SHA1: 0912cd301b2d11e777b0d8b2c3e7e6b9109296ed
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/ATSAM4E/ethernet_phy.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAM4E-ethernetphy.c
-FileChecksum: SHA1: 40490a00413a5823bf4f6c7c74bd1f68b045ccfc
+FileName: ./FreeRTOS_DNS_Parser.c
+SPDXID: SPDXRef-File-FreeRTOSDNSParser.c
+FileChecksum: SHA1: 928fe65da4a56a9374ff774ff6a700bed014cb73
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/SH2A/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-SH2A-NetworkInterface.c
-FileChecksum: SHA1: e491e04e03c812edf56a0aa3a4bfca31df15d451
+FileName: ./FreeRTOS_UDP_IPv6.c
+SPDXID: SPDXRef-File-FreeRTOSUDPIPv6.c
+FileChecksum: SHA1: 6e2562559df4c50a8d440c31493b91e79c8a7f73
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/STM32Hxx/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Hxx-NetworkInterface.c
-FileChecksum: SHA1: 6f94abc01ecf65da4b699d67dfc08cc1880a5fcc
+FileName: ./FreeRTOS_TCP_IP_IPv4.c
+SPDXID: SPDXRef-File-FreeRTOSTCPIPIPv4.c
+FileChecksum: SHA1: 839942c4e630e37dcf189271a1330ee9373b1d61
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/STM32Hxx/stm32hxx_hal_eth.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Hxx-stm32hxxhaleth.c
-FileChecksum: SHA1: bd3a097f93c6c5ae8012fee0b95af049dadfe16a
+FileName: ./FreeRTOS_IPv4_Utils.c
+SPDXID: SPDXRef-File-FreeRTOSIPv4Utils.c
+FileChecksum: SHA1: a01302adb3cb1468298ee72997c51d229eba0a7c
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/M487/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-M487-NetworkInterface.c
-FileChecksum: SHA1: 5eb5b17d3235bf50e91f17c6866095150b0a2489
+FileName: ./FreeRTOS_TCP_State_Handling_IPv4.c
+SPDXID: SPDXRef-File-FreeRTOSTCPStateHandlingIPv4.c
+FileChecksum: SHA1: 614b34a32fe9eda72cf143ba56a5aec03390d53c
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/M487/m480_eth.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-M487-m480eth.c
-FileChecksum: SHA1: b555c5dac03afb3cd39e5373d71738398dcfdcd3
+FileName: ./FreeRTOS_IP.c
+SPDXID: SPDXRef-File-FreeRTOSIP.c
+FileChecksum: SHA1: d57a22a58fa4359174d3f32d0bafa00bcab45b3a
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/MPS2_AN385/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-MPS2AN385-NetworkInterface.c
-FileChecksum: SHA1: 4cdd431f3b710649810054c6e0e951b574e6d166
+FileName: ./FreeRTOS_TCP_IP_IPv6.c
+SPDXID: SPDXRef-File-FreeRTOSTCPIPIPv6.c
+FileChecksum: SHA1: 863d8c9dfc728fe8091e45ae5911075fa9b83a4b
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/MPS2_AN385/ether_lan9118/smsc9220_eth_drv.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-MPS2AN385-etherlan9118-smsc9220ethdrv.c
-FileChecksum: SHA1: 4dea999b13a46ae8966fc7ed55f8802f61cad16d
+FileName: ./FreeRTOS_Stream_Buffer.c
+SPDXID: SPDXRef-File-FreeRTOSStreamBuffer.c
+FileChecksum: SHA1: ac4363fa491a6e17ba83bc51c480cf57e3651de4
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/STM32Fxx/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Fxx-NetworkInterface.c
-FileChecksum: SHA1: 2f5a3cb41b6eafa00ee01ef2f478107519c57a4f
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/STM32Fxx/stm32fxx_hal_eth.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Fxx-stm32fxxhaleth.c
-FileChecksum: SHA1: 92b2f12f433a4f09c7046ee77736c1b74dc3176f
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/ksz8851snl/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ksz8851snl-NetworkInterface.c
-FileChecksum: SHA1: 1f74368ed32e970c7d64fe396b0326eab31b8584
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/ksz8851snl/ksz8851snl.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ksz8851snl-ksz8851snl.c
-FileChecksum: SHA1: 1ebaba711088fd35f69278c4dd98d692b63879d3
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/xilinx_ultrascale/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-NetworkInterface.c
-FileChecksum: SHA1: 534ffaa0d70d5976a861c89393947756b7ac950c
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/xilinx_ultrascale/x_emacpsif_physpeed.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-xemacpsifphyspeed.c
-FileChecksum: SHA1: e0d2254df7e6c332d2fdce20b2b5c7100c127444
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/xilinx_ultrascale/x_emacpsif_hw.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-xemacpsifhw.c
-FileChecksum: SHA1: 3ea9ebe6231e44bbe2322be4006cbca9ec9f9d90
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/xilinx_ultrascale/x_emacpsif_dma.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-xemacpsifdma.c
-FileChecksum: SHA1: 336b89aaff5c6c4eafde03010b772f4931def183
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/xilinx_ultrascale/uncached_memory.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-uncachedmemory.c
-FileChecksum: SHA1: abd2f5fdcf66c948bc5d9d436c71962a98645dbb
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/WinPCap/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-WinPCap-NetworkInterface.c
-FileChecksum: SHA1: b8cccfe70fa4192fb801f467b66af05154da6a93
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/WinPCap/FaultInjection.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-WinPCap-FaultInjection.c
-FileChecksum: SHA1: e7eddd2edef440d27f6bef5839f722884d2cf447
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/linux/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-linux-NetworkInterface.c
-FileChecksum: SHA1: 9058a1cdc1e3f13757dda875d249a30b42acc9ac
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/libslirp/MBuffNetifBackendLibslirp.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-libslirp-MBuffNetifBackendLibslirp.c
-FileChecksum: SHA1: 3ebe47a702c986d5502e77b6c41fae14852af166
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/libslirp/MBuffNetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-libslirp-MBuffNetworkInterface.c
-FileChecksum: SHA1: 234119bca00eb7c80ec1c2f23c06990c68d8784d
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/esp32/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-esp32-NetworkInterface.c
-FileChecksum: SHA1: bd7f42cf691da33263a9e780f93218628f12b611
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/TM4C/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-TM4C-NetworkInterface.c
-FileChecksum: SHA1: 5d56c9cb4f8b538e2f9c4f7bb7540ccab8bcacc7
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/RX/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-RX-NetworkInterface.c
-FileChecksum: SHA1: 45331fd807a5522316ad82f4723672324559353e
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/RX/ether_callback.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-RX-ethercallback.c
-FileChecksum: SHA1: 0a2896913be2a566eb9d12dc06c6ce1857b894da
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/Zynq/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-NetworkInterface.c
-FileChecksum: SHA1: 77e37974c91bd1d239fa2c400d3936836d30660f
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/Zynq/x_emacpsif_physpeed.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-xemacpsifphyspeed.c
-FileChecksum: SHA1: cffcfe94c7c3e2db1b7bf1b75b59d4d3e2e8b7bc
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/Zynq/x_emacpsif_hw.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-xemacpsifhw.c
-FileChecksum: SHA1: 578c15c5ee78186f49a4060088d742f0ee386409
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/Zynq/x_emacpsif_dma.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-xemacpsifdma.c
-FileChecksum: SHA1: 76e1594233b68fd0d1ea9d3025c07ef90457d088
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/Zynq/uncached_memory.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-uncachedmemory.c
-FileChecksum: SHA1: da79c2ba096d3ea9137c26d95986c9f3cd51adf9
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/DriverSAM/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-DriverSAM-NetworkInterface.c
-FileChecksum: SHA1: e1a6b8a6bc9f0f761d30441437b639de70c41585
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/DriverSAM/gmac_SAM.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-DriverSAM-gmacSAM.c
-FileChecksum: SHA1: 4b52d28114ae8c69d5b2ce4ab266e84bb382f30d
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/pic32mzef/NetworkInterface_wifi.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-pic32mzef-NetworkInterfacewifi.c
-FileChecksum: SHA1: 57c966e7ba03effad3a01ac48545afe4d28670e6
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/pic32mzef/BufferAllocation_2.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-pic32mzef-BufferAllocation2.c
-FileChecksum: SHA1: 7c1056109ef78a71fd79ea24d47c301408a59ccf
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/pic32mzef/NetworkInterface_eth.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-pic32mzef-NetworkInterfaceeth.c
-FileChecksum: SHA1: f5cec8f2c47f18e1fa305ff65e43693578f8c786
-LicenseConcluded: MIT
-FileCopyrightText: NOASSERTION
-FileComment: NOASSERTION
-
-FileName: ./portable/NetworkInterface/board_family/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-boardfamily-NetworkInterface.c
-FileChecksum: SHA1: 41d3a032caa2b5fff7f24c0b905dc17f93817055
+FileName: ./FreeRTOS_DNS.c
+SPDXID: SPDXRef-File-FreeRTOSDNS.c
+FileChecksum: SHA1: b037c1a936fdb0af008d1a078633ac64ded1abe8
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
@@ -651,9 +329,128 @@ LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
+FileName: ./portable/NetworkInterface/Zynq/x_emacpsif_physpeed.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-xemacpsifphyspeed.c
+FileChecksum: SHA1: cffcfe94c7c3e2db1b7bf1b75b59d4d3e2e8b7bc
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/Zynq/uncached_memory.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-uncachedmemory.c
+FileChecksum: SHA1: da79c2ba096d3ea9137c26d95986c9f3cd51adf9
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/Zynq/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-NetworkInterface.c
+FileChecksum: SHA1: 77e37974c91bd1d239fa2c400d3936836d30660f
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/Zynq/x_emacpsif_hw.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-xemacpsifhw.c
+FileChecksum: SHA1: 578c15c5ee78186f49a4060088d742f0ee386409
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/Zynq/x_emacpsif_dma.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-Zynq-xemacpsifdma.c
+FileChecksum: SHA1: 76e1594233b68fd0d1ea9d3025c07ef90457d088
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
 FileName: ./portable/NetworkInterface/LPC18xx/NetworkInterface.c
 SPDXID: SPDXRef-File-portable-NetworkInterface-LPC18xx-NetworkInterface.c
 FileChecksum: SHA1: 2f97bf7efe397497ee18f5e6520079a88419e056
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/MPS2_AN385/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-MPS2AN385-NetworkInterface.c
+FileChecksum: SHA1: 4cdd431f3b710649810054c6e0e951b574e6d166
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/MPS2_AN385/ether_lan9118/smsc9220_eth_drv.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-MPS2AN385-etherlan9118-smsc9220ethdrv.c
+FileChecksum: SHA1: 4dea999b13a46ae8966fc7ed55f8802f61cad16d
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/esp32/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-esp32-NetworkInterface.c
+FileChecksum: SHA1: bd7f42cf691da33263a9e780f93218628f12b611
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/SH2A/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-SH2A-NetworkInterface.c
+FileChecksum: SHA1: e491e04e03c812edf56a0aa3a4bfca31df15d451
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/WinPCap/FaultInjection.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-WinPCap-FaultInjection.c
+FileChecksum: SHA1: e7eddd2edef440d27f6bef5839f722884d2cf447
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/WinPCap/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-WinPCap-NetworkInterface.c
+FileChecksum: SHA1: b8cccfe70fa4192fb801f467b66af05154da6a93
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/LPC54018/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-LPC54018-NetworkInterface.c
+FileChecksum: SHA1: b633a42bd266f55fb66f675e2cd996ba1b562e9b
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/RX/ether_callback.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-RX-ethercallback.c
+FileChecksum: SHA1: 0a2896913be2a566eb9d12dc06c6ce1857b894da
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/RX/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-RX-NetworkInterface.c
+FileChecksum: SHA1: 45331fd807a5522316ad82f4723672324559353e
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ATSAM4E/ethernet_phy.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAM4E-ethernetphy.c
+FileChecksum: SHA1: 40490a00413a5823bf4f6c7c74bd1f68b045ccfc
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ATSAM4E/gmac.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAM4E-gmac.c
+FileChecksum: SHA1: ded6e53855e422d5445ccca15f683cc029ed638f
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ATSAM4E/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAM4E-NetworkInterface.c
+FileChecksum: SHA1: 2c25ad6c1ca07a2993e5b8602dc74f7d7634d325
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
@@ -665,23 +462,30 @@ LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/loopback/loopbackNetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-loopback-loopbackNetworkInterface.c
-FileChecksum: SHA1: 8b1403d5895f3210f0eb9e96c67175005da09edc
+FileName: ./portable/NetworkInterface/STM32Hxx/stm32hxx_hal_eth.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Hxx-stm32hxxhaleth.c
+FileChecksum: SHA1: bd3a097f93c6c5ae8012fee0b95af049dadfe16a
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/ATSAME5x/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAME5x-NetworkInterface.c
-FileChecksum: SHA1: c527c4009bee8ab0ae42765509505866b8bbd0d0
+FileName: ./portable/NetworkInterface/STM32Hxx/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Hxx-NetworkInterface.c
+FileChecksum: SHA1: 6f94abc01ecf65da4b699d67dfc08cc1880a5fcc
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
 
-FileName: ./portable/NetworkInterface/NXP1060/NetworkInterface.c
-SPDXID: SPDXRef-File-portable-NetworkInterface-NXP1060-NetworkInterface.c
-FileChecksum: SHA1: 5fbf05b5890deb41034c66f19ae557ece8afdbc4
+FileName: ./portable/NetworkInterface/STM32Fxx/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Fxx-NetworkInterface.c
+FileChecksum: SHA1: 2f5a3cb41b6eafa00ee01ef2f478107519c57a4f
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/STM32Fxx/stm32fxx_hal_eth.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-STM32Fxx-stm32fxxhaleth.c
+FileChecksum: SHA1: 92b2f12f433a4f09c7046ee77736c1b74dc3176f
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
@@ -696,6 +500,202 @@ FileComment: NOASSERTION
 FileName: ./portable/NetworkInterface/MPS4_CS315/CMSIS_Driver/ETH_LAN91C111.c
 SPDXID: SPDXRef-File-portable-NetworkInterface-MPS4CS315-CMSISDriver-ETHLAN91C111.c
 FileChecksum: SHA1: ae6fbf4c93e02bd1ce0fa97d386250b285083423
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/pic32mzef/BufferAllocation_2.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-pic32mzef-BufferAllocation2.c
+FileChecksum: SHA1: 7c1056109ef78a71fd79ea24d47c301408a59ccf
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/pic32mzef/NetworkInterface_eth.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-pic32mzef-NetworkInterfaceeth.c
+FileChecksum: SHA1: f5cec8f2c47f18e1fa305ff65e43693578f8c786
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/pic32mzef/NetworkInterface_wifi.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-pic32mzef-NetworkInterfacewifi.c
+FileChecksum: SHA1: 57c966e7ba03effad3a01ac48545afe4d28670e6
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/M487/m480_eth.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-M487-m480eth.c
+FileChecksum: SHA1: b555c5dac03afb3cd39e5373d71738398dcfdcd3
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/M487/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-M487-NetworkInterface.c
+FileChecksum: SHA1: 5eb5b17d3235bf50e91f17c6866095150b0a2489
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ksz8851snl/ksz8851snl.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ksz8851snl-ksz8851snl.c
+FileChecksum: SHA1: 1ebaba711088fd35f69278c4dd98d692b63879d3
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ksz8851snl/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ksz8851snl-NetworkInterface.c
+FileChecksum: SHA1: 1f74368ed32e970c7d64fe396b0326eab31b8584
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/loopback/loopbackNetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-loopback-loopbackNetworkInterface.c
+FileChecksum: SHA1: 8b1403d5895f3210f0eb9e96c67175005da09edc
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/Common/phyHandling.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-Common-phyHandling.c
+FileChecksum: SHA1: dbf2a2f44b0ac1bf59f63a60b0ce9ee52c1cf10f
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/libslirp/MBuffNetifBackendLibslirp.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-libslirp-MBuffNetifBackendLibslirp.c
+FileChecksum: SHA1: 3ebe47a702c986d5502e77b6c41fae14852af166
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/libslirp/MBuffNetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-libslirp-MBuffNetworkInterface.c
+FileChecksum: SHA1: 234119bca00eb7c80ec1c2f23c06990c68d8784d
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/linux/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-linux-NetworkInterface.c
+FileChecksum: SHA1: 9058a1cdc1e3f13757dda875d249a30b42acc9ac
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/DriverSAM/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-DriverSAM-NetworkInterface.c
+FileChecksum: SHA1: e1a6b8a6bc9f0f761d30441437b639de70c41585
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/DriverSAM/gmac_SAM.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-DriverSAM-gmacSAM.c
+FileChecksum: SHA1: 4b52d28114ae8c69d5b2ce4ab266e84bb382f30d
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/NXP1060/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-NXP1060-NetworkInterface.c
+FileChecksum: SHA1: 5fbf05b5890deb41034c66f19ae557ece8afdbc4
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/TM4C/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-TM4C-NetworkInterface.c
+FileChecksum: SHA1: 5d56c9cb4f8b538e2f9c4f7bb7540ccab8bcacc7
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ThirdParty/MSP432/NetworkMiddleware.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ThirdParty-MSP432-NetworkMiddleware.c
+FileChecksum: SHA1: 42714acb6336e7c904177914b3d71d83f0ad3f99
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ThirdParty/MSP432/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ThirdParty-MSP432-NetworkInterface.c
+FileChecksum: SHA1: d8b6c4e1e1f17ab05652948e791d9575ca9ea0e4
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/xilinx_ultrascale/x_emacpsif_physpeed.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-xemacpsifphyspeed.c
+FileChecksum: SHA1: e0d2254df7e6c332d2fdce20b2b5c7100c127444
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/xilinx_ultrascale/uncached_memory.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-uncachedmemory.c
+FileChecksum: SHA1: abd2f5fdcf66c948bc5d9d436c71962a98645dbb
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/xilinx_ultrascale/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-NetworkInterface.c
+FileChecksum: SHA1: 534ffaa0d70d5976a861c89393947756b7ac950c
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/xilinx_ultrascale/x_emacpsif_hw.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-xemacpsifhw.c
+FileChecksum: SHA1: 3ea9ebe6231e44bbe2322be4006cbca9ec9f9d90
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/xilinx_ultrascale/x_emacpsif_dma.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-xilinxultrascale-xemacpsifdma.c
+FileChecksum: SHA1: 336b89aaff5c6c4eafde03010b772f4931def183
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/board_family/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-boardfamily-NetworkInterface.c
+FileChecksum: SHA1: 41d3a032caa2b5fff7f24c0b905dc17f93817055
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/ATSAME5x/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-ATSAME5x-NetworkInterface.c
+FileChecksum: SHA1: c527c4009bee8ab0ae42765509505866b8bbd0d0
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/NetworkInterface/LPC17xx/NetworkInterface.c
+SPDXID: SPDXRef-File-portable-NetworkInterface-LPC17xx-NetworkInterface.c
+FileChecksum: SHA1: 0aac70a76805741df1e20bcca1cdd2ad300c88cb
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/BufferManagement/BufferAllocation_2.c
+SPDXID: SPDXRef-File-portable-BufferManagement-BufferAllocation2.c
+FileChecksum: SHA1: 3768e02eb187953f5f5e5930623aff8588d691f9
+LicenseConcluded: MIT
+FileCopyrightText: NOASSERTION
+FileComment: NOASSERTION
+
+FileName: ./portable/BufferManagement/BufferAllocation_1.c
+SPDXID: SPDXRef-File-portable-BufferManagement-BufferAllocation1.c
+FileChecksum: SHA1: 0cf6424f8975fa2b5871c9e451374a9512c3d974
 LicenseConcluded: MIT
 FileCopyrightText: NOASSERTION
 FileComment: NOASSERTION
