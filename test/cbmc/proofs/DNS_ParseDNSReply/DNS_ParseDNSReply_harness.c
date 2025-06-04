@@ -10,6 +10,7 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DNS_Parser.h"
 #include "NetworkBufferManagement.h"
@@ -17,7 +18,8 @@
 #include "IPTraceMacroDefaults.h"
 
 #include "cbmc.h"
-#include "../../utility/memory_assignments.c"
+
+const BaseType_t xBufferAllocFixedSize = IS_BUFFER_ALLOCATE_FIXED;
 
 /****************************************************************
 * Signature of function under test
@@ -60,12 +62,16 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 
 uint32_t ulChar2u32( const uint8_t * pucPtr )
 {
+    uint32_t ret;
     __CPROVER_assert( __CPROVER_r_ok( pucPtr, 4 ), "must be 4 bytes legal address to read" );
+    return ret;
 }
 
 uint16_t usChar2u16( const uint8_t * pucPtr )
 {
+    uint16_t ret;
     __CPROVER_assert( __CPROVER_r_ok( pucPtr, 2 ), "must be 2 bytes legal address to read" );
+    return ret;
 }
 
 const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
@@ -131,11 +137,14 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
-    if( ensure_memory_is_valid( pxNetworkBuffer, xNewLength ) )
+    if( pxNetworkBuffer != NULL )
     {
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xNewLength );
-        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer );
+        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
         pxNetworkBuffer->xDataLength = xNewLength;
+
+        pxNetworkBuffer->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
     }
 
     return pxNetworkBuffer;
@@ -176,23 +185,31 @@ void harness()
     uint8_t * pPayloadBuffer;
     size_t uxPayloadBufferLength;
 
-    __CPROVER_assert( TEST_PACKET_SIZE < CBMC_MAX_OBJECT_SIZE,
-                      "TEST_PACKET_SIZE < CBMC_MAX_OBJECT_SIZE" );
-
-    __CPROVER_assume( uxBufferLength < CBMC_MAX_OBJECT_SIZE );
-    __CPROVER_assume( uxBufferLength <= TEST_PACKET_SIZE );
+    __CPROVER_assume( uxBufferLength <= ipconfigNETWORK_MTU );
+    __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
     lIsIPv6Packet = IS_TESTING_IPV6;
 
-    xNetworkBuffer.pucEthernetBuffer = safeMalloc( uxBufferLength );
-    xNetworkBuffer.xDataLength = uxBufferLength;
-    xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
+    if( xBufferAllocFixedSize != pdFALSE )
+    {
+        /* When xBufferAllocFixedSize is true, buffers in all network descriptors
+         * is big enough to allow all Ethernet packet. */
+        xNetworkBuffer.pucEthernetBuffer = safeMalloc( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER );
+        xNetworkBuffer.xDataLength = uxBufferLength;
+        xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
+    }
+    else
+    {
+        xNetworkBuffer.pucEthernetBuffer = safeMalloc( uxBufferLength );
+        xNetworkBuffer.xDataLength = uxBufferLength;
+        xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
+    }
 
     __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
 
     if( lIsIPv6Packet )
     {
-        __CPROVER_assume( uxBufferLength >= ulIpv6UdpOffset ); /* 62 is total size of IPv4 UDP header, including ethernet, IPv6, UDP headers. */
+        __CPROVER_assume( uxBufferLength >= ulIpv6UdpOffset ); /* 62 is total size of IPv6 UDP header, including ethernet, IPv6, UDP headers. */
         pPayloadBuffer = xNetworkBuffer.pucEthernetBuffer + ulIpv6UdpOffset;
         uxPayloadBufferLength = uxBufferLength - ulIpv6UdpOffset;
     }
