@@ -172,6 +172,7 @@ typedef struct xNETWORK_BUFFER
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         struct xNETWORK_BUFFER * pxNextBuffer; /**< Possible optimisation for expert users - requires network driver support. */
     #endif
+    uint8_t ucMaximumHops;                     /**< TTL/HopLimit value for outgoing multicast/unicast UDP/ICMP/ICMPv6 frames. */
 
 #define ul_IPAddress     xIPAddress.xIP_IPv4
 #define x_IPv6Address    xIPAddress.xIP_IPv6
