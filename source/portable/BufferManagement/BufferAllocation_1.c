@@ -205,6 +205,9 @@ BaseType_t xNetworkBuffersInitialise( void )
              * requirements. */
             uxMaxNetworkInterfaceAllocatedSizeBytes = uxNetworkInterfaceAllocateRAMToBuffers( xNetworkBuffers );
 
+            /* The allocated buffer should hold atleast ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER bytes */
+            configASSERT((uxMaxNetworkInterfaceAllocatedSizeBytes >= (ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER)))
+
             for( x = 0U; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
             {
                 /* Initialise and set the owner of the buffer list items. */
