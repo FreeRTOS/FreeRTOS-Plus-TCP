@@ -181,7 +181,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return ( xInterfaceState == INTERFACE_UP && ret == WM_SUCCESS ) ? pdTRUE : pdFALSE;
 }
 
-size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     /* FIX ME. */
     /* Hard force an assert as this driver cannot be used with BufferAllocation_1.c
