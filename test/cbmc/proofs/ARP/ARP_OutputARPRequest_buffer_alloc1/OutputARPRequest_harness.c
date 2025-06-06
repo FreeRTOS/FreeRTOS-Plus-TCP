@@ -25,17 +25,21 @@
 
 size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
+    /* 
+    In the case of buffer allocation scheme 1 the network buffers are 
+    fixed size and its asserted in xNetworkBuffersInitialise call that the
+    buffer is at least ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER bytes
+    
+    Refer:
+        configASSERT( ( uxMaxNetworkInterfaceAllocatedSizeBytes >= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) );
+
+    */
+    size_t xAllocSize = 0;
     for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
     {
         NetworkBufferDescriptor_t * current = &pxNetworkBuffers[ x ];
-        size_t xAllocSize;
-        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
-            xAllocSize = sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) );
-            current->pucEthernetBuffer = malloc( xAllocSize );
-        #else
-            xAllocSize = sizeof( ARPPacket_t )
-                         current->pucEthernetBuffer = malloc( xAllocSize );
-        #endif
+        xAllocSize = ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER;
+        current->pucEthernetBuffer = malloc( xAllocSize );
         __CPROVER_assume( current->pucEthernetBuffer != NULL );
         current->xDataLength = sizeof( ARPPacket_t );
     }
