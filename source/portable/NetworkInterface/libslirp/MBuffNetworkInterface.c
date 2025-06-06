@@ -366,7 +366,7 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
         }
     }
 
-    return (BUFFER_SIZE_ROUNDED_UP - ipBUFFER_PADDING);
+    return( BUFFER_SIZE_ROUNDED_UP - ipBUFFER_PADDING );
 }
 
 BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxNetif )

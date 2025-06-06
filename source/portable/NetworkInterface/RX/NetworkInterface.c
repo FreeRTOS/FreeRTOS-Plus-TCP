@@ -434,7 +434,7 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
         buffer_address += ETHER_CFG_BUFSIZE;
     }
 
-    return (ETHER_CFG_BUFSIZE - ipBUFFER_PADDING);
+    return( ETHER_CFG_BUFSIZE - ipBUFFER_PADDING );
 } /* End of function uxNetworkInterfaceAllocateRAMToBuffers() */
 
 /***********************************************************************************************************************

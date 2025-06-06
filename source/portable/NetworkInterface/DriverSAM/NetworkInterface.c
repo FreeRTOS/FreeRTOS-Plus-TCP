@@ -1423,7 +1423,7 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
 
     cache_clean_invalidate();
 
-    return ( NETWORK_BUFFER_SIZE - ipBUFFER_PADDING );
+    return( NETWORK_BUFFER_SIZE - ipBUFFER_PADDING );
 }
 /*-----------------------------------------------------------*/
 
