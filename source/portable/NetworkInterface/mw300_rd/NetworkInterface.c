@@ -181,9 +181,14 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return ( xInterfaceState == INTERFACE_UP && ret == WM_SUCCESS ) ? pdTRUE : pdFALSE;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     /* FIX ME. */
+    /* Hard force an assert as this driver cannot be used with BufferAllocation_1.c
+     * without implementing this function. */
+    configASSERT( 0 );
+    ( void ) pxNetworkBuffers;
+    return 0;
 }
 
 BaseType_t xGetPhyLinkStatus( void )
