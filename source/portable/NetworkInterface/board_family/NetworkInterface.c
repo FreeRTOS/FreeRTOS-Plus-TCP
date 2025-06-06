@@ -64,7 +64,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     return pdFALSE;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     /* FIX ME. */
 }

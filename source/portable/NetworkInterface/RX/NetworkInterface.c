@@ -422,7 +422,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
  * Return Value : none
  **********************************************************************************************************************/
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint32_t ul;
     uint8_t * buffer_address;
@@ -443,6 +443,8 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
         *( ( unsigned * ) buffer_address ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
         buffer_address += ETHER_CFG_BUFSIZE;
     }
+
+    return (ETHER_CFG_BUFSIZE - ipBUFFER_PADDING);
 } /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
 
 /***********************************************************************************************************************
