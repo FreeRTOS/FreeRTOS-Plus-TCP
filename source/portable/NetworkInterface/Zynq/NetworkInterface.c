@@ -490,7 +490,7 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 /*-----------------------------------------------------------*/
 
 #if ( nicUSE_UNCACHED_MEMORY == 0 )
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+    size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
         static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
         uint8_t * ucRAMBuffer = ucNetworkPackets;
@@ -502,9 +502,11 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
             *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
             ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
         }
+
+        return( niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING );
     }
 #else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+    size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
         static uint8_t * pucNetworkPackets = NULL;
 
@@ -525,6 +527,8 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
                 }
             }
         }
+
+        return( niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING );
     }
 #endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
 /*-----------------------------------------------------------*/

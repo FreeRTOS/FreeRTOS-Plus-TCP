@@ -403,7 +403,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     return success;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+void uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     BaseType_t i;
 
@@ -415,6 +415,8 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
         /* Set the 'hidden' reference to the descriptor for use in DMA interrupts */
         *( ( uint32_t * ) &_network_buffers[ i ][ 0 ] ) = ( uint32_t ) &( ( pxNetworkBuffers[ i ] ) );
     }
+
+    return( BUFFER_SIZE_ROUNDED_UP - ipBUFFER_PADDING );
 }
 
 static BaseType_t _ethernet_mac_get( uint8_t * mac_address_bytes )

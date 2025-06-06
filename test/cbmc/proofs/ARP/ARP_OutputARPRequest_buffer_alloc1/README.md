@@ -16,7 +16,7 @@ this function:
 * xTaskPriorityDisinherit
 
 This proof checks ```FreeRTOS_OutputARPRequest``` in multiple configurations.
-All assume the memory safety of vNetworkInterfaceAllocateRAMToBuffers.
+All assume the memory safety of uxNetworkInterfaceAllocateRAMToBuffers.
 * The ```config_minimal_configuration``` proof sets
   ```ipconfigUSE_LINKED_RX_MESSAGES=0```.
 * The ```config_minimal_configuration_linked_rx_messages``` proof sets

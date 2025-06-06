@@ -70,6 +70,8 @@ static NetworkBufferDescriptor_t xNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DES
  * packet. No resizing will be done. */
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
+static size_t uxMaxNetworkInterfaceAllocatedSizeBytes;
+
 /* The semaphore used to obtain network buffers. */
 static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
 
@@ -201,7 +203,10 @@ BaseType_t xNetworkBuffersInitialise( void )
             /* Initialise all the network buffers.  The buffer storage comes
              * from the network interface, and different hardware has different
              * requirements. */
-            vNetworkInterfaceAllocateRAMToBuffers( xNetworkBuffers );
+            uxMaxNetworkInterfaceAllocatedSizeBytes = uxNetworkInterfaceAllocateRAMToBuffers( xNetworkBuffers );
+
+            /* The allocated buffer should hold atleast ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER bytes */
+            configASSERT( ( uxMaxNetworkInterfaceAllocatedSizeBytes >= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) );
 
             for( x = 0U; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
             {
@@ -238,7 +243,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     UBaseType_t uxCount;
 
     if( ( xNetworkBufferSemaphore != NULL ) &&
-        ( xRequestedSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) )
+        ( xRequestedSizeBytes <= uxMaxNetworkInterfaceAllocatedSizeBytes ) )
     {
         /* If there is a semaphore available, there is a network buffer
          * available. */
@@ -429,7 +434,7 @@ UBaseType_t uxGetNumberOfFreeNetworkBuffers( void )
 NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                                                  size_t xNewSizeBytes )
 {
-    if( xNewSizeBytes <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) )
+    if( xNewSizeBytes <= uxMaxNetworkInterfaceAllocatedSizeBytes )
     {
         /* In BufferAllocation_1.c all network buffer are allocated with a
          * maximum size of 'ipTOTAL_ETHERNET_FRAME_SIZE'.No need to resize the

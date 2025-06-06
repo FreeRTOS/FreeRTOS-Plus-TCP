@@ -368,7 +368,7 @@ static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface
 }
 /*-----------------------------------------------------------*/
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     /* FIX ME if you want to use BufferAllocation_1.c, which uses statically
      * allocated network buffers. */
@@ -377,6 +377,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
      * without implementing this function. */
     configASSERT( xRxTaskHandle == ( TaskHandle_t ) 1 );
     ( void ) pxNetworkBuffers;
+    return 0;
 }
 /*-----------------------------------------------------------*/
 
