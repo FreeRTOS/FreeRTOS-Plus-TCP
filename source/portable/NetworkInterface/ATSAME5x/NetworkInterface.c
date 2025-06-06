@@ -474,8 +474,9 @@ void xRxCallback( void )
 #if ( ipUSE_STATIC_ALLOCATION == 1 )
 
 /* Next provide the vNetworkInterfaceAllocateRAMToBuffers() function, which
- * simply fills in the pucEthernetBuffer member of each descriptor. */
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+ * simply fills in the pucEthernetBuffer member of each descriptor and returns
+ * the allocated buffer size. */
+    size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
         BaseType_t x;
 
@@ -489,6 +490,9 @@ void xRxCallback( void )
              * future versions. */
             *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
         }
+        
+        return ( NETWORK_BUFFER_SIZE - ipBUFFER_PADDING );
+
     }
 #endif /* if ( ipUSE_STATIC_ALLOCATION == 1 ) */
 

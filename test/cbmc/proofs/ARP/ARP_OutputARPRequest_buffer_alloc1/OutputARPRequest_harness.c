@@ -23,19 +23,23 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
     {
         NetworkBufferDescriptor_t * current = &pxNetworkBuffers[ x ];
+        size_t xAllocSize;
         #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
-            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) ) );
+            xAllocSize = sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) );
+            current->pucEthernetBuffer = malloc( xAllocSize );
         #else
-            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
+            xAllocSize = sizeof( ARPPacket_t ) 
+            current->pucEthernetBuffer = malloc( xAllocSize );
         #endif
         __CPROVER_assume( current->pucEthernetBuffer != NULL );
         current->xDataLength = sizeof( ARPPacket_t );
     }
+    return xAllocSize;
 }
 
 /* The code expects that the Semaphore creation relying on pvPortMalloc
