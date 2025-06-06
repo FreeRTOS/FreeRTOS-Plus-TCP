@@ -498,7 +498,8 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
             *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
             ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
         }
-        return (niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING);
+
+        return( niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING );
     }
 #else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
     size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
@@ -522,7 +523,8 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
                 }
             }
         }
-        return (niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING);
+
+        return( niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING );
     }
 #endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
 /*-----------------------------------------------------------*/

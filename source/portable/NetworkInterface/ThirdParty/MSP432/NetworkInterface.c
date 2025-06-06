@@ -1012,5 +1012,5 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
         *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
     }
 
-    return (BUFFER_SIZE_ALLOC1_ROUNDED_UP - ipBUFFER_PADDING);
+    return( BUFFER_SIZE_ALLOC1_ROUNDED_UP - ipBUFFER_PADDING );
 }

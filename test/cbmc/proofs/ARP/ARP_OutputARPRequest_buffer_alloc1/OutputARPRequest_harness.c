@@ -33,12 +33,13 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
             xAllocSize = sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) );
             current->pucEthernetBuffer = malloc( xAllocSize );
         #else
-            xAllocSize = sizeof( ARPPacket_t ) 
-            current->pucEthernetBuffer = malloc( xAllocSize );
+            xAllocSize = sizeof( ARPPacket_t )
+                         current->pucEthernetBuffer = malloc( xAllocSize );
         #endif
         __CPROVER_assume( current->pucEthernetBuffer != NULL );
         current->xDataLength = sizeof( ARPPacket_t );
     }
+
     return xAllocSize;
 }
 
