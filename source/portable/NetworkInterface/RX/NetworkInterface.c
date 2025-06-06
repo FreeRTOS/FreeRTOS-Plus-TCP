@@ -416,13 +416,13 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
 
 /***********************************************************************************************************************
- * Function Name: vNetworkInterfaceAllocateRAMToBuffers ()
+ * Function Name: uxNetworkInterfaceAllocateRAMToBuffers ()
  * Description  : .
  * Arguments    : pxNetworkBuffers
  * Return Value : none
  **********************************************************************************************************************/
 
-size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint32_t ul;
     uint8_t * buffer_address;
@@ -445,7 +445,7 @@ size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwor
     }
 
     return (ETHER_CFG_BUFSIZE - ipBUFFER_PADDING);
-} /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
+} /* End of function uxNetworkInterfaceAllocateRAMToBuffers() */
 
 /***********************************************************************************************************************
  * Function Name: prvLinkStatusChange ()
