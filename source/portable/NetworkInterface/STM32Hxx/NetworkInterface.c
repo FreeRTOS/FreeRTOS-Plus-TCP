@@ -1031,7 +1031,7 @@ uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETH_RX_BUF_SI
 #endif /* ( ipconfigZERO_COPY_RX_DRIVER != 0 || ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 __attribute__( ( aligned( 32 ) ) );
 
-size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint8_t * ucRAMBuffer = ucNetworkPackets;
     uint32_t ul;

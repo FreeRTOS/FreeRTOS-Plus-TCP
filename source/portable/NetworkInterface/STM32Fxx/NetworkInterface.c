@@ -1377,7 +1377,7 @@ static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /* Uncomment this in case BufferAllocation_1.c is used. */
 
-size_t vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     static
     #if defined( STM32F7xx )
