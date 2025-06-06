@@ -516,9 +516,8 @@ void xRxCallback( void )
              * future versions. */
             *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
         }
-        
-        return ( NETWORK_BUFFER_SIZE - ipBUFFER_PADDING );
 
+        return( NETWORK_BUFFER_SIZE - ipBUFFER_PADDING );
     }
 #endif /* if ( ipUSE_STATIC_ALLOCATION == 1 ) */
 

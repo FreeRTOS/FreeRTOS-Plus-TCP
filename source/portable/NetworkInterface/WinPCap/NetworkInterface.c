@@ -979,5 +979,6 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
             pxNetworkBuffers[ uxIndex ].pucEthernetBuffer = &( pucNetworkPacketBuffers[ uxOffset + ipBUFFER_PADDING ] );
         }
     }
-    return (BUFFER_SIZE_ROUNDED_UP - BUFFER_SIZE_ROUNDED_UP);
+
+    return( BUFFER_SIZE_ROUNDED_UP - BUFFER_SIZE_ROUNDED_UP );
 }

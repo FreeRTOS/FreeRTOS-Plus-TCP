@@ -184,6 +184,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     /* FIX ME. */
+
     /* Hard force an assert as this driver cannot be used with BufferAllocation_1.c
      * without implementing this function. */
     configASSERT( 0 );

@@ -344,7 +344,7 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
         ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
     }
 
-    return (niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING);
+    return( niBUFFER_1_PACKET_SIZE - ipBUFFER_PADDING );
 }
 /*-----------------------------------------------------------*/
 
