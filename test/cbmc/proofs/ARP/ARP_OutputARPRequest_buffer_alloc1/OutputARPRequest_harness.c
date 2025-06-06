@@ -34,12 +34,11 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
      *  configASSERT( ( uxMaxNetworkInterfaceAllocatedSizeBytes >= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) );
      *
      */
-    size_t xAllocSize = 0;
+    size_t xAllocSize = ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER;
 
     for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
     {
         NetworkBufferDescriptor_t * current = &pxNetworkBuffers[ x ];
-        xAllocSize = ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER;
         current->pucEthernetBuffer = malloc( xAllocSize );
         __CPROVER_assume( current->pucEthernetBuffer != NULL );
         current->xDataLength = sizeof( ARPPacket_t );
