@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V4.2.3
+ * FreeRTOS+TCP V4.2.4
  * Copyright (C) 2023 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT

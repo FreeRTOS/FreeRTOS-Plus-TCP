@@ -1,5 +1,5 @@
 name: "FreeRTOS-Plus-TCP"
-version: "V4.2.3"
+version: "V4.2.4"
 description:
   "Thread safe FreeRTOS TCP/IP stack working on top of the FreeRTOS-Kernel to
   implement the TCP/IP protocol. Suitable for microcontrollers."
