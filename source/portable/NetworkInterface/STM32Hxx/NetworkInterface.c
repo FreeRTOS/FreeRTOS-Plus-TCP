@@ -1043,7 +1043,7 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
         ucRAMBuffer += ETH_RX_BUF_SIZE;
     }
 
-    return (ETH_RX_BUF_SIZE - ipBUFFER_PADDING);
+    return( ETH_RX_BUF_SIZE - ipBUFFER_PADDING );
 }
 /*-----------------------------------------------------------*/
 

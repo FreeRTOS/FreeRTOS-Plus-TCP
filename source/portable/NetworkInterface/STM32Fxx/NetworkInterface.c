@@ -1393,7 +1393,8 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
         *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
         ucRAMBuffer += ETH_MAX_PACKET_SIZE;
     }
-    return (ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING);
+
+    return( ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING );
 }
 
 /*-----------------------------------------------------------*/
