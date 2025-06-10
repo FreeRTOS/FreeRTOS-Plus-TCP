@@ -1409,7 +1409,7 @@ static void vCheckBuffersAndQueue( void )
 /*-----------------------------------------------------------*/
 
 extern uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint8_t * ucRAMBuffer = ucNetworkPackets;
     uint32_t ulIndex;
@@ -1422,6 +1422,8 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
     }
 
     cache_clean_invalidate();
+
+    return( NETWORK_BUFFER_SIZE - ipBUFFER_PADDING );
 }
 /*-----------------------------------------------------------*/
 
