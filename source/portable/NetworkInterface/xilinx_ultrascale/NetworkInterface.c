@@ -278,7 +278,7 @@ static EMACState_t eEMACStates[ XPAR_XEMACPS_NUM_INSTANCES ] = { xEMAC_Init };
 
 static BaseType_t xUltrascaleNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
-    uint32_t ulLinkSpeed, ulDMAReg;
+    uint32_t ulLinkSpeed;
     BaseType_t xStatus, xReturn = pdFAIL;
     XEmacPs * pxEMAC_PS;
     const TickType_t xWaitLinkDelay = pdMS_TO_TICKS( 1000U );
