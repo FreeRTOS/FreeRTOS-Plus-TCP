@@ -89,7 +89,7 @@
 #endif
 #define TX_OFFSET               ipconfigPACKET_FILLER_SIZE
 
-#define dmaRX_TX_BUFFER_SIZE    1536
+#define dmaRX_TX_BUFFER_SIZE    ( 1536 - ipBUFFER_PADDING )
 
 /* Defined in NetworkInterface.c */
 extern TaskHandle_t xEMACTaskHandles[ XPAR_XEMACPS_NUM_INSTANCES ];
