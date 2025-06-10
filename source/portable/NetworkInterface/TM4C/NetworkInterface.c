@@ -57,7 +57,7 @@
 #include "NetworkInterface.h"
 #include "phyHandling.h"
 
-#define BUFFER_SIZE_WO_PADDING     ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
+#define BUFFER_SIZE_WO_PADDING     ( ipTOTAL_ETHERNET_FRAME_SIZE )
 #define BUFFER_SIZE                ( BUFFER_SIZE_WO_PADDING + ipBUFFER_PADDING )
 #define BUFFER_SIZE_ROUNDED_UP     ( ( BUFFER_SIZE + 7 ) & ~0x7UL )
 #define PHY_PHYS_ADDR              0
