@@ -23,19 +23,28 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
+    /*
+     * In the case of buffer allocation scheme 1 the network buffers are
+     * fixed size and its asserted in xNetworkBuffersInitialise call that the
+     * buffer is at least ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER bytes
+     *
+     * Refer:
+     *  configASSERT( ( uxMaxNetworkInterfaceAllocatedSizeBytes >= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) );
+     *
+     */
+    size_t xAllocSize = ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER;
+
     for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
     {
         NetworkBufferDescriptor_t * current = &pxNetworkBuffers[ x ];
-        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
-            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) ) );
-        #else
-            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
-        #endif
+        current->pucEthernetBuffer = malloc( xAllocSize );
         __CPROVER_assume( current->pucEthernetBuffer != NULL );
         current->xDataLength = sizeof( ARPPacket_t );
     }
+
+    return xAllocSize;
 }
 
 /* The code expects that the Semaphore creation relying on pvPortMalloc

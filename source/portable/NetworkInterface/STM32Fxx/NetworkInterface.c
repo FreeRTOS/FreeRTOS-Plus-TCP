@@ -1377,7 +1377,7 @@ static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /* Uncomment this in case BufferAllocation_1.c is used. */
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     static
     #if defined( STM32F7xx )
@@ -1393,6 +1393,8 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
         *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
         ucRAMBuffer += ETH_MAX_PACKET_SIZE;
     }
+
+    return( ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING );
 }
 
 /*-----------------------------------------------------------*/

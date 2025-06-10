@@ -1098,7 +1098,7 @@ static void print_hex( unsigned const char * const bin_data,
  *        Called when the BufferAllocation1 scheme is used.
  * @param [in,out] pxNetworkBuffers Pointer to an array of NetworkBufferDescriptor_t to populate.
  */
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     static uint8_t * pucNetworkPacketBuffers = NULL;
     size_t uxIndex;
@@ -1131,4 +1131,6 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
             pxNetworkBuffers[ uxIndex ].pucEthernetBuffer = &( pucNetworkPacketBuffers[ uxOffset + ipBUFFER_PADDING ] );
         }
     }
+
+    return( BUFFER_SIZE_ROUNDED_UP - ipBUFFER_PADDING );
 }

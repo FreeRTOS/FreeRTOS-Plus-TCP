@@ -997,7 +997,7 @@ BaseType_t xGetPhyLinkStatus( void )
 #define BUFFER_SIZE_ALLOC1               ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
 #define BUFFER_SIZE_ALLOC1_ROUNDED_UP    ( ( BUFFER_SIZE_ALLOC1 + 7 ) & ~0x07UL )
 static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ BUFFER_SIZE_ALLOC1_ROUNDED_UP ];
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     BaseType_t x;
 
@@ -1011,4 +1011,6 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
          * future versions. */
         *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
     }
+
+    return( BUFFER_SIZE_ALLOC1_ROUNDED_UP - ipBUFFER_PADDING );
 }

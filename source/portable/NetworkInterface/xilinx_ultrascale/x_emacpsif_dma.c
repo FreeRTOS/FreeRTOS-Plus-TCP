@@ -85,9 +85,9 @@
 #endif /* ( ipconfigNETWORK_MTU > 1526 ) */
 
 #if ( USE_JUMBO_FRAMES == 1 )
-    #define dmaRX_TX_BUFFER_SIZE    10240
+    #define dmaRX_TX_BUFFER_SIZE    ( 10240 - ipBUFFER_PADDING )
 #else
-    #define dmaRX_TX_BUFFER_SIZE    1536
+    #define dmaRX_TX_BUFFER_SIZE    ( 1536 - ipBUFFER_PADDING )
 #endif /* ( USE_JUMBO_FRAMES == 1 ) */
 
 #if ( ipconfigULTRASCALE == 1 )

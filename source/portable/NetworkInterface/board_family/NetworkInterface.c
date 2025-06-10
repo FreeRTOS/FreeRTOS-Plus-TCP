@@ -64,9 +64,10 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     return pdFALSE;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     /* FIX ME. */
+    return 0;
 }
 
 BaseType_t xGetPhyLinkStatus( void )
