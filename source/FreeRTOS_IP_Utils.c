@@ -1004,6 +1004,8 @@ void vPreCheckConfigs( void )
     {
         size_t uxSize;
 
+        #if ( ipconfigSUPPRESS_BUFFER_PADDING_CHECK == 0 )
+
         /* Check if ipBUFFER_PADDING has a minimum size, depending on the platform.
          * See FreeRTOS_IP.h for more details. */
         #if ( UINTPTR_MAX > 0xFFFFFFFFU )
@@ -1024,6 +1026,8 @@ void vPreCheckConfigs( void )
          * fields in the protocol headers.
          */
         configASSERT( ( ( ( ipSIZE_OF_ETH_HEADER ) + ( ipBUFFER_PADDING ) ) % 4U ) == 0U );
+
+        #endif
 
         /* LCOV_EXCL_BR_START */
         uxSize = ipconfigNETWORK_MTU;
