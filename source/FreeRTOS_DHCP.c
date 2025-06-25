@@ -230,6 +230,7 @@
                     }
                     else
                     {
+                        /* do nothing, coverity happy */
                     }
 
                     break;

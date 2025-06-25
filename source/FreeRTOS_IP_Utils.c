@@ -1835,6 +1835,9 @@ void vReleaseSinglePacketFromUDPSocket( const ConstSocket_t xSocket )
     int32_t lBytes;
 
     /* Passing the address of a pointer (pucUDPPayload) because FREERTOS_ZERO_COPY is used. */
+    /* MISRA Ref 4.7.1 [Return value shall be checked] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-47. */
+    /* coverity[misra_c_2012_directive_4_7_violation] */
     lBytes = FreeRTOS_recvfrom( xSocket, &pucUDPPayload, 0U, FREERTOS_ZERO_COPY, NULL, NULL );
 
     ( void ) lBytes;
