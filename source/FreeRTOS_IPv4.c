@@ -253,6 +253,10 @@ BaseType_t xIsIPv4Broadcast( uint32_t ulIPAddress,
             xIsBroadcast = pdTRUE;
             break;
         }
+        else
+        {
+            /* do nothing, coverity happy */
+        }
     }
 
     /* If the caller wants to know the corresponding endpoint, copy the result.
@@ -260,7 +264,7 @@ BaseType_t xIsIPv4Broadcast( uint32_t ulIPAddress,
      * no IPv4 endpoints.
      * Also, when ulIPAddress is 255.255.255.255, we will
      * return the first IPv4 endpoint that we run across. */
-    if( xIsBroadcast && ( ppxEndPoint != NULL ) )
+    if( ( xIsBroadcast == pdTRUE ) && ( ppxEndPoint != NULL ) )
     {
         *ppxEndPoint = pxEndPoint;
     }
@@ -347,7 +351,7 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
         uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
         uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
         /* Get a reference to the endpoint that the packet was assigned to during pxEasyFit() */
-        NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+        const NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
 
         /* Ensure that the incoming packet is not fragmented because the stack
          * doesn't not support IP fragmentation. All but the last fragment coming in will have their

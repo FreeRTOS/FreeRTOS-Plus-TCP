@@ -926,7 +926,7 @@
                 }
             }
         }
-        else if( xIsIPv4Broadcast( ulAddressToLookup, ppxEndPoint ) )
+        else if( xIsIPv4Broadcast( ulAddressToLookup, ppxEndPoint ) == pdTRUE )
         {
             /* This is a broadcast so it uses the broadcast MAC address. */
             ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
