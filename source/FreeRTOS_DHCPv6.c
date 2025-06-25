@@ -442,6 +442,7 @@ void vDHCPv6Process( BaseType_t xReset,
                 }
                 else
                 {
+                    /* do nothing, coverity happy */
                 }
 
                 break;
