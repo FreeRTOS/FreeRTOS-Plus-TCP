@@ -3404,6 +3404,24 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigSUPPRESS_BUFFER_PADDING_CHECK
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * Suppress configuration check when user configuration
+ * for ipconfigPACKET_FILLER_SIZE or ipconfigBUFFER_PADDING is
+ * sub optimal.  Useful when porting to a MAC that does not include
+ * the option to pad received packets ipconfigPACKET_FILLER_SIZE
+ * within a word boundary.
+ */
+
+#ifndef ipconfigSUPPRESS_BUFFER_PADDING_CHECK
+    #define ipconfigSUPPRESS_BUFFER_PADDING_CHECK    ipconfigDISABLE
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
