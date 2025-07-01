@@ -22,6 +22,18 @@ with ( Assuming rule 11.4 violation; with justification in point 2 ):
 grep 'MISRA Ref 11.4.2' . -rI
 ```
 
+#### Directive 4.7
+
+_Ref 4.7.1_
+
+- MISRA C:2012 Directive 4.7: Return value shall be checked.
+  MISRA warns against not checking the return value of functions that
+  does return. However, the violations reported in FreeRTOS-Plus-TCP
+  library for this directive are for the cases where the validity of the
+  subsequent expressions are validated by ways other than return
+  value of the called function, for example pointer value
+  that was passed as argument.
+
 #### Directive 4.12
 
 _Ref 4.12.1_
