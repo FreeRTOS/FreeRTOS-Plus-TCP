@@ -2029,7 +2029,7 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxSTM32_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxSTM32_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif
