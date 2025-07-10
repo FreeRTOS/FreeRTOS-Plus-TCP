@@ -84,6 +84,11 @@
              * going to be '0' i.e. success. Thus, return value is discarded */
             ( void ) FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_SNDTIMEO, &( uxWriteTimeOut_ticks ), sizeof( TickType_t ) );
             ( void ) FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_RCVTIMEO, &( uxReadTimeOut_ticks ), sizeof( TickType_t ) );
+            #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                /* Since this socket may be used for LLMNR or mDNS, set the multicast TTL to 1. */
+                uint8_t ucMulticastTTL = 1;
+                ( void ) FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_IP_MULTICAST_TTL, &( ucMulticastTTL ), sizeof( ucMulticastTTL ) );
+            #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
         }
 
         return xSocket;
