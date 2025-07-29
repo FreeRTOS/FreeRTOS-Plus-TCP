@@ -156,7 +156,7 @@
                                            *   This parameter can be a value of @ref ETH_Tx_Packet_Inner_VLAN_Control   */
 
             void * pData;                 /*!< Specifies Application packet pointer to save   */
-        } ETH_TxPacketConfig;
+        } ETH_TxPacketConfigTypeDef;
 
 /**
  *
@@ -2049,10 +2049,10 @@
         #endif /* HAL_ETH_USE_PTP */
 
         HAL_StatusTypeDef HAL_ETH_Transmit( ETH_HandleTypeDef * heth,
-                                            ETH_TxPacketConfig * pTxConfig,
+                                            ETH_TxPacketConfigTypeDef * pTxConfig,
                                             uint32_t Timeout );
         HAL_StatusTypeDef HAL_ETH_Transmit_IT( ETH_HandleTypeDef * heth,
-                                               ETH_TxPacketConfig * pTxConfig );
+                                               ETH_TxPacketConfigTypeDef * pTxConfig );
 
         HAL_StatusTypeDef HAL_ETH_WritePHYRegister( const ETH_HandleTypeDef * heth,
                                                     uint32_t PHYAddr,
