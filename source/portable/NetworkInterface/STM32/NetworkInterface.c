@@ -145,10 +145,6 @@
 
 #if ipconfigIS_DISABLED( ipconfigPORT_SUPPRESS_WARNING )
 
-    #if defined( niEMAC_STM32FX ) && defined( ETH_RX_BUF_SIZE )
-        #warning "As of F7 V1.17.1 && F4 V1.28.0, a bug exists in the ETH HAL Driver where ETH_RX_BUF_SIZE is used instead of RxBuffLen, so ETH_RX_BUF_SIZE must == niEMAC_DATA_BUFFER_SIZE"
-    #endif
-
     #if ipconfigIS_DISABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM )
         #warning "Consider enabling ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM for NetworkInterface"
     #endif
@@ -206,10 +202,6 @@
 #define niEMAC_TOTAL_BUFFER_SIZE         ( ( ( niEMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING ) + niEMAC_BUF_ALIGNMENT_MASK ) & ~niEMAC_BUF_ALIGNMENT_MASK )
 
 #if defined( niEMAC_STM32FX )
-
-/* Note: ETH_DMA_RX_BUFFER_UNAVAILABLE_FLAG is incorrectly defined in HAL ETH Driver as of F7 V1.17.1 && F4 V1.28.0 */
-    #undef ETH_DMA_RX_BUFFER_UNAVAILABLE_FLAG
-    #define ETH_DMA_RX_BUFFER_UNAVAILABLE_FLAG    ETH_DMASR_RBUS
 
     #undef ETH_DMA_TX_BUFFER_UNAVAILABLE_FLAG
     #define ETH_DMA_TX_BUFFER_UNAVAILABLE_FLAG    ETH_DMASR_TBUS
@@ -982,9 +974,6 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle,
     pxEthHandle->Init.RxBuffLen = niEMAC_DATA_BUFFER_SIZE;
     /* configASSERT( pxEthHandle->Init.RxBuffLen <= ETH_MAX_PACKET_SIZE ); */
     configASSERT( pxEthHandle->Init.RxBuffLen % 4U == 0 );
-    #if ( defined( niEMAC_STM32FX ) && defined( ETH_RX_BUF_SIZE ) )
-        configASSERT( pxEthHandle->Init.RxBuffLen == ETH_RX_BUF_SIZE );
-    #endif
 
     static ETH_DMADescTypeDef xDMADescTx[ ETH_TX_DESC_CNT ] __ALIGNED( portBYTE_ALIGNMENT ) __attribute__( ( section( niEMAC_TX_DESC_SECTION ) ) );
     static ETH_DMADescTypeDef xDMADescRx[ ETH_RX_DESC_CNT ] __ALIGNED( portBYTE_ALIGNMENT ) __attribute__( ( section( niEMAC_RX_DESC_SECTION ) ) );
@@ -1585,7 +1574,7 @@ static void prvReleaseTxPacket( ETH_HandleTypeDef * pxEthHandle )
 
     /* TODO: Is it possible for the semaphore and BuffersInUse to get out of sync? */
 
-    /* while( ETH_TX_DESC_CNT - uxQueueMessagesWaiting( ( QueueHandle_t ) xTxDescSem ) > pxEthHandle->TxDescList.BuffersInUse )
+    /* while( ETH_TX_DESC_CNT - uxQueueMessagesWaiting( ( QueueHandle_t ) xTxDescSem ) > HAL_ETH_GetTxBuffersNumber( pxEthHandle ) )
      * {
      *  ( void ) xSemaphoreGive( xTxDescSem );
      * } */
@@ -1865,7 +1854,7 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * pxEthHandle )
 {
     static size_t uxMostTXDescsUsed = 0U;
 
-    const size_t uxTxUsed = pxEthHandle->TxDescList.BuffersInUse;
+    const size_t uxTxUsed = HAL_ETH_GetTxBuffersNumber( pxEthHandle );
 
     if( uxMostTXDescsUsed < uxTxUsed )
     {
