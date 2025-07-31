@@ -694,14 +694,14 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                 ulRegValue = 0;
 
                 /* Detect 10Mb operation */
-                if(( ulPortOperationMode & 0x2) == 0)
+                if( ( ulPortOperationMode & 0x2 ) == 0 )
                 {
                     /* phyPHYSTS_SPEED_STATUS: 1=10Mb, 0=100Mb */
                     ulRegValue |= phyPHYSTS_SPEED_STATUS;
                 }
 
                 /* Detect full duplex operation */
-                if( ulPortOperationMode & 0x1)
+                if( ulPortOperationMode & 0x1 )
                 {
                     ulRegValue |= phyPHYSTS_DUPLEX_STATUS;
                 }
