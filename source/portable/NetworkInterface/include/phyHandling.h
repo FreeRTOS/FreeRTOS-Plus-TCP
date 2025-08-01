@@ -118,6 +118,8 @@
 
     #define PHY_ID_MV88E6071       0xFF000710
 
+    #define PHY_ID_ADIN1200        0x0283BC20
+
 /* Initialise the struct and assign a PHY-read and -write function. */
     void vPhyInitialise( EthernetPhy_t * pxPhyObject,
                          xApplicationPhyReadHook_t fnPhyRead,
