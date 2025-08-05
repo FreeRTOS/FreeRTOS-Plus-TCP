@@ -389,7 +389,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                 #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
                 {
-                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
+                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE - ipBUFFER_PADDING );
                     configASSERT( pucBuffer != NULL );
                 }
                 #else
@@ -777,7 +777,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
         {
             /* Reserve the maximum length for the next reception. */
-            uxLength = ETH_RX_BUF_SIZE;
+            uxLength = ETH_RX_BUF_SIZE - ipBUFFER_PADDING;
 
             if( data_buffer.buffer != NULL )
             {
@@ -1195,6 +1195,7 @@ static void prvEMACHandlerTask( void * pvParameters )
                 prvEthernetUpdateConfig( pdFALSE );
             }
         }
+        ipconfigEMAC_WATCHDOG_TIMER();
     }
 }
 
