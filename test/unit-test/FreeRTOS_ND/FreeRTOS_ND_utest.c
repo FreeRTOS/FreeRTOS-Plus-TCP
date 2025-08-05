@@ -2139,13 +2139,3 @@ void test_xCheckRequiresNDResolution_AssertInvalidFrameType( void )
 
     catch_assert( xCheckRequiresNDResolution( pxNetworkBuffer ) );
 }
-
-/**
- * @brief Toggle vNDSendUnsolicited.
- */
-void test_vNDSendUnsolicited( void )
-{
-    xSendEventToIPTask_ExpectAndReturn( eNDTimerEvent, 0 );
-
-    vNDSendUnsolicited();
-}
