@@ -602,8 +602,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
             break;
         }
 
-        /* ETH_TxPacketConfigTypeDef */
-        ETH_TxPacketConfig xTxConfig =
+        ETH_TxPacketConfigTypeDef xTxConfig =
         {
             .CRCPadCtrl = ETH_CRC_PAD_INSERT,
             .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD,
@@ -2029,7 +2028,7 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxSTM32_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxSTM32_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif

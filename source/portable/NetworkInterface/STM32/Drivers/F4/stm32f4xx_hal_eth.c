@@ -293,7 +293,7 @@
         static void ETH_DMATxDescListInit( ETH_HandleTypeDef * heth );
         static void ETH_DMARxDescListInit( ETH_HandleTypeDef * heth );
         static uint32_t ETH_Prepare_Tx_Descriptors( ETH_HandleTypeDef * heth,
-                                                    ETH_TxPacketConfig * pTxConfig,
+                                                    ETH_TxPacketConfigTypeDef * pTxConfig,
                                                     uint32_t ItMode );
         static void ETH_UpdateDescriptor( ETH_HandleTypeDef * heth );
         static void ETH_FlushTransmitFIFO( ETH_HandleTypeDef * heth );
@@ -970,7 +970,7 @@
  * @retval HAL status
  */
         HAL_StatusTypeDef HAL_ETH_Transmit( ETH_HandleTypeDef * heth,
-                                            ETH_TxPacketConfig * pTxConfig,
+                                            ETH_TxPacketConfigTypeDef * pTxConfig,
                                             uint32_t Timeout )
         {
             uint32_t tickstart;
@@ -1047,7 +1047,7 @@
  * @retval HAL status
  */
         HAL_StatusTypeDef HAL_ETH_Transmit_IT( ETH_HandleTypeDef * heth,
-                                               ETH_TxPacketConfig * pTxConfig )
+                                               ETH_TxPacketConfigTypeDef * pTxConfig )
         {
             if( pTxConfig == NULL )
             {
@@ -3117,7 +3117,7 @@
  * @retval Status
  */
         static uint32_t ETH_Prepare_Tx_Descriptors( ETH_HandleTypeDef * heth,
-                                                    ETH_TxPacketConfig * pTxConfig,
+                                                    ETH_TxPacketConfigTypeDef * pTxConfig,
                                                     uint32_t ItMode )
         {
             ETH_TxDescListTypeDef * dmatxdesclist = &heth->TxDescList;
