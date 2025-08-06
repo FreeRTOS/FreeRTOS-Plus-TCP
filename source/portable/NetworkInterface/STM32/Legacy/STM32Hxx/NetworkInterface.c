@@ -392,8 +392,8 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                 #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
                 {
-					/* Subtracted 'ipBUFFER_PADDING', which is the size of the meta data. */
-                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE - ipBUFFER_PADDING  );
+                    /* Subtracted 'ipBUFFER_PADDING', which is the size of the meta data. */
+                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE - ipBUFFER_PADDING );
                     configASSERT( pucBuffer != NULL );
                 }
                 #else
@@ -1047,7 +1047,7 @@ size_t uxNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetwo
         ucRAMBuffer += ETH_RX_BUF_SIZE;
     }
 
-    return (ETH_RX_BUF_SIZE - ipBUFFER_PADDING);
+    return( ETH_RX_BUF_SIZE - ipBUFFER_PADDING );
 }
 /*-----------------------------------------------------------*/
 
