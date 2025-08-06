@@ -329,12 +329,14 @@
 
                 case ndICMP_MTU_OPTION: /* 5 */
                    {
-                       uint32_t ulMTU;
-                       ( void ) ulMTU;
+                       #if ipconfigHAS_PRINTF == 1
+                           uint32_t ulMTU;
+                           ( void ) ulMTU;
 
-                       /* ulChar2u32 returns host-endian numbers. */
-                       ulMTU = ulChar2u32( &( pucBytes[ uxIndex + 4U ] ) );
-                       FreeRTOS_printf( ( "RA: MTU = %u\n", ( unsigned int ) ulMTU ) );
+                           /* ulChar2u32 returns host-endian numbers. */
+                           ulMTU = ulChar2u32( &( pucBytes[ uxIndex + 4U ] ) );
+                           FreeRTOS_printf( ( "RA: MTU = %u\n", ( unsigned int ) ulMTU ) );
+                       #endif /* ipconfigHAS_PRINTF == 1 */
                    }
                    break;
 

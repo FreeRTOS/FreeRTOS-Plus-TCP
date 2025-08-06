@@ -262,7 +262,7 @@
         uint16_t x;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
-        BaseType_t xDNSHookReturn;
+        BaseType_t xDNSHookReturn = 0U;
 
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
         xSet.usPortNumber = usPort;
