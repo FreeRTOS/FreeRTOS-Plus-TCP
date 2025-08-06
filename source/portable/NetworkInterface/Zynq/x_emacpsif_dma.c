@@ -222,8 +222,8 @@ void emacps_send_handler( void * arg )
      */
     xemacpsif->isr_events |= EMAC_IF_TX_EVENT;
 
-	/* Take the mutex without blocking. */
-	xSemaphoreGiveFromISR( xemacpsif->txMutex, &xHigherPriorityTaskWoken );
+    /* Take the mutex without blocking. */
+    xSemaphoreGiveFromISR( xemacpsif->txMutex, &xHigherPriorityTaskWoken );
 
     if( xEMACTaskHandles[ xEMACIndex ] != NULL )
     {
@@ -327,24 +327,24 @@ XStatus emacps_send_message( xemacpsif_s * xemacpsif,
          * accessed as little as possible. */
         xemacpsif->txHead = txHead;
 
-		if( xSemaphoreTake( xemacpsif->txMutex, 200U ) == pdFALSE )
-		{
-			FreeRTOS_printf( ( "emacps_send_message: mutex can not be taken, something is really wrong.\n" ) );
-			/* There is no risk in continuing here. */
-		}
+        if( xSemaphoreTake( xemacpsif->txMutex, 200U ) == pdFALSE )
+        {
+            FreeRTOS_printf( ( "emacps_send_message: mutex can not be taken, something is really wrong.\n" ) );
+            /* There is no risk in continuing here. */
+        }
 
         /* Data Synchronization Barrier */
         dsb();
 
         {
-			/* Make STARTTX high */
-			uint32_t ulValue = XEmacPs_ReadReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET );
-			/* Set the Start transmit bit. */
-			ulValue |= XEMACPS_NWCTRL_STARTTX_MASK;
-			XEmacPs_WriteReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET, ulValue );
-			/* Read back the register to make sure the data is flushed. */
-			( void ) XEmacPs_ReadReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET );
-			/* The mutex will be given later on in emacps_send_handler(). */
+            /* Make STARTTX high */
+            uint32_t ulValue = XEmacPs_ReadReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET );
+            /* Set the Start transmit bit. */
+            ulValue |= XEMACPS_NWCTRL_STARTTX_MASK;
+            XEmacPs_WriteReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET, ulValue );
+            /* Read back the register to make sure the data is flushed. */
+            ( void ) XEmacPs_ReadReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET );
+            /* The mutex will be given later on in emacps_send_handler(). */
         }
 
         dsb();
@@ -690,14 +690,14 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         configASSERT( xTXDescriptorSemaphores[ xEMACIndex ] );
     }
 
-	if( xemacpsif->txMutex == NULL )
-	{
-		/* txMutex can always be taken, except between sending a packet
-		 * and receiving the TX RX interrupt. */
-		xemacpsif->txMutex = xSemaphoreCreateBinary();
-		xSemaphoreGive( xemacpsif->txMutex );
-		configASSERT( xemacpsif->txMutex != NULL );
-	}
+    if( xemacpsif->txMutex == NULL )
+    {
+        /* txMutex can always be taken, except between sending a packet
+         * and receiving the TX RX interrupt. */
+        xemacpsif->txMutex = xSemaphoreCreateBinary();
+        configASSERT( xemacpsif->txMutex != NULL );
+        xSemaphoreGive( xemacpsif->txMutex );
+    }
 
     /*
      * Allocate RX descriptors, 1 RxBD at a time.

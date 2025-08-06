@@ -60,7 +60,7 @@
 
     extern XEmacPs_Config mac_configs[ XPAR_XEMACPS_NUM_INSTANCES ];
 
-
+    *
     void xemacpsif_setmac( uint32_t index,
                            uint8_t * addr );
     uint8_t * xemacpsif_getmac( uint32_t index );
@@ -116,7 +116,7 @@
         volatile int txHead, txTail;
 
 /*      txMutex is replacing the earlier int variable 'txBusy'. */
-		SemaphoreHandle_t txMutex;  /* Replacing the earlier variable 'volatile int txBusy'. */
+        SemaphoreHandle_t txMutex; /* Replacing the earlier variable 'volatile int txBusy'. */
 
         volatile uint32_t isr_events;
 
@@ -171,7 +171,7 @@
     void vInitialiseOnIndex( BaseType_t xIndex );
 
     #ifdef __cplusplus
-}     /* extern "C" */
+    } /* extern "C" */
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */
