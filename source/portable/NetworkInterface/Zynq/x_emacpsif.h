@@ -115,7 +115,7 @@
         volatile int txHead, txTail;
 
 /*      txMutex is replacing the earlier int variable 'txBusy'. */
-        SemaphoreHandle_t txMutex; /* Replacing the earlier variable 'volatile int txBusy'. */
+        SemaphoreHandle_t txMutex;
 
         volatile uint32_t isr_events;
 
