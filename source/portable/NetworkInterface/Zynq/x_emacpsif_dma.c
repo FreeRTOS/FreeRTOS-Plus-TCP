@@ -222,7 +222,7 @@ void emacps_send_handler( void * arg )
      */
     xemacpsif->isr_events |= EMAC_IF_TX_EVENT;
 
-    /* Take the mutex without blocking. */
+    /* Give to the mutex so that a new packet can be sent from emacps_send_message(). */
     xSemaphoreGiveFromISR( xemacpsif->txMutex, &xHigherPriorityTaskWoken );
 
     if( xEMACTaskHandles[ xEMACIndex ] != NULL )
