@@ -114,7 +114,7 @@
         volatile int rxHead, rxTail;
         volatile int txHead, txTail;
 
-/*      txMutex is replacing the earlier int variable 'txBusy'. */
+        /* txMutex is replacing the earlier int variable 'txBusy'. */
         SemaphoreHandle_t txMutex;
 
         volatile uint32_t isr_events;
@@ -170,7 +170,7 @@
     void vInitialiseOnIndex( BaseType_t xIndex );
 
     #ifdef __cplusplus
-    } /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */
