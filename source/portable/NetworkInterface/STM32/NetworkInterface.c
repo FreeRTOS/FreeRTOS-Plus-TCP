@@ -1719,8 +1719,7 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
 
             if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_UNKNOWN )
             {
-                iptraceETHERNET_RX_EVENT_LOST();
-                break;
+                /* Likely ARP */
             }
             else if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_UDP )
             {
