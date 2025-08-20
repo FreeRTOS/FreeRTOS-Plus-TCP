@@ -82,7 +82,7 @@
 
         /* Map the buffer onto a IP-Packet struct to easily access the
          * fields of the IP packet. */
-        const IPPacket_t * const pxIPPacket = ( ( const IPPacket_t * const ) pvEthernetBuffer );
+        const IPPacket_t * const pxIPPacket = ( ( const IPPacket_t * ) pvEthernetBuffer );
 
         DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 

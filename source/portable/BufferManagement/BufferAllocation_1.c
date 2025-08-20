@@ -313,6 +313,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         }
         else
         {
+            FreeRTOS_printf( ( "pxGetNetworkBufferWithDescriptor: module not initialised or `xRequestedSizeBytes` too small" ) );
             /* lint wants to see at least a comment. */
             iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
         }
