@@ -153,7 +153,7 @@
                                                     MACAddress_t * const pxMACAddress,
                                                     NetworkEndPoint_t ** ppxEndPoint )
     {
-        eResolutionLookupResult_t eReturn;
+        eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
 
         /* Mostly used multi-cast address is ff02::. */
         if( xIsIPv6AllowedMulticast( pxAddressToLookup ) != pdFALSE )
@@ -163,14 +163,20 @@
             if( ppxEndPoint != NULL )
             {
                 *ppxEndPoint = pxFindLocalEndpoint();
-            }
 
-            eReturn = eResolutionCacheHit;
+                if (*ppxEndPoint != NULL)
+                {
+                    eReturn = eResolutionCacheHit;
+                }
+                else
+                {
+                    /* No link-local endpoint configured, eResolutionCacheMiss */
+                }
+            }
         }
         else
         {
-            /* Not a multicast IP address. */
-            eReturn = eResolutionCacheMiss;
+            /* Not a multicast IP address, eResolutionCacheMiss */
         }
 
         return eReturn;
@@ -978,6 +984,23 @@
  */
     eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
+        /*
+            ICMPv6 messages have the following general format:
+
+            0                   1                   2                   3
+            0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+            |     Type      |     Code      |          Checksum             |
+            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+            |                                                               |
+            +                         Message Body                          +
+            |                                                               |
+
+            The packet should contain atleast 4 bytes of general fields
+
+        */
+        if( pxNetworkBuffer->xDataLength >= ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipICMPv6_GENERAL_FIELD_SIZE ) )
+    {
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -1052,6 +1075,14 @@
 
                                /* Find the total length of the IP packet. */
                                uxDataLength = ipNUMERIC_CAST( size_t, FreeRTOS_ntohs( pxICMPPacket->xIPHeader.usPayloadLength ) );
+                                
+                                uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxDataLength );
+                                if( uxNeededSize > pxNetworkBuffer->xDataLength )
+                                {
+                                    FreeRTOS_printf( ( "Too small\n" ) );
+                                    break;
+                                }
+                                
                                uxDataLength = uxDataLength - sizeof( *pxICMPEchoHeader );
 
                                /* Find the first byte of the data within the ICMP packet. */
@@ -1128,6 +1159,17 @@
                    break;
 
                 case ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6:
+                    {
+                        size_t uxICMPSize;
+                        uxICMPSize = sizeof( ICMPHeader_IPv6_t );
+                        uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
+
+                        if( uxNeededSize > pxNetworkBuffer->xDataLength )
+                        {
+                            FreeRTOS_printf( ( "Too small\n" ) );
+                            break;
+                        }
+
                     /* MISRA Ref 11.3.1 [Misaligned access] */
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -1149,7 +1191,7 @@
                     {
                         prvCheckWaitingBuffer( &( pxICMPHeader_IPv6->xIPv6Address ) );
                     }
-
+                    }
                     break;
 
                 case ipICMP_ROUTER_SOLICITATION_IPv6:
@@ -1157,6 +1199,7 @@
 
                     #if ( ipconfigUSE_RA != 0 )
                         case ipICMP_ROUTER_ADVERTISEMENT_IPv6:
+                                /* Size check is done inside vReceiveRA */
                             vReceiveRA( pxNetworkBuffer );
                             break;
                     #endif /* ( ipconfigUSE_RA != 0 ) */
@@ -1166,6 +1209,13 @@
                     break;
             } /* switch( pxICMPHeader_IPv6->ucTypeOfMessage ) */
         }     /* if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) */
+
+        }
+        else
+        {
+            /* Malformed ICMPv6 packet, release the network buffer (performed
+            in prvProcessEthernetPacket)*/
+        }
 
         return eReleaseBuffer;
     }
