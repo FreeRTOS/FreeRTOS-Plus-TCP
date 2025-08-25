@@ -348,6 +348,77 @@ void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
                 pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
             }
         }
+
+        #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+        {
+            MCastReportData_t * pxMRD;
+
+            /* This is sub-optimal. We only need an IP_Address_t on network DOWN, however in the
+             * interest of having one piece of common code, we'll have a pointer that points to either
+             * xIPv6Address or &pxMRD->xMCastGroupAddress.xIPAddress */
+            IP_Address_t * pxIPv6Address;
+            IP_Address_t xIPv6Address;
+
+            if( xNetworkGoingUp == pdTRUE )
+            {
+                /* We will need an MLD report structure a few lines down, so allocate one. */
+                pxMRD = ( MCastReportData_t * ) pvPortMalloc( sizeof( MCastReportData_t ) );
+
+                if( pxMRD == NULL )
+                {
+                    break;
+                }
+
+                pxIPv6Address = &( pxMRD->xMCastGroupAddress.xIPAddress );
+            }
+            else
+            {
+                pxIPv6Address = &xIPv6Address;
+            }
+
+            /* Generate the solicited-node multicast address. It has the form of
+             * ff02::1:ffnn:nnnn, where nn:nnnn are the last 3 bytes of the IPv6 address. */
+            do
+            {
+                uint8_t * pucTarget = pxIPv6Address->xIP_IPv6.ucBytes;
+                const uint8_t * pucSource = pxEndPoint->ipv6_settings.xIPAddress.ucBytes;
+
+                pucTarget[ 0 ] = 0xFFU;
+                pucTarget[ 1 ] = 0x02U;
+                ( void ) memset( &( pucTarget[ 2 ] ), 0x00, 9 );
+                pucTarget[ 11 ] = 0x01U;
+                pucTarget[ 12 ] = 0xFFU;
+                pucTarget[ 13 ] = pucSource[ 13 ];
+                pucTarget[ 14 ] = pucSource[ 14 ];
+                pucTarget[ 15 ] = pucSource[ 15 ];
+            } while( pdFALSE );
+
+            if( xNetworkGoingUp == pdTRUE )
+            {
+                /* Network going UP. Generate  and enlist an MLD report for the solicited node multicast address. */
+                listSET_LIST_ITEM_OWNER( &( pxMRD->xListItem ), ( void * ) pxMRD );
+                pxMRD->pxInterface = pxEndPoint->pxNetworkInterface;
+                pxMRD->xMCastGroupAddress.xIs_IPv6 = pdTRUE_UNSIGNED;
+                /* pxMRD->xMCastGroupAddress.xIPAddress was filled out through pxIPv6Address above.*/
+
+                if( xEnlistMulticastReport( pxMRD ) == pdFALSE )
+                {
+                    /* The report data was not consumed. This is odd since we are dealing with
+                     * the solicited-node multicast address and there should not have been a report
+                     * enlisted for it already. Anyway, keep things clean. */
+                    vPortFree( pxMRD );
+                    pxMRD = NULL;
+                }
+            }
+            else
+            {
+                /* Network going DOWN. De-list the MLD report for the solicited node multicast address.
+                 * Todo: Check if there are other places that this same action needs to be taken.
+                 * Places like when DHCPv6 or RA releases an address. Needs further investigation. */
+                vDelistMulticastReport( pxEndPoint->pxNetworkInterface, pxIPv6Address, pdTRUE_UNSIGNED );
+            }
+        }
+        #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
     } while( pdFALSE );
 }
 /*-----------------------------------------------------------*/
