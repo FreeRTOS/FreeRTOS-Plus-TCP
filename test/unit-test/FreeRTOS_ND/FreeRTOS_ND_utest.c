@@ -1235,6 +1235,28 @@ void test_prvProcessICMPMessage_IPv6_EP( void )
 }
 
 /**
+ * @brief This function process ICMP message when message has size
+ *        less than ICMPv6 header size
+ */
+void test_prvProcessICMPMessage_IPv6_PacketSizeBelowHeaderSize( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_DEST_UNREACHABLE_IPv6;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 2U;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+}
+
+/**
  * @brief This function process ICMP message when message type is
  *        ipICMP_DEST_UNREACHABLE_IPv6.
  */

@@ -93,7 +93,6 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
                                             size_t uxBufferLength )
     {
         BaseType_t xResult = pdFAIL;
-        uint16_t ucVersionTrafficClass;
         uint16_t usPayloadLength;
         uint8_t ucNextHeader;
         size_t uxMinimumLength;
@@ -113,15 +112,6 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
             if( uxBufferLength < sizeof( IPHeader_IPv6_t ) )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
-                break;
-            }
-
-            ucVersionTrafficClass = pxIPv6Packet->xIPHeader.ucVersionTrafficClass;
-
-            /* Test if the IP-version is 6. */
-            if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
                 break;
             }
 
@@ -497,6 +487,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
         const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
         const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
         BaseType_t xHasUnspecifiedAddress = pdFALSE;
+        uint16_t ucVersionTrafficClass = pxIPv6Header->ucVersionTrafficClass;
 
         /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
          * either in source or destination address. */
@@ -506,8 +497,15 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
             xHasUnspecifiedAddress = pdTRUE;
         }
 
+        /* Test if the IP-version is 6. */
+        if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
+        {
+            /* Can not handle, unknown or invalid header version. */
+            eReturn = eReleaseBuffer;
+            FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop packet, invalid header version: %u\n", ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) );
+        }
         /* Is the packet for this IP address? */
-        if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+        else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
             ( pxNetworkBuffer->pxEndPoint != NULL ) &&
             ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
