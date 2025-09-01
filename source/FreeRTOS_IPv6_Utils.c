@@ -92,7 +92,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
     {
         uxExtensionHeaderLength = usGetExtensionHeaderLength( pucEthernetBuffer, uxBufferLength, &pxSet->ucProtocol );
 
-        if( uxExtensionHeaderLength >= uxBufferLength )
+        if( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength >= uxBufferLength )
         {
             /* Error detected when parsing extension header. */
             pxSet->usChecksum = ipINVALID_LENGTH;
@@ -108,7 +108,16 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
             pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ] ) );
             pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
             /* For IPv6, the number of bytes in the protocol is indicated. */
-            pxSet->usProtocolBytes = ( uint16_t ) ( pxSet->usPayloadLength - uxExtensionHeaderLength );
+            if( pxSet->usPayloadLength < uxExtensionHeaderLength )
+            {
+                /* Invalid payload length - extension headers exceed payload. */
+                pxSet->usChecksum = ipINVALID_LENGTH;
+                xReturn = 4;
+            }
+            else
+            {
+                pxSet->usProtocolBytes = ( uint16_t ) ( pxSet->usPayloadLength - uxExtensionHeaderLength );
+            }
 
             uxNeeded = ( size_t ) pxSet->usPayloadLength;
             uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
