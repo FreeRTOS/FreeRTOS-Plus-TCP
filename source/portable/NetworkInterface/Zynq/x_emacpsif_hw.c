@@ -107,14 +107,11 @@ void emacps_error_handler( void * arg,
             xErrorList[ xErrorHead ].ErrorWord = ErrorWord;
 
             xErrorHead = xNextHead;
-
-            xemacpsif = ( xemacpsif_s * ) ( arg );
-            xemacpsif->isr_events |= EMAC_IF_ERR_EVENT;
         }
 
         if( xEMACTaskHandles[ xEMACIndex ] != NULL )
         {
-            vTaskNotifyGiveFromISR( xEMACTaskHandles[ xEMACIndex ], &xHigherPriorityTaskWoken );
+            xTaskNotifyFromISR( xEMACTaskHandles[ xEMACIndex ], EMAC_IF_ERR_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
         }
     }
 
