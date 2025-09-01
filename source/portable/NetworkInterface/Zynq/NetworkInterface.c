@@ -431,10 +431,20 @@ static BaseType_t xZynqNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         iptraceNETWORK_INTERFACE_TRANSMIT();
 
         /* emacps_send_message() will take ownership of pxBuffer, and
-         * make sure it will get release when bReleaseAfterSend is pdTRUE. */
-        emacps_send_message( &( xEMACpsifs[ xEMACIndex ] ), pxBuffer, bReleaseAfterSend );
+         * make sure it will get release when bReleaseAfterSend is pdTRUE.
+         * The calls to emacps_check_tx() and emacps_send_message()
+         * must be synchronised because they act on the same DMA descriptors.
+         */
+        if( xSemaphoreTake( xEMACpsifs[ xEMACIndex ].tx_mutex, 1000U ) == pdPASS )
+        {
+            emacps_send_message( &( xEMACpsifs[ xEMACIndex ] ), pxBuffer, bReleaseAfterSend );
+            xSemaphoreGive( xEMACpsifs[ xEMACIndex ].tx_mutex );
+            *The function emacps_send_message() has released the packet. * /
+            bReleaseAfterSend = pdFALSE;
+        }
     }
-    else if( bReleaseAfterSend != pdFALSE )
+
+    if( bReleaseAfterSend != pdFALSE )
     {
         /* No link. */
         vReleaseNetworkBufferAndDescriptor( pxBuffer );
@@ -598,9 +608,10 @@ static void prvEMACHandlerTask( void * pvParameters )
     TickType_t xPhyRemTime;
     BaseType_t xResult = 0;
     uint32_t xStatus;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
+    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100U );
     BaseType_t xEMACIndex = ( BaseType_t ) pvParameters;
     xemacpsif_s * pxEMAC_PS;
+    uint32_t ulISREvents = 0U;
 
     configASSERT( xEMACIndex >= 0 );
     configASSERT( xEMACIndex < XPAR_XEMACPS_NUM_INSTANCES );
@@ -629,27 +640,27 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
-        if( ( pxEMAC_PS->isr_events & EMAC_IF_ALL_EVENT ) == 0 )
-        {
-            /* No events to process now, wait for the next. */
-            ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
-        }
+        xTaskNotifyWait( 0U,                /* ulBitsToClearOnEntry */
+                         EMAC_IF_ALL_EVENT, /* ulBitsToClearOnExit */
+                         &( ulISREvents ),  /* pulNotificationValue */
+                         ulMaxBlockTime );
 
-        if( ( pxEMAC_PS->isr_events & EMAC_IF_RX_EVENT ) != 0 )
+        if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )
         {
-            pxEMAC_PS->isr_events &= ~EMAC_IF_RX_EVENT;
             xResult = emacps_check_rx( pxEMAC_PS, pxMyInterfaces[ xEMACIndex ] );
         }
 
-        if( ( pxEMAC_PS->isr_events & EMAC_IF_TX_EVENT ) != 0 )
+        if( ( ulISREvents & EMAC_IF_TX_EVENT ) != 0U )
         {
-            pxEMAC_PS->isr_events &= ~EMAC_IF_TX_EVENT;
-            emacps_check_tx( pxEMAC_PS );
+            if( xSemaphoreTake( pxEMAC_PS->tx_mutex, 1000U ) == pdPASS )
+            {
+                emacps_check_tx( pxEMAC_PS );
+                xSemaphoreGive( pxEMAC_PS->tx_mutex );
+            }
         }
 
-        if( ( pxEMAC_PS->isr_events & EMAC_IF_ERR_EVENT ) != 0 )
+        if( ( ulISREvents & EMAC_IF_ERR_EVENT ) != 0U )
         {
-            pxEMAC_PS->isr_events &= ~EMAC_IF_ERR_EVENT;
             emacps_check_errors( pxEMAC_PS );
         }
 
