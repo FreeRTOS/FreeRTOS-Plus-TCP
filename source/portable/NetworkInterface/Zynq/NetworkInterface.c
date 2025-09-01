@@ -439,7 +439,7 @@ static BaseType_t xZynqNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         {
             emacps_send_message( &( xEMACpsifs[ xEMACIndex ] ), pxBuffer, bReleaseAfterSend );
             xSemaphoreGive( xEMACpsifs[ xEMACIndex ].tx_mutex );
-            *The function emacps_send_message() has released the packet. * /
+            /* The function emacps_send_message() has released the packet. */
             bReleaseAfterSend = pdFALSE;
         }
     }
