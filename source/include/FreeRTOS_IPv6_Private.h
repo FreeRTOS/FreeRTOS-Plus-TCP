@@ -132,6 +132,8 @@
 struct xNetworkEndPoint;
 struct xNetworkInterface;
 
+#define ipICMPv6_GENERAL_FIELD_SIZE             (4U)
+
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6
 {

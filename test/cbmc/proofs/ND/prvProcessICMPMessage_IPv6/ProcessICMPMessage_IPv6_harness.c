@@ -137,7 +137,9 @@ void harness()
     uint16_t usEthernetBufferSize;
     NetworkBufferDescriptor_t * pxLocalARPWaitingNetworkBuffer;
 
-    __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
+    /* Following assumption is to make sure ulLen doesnt go 
+     * beyond CBMC_MAX_OBJECT_SIZE */
+    __CPROVER_assume( ulLen < ( CBMC_MAX_OBJECT_SIZE - ipBUFFER_PADDING ) );
 
     pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ulLen, 0 );
 
