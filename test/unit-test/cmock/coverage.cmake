@@ -19,7 +19,6 @@ execute_process( COMMAND lcov --directory ${CMAKE_BINARY_DIR}
                          --capture
                          --rc lcov_branch_coverage=1
                          --rc genhtml_branch_coverage=1
-                         --gcov-tool gcov-9
                          --output-file=${CMAKE_BINARY_DIR}/base_coverage.info
         )
 
@@ -55,7 +54,6 @@ execute_process(
                          --rc genhtml_branch_coverage=1
                          --base-directory ${CMAKE_BINARY_DIR}
                          --directory ${CMAKE_BINARY_DIR}
-                         --gcov-tool gcov-9
                          --output-file ${CMAKE_BINARY_DIR}/second_coverage.info
         )
 
