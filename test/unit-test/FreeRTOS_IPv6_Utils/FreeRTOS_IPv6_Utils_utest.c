@@ -131,7 +131,7 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
     BaseType_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCPv6_MSS ];
     IPHeader_IPv6_t * pxIPv6Packet;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 4;
     struct xPacketSummary xSet;
 
     memset( pucEthernetBuffer, 0, ipconfigTCPv6_MSS );
@@ -204,6 +204,47 @@ void test_prvChecksumIPv6Checks_LargeExtensionHeader( void )
 
     TEST_ASSERT_EQUAL( 3, usReturn );
 }
+
+/**
+ * @brief Prepare a packet with large extension header length.
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipPROTOCOL_TCP
+ */
+void test_prvChecksumIPv6Checks_IncorrectPayloadLength( void )
+{
+    BaseType_t usReturn;
+    struct xPacketSummary xSet;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+    /* Modify the extension header */
+    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 5U; /* Extension header length is set to 200*8 + 8, which is larger than buffer size. */
+    uxIndex += 8;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
+    uxIndex += 8;
+
+    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_IPv6_t * pxIPPacket_IPv6 = (IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Incorrect payload length */
+    pxIPPacket_IPv6->usPayloadLength = FreeRTOS_ntohs(20);
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 1 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 1 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipPROTOCOL_TCP, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipPROTOCOL_TCP, 2 );
+
+    usReturn = prvChecksumIPv6Checks( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &xSet );
+
+    TEST_ASSERT_EQUAL( 4, usReturn );
+}
+
+
 
 /**
  * @brief Prepare a packet have extension with following order.
