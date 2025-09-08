@@ -1140,6 +1140,21 @@ STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS ) <= portMAX_DELA
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigIP_TASK_AFFINITY
+ *
+ */
+
+#ifndef ipconfigIP_TASK_AFFINITY
+    #define ipconfigIP_TASK_AFFINITY    ( 0 )
+#endif
+
+#if ( ipconfigIP_TASK_AFFINITY < 0 )
+    #error ipconfigIP_TASK_AFFINITY must be at least 0
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigIP_TASK_STACK_SIZE_WORDS
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigIP_TASK_STACK_SIZE_WORDS
