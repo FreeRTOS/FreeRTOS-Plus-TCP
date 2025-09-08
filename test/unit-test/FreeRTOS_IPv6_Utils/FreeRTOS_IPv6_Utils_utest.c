@@ -229,10 +229,10 @@ void test_prvChecksumIPv6Checks_IncorrectPayloadLength( void )
     uxIndex += 8;
 
     xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    IPHeader_IPv6_t * pxIPPacket_IPv6 = (IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    IPHeader_IPv6_t * pxIPPacket_IPv6 = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
     /* Incorrect payload length */
-    pxIPPacket_IPv6->usPayloadLength = FreeRTOS_ntohs(20);
+    pxIPPacket_IPv6->usPayloadLength = FreeRTOS_ntohs( 20 );
 
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 1 );
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 1 );

@@ -107,6 +107,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ] ) );
             pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
+
             /* For IPv6, the number of bytes in the protocol is indicated. */
             if( pxSet->usPayloadLength < uxExtensionHeaderLength )
             {
