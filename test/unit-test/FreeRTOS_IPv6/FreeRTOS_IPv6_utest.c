@@ -87,7 +87,7 @@ void test_prvAllowIPPacketIPv6_DestinationUnspecifiedAddress()
     memcpy( xIPv6Address.xDestinationAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( xIPv6Address.xSourceAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xIPv6Address.ucVersionTrafficClass = 0x60U;
-    
+
     eResult = prvAllowIPPacketIPv6( &xIPv6Address, NULL, 0U );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }

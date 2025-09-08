@@ -36,12 +36,11 @@ void harness()
     xSet.pxIPPacket_IPv6 = ( const IPHeader_IPv6_t * ) ( pucEthernetBuffer + ipSIZE_OF_ETH_HEADER );
 
     xReturn = prvChecksumIPv6Checks( pucEthernetBuffer,
-                           uxBufferSize,
-                           &xSet );
+                                     uxBufferSize,
+                                     &xSet );
 
     if( xReturn == 0 )
     {
         __CPROVER_assert( ( xSet.usProtocolBytes <= FreeRTOS_ntohs( xSet.pxIPPacket_IPv6->usPayloadLength ) ), "xSet.usProtocolBytes shouldn't be greater than IPv6 usPayloadLength" );
     }
-
 }

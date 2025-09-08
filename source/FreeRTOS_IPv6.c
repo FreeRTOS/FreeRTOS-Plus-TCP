@@ -506,8 +506,8 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
         }
         /* Is the packet for this IP address? */
         else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
-            ( pxNetworkBuffer->pxEndPoint != NULL ) &&
-            ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+                 ( pxNetworkBuffer->pxEndPoint != NULL ) &&
+                 ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             eReturn = eProcessBuffer;
         }

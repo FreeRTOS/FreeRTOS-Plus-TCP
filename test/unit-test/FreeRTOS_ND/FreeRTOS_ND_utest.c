@@ -1498,7 +1498,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_IncorrectSize( void 
 
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &ucBuffer;
-    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +5 ;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 5;
     pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
     pxICMPPacket->xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
     pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_ntohs( ipBUFFER_PADDING );
@@ -1513,7 +1513,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_IncorrectSize( void 
 
     ( void ) memset( pucByte, ipECHO_DATA_FILL_BYTE, uxDataLength );
 
-    // vApplicationPingReplyHook_Expect( eSuccess, pxICMPEchoHeader->usIdentifier );
+    /* vApplicationPingReplyHook_Expect( eSuccess, pxICMPEchoHeader->usIdentifier ); */
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
