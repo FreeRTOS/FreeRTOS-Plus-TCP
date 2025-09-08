@@ -1016,13 +1016,13 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             {
                 static StaticTask_t xIPTaskBuffer;
                 static StackType_t xIPTaskStack[ ipconfigIP_TASK_STACK_SIZE_WORDS ];
-                xIPTaskHandle = xTaskCreateStatic( &prvIPTask,
+                xIPTaskHandle = xTaskCreateStaticAffinitySet( &prvIPTask,
                                                    "IP-Task",
                                                    ipconfigIP_TASK_STACK_SIZE_WORDS,
                                                    NULL,
                                                    ipconfigIP_TASK_PRIORITY,
                                                    xIPTaskStack,
-                                                   &xIPTaskBuffer );
+                                                   &xIPTaskBuffer, 1 << 0 );
 
                 if( xIPTaskHandle != NULL )
                 {
