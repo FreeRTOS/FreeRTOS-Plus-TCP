@@ -137,7 +137,7 @@ void harness()
     uint16_t usEthernetBufferSize;
     NetworkBufferDescriptor_t * pxLocalARPWaitingNetworkBuffer;
 
-    /* Following assumption is to make sure ulLen doesnt go 
+    /* Following assumption is to make sure ulLen doesn't go 
      * beyond CBMC_MAX_OBJECT_SIZE */
     __CPROVER_assume( ulLen < ( CBMC_MAX_OBJECT_SIZE - ipBUFFER_PADDING ) );
 
