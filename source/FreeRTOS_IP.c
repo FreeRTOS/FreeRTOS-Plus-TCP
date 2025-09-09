@@ -1019,23 +1019,23 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
                 #if ( ipconfigIP_TASK_AFFINITY )
                 {
                     xIPTaskHandle = xTaskCreateStaticAffinitySet( &prvIPTask,
-                                                    "IP-Task",
-                                                    ipconfigIP_TASK_STACK_SIZE_WORDS,
-                                                    NULL,
-                                                    ipconfigIP_TASK_PRIORITY,
-                                                    xIPTaskStack,
-                                                    &xIPTaskBuffer, 
-                                                    ipconfigIP_TASK_AFFINITY );
+                                                                  "IP-Task",
+                                                                  ipconfigIP_TASK_STACK_SIZE_WORDS,
+                                                                  NULL,
+                                                                  ipconfigIP_TASK_PRIORITY,
+                                                                  xIPTaskStack,
+                                                                  &xIPTaskBuffer,
+                                                                  ipconfigIP_TASK_AFFINITY );
                 }
                 #else /* if ( ipconfigIP_TASK_AFFINITY ) */
                 {
                     xIPTaskHandle = xTaskCreateStatic( &prvIPTask,
-                                                    "IP-Task",
-                                                    ipconfigIP_TASK_STACK_SIZE_WORDS,
-                                                    NULL,
-                                                    ipconfigIP_TASK_PRIORITY,
-                                                    xIPTaskStack,
-                                                    &xIPTaskBuffer );
+                                                       "IP-Task",
+                                                       ipconfigIP_TASK_STACK_SIZE_WORDS,
+                                                       NULL,
+                                                       ipconfigIP_TASK_PRIORITY,
+                                                       xIPTaskStack,
+                                                       &xIPTaskBuffer );
                 }
                 #endif /* ipconfigIP_TASK_AFFINITY */
 
