@@ -188,8 +188,8 @@
  * @return An enum which says whether the address was found: eARPCacheHit or eARPCacheMiss.
  */
     eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                         MACAddress_t * const pxMACAddress,
-                                         struct xNetworkEndPoint ** ppxEndPoint )
+                                                MACAddress_t * const pxMACAddress,
+                                                struct xNetworkEndPoint ** ppxEndPoint )
     {
         eARPLookupResult_t eReturn;
         NetworkEndPoint_t * pxEndPoint;
@@ -258,12 +258,15 @@
                         /* See if the gateway has an entry in the cache. */
                         eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
 
-                        if( *ppxEndPoint != NULL )
+                        if( ( ppxEndPoint != NULL ) && ( *ppxEndPoint != NULL ) )
                         {
                             FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( void * ) ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
                         }
 
-                        *( ppxEndPoint ) = pxEndPoint;
+                        if( ppxEndPoint != NULL )
+                        {
+                            *( ppxEndPoint ) = pxEndPoint;
+                        }
                     }
                 }
             }
