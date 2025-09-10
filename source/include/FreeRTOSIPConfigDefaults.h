@@ -1152,6 +1152,10 @@ STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS ) <= portMAX_DELA
     #error ipconfigIP_TASK_AFFINITY must be at least 0
 #endif
 
+#if ( ipconfigIP_TASK_AFFINITY > 0 && configUSE_CORE_AFFINITY == 0 )
+    #error configUSE_CORE_AFFINITY must be 1 in order to use ipconfigIP_TASK_AFFINITY
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /*
