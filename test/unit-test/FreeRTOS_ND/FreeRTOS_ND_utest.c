@@ -216,6 +216,34 @@ void test_eNDGetCacheEntry_Multicast_InvalidEndPoint( void )
     TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
 }
 
+
+/**
+ * @brief This function find the MAC-address of a multicast IPv6 address
+ *        with a NULL endpoint, but no active IPv6 endpoints.
+ */
+void test_eNDGetCacheEntry_Multicast_InvalidEndPoint_NoEP( void )
+{
+    NetworkEndPoint_t ** ppxEndPoint = NULL;
+    eResolutionLookupResult_t eResult;
+    MACAddress_t xMACAddress;
+    IPv6_Address_t xIPAddress;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint, xEndPoint1;
+
+    ( void ) memcpy( xIPAddress.ucBytes, xMultiCastIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdTRUE );
+    vSetMultiCastIPv6MacAddress_ExpectAnyArgs();
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Multicast );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint1 );
+
+    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, ppxEndPoint );
+
+    TEST_ASSERT_EQUAL( eResolutionCacheMiss, eResult );
+}
+
+
 /**
  * @brief This function find the MAC-address of an IPv6 address which is
  *        not multi cast address, but the entry is present on the ND Cache,
