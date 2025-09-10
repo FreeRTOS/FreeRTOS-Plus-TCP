@@ -126,7 +126,6 @@ jobs:
         uses: FreeRTOS/CI-CD-Github-Actions/spellings@main
         with:
           path: ./
-          exclude-dirs: source/portable/NetworkInterface/STM32
 
   formatting:
     runs-on: ubuntu-latest
@@ -136,7 +135,6 @@ jobs:
         uses: FreeRTOS/CI-CD-Github-Actions/formatting@main
         with:
           path: ./
-          exclude-dirs: source/portable/NetworkInterface/STM32
 
   doxygen:
     runs-on: ubuntu-latest
