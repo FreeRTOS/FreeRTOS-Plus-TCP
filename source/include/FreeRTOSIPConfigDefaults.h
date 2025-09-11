@@ -1142,6 +1142,27 @@ STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS ) <= portMAX_DELA
 /*
  * ipconfigIP_TASK_AFFINITY
  *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigIP_TASK_AFFINITY
+ *
+ * Type: UBaseType_t
+ * Unit: task affinity
+ * Minimum: 0
+ * Maximum: (2 ^ configNUMBER_OF_CORES) - 1
+ *
+ * When running using a SMP kernel, task affinity can be used to prevent
+ * concurrent execution of code that does not fully support SMP.  Until
+ * the TCP library and ports fully supports SMP, it is necessary to set 
+ * the affinity of all tasks which use TCP functions to the same core in
+ * order to prevent concurrent execution.
+ * 
+ * An alternative to setting task affinity is to set configRUN_MULTIPLE_PRIOIRITIES
+ * to 0.
+ * 
+ * Task affinity is defined as shifting a bit by the core number.
+ * 
+ * Example:
+ * (1U << 0U) //run only on core 0
+ * (1U << 1U) //run only on core 1
  */
 
 #ifndef ipconfigIP_TASK_AFFINITY
