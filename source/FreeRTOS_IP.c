@@ -1016,7 +1016,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             {
                 static StaticTask_t xIPTaskBuffer;
                 static StackType_t xIPTaskStack[ ipconfigIP_TASK_STACK_SIZE_WORDS ];
-                #if ( ipconfigIP_TASK_AFFINITY )
+                #if ( ipconfigIP_TASK_AFFINITY > 0 )
                 {
                     xIPTaskHandle = xTaskCreateStaticAffinitySet( &prvIPTask,
                                                                   "IP-Task",
@@ -1046,7 +1046,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             }
             #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
             {
-                #if ( ipconfigIP_TASK_AFFINITY )
+                #if ( ipconfigIP_TASK_AFFINITY > 0 )
                 {
                     xReturn = xTaskCreateAffinitySet( &prvIPTask,
                                                       "IP-task",
