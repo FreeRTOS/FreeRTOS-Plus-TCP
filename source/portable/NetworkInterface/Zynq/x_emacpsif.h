@@ -115,11 +115,14 @@
         volatile int rxHead, rxTail;
         volatile int txHead, txTail;
 
-        volatile int txBusy;
-
-        volatile uint32_t isr_events;
-
         unsigned int last_rx_frms_cntr;
+
+        /* Both the IP- and the EMAC task work on DMA descriptors
+         * for transmission. These function will be protected by 'tx_mutex':
+         *   emacps_send_message()
+         *   emacps_check_tx()
+         */
+        SemaphoreHandle_t tx_mutex;
     } xemacpsif_s;
 
 /*extern xemacpsif_s xemacpsif; */
