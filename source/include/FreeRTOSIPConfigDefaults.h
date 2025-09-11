@@ -1151,15 +1151,15 @@ STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS ) <= portMAX_DELA
  *
  * When running using a SMP kernel, task affinity can be used to prevent
  * concurrent execution of code that does not fully support SMP.  Until
- * the TCP library and ports fully supports SMP, it is necessary to set 
+ * the TCP library and ports fully supports SMP, it is necessary to set
  * the affinity of all tasks which use TCP functions to the same core in
  * order to prevent concurrent execution.
- * 
- * An alternative to setting task affinity is to set configRUN_MULTIPLE_PRIOIRITIES
+ *
+ * An alternative to setting task affinity is to set configRUN_MULTIPLE_PRIORITIES
  * to 0.
- * 
+ *
  * Task affinity is defined as shifting a bit by the core number.
- * 
+ *
  * Example:
  * (1U << 0U) //run only on core 0
  * (1U << 1U) //run only on core 1
