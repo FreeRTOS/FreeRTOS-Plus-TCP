@@ -681,6 +681,31 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                     ulRegValue |= phyPHYSTS_DUPLEX_STATUS;
                 }
             }
+            else if( ulPhyID == PHY_ID_ADIN1200 )
+            {
+                /* ADIN1200 get the resolved speed information from register 0x1A (PHY_STATUS_1)
+                 */
+                uint32_t ulControlStatus = 0u;
+                uint32_t ulPortOperationMode = 0u;
+                pxPhyObject->fnPhyRead( xPhyAddress, 0x1A, &ulControlStatus );
+                /* Bits 7-9 indicate the speed and duplex. */
+                ulPortOperationMode = ( ulControlStatus >> 7u ) & 0x07u;
+
+                ulRegValue = 0;
+
+                /* Detect 10Mb operation */
+                if( ( ulPortOperationMode & 0x2 ) == 0 )
+                {
+                    /* phyPHYSTS_SPEED_STATUS: 1=10Mb, 0=100Mb */
+                    ulRegValue |= phyPHYSTS_SPEED_STATUS;
+                }
+
+                /* Detect full duplex operation */
+                if( ulPortOperationMode & 0x1 )
+                {
+                    ulRegValue |= phyPHYSTS_DUPLEX_STATUS;
+                }
+            }
             else if( xHas_1F_PHYSPCS( ulPhyID ) )
             {
                 /* 31 RW PHY Special Control Status */

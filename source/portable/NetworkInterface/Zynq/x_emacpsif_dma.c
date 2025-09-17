@@ -205,6 +205,8 @@ void emacps_check_tx( xemacpsif_s * xemacpsif )
 
 void emacps_send_handler( void * arg )
 {
+    /* This function is running in ISR mode,
+     * called to handle a TX interrupt. */
     xemacpsif_s * xemacpsif;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     BaseType_t xEMACIndex;
@@ -217,15 +219,9 @@ void emacps_send_handler( void * arg )
      * But it forgets to do a read-back. Do so now to avoid ever-returning ISR's. */
     ( void ) XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_TXSR_OFFSET );
 
-    /* In this port for FreeRTOS+TCP, the EMAC interrupts will only set a bit in
-     * "isr_events". The task in NetworkInterface will wake-up and do the necessary work.
-     */
-    xemacpsif->isr_events |= EMAC_IF_TX_EVENT;
-    xemacpsif->txBusy = pdFALSE;
-
     if( xEMACTaskHandles[ xEMACIndex ] != NULL )
     {
-        vTaskNotifyGiveFromISR( xEMACTaskHandles[ xEMACIndex ], &xHigherPriorityTaskWoken );
+        xTaskNotifyFromISR( xEMACTaskHandles[ xEMACIndex ], EMAC_IF_TX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
     }
 
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
@@ -252,7 +248,6 @@ XStatus emacps_send_message( xemacpsif_s * xemacpsif,
                              int iReleaseAfterSend )
 {
     int txHead = xemacpsif->txHead;
-    int iHasSent = 0;
     uint32_t ulBaseAddress = xemacpsif->emacps.Config.BaseAddress;
     BaseType_t xEMACIndex = get_xEMACIndex( &xemacpsif->emacps );
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 5000U );
@@ -315,8 +310,6 @@ XStatus emacps_send_message( xemacpsif_s * xemacpsif,
         {
         }
 
-        iHasSent = pdTRUE;
-
         txHead++;
 
         if( txHead == ipconfigNIC_N_TX_DESC )
@@ -331,13 +324,12 @@ XStatus emacps_send_message( xemacpsif_s * xemacpsif,
         /* Data Synchronization Barrier */
         dsb();
 
-        if( iHasSent == pdTRUE )
         {
             /* Make STARTTX high */
             uint32_t ulValue = XEmacPs_ReadReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET );
-            /* Start transmit */
-            xemacpsif->txBusy = pdTRUE;
-            XEmacPs_WriteReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET, ( ulValue | XEMACPS_NWCTRL_STARTTX_MASK ) );
+            /* Start transmit. */
+            ulValue |= XEMACPS_NWCTRL_STARTTX_MASK;
+            XEmacPs_WriteReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET, ulValue );
             /* Read back the register to make sure the data is flushed. */
             ( void ) XEmacPs_ReadReg( ulBaseAddress, XEMACPS_NWCTRL_OFFSET );
         }
@@ -356,12 +348,13 @@ XStatus emacps_send_message( xemacpsif_s * xemacpsif,
 
 void emacps_recv_handler( void * arg )
 {
+    /* This function is running in ISR mode,
+     * called to handle an RX interrupt. */
     xemacpsif_s * xemacpsif;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     BaseType_t xEMACIndex;
 
     xemacpsif = ( xemacpsif_s * ) arg;
-    xemacpsif->isr_events |= EMAC_IF_RX_EVENT;
     xEMACIndex = get_xEMACIndex( &xemacpsif->emacps );
 
     /* The driver has already cleared the FRAMERX, BUFFNA and error bits
@@ -371,7 +364,7 @@ void emacps_recv_handler( void * arg )
 
     if( xEMACTaskHandles[ xEMACIndex ] != NULL )
     {
-        vTaskNotifyGiveFromISR( xEMACTaskHandles[ xEMACIndex ], &xHigherPriorityTaskWoken );
+        xTaskNotifyFromISR( xEMACTaskHandles[ xEMACIndex ], EMAC_IF_RX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
     }
 
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
@@ -683,6 +676,19 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
     {
         xTXDescriptorSemaphores[ xEMACIndex ] = xSemaphoreCreateCounting( ( UBaseType_t ) ipconfigNIC_N_TX_DESC, ( UBaseType_t ) ipconfigNIC_N_TX_DESC );
         configASSERT( xTXDescriptorSemaphores[ xEMACIndex ] );
+    }
+
+    if( xemacpsif->tx_mutex == NULL )
+    {
+        /* Both the IP- and the EMAC-task handle TX descriptors.
+         * The IP-task sends packets, and the EMAC task clear
+         * TX descriptors that are done.
+         * A mutex is used so that either emacps_send_message() or
+         * emacps_check_tx() can become active a a time.
+         */
+        xemacpsif->tx_mutex = xSemaphoreCreateBinary();
+        configASSERT( xemacpsif->tx_mutex != NULL );
+        xSemaphoreGive( xemacpsif->tx_mutex );
     }
 
     /*
