@@ -61,14 +61,23 @@
     #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
 #endif
 
-#define niBMSR_LINK_STATUS                  0x0004uL
+#ifndef niEMAC_HANDLER_TASK_AFFINITY
+    /* Define the affinity of the task prvEMACHandlerTask(). */
+    #define niEMAC_HANDLER_TASK_AFFINITY    0
+#endif
+
+#if ( configUSE_CORE_AFFINITY == 0 && niEMAC_HANDLER_TASK_AFFINITY > 0 )
+    #error configUSE_CORE_AFFINITY must be 1 in order to use niEMAC_HANDLER_TASK_AFFINITY
+#endif
+
+#define niBMSR_LINK_STATUS        0x0004uL
 
 /* The size of each buffer when BufferAllocation_1 is used:
  * https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/05-Buffer-management */
-#define niBUFFER_1_PACKET_SIZE              1536
+#define niBUFFER_1_PACKET_SIZE    1536
 
 /* Naming and numbering of PHY registers. */
-#define PHY_REG_01_BMSR                     0x01 /* Basic mode status register */
+#define PHY_REG_01_BMSR           0x01           /* Basic mode status register */
 
 #ifndef iptraceEMAC_TASK_STARTING
     #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )
@@ -362,7 +371,11 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
             pcTaskName = "GEM1";
         }
 
-        xTaskCreate( prvEMACHandlerTask, pcTaskName, configEMAC_TASK_STACK_SIZE, ( void * ) xEMACIndex, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandles[ xEMACIndex ] ) );
+        #if ( niEMAC_HANDLER_TASK_AFFINITY > 0 )
+            xTaskCreateAffinitySet( prvEMACHandlerTask, pcTaskName, configEMAC_TASK_STACK_SIZE, ( void * ) xEMACIndex, niEMAC_HANDLER_TASK_PRIORITY, niEMAC_HANDLER_TASK_AFFINITY, &( xEMACTaskHandles[ xEMACIndex ] ) );
+        #else
+            xTaskCreate( prvEMACHandlerTask, pcTaskName, configEMAC_TASK_STACK_SIZE, ( void * ) xEMACIndex, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandles[ xEMACIndex ] ) );
+        #endif
     }
     else
     {
