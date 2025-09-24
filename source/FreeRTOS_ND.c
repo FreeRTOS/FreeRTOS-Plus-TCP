@@ -1002,7 +1002,7 @@
          |  The packet should contain atleast 4 bytes of general fields
          |
          */
-        if( pxNetworkBuffer->xDataLength >= ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipICMPv6_GENERAL_FIELD_SIZE ) )
+        if( pxNetworkBuffer->xDataLength >= ( ( size_t ) ipSIZE_OF_ETH_HEADER + ( size_t ) ipSIZE_OF_IPv6_HEADER + ( size_t ) ipICMPv6_GENERAL_FIELD_SIZE ) )
         {
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
