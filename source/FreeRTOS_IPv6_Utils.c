@@ -92,7 +92,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
     {
         uxExtensionHeaderLength = usGetExtensionHeaderLength( pucEthernetBuffer, uxBufferLength, &pxSet->ucProtocol );
 
-        if( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength >= uxBufferLength )
+        if( ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ) >= uxBufferLength )
         {
             /* Error detected when parsing extension header. */
             pxSet->usChecksum = ipINVALID_LENGTH;
