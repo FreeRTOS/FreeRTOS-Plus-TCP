@@ -109,7 +109,9 @@
         #define ipLLMNR_IP_ADDR    0xFC0000E0UL
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
 
+/* MDNS constants. */
     #define ipMDNS_TIME_TO_LIVE    255U
+    #define dnsMDNS_FLAGS_IS_RESPONSE    0x8400U /**< MDNS flag value for response. */
 
     #define ipLLMNR_PORT           5355U  /* Standard LLMNR port. */
     #define ipDNS_PORT             53U    /* Standard DNS port. */
@@ -175,6 +177,7 @@
         uint16_t usAnswers;                /**< The number of DNS answers that were given. */
         uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
         uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
+        size_t uxSkipCount;                /**< Points to the byte after the complete name (mDNS only) */
         size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
         size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
         uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
