@@ -188,8 +188,8 @@
  * @return An enum which says whether the address was found: eARPCacheHit or eARPCacheMiss.
  */
     eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
-                                                MACAddress_t * const pxMACAddress,
-                                                struct xNetworkEndPoint ** ppxEndPoint )
+                                         MACAddress_t * const pxMACAddress,
+                                         struct xNetworkEndPoint ** ppxEndPoint )
     {
         eARPLookupResult_t eReturn;
         NetworkEndPoint_t * pxEndPoint;
