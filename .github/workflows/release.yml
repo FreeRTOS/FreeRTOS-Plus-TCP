@@ -10,6 +10,10 @@ on:
         description: 'Release Version Number (Eg, v1.0.0)'
         required: true
 
+# Workflow permissions block
+permissions:
+  contents: write # This grants write access to repository content, including pushing commits/tags and creating releases.
+
 jobs:
   tag-commit:
     name: Tag commit
@@ -140,6 +144,8 @@ jobs:
           ref: ${{ github.event.inputs.version_number }}
           add_release: "true"
   create-release:
+    permissions:
+      id-token: write
     needs:
       - create-zip
       - deploy-doxygen
@@ -171,6 +177,11 @@ jobs:
           asset_path: ./FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           asset_name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           asset_content_type: application/zip
+      - name: Backup Release Asset
+        uses: FreeRTOS/CI-CD-Github-Actions/artifact-backup@main
+        with:
+          artifact_path: ./FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+          release_tag: ${{ github.event.inputs.version_number }}
   cleanup:
     needs:
       - create-release
