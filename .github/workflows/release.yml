@@ -145,6 +145,7 @@ jobs:
           add_release: "true"
   create-release:
     permissions:
+      contents: write
       id-token: write
     needs:
       - create-zip
