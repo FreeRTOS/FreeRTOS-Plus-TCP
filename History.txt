@@ -1,5 +1,19 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.2.5 and V4.2.4 released October 10, 2025:
+	+ Fixed possible buffer over read when processing ICMPv6 packets of 
+	  certain message types which are smaller than the expected size.
+	+ Fixed missing validation check in IPv6 packet processing code which 
+	  can lead to out-of-bounds read when receiving a IPv6 packet with 
+	  incorrect payload lengths in the packet header.
+	+ Fixed possible NULL pointer dereference when IPv6 link local endpoint
+	  is not present in the system when IPv6 is enabled.
+	+ Fixed missing validation check in UDP/IPv6 packet processing code which can 
+	  lead to invalid pointer dereference when receiving a UDP/IPv6 packet with an 
+	  incorrect IP version field in the packet header.
+	  We would like to thank Ivan Gotovchits on behalf of Mayhem Security for 
+	  collaborating on above issues through the coordinated vulnerability disclosure process.
+
 Changes between FreeRTOS-plus-TCP V4.2.4 and V4.2.3 released June 10, 2025:
 	+ Fixed maximum network buffer allocation size check when buffer
 	  allocation scheme 1 is used which caused allocation failure on
