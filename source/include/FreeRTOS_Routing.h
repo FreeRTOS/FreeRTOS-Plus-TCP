@@ -352,12 +352,13 @@
 
     typedef enum
     {
-        eIPv6_Global,    /* 001           */
-        eIPv6_LinkLocal, /* 1111 1110 10  */
-        eIPv6_SiteLocal, /* 1111 1110 11  */
-        eIPv6_Multicast, /* 1111 1111     */
-        eIPv6_Loopback,  /* 1111 (::1)    */
-        eIPv6_Unknown    /* Not implemented. */
+        eIPv6_Global,      /* 001           */
+        eIPv6_LinkLocal,   /* 1111 1110 10  */
+        eIPv6_SiteLocal,   /* 1111 1110 11  */
+        eIPv6_UniqueLocal, /* 1111 110      */
+        eIPv6_Multicast,   /* 1111 1111     */
+        eIPv6_Loopback,    /* 1111 (::1)    */
+        eIPv6_Unknown      /* Not implemented. */
     }
     IPv6_Type_t;
 
