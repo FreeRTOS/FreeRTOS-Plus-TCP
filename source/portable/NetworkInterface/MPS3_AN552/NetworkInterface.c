@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP V4.2.4
+ * FreeRTOS+TCP V4.2.5
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  * Copyright 2023 Arm Limited and/or its affiliates
  *
