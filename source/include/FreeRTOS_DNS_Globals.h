@@ -110,13 +110,13 @@
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
 
 /* MDNS constants. */
-    #define ipMDNS_TIME_TO_LIVE    255U
+    #define ipMDNS_TIME_TO_LIVE          255U
     #define dnsMDNS_FLAGS_IS_RESPONSE    0x8400U /**< MDNS flag value for response. */
 
-    #define ipLLMNR_PORT           5355U  /* Standard LLMNR port. */
-    #define ipDNS_PORT             53U    /* Standard DNS port. */
-    #define ipNBNS_PORT            137U   /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT           138U   /* Datagram Service, not included. */
+    #define ipLLMNR_PORT                 5355U   /* Standard LLMNR port. */
+    #define ipDNS_PORT                   53U     /* Standard DNS port. */
+    #define ipNBNS_PORT                  137U    /* NetBIOS Name Service. */
+    #define ipNBDGM_PORT                 138U    /* Datagram Service, not included. */
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
