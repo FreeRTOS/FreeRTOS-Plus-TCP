@@ -4025,3 +4025,68 @@ void test_prepareReplyDNSMessage_null_pointer( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     catch_assert( prepareReplyDNSMessage( &pxNetworkBuffer, lNetLength ) );
 }
+
+void test_DNS_ParseDNSReply_mdns_request( void )
+{
+    uint32_t ret;
+    uint8_t pucPacketBuffer[ 312 ];
+    size_t uxBufferLength = 250;
+    char dns[ 64 ];
+    struct freertos_addrinfo * pxAddressInfo;
+    uint16_t usPort = ipMDNS_PORT;
+    uint8_t * pucPayloadBuffer = pucPacketBuffer + sizeof( UDPPacket_t ); /* Skip 42 bytes. */
+
+    memset( dns, 'a', 64 );
+    memset( pucPacketBuffer, 0x00, sizeof pucPacketBuffer );
+    dns[ 63 ] = 0;
+    BaseType_t xExpected = pdFALSE;
+    size_t beg = sizeof( DNSMessage_t ); /* 8 x 2 = 16 bytes */
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    DNSMessage_t * dns_header;
+
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+
+    xNetworkBuffer.pucEthernetBuffer = pucPacketBuffer;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0A8020B;
+
+    dns_header = ( DNSMessage_t * ) pucPayloadBuffer; /* pucPayloadBuffer without '&' */
+
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 2 );
+    dns_header->usFlags = 0; /* dnsEXPECTED_RX_FLAGS; */
+
+    /* Question-1: */
+    pucPayloadBuffer[ beg ] = 38; /* Length of name. */
+    beg++;                        /* Skip the length byte. */
+    strcpy( pucPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    beg += 38 + 1 + 4;            /* Skip name, nul-byte, and Type/Class. */
+
+    /* xApplicationDNSQueryHook_Multi() must be called. */
+    hook_return = pdTRUE;
+    /* it hasn't been called yet. */
+    hook_called = pdFALSE;
+
+    usChar2u16_ExpectAnyArgsAndReturn( 0x0001 ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( 0x0001 ); /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 555 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 444 );
+
+    vReturnEthernetFrame_Expect( &xNetworkBuffer, pdFALSE );
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+
+    ret = DNS_ParseDNSReply( pucPayloadBuffer,
+                             beg, /* uxBufferLength, */
+                             &pxAddressInfo,
+                             xExpected,
+                             usPort );
+
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
