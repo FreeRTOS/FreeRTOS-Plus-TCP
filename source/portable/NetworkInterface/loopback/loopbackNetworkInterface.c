@@ -35,6 +35,7 @@
 #include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
+#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
