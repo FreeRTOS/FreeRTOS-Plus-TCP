@@ -2849,8 +2849,12 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
         #define ipconfigARP_USE_CLASH_DETECTION    ipconfigDISABLE
     #endif
 
+/* Allow the use of IP-clash detection, also when
+ * fall-back to auto-IP is not enabled.
+ * But issue a warning to make the user double-check this setting.
+ */
     #if ( ipconfigIS_ENABLED( ipconfigARP_USE_CLASH_DETECTION ) )
-        #error ipconfigARP_USE_CLASH_DETECTION is unused when ipconfigDHCP_FALL_BACK_AUTO_IP is disabled
+        #warning ipconfigARP_USE_CLASH_DETECTION is unused when ipconfigDHCP_FALL_BACK_AUTO_IP is disabled
     #endif
 
 /*-----------------------------------------------------------------------*/
