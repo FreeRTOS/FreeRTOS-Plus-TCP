@@ -200,6 +200,7 @@
             #endif /* ipconfigUSE_DHCP */
             #if ( ipconfigUSE_RA != 0 )
                 bWantRA : 1,         /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
+                bWantEUI64 : 1,      /**< This end-point wants to use EUI64 for IP-address generation. */
             #endif /* ipconfigUSE_RA */
             bIPv6 : 1,               /**< This end-point has an IP-address of type IPv6. */
             #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )

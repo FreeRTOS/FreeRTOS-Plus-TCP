@@ -412,7 +412,7 @@
                             pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
                             pxEndPoint->xRAData.uxRetryCount = 0U;
                             pxEndPoint->xRAData.ulPreferredLifeTime = FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime );
-                            /* Force taking a new random IP-address. */
+                            /* Force taking a new IP-address. */
                             pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
                             pxEndPoint->xRAData.eRAState = eRAStateIPTest;
                             vRAProcess( pdFALSE, pxEndPoint );
@@ -521,6 +521,29 @@
 
         return uxNewReloadTime;
     }
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Assign an EUI64 address based on MAC address
+ *
+ * @param[out] pxIPAddress The assigned IPv6 address.
+ * @param[in] pxMACAddress The MAC address of the interface.
+ */
+    static void vRAProcessAssignEUI64( IPv6_Address_t * pxIPAddress,
+                                       const MACAddress_t * pxMACAddress )
+    {
+        memset( pxIPAddress, 0, sizeof( IPv6_Address_t ) );
+        pxIPAddress->ucBytes[ 8 ] = pxMACAddress->ucBytes[ 0 ] ^ 0x2;
+        pxIPAddress->ucBytes[ 9 ] = pxMACAddress->ucBytes[ 1 ];
+        pxIPAddress->ucBytes[ 10 ] = pxMACAddress->ucBytes[ 2 ];
+        pxIPAddress->ucBytes[ 11 ] = 0xff;
+        pxIPAddress->ucBytes[ 12 ] = 0xfe;
+        pxIPAddress->ucBytes[ 13 ] = pxMACAddress->ucBytes[ 3 ];
+        pxIPAddress->ucBytes[ 14 ] = pxMACAddress->ucBytes[ 4 ];
+        pxIPAddress->ucBytes[ 15 ] = pxMACAddress->ucBytes[ 5 ];
+    }
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -571,15 +594,25 @@
                {
                    size_t uxNeededSize;
                    NetworkBufferDescriptor_t * pxNetworkBuffer;
+                   IPv6_Address_t xIPAddress;
+                   IPv6_Address_t * pxIPAddress;
+
+                   pxIPAddress = NULL;
 
                    /* Get an IP-address, using the network prefix and a random host address. */
                    if( pxEndPoint->xRAData.bits.bIPAddressInUse != 0U )
                    {
                        pxEndPoint->xRAData.bits.bIPAddressInUse = pdFALSE_UNSIGNED;
 
-                       ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, NULL );
+                       if( pxEndPoint->bits.bWantEUI64 != pdFALSE_UNSIGNED )
+                       {
+                           pxIPAddress = &xIPAddress;
+                           vRAProcessAssignEUI64( pxIPAddress, &pxEndPoint->xMACAddress );
+                       }
 
-                       FreeRTOS_printf( ( "RA: Creating a random IP-address\n" ) );
+                       ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, pxIPAddress );
+
+                       FreeRTOS_printf( ( "RA: Creating an IP-address\n" ) );
                    }
 
                    FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
