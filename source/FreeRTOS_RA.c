@@ -577,7 +577,7 @@
                    {
                        pxEndPoint->xRAData.bits.bIPAddressInUse = pdFALSE_UNSIGNED;
 
-                       ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, pdTRUE );
+                       ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, NULL );
 
                        FreeRTOS_printf( ( "RA: Creating a random IP-address\n" ) );
                    }
