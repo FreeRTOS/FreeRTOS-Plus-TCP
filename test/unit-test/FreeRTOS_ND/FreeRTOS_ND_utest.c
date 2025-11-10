@@ -1834,12 +1834,12 @@ void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
  */
 void test_FreeRTOS_CreateIPv6Address_RandomFail( void )
 {
-    IPv6_Address_t xIPAddress, xPrefix = { 0 };
-    BaseType_t xDoRandom = pdTRUE, xReturn;
+    IPv6_Address_t xIPAddress, xPrefix = { 0 }, * pxHost = NULL;
+    BaseType_t xReturn;
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, sizeof( xPrefix ), xDoRandom );
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, sizeof( xPrefix ), pxHost );
 
     TEST_ASSERT_EQUAL( xReturn, pdFAIL );
 }
@@ -1851,30 +1851,30 @@ void test_FreeRTOS_CreateIPv6Address_RandomFail( void )
  */
 void test_FreeRTOS_CreateIPv6Address_Assert1( void )
 {
-    IPv6_Address_t xIPAddress, xPrefix = { 0 };
-    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
+    IPv6_Address_t xIPAddress, xPrefix = { 0 }, * pxHost = NULL;
+    BaseType_t xReturn, xIndex;
 
     for( xIndex = 0; xIndex < 4; xIndex++ )
     {
         xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     }
 
-    catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, 0, xDoRandom ) );
+    catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, 0, pxHost ) );
 }
 
 /**
  * @brief Create an IPv6 address, based on a prefix.
- *        with the bits after the prefix having random value
- *        but incorrect prefix length and xDoRandom is 0.
+ *        with the bits after the prefix having a specified value
+ *        but incorrect prefix length.
  */
 void test_FreeRTOS_CreateIPv6Address_Assert2( void )
 {
-    IPv6_Address_t xIPAddress, xPrefix;
+    IPv6_Address_t xIPAddress, xPrefix, xHost = { 0 };
     /* The maximum allowed prefix length was increased to 128 because of the loopback address. */
     size_t uxPrefixLength = 8U * ipSIZE_OF_IPv6_ADDRESS + 1;
-    BaseType_t xDoRandom = pdFALSE, xReturn, xIndex;
+    BaseType_t xReturn, xIndex;
 
-    catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom ) );
+    catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, &xHost ) );
 }
 
 /**
@@ -1883,16 +1883,16 @@ void test_FreeRTOS_CreateIPv6Address_Assert2( void )
  */
 void test_FreeRTOS_CreateIPv6Address_Pass1( void )
 {
-    IPv6_Address_t xIPAddress, xPrefix;
+    IPv6_Address_t xIPAddress, xPrefix, * pxHost = NULL;
     size_t uxPrefixLength = 8U;
-    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
+    BaseType_t xReturn, xIndex;
 
     for( xIndex = 0; xIndex < 4; xIndex++ )
     {
         xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     }
 
-    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, pxHost );
 
     TEST_ASSERT_EQUAL( xReturn, pdPASS );
 }
@@ -1904,7 +1904,7 @@ void test_FreeRTOS_CreateIPv6Address_Pass1( void )
  */
 void test_FreeRTOS_CreateIPv6Address_Pass2( void )
 {
-    IPv6_Address_t xIPAddress, xPrefix;
+    IPv6_Address_t xIPAddress, xPrefix, * pxHost = NULL;
     size_t uxPrefixLength = 7;
     BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
 
@@ -1913,7 +1913,7 @@ void test_FreeRTOS_CreateIPv6Address_Pass2( void )
         xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     }
 
-    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, pxHost );
 
     TEST_ASSERT_EQUAL( xReturn, pdPASS );
 }
@@ -1925,7 +1925,7 @@ void test_FreeRTOS_CreateIPv6Address_Pass2( void )
  */
 void test_FreeRTOS_CreateIPv6Address_Pass3( void )
 {
-    IPv6_Address_t xIPAddress, xPrefix;
+    IPv6_Address_t xIPAddress, xPrefix, * pxHost = NULL;
     size_t uxPrefixLength = 128;
     BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
 
@@ -1934,7 +1934,7 @@ void test_FreeRTOS_CreateIPv6Address_Pass3( void )
         xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     }
 
-    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, pxHost );
 
     TEST_ASSERT_EQUAL( xReturn, pdPASS );
 }
