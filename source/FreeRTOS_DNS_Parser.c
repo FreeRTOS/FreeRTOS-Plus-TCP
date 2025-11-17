@@ -263,6 +263,7 @@
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
         BaseType_t xDNSHookReturn = 0U;
+        NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
         xSet.usPortNumber = usPort;
@@ -383,6 +384,13 @@
                     xSet.pucByte = &( xSet.pucByte[ uxResult ] );
                     xSet.uxSourceBytesRemaining -= uxResult;
 
+                    if( ( x == 0U ) && ( xSet.usPortNumber == ipMDNS_PORT ) )
+                    {
+                        /* Note that the Questions section turns into the Answers section.
+                         * uxSkipCount points to the first byte after e.g. 'name.local' */
+                        xSet.uxSkipCount = ( size_t ) ( xSet.pucByte - pucUDPPayloadBuffer );
+                    }
+
                     /* Check the remaining buffer size. */
                     if( xSet.uxSourceBytesRemaining >= sizeof( uint32_t ) )
                     {
@@ -430,6 +438,21 @@
                         NetworkEndPoint_t * pxEndPoint, xEndPoint;
                         size_t uxUDPOffset;
 
+                        #if ( ipconfigUSE_IPv6 == 0 )
+                            /* Don't treat AAAA request when IPv6 is not enabled. */
+                            if( xSet.usType == dnsTYPE_AAAA_HOST )
+                            {
+                                break;
+                            }
+                        #endif
+                        #if ( ipconfigUSE_IPv4 == 0 )
+                            /* Don't treat A request when IPv4 is not enabled. */
+                            if( xSet.usType == dnsTYPE_A_HOST )
+                            {
+                                break;
+                            }
+                        #endif
+
                         pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
 
                         /* This test could be replaced with a assert(). */
@@ -458,7 +481,7 @@
                         #if ( ipconfigUSE_IPv6 != 0 )
                         {
                             /*logging*/
-                            FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
+                            FreeRTOS_printf( ( "DNS_ParseDNSReply[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
 
                             xEndPoint.usDNSType = ( uint8_t ) xSet.usType;
                         }
@@ -482,24 +505,26 @@
                         if( xDNSHookReturn != pdFALSE )
                         {
                             int16_t usLength;
-                            NetworkBufferDescriptor_t * pxNewBuffer = NULL;
                             LLMNRAnswer_t * pxAnswer;
                             uint8_t * pucNewBuffer = NULL;
-                            size_t uxExtraLength;
-                            size_t uxDataLength = uxBufferLength +
-                                                  sizeof( UDPHeader_t ) +
-                                                  sizeof( EthernetHeader_t ) +
-                                                  uxIPHeaderSizePacket( pxNetworkBuffer );
+                            /* Number of bytes to write the Answers section: 16 (A) or 28 (AAAA). */
+                            size_t uxExtraLength = 0U;
+                            size_t uxDataLength = uxBufferLength +                         /* Length of the UDP payload buffer */
+                                                  sizeof( UDPHeader_t ) +                  /* Length of the UDP header */
+                                                  sizeof( EthernetHeader_t ) +             /* Length of the Ethernet header */
+                                                  uxIPHeaderSizePacket( pxNetworkBuffer ); /* Lentgh of IP 20 or 40. */
 
                             #if ( ipconfigUSE_IPv6 != 0 )
                                 if( xSet.usType == dnsTYPE_AAAA_HOST )
                                 {
+                                    /* The number of bytes needed by Answers section (28 bytes). */
                                     uxExtraLength = sizeof( LLMNRAnswer_t ) + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
                                 }
                                 else
                             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                             #if ( ipconfigUSE_IPv4 != 0 )
                             {
+                                /* The number of bytes needed by Answers section (16 bytes). */
                                 uxExtraLength = sizeof( LLMNRAnswer_t );
                             }
                             #else /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -510,7 +535,8 @@
 
                             if( xBufferAllocFixedSize == pdFALSE )
                             {
-                                /* Set the size of the outgoing packet. */
+                                /* Set the size of the outgoing packet.
+                                 * setting 'xDataLength' determines the minimum number of bytes copied. */
                                 pxNetworkBuffer->xDataLength = uxDataLength;
                                 pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
                                                                                       uxDataLength +
@@ -553,50 +579,63 @@
 
                             if( ( pxNetworkBuffer != NULL ) )
                             {
-                                pxAnswer = ( ( LLMNRAnswer_t * ) xSet.pucByte );
-                                /* We leave 'usIdentifier' and 'usQuestions' untouched */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_RESPONSE ); /* Set the response flag */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                        /* Provide a single answer */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                   /* No authority */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                  /* No additional info */
+                                size_t uxDistance;
 
-                                pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
-                                pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
+                                /* We leave 'usIdentifier' and 'usQuestions' untouched */
+                                if( xSet.uxSkipCount >= 2 )
+                                {
+                                    /* Four bytes back to write usType/usClass. */
+                                    pxAnswer = ( LLMNRAnswer_t * ) ( &( pucNewBuffer[ xSet.uxSkipCount - 2 ] ) );
+                                    /* Follow RFC6762 to set QR bit (section 18.2) and authoritative answer (AA) bit (section 18.4). */
+                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsMDNS_FLAGS_IS_RESPONSE );
+                                    /* When replying to an mDNS request, do not include the Questions section. */
+                                    xSet.usQuestions = 0;
+                                }
+                                else
+                                {
+                                    pxAnswer = ( ( LLMNRAnswer_t * ) xSet.pucByte );
+                                    /* Follow RFC4795 to set QR bit (section 2.1.1) */
+                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_RESPONSE );
+                                }
+
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usQuestions, xSet.usQuestions ); /* Might be zero. */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                  /* Provide a single answer */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );             /* No authority */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );            /* No additional info */
+
+                                if( xSet.usQuestions > 0 )
+                                {
+                                    pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
+                                    pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
+                                }
 
                                 vSetField16( pxAnswer, LLMNRAnswer_t, usType, xSet.usType );  /* Type A or AAAA: host */
                                 vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
                                 vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
 
-                                usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( xSet.pucByte - pucNewBuffer ) );
+                                uxDistance = ( size_t ) ( ( ( const uint8_t * ) pxAnswer ) - pucNewBuffer );
 
                                 #if ( ipconfigUSE_IPv6 != 0 )
                                     if( xSet.usType == dnsTYPE_AAAA_HOST )
                                     {
-                                        size_t uxDistance;
                                         vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
                                         ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                                        uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                         /* An extra 12 bytes will be sent compared to an A-record. */
                                         usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
                                     }
                                     else
                                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                                 {
-                                    size_t uxDistance;
                                     vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ( uint16_t ) sizeof( pxAnswer->ulIPAddress ) );
                                     vSetField32( pxAnswer, LLMNRAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) );
-                                    uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                     usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance );
                                 }
 
                                 prepareReplyDNSMessage( pxNetworkBuffer, usLength );
-                                /* This function will fill in the eth addresses and send the packet */
-                                vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
 
-                                if( pxNewBuffer != NULL )
-                                {
-                                    vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
-                                }
+                                /* This function will fill in the eth addresses and send the packet.
+                                 * xReleaseAfterSend = pdFALSE. */
+                                vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
                             }
                         }
                         else
@@ -607,6 +646,11 @@
                 #endif /* ipconfigUSE_LLMNR == 1 */
                 ( void ) uxBytesRead;
             } while( ipFALSE_BOOL );
+
+            if( pxNewBuffer != NULL )
+            {
+                vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
+            }
         }
 
         if( xReturn == pdFALSE )
