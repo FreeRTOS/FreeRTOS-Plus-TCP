@@ -27,6 +27,10 @@
 
 #include <stdlib.h>
 
+#if defined( _WIN32 )
+    #include <windows.h>
+#endif
+
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "list.h"
