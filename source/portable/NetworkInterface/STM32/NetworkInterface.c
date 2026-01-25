@@ -1905,6 +1905,7 @@ void HAL_ETH_RxAllocateCallback( uint8_t ** ppucBuff )
     else
     {
         FreeRTOS_debug_printf( ( "HAL_ETH_RxAllocateCallback: failed\n" ) );
+        *ppucBuff = NULL;
     }
 }
 
