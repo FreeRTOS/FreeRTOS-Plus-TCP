@@ -317,7 +317,7 @@ void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
         /* Solicited-node multicast addresses only apply to normal unicast non-loopback addresses. */
         xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
-        if( ( xAddressType != eIPv6_LinkLocal ) && ( xAddressType != eIPv6_SiteLocal ) && ( xAddressType != eIPv6_Global ) )
+        if( ( xAddressType != eIPv6_LinkLocal ) && ( xAddressType != eIPv6_SiteLocal ) && ( xAddressType != eIPv6_UniqueLocal ) && ( xAddressType != eIPv6_Global ) )
         {
             /* The address of this end-point is something other than a normal unicast address... Maybe it's the
              * loopback address or maybe this is an error scenario. In any case, there is no corresponding

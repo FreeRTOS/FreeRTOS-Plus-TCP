@@ -1411,12 +1411,13 @@ struct xIPv6_Couple
         BaseType_t xIndex;
         static const struct xIPv6_Couple xIPCouples[] =
         {
-            /*    IP-type          Mask     Value */
-            { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
-            { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
-            { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
-            { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
-            { eIPv6_Loopback,  0xFFFFU, 0x0000U }, /* 0000 0000 ::1 */
+            /*    IP-type         Mask     Value */
+            { eIPv6_Global,      0xE000U, 0x2000U }, /* 001 */
+            { eIPv6_LinkLocal,   0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+            { eIPv6_SiteLocal,   0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+            { eIPv6_UniqueLocal, 0xFE00U, 0xFC00U }, /* 1111 110 */
+            { eIPv6_Multicast,   0xFF00U, 0xFF00U }, /* 1111 1111 */
+            { eIPv6_Loopback,    0xFFFFU, 0x0000U }, /* 0000 0000 ::1 */
         };
 
         if( pxAddress != NULL )
