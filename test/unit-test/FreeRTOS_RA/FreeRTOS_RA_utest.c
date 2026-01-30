@@ -960,6 +960,56 @@ void test_vReceiveRA_vRAProcess( void )
 }
 
 /**
+ * @brief This function verify vReceiveRA success case for an EUI64 address.
+ */
+void test_vReceiveRA_vRAProcess_EUI64( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
+
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xICMPPacket, 0, sizeof( xICMPPacket ) );
+    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
+    pxAdvertisement = &xICMPPacket.xAdvertisement;
+    pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
+
+    pxPrefixOption = &xICMPPacket.xPrefixOption;
+    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+
+    pxEndPoint->bits.bWantRA = pdTRUE_UNSIGNED;
+    pxEndPoint->bits.bWantEUI64 = pdTRUE_UNSIGNED;
+    pxEndPoint->xRAData.eRAState = eRAStateWait;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    vDHCP_RATimerReload_ExpectAnyArgs();
+
+    vReceiveRA( pxNetworkBuffer );
+
+
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv6_settings.uxPrefixLength, pxPrefixOption->ucPrefixLength );
+    TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, pxEndPoint->xRAData.bits.bRouterReplied );
+    TEST_ASSERT_EQUAL( 0, pxEndPoint->xRAData.uxRetryCount );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ), pxEndPoint->xRAData.ulPreferredLifeTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxEndPoint->xRAData.bits.bIPAddressInUse );
+    TEST_ASSERT_EQUAL( eRAStateIPWait, pxEndPoint->xRAData.eRAState );
+}
+
+/**
  *  @brief This function verify RA state machine
  *         with RA NULL endpoint.
  */

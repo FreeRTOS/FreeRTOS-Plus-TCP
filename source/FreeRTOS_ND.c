@@ -1260,7 +1260,8 @@
  * @param[out] pxIPAddress The location where the new IPv6 address will be stored.
  * @param[in] pxPrefix The prefix to be used.
  * @param[in] uxPrefixLength The length of the prefix.
- * @param[in] xDoRandom A non-zero value if the bits after the prefix should have a random value.
+ * @param[in] pxHost: Host part of the address. It will be filled with
+ *                    a random value if NULL.
  *
  * @return pdPASS if the operation was successful. Or pdFAIL in case xApplicationGetRandomNumber()
  *         returned an error.
@@ -1268,13 +1269,13 @@
     BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
                                            const IPv6_Address_t * pxPrefix,
                                            size_t uxPrefixLength,
-                                           BaseType_t xDoRandom )
+                                           const IPv6_Address_t * pxHost )
     {
-        uint32_t pulRandom[ 4 ];
+        uint32_t pulRandom[ ipSIZE_OF_IPv6_ADDRESS / sizeof( uint32_t ) ];
         uint8_t * pucSource;
         BaseType_t xIndex, xResult = pdPASS;
 
-        if( xDoRandom != pdFALSE )
+        if( pxHost == NULL )
         {
             /* Create an IP-address, based on a net prefix and a
              * random host address.
@@ -1292,7 +1293,7 @@
         }
         else
         {
-            ( void ) memset( pulRandom, 0, sizeof( pulRandom ) );
+            ( void ) memcpy( pulRandom, pxHost->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         }
 
         if( xResult == pdPASS )
@@ -1317,14 +1318,13 @@
                 uint8_t ucNetMask = ( uint8_t ) ~( uxHostMask );
 
                 pxIPAddress->ucBytes[ uxIndex ] &= ucNetMask;
-                pxIPAddress->ucBytes[ uxIndex ] |= ( pucSource[ 0 ] & ( ( uint8_t ) uxHostMask ) );
-                pucSource = &( pucSource[ 1 ] );
+                pxIPAddress->ucBytes[ uxIndex ] |= ( pucSource[ uxIndex ] & ( ( uint8_t ) uxHostMask ) );
                 uxIndex++;
             }
 
             if( uxIndex < ipSIZE_OF_IPv6_ADDRESS )
             {
-                ( void ) memcpy( &( pxIPAddress->ucBytes[ uxIndex ] ), pucSource, ipSIZE_OF_IPv6_ADDRESS - uxIndex );
+                ( void ) memcpy( &( pxIPAddress->ucBytes[ uxIndex ] ), &pucSource[ uxIndex ], ipSIZE_OF_IPv6_ADDRESS - uxIndex );
             }
         }
 

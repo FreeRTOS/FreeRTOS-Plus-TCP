@@ -160,14 +160,14 @@
     #endif
 
 /**
- * @brief Create an IPv16 address, based on a prefix.
+ * @brief Create an IPv6 address, based on a prefix.
  *
  * @param[out] pxIPAddress: The location where the new IPv6 address
  *                          will be stored.
  * @param[in] pxPrefix: The prefix to be used.
  * @param[in] uxPrefixLength: The length of the prefix.
- * @param[in] xDoRandom: A non-zero value if the bits after the
- *                       prefix should have a random value.
+ * @param[in] pxHost: Host part of the address. It will be filled with
+ *                    a random value if NULL.
  *
  * @return pdPASS if the operation was successful. Or pdFAIL in
  *         case xApplicationGetRandomNumber()
@@ -176,7 +176,7 @@
     BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
                                            const IPv6_Address_t * pxPrefix,
                                            size_t uxPrefixLength,
-                                           BaseType_t xDoRandom );
+                                           const IPv6_Address_t * pxHost );
 
 /* Receive a Neighbour Advertisement. */
 
