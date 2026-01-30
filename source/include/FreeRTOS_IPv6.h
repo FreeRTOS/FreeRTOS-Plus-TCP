@@ -54,10 +54,13 @@
 #define ipICMP_PARAMETER_PROBLEM_IPv6            ( ( uint8_t ) 4U )
 #define ipICMP_PING_REQUEST_IPv6                 ( ( uint8_t ) 128U )
 #define ipICMP_PING_REPLY_IPv6                   ( ( uint8_t ) 129U )
+#define ipICMP_MULTICAST_LISTENER_QUERY          ( ( uint8_t ) 130U )
+#define ipICMP_MULTICAST_LISTENER_REPORT_V1      ( ( uint8_t ) 131U )
 #define ipICMP_ROUTER_SOLICITATION_IPv6          ( ( uint8_t ) 133U )
 #define ipICMP_ROUTER_ADVERTISEMENT_IPv6         ( ( uint8_t ) 134U )
 #define ipICMP_NEIGHBOR_SOLICITATION_IPv6        ( ( uint8_t ) 135U )
 #define ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6       ( ( uint8_t ) 136U )
+#define ipICMP_MULTICAST_LISTENER_REPORT_V2      ( ( uint8_t ) 143U )
 
 
 #define ipIPv6_EXT_HEADER_HOP_BY_HOP             0U
@@ -111,7 +114,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress );
 
 /* Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
- * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
+ * the special multicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
  * the last 3 bytes of the IPv6 address. */
 BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                  const IPv6_Address_t * pxRight,

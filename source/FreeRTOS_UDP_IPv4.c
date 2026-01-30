@@ -63,6 +63,9 @@
 /* *INDENT-OFF* */
     #if( ipconfigUSE_IPv4 != 0 )
 /* *INDENT-ON* */
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    #include "FreeRTOS_IGMP.h"
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
 /*-----------------------------------------------------------*/
 
@@ -195,6 +198,8 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             pvCopyDest = &pxNetworkBuffer->pucEthernetBuffer[ sizeof( MACAddress_t ) ];
             ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( ucDefaultPartUDPPacketHeader ) );
 
+            pxIPHeader->ucTimeToLive = pxNetworkBuffer->ucMaximumHops;
+
             #if ipconfigSUPPORT_OUTGOING_PINGS == 1
                 if( pxNetworkBuffer->usPort == ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
                 {
@@ -222,26 +227,6 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
             #else
                 pxIPHeader->usFragmentOffset = 0U;
-            #endif
-
-            #if ( ipconfigUSE_LLMNR == 1 )
-            {
-                /* LLMNR messages are typically used on a LAN and they're
-                 * not supposed to cross routers */
-                if( pxNetworkBuffer->xIPAddress.ulIP_IPv4 == ipLLMNR_IP_ADDR )
-                {
-                    pxIPHeader->ucTimeToLive = 0x01;
-                }
-            }
-            #endif
-            #if ( ipconfigUSE_MDNS == 1 )
-            {
-                /* mDNS messages have a hop-count of 255, see RFC 6762, section 11. */
-                if( pxNetworkBuffer->xIPAddress.ulIP_IPv4 == ipMDNS_IP_ADDRESS )
-                {
-                    pxIPHeader->ucTimeToLive = 0xffU;
-                }
-            }
             #endif
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
@@ -383,6 +368,40 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     {
         if( pxSocket != NULL )
         {
+            #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+                /* If this incoming packet is a multicast, we may have a socket for the port, but we still need
+                 * to ensure the socket is subscribed to that particular multicast group. Note: Since this stack
+                 * does not support port reusing, we don't have to worry about two UDP sockets bound to the exact same
+                 * local port, but subscribed to different multicast groups. If this was allowed, this check
+                 * would have to be moved to the pxUDPSocketLookup() function itself. */
+                if( xIsIPv4Multicast( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) )
+                {
+                    /* Destination is a good multicast address, but is the socket subscribed to this group? */
+                    if( ( pxSocket->u.xUDP.xMulticastAddress.ulIP_IPv4 == pxUDPPacket->xIPHeader.ulDestinationIPAddress ) &&
+                        ( ( pxSocket->u.xUDP.pxMulticastNetIf == NULL ) || ( pxSocket->u.xUDP.pxMulticastNetIf == pxNetworkBuffer->pxInterface ) ) )
+                    {
+                        /* Multicast group and network interface match. Allow further parsing by doing nothing here. */
+                    }
+                    else
+                    {
+                        /* This socket is not subscribed to this multicast group or the interface on which the socket
+                         * is subscribed doesn't match. Nullify the result from pxUDPSocketLookup().
+                         * Setting the socket to NULL is not strictly necessary. Leave here for clarity and insurance. */
+                        pxSocket = NULL;
+                        /* return pdFAIL so the buffer can be released */
+                        xReturn = pdFAIL;
+                        /* Do not continue parsing */
+                        break;
+                    }
+                }
+                else
+                {
+                    /* The incoming packet is not a multicast and we already know it
+                     * matches this socket's port number, so just proceed */
+                }
+            #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
             if( ( pxEndpoint != NULL ) && ( pxEndpoint->ipv4_settings.ulIPAddress != 0U ) )
             {
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
