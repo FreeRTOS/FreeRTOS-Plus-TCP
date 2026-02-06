@@ -412,7 +412,7 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
         pxSocket->u.xTCP.ucRepCount = 0U;
 
         /* And remember that the connect/SYN data are prepared. */
-        pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+        pxSocket->u.xTCP.bits.bConnPrepared = ipTRUE_BOOL;
 
         /* Now that the Ethernet address is known, the initial packet can be
          * prepared. */

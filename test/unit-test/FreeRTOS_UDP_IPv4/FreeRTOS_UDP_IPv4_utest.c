@@ -119,7 +119,7 @@ void test_xProcessReceivedUDPPacket_IPv4_DNSReplyPass()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -152,7 +152,7 @@ void test_xProcessReceivedUDPPacket_IPv4_DNSReplyFail()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -185,7 +185,7 @@ void test_xProcessReceivedUDPPacket_IPv4_LLMNRRequestPass()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -218,7 +218,7 @@ void test_xProcessReceivedUDPPacket_IPv4_LLMNRRequestFail()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -251,7 +251,7 @@ void test_xProcessReceivedUDPPacket_IPv4_LLMNRReplyPass()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -284,7 +284,7 @@ void test_xProcessReceivedUDPPacket_IPv4_LLMNRReplyFail()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -319,7 +319,7 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSRequestPass()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -354,7 +354,7 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSRequestFail()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -389,7 +389,7 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSReplyPass()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -424,7 +424,7 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSReplyFail()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, xNetworkBuffer.pxEndPoint );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -459,7 +459,7 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSRequestPassWithIPv6FrameType()
     pxUDPPacket->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 

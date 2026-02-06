@@ -236,7 +236,7 @@ BaseType_t xIsIPv4Broadcast( uint32_t ulIPAddress,
     {
         #if ( ipconfigUSE_IPv6 == ipconfigENABLE )
             /* Skip over any IPv6 endpoints. */
-            if( pxEndPoint->bits.bIPv6 == pdTRUE )
+            if( pxEndPoint->bits.bIPv6 == ipTRUE_BOOL )
             {
                 continue;
             }

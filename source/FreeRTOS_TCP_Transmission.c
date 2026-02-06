@@ -84,7 +84,7 @@
     {
         BaseType_t xReturn = pdTRUE;
 
-        if( pxSocket->u.xTCP.bits.bConnPrepared == pdFALSE_UNSIGNED )
+        if( pxSocket->u.xTCP.bits.bConnPrepared == ipFALSE_BOOL )
         {
             if( prvTCPPrepareConnect( pxSocket ) != pdTRUE )
             {
@@ -332,7 +332,7 @@
         /* Take the minimum of the RX buffer space and the RX window size. */
         ulSpace = FreeRTOS_min_uint32( pxTCPWindow->xSize.ulRxWindowLength, ulFrontSpace );
 
-        if( ( pxSocket->u.xTCP.bits.bLowWater != pdFALSE_UNSIGNED ) || ( pxSocket->u.xTCP.bits.bRxStopped != pdFALSE_UNSIGNED ) )
+        if( ( pxSocket->u.xTCP.bits.bLowWater != ipFALSE_BOOL ) || ( pxSocket->u.xTCP.bits.bRxStopped != ipFALSE_BOOL ) )
         {
             /* The low-water mark was reached, meaning there was little
              * space left.  The socket will wait until the application has read
@@ -368,7 +368,7 @@
         pxProtocolHeaders->xTCPHeader.usWindow = FreeRTOS_htons( ( uint16_t ) ulWinSize );
 
         /* The new window size has been advertised, switch off the flag. */
-        pxSocket->u.xTCP.bits.bWinChange = pdFALSE_UNSIGNED;
+        pxSocket->u.xTCP.bits.bWinChange = ipFALSE_BOOL;
 
         /* Later on, when deciding to delay an ACK, a precise estimate is needed
          * of the free RX space.  At this moment, 'ulHighestRxAllowed' would be the
@@ -400,13 +400,13 @@
         pxProtocolHeaders = ( ( ProtocolHeaders_t * )
                               &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSize ] ) );
         #if ( ipconfigTCP_KEEP_ALIVE == 1 )
-            if( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED )
+            if( pxSocket->u.xTCP.bits.bSendKeepAlive != ipFALSE_BOOL )
             {
                 /* Sending a keep-alive packet, send the current sequence number
                  * minus 1, which will be recognised as a keep-alive packet and
                  * responded to by acknowledging the last byte. */
-                pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-                pxSocket->u.xTCP.bits.bWaitKeepAlive = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bSendKeepAlive = ipFALSE_BOOL;
+                pxSocket->u.xTCP.bits.bWaitKeepAlive = ipTRUE_BOOL;
 
                 pxProtocolHeaders->xTCPHeader.ulSequenceNumber = pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - 1U;
                 pxProtocolHeaders->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
@@ -496,13 +496,13 @@
         switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
-                case pdFALSE_UNSIGNED:
+                case ipFALSE_BOOL:
                     xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             #if ( ipconfigUSE_IPv6 != 0 )
-                case pdTRUE_UNSIGNED:
+                case ipTRUE_BOOL:
                     xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -896,7 +896,7 @@
 
                     /* If the owner of the socket requests a closure, add the FIN
                      * flag to the last packet. */
-                    if( pxSocket->u.xTCP.bits.bCloseRequested != pdFALSE_UNSIGNED )
+                    if( pxSocket->u.xTCP.bits.bCloseRequested != ipFALSE_BOOL )
                     {
                         ulDistance = ( uint32_t ) uxStreamBufferDistance( pxSocket->u.xTCP.txStream, ( size_t ) lStreamPos, pxSocket->u.xTCP.txStream->uxHead );
 
@@ -921,7 +921,7 @@
                              * delivered. */
                             pxProtocolHeaders->xTCPHeader.ucTCPFlags |= tcpTCP_FLAG_FIN;
                             pxTCPWindow->tx.ulFINSequenceNumber = pxTCPWindow->ulOurSequenceNumber + ( uint32_t ) lDataLen;
-                            pxSocket->u.xTCP.bits.bFinSent = pdTRUE_UNSIGNED;
+                            pxSocket->u.xTCP.bits.bFinSent = ipTRUE_BOOL;
                         }
                     }
                 }
@@ -935,13 +935,13 @@
         if( ( lDataLen >= 0 ) && ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) )
         {
             /* See if the socket owner wants to shutdown this connection. */
-            if( ( pxSocket->u.xTCP.bits.bUserShutdown != pdFALSE_UNSIGNED ) &&
+            if( ( pxSocket->u.xTCP.bits.bUserShutdown != ipFALSE_BOOL ) &&
                 ( xTCPWindowTxDone( pxTCPWindow ) != pdFALSE ) )
             {
-                pxSocket->u.xTCP.bits.bUserShutdown = pdFALSE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bUserShutdown = ipFALSE_BOOL;
                 pxProtocolHeaders->xTCPHeader.ucTCPFlags |= tcpTCP_FLAG_FIN;
-                pxSocket->u.xTCP.bits.bFinSent = pdTRUE_UNSIGNED;
-                pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bFinSent = ipTRUE_BOOL;
+                pxSocket->u.xTCP.bits.bWinChange = ipTRUE_BOOL;
                 pxTCPWindow->tx.ulFINSequenceNumber = pxTCPWindow->tx.ulCurrentSequenceNumber;
                 vTCPStateChange( pxSocket, eFIN_WAIT_1 );
             }
@@ -957,7 +957,7 @@
                     lDataLen = -1;
                 }
 
-                if( ( lDataLen == 0 ) && ( pxSocket->u.xTCP.bits.bWinChange == pdFALSE_UNSIGNED ) )
+                if( ( lDataLen == 0 ) && ( pxSocket->u.xTCP.bits.bWinChange == ipFALSE_BOOL ) )
                 {
                     /* If there is no data to be sent, and no window-update message,
                      * we might want to send a keep-alive message. */
@@ -982,7 +982,7 @@
                                                      pxSocket->u.xTCP.ucKeepRepCount ) );
                         }
 
-                        pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bSendKeepAlive = ipTRUE_BOOL;
                         pxSocket->u.xTCP.usTimeout = ( ( uint16_t ) pdMS_TO_TICKS( 2500U ) );
                         pxSocket->u.xTCP.ucKeepRepCount++;
                     }
@@ -996,8 +996,8 @@
             /* Anything to send, a change of the advertised window size, or maybe send a
              * keep-alive message? */
             if( ( lDataLen > 0 ) ||
-                ( pxSocket->u.xTCP.bits.bWinChange != pdFALSE_UNSIGNED ) ||
-                ( pxSocket->u.xTCP.bits.bSendKeepAlive != pdFALSE_UNSIGNED ) )
+                ( pxSocket->u.xTCP.bits.bWinChange != ipFALSE_BOOL ) ||
+                ( pxSocket->u.xTCP.bits.bSendKeepAlive != ipFALSE_BOOL ) )
             {
                 pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_PSH );
                 pxProtocolHeaders->xTCPHeader.ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 ); /*_RB_ "2" needs comment. */
@@ -1117,10 +1117,10 @@
             else
         #endif /* ipconfigUSE_TCP_WIN */
 
-        if( ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) && ( pxSocket->u.xTCP.bits.bMssChange != pdFALSE_UNSIGNED ) )
+        if( ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) && ( pxSocket->u.xTCP.bits.bMssChange != ipFALSE_BOOL ) )
         {
             /* TCP options must be sent because the MSS has changed. */
-            pxSocket->u.xTCP.bits.bMssChange = pdFALSE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bMssChange = ipFALSE_BOOL;
 
             if( xTCPWindowLoggingLevel >= 0 )
             {
@@ -1196,12 +1196,12 @@
             /* In case we're receiving data continuously, we might postpone sending
              * an ACK to gain performance. */
             /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
-            if( ( ulReceiveLength > 0U ) &&                               /* Data was sent to this socket. */
-                ( lRxSpace >= lMinLength ) &&                             /* There is Rx space for more data. */
-                ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) && /* Not in a closure phase. */
-                ( xSendLength == xSizeWithoutData ) &&                    /* No Tx data or options to be sent. */
-                ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&         /* Connection established. */
-                ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )          /* There are no other flags than an ACK. */
+            if( ( ulReceiveLength > 0U ) &&                           /* Data was sent to this socket. */
+                ( lRxSpace >= lMinLength ) &&                         /* There is Rx space for more data. */
+                ( pxSocket->u.xTCP.bits.bFinSent == ipFALSE_BOOL ) && /* Not in a closure phase. */
+                ( xSendLength == xSizeWithoutData ) &&                /* No Tx data or options to be sent. */
+                ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&     /* Connection established. */
+                ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )      /* There are no other flags than an ACK. */
             {
                 uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
 

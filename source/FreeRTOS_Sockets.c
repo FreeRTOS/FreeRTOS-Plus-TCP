@@ -706,13 +706,13 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             {
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case FREERTOS_AF_INET6:
-                        pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+                        pxSocket->bits.bIsIPv6 = ipTRUE_BOOL;
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case FREERTOS_AF_INET:
-                        pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                        pxSocket->bits.bIsIPv6 = ipFALSE_BOOL;
                         break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1049,7 +1049,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
             /* while the IP-task works on the request, the API will block on
              * 'eSELECT_CALL_IP'.  So clear it first. */
-            ( void ) xEventGroupClearBits( pxSocketSet->xSelectGroup, ( BaseType_t ) eSELECT_CALL_IP );
+            ( void ) xEventGroupClearBits( pxSocketSet->xSelectGroup, ( EventBits_t ) eSELECT_CALL_IP );
         }
         #endif /* if ( ipconfigSELECT_USES_NOTIFY != 0 ) */
 
@@ -1069,7 +1069,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             }
             #else
             {
-                ( void ) xEventGroupWaitBits( pxSocketSet->xSelectGroup, ( BaseType_t ) eSELECT_CALL_IP, pdTRUE, pdFALSE, portMAX_DELAY );
+                ( void ) xEventGroupWaitBits( pxSocketSet->xSelectGroup, ( EventBits_t ) eSELECT_CALL_IP, pdTRUE, pdFALSE, portMAX_DELAY );
             }
             #endif
         }
@@ -1723,14 +1723,14 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case FREERTOS_AF_INET6:
                         ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
-                        pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+                        pxSocket->bits.bIsIPv6 = ipTRUE_BOOL;
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case FREERTOS_AF_INET4:
                         pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
-                        pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                        pxSocket->bits.bIsIPv6 = ipFALSE_BOOL;
                         break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1930,7 +1930,7 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
             /* Clear the address: */
             ( void ) memset( pxAddress, 0, sizeof( struct freertos_sockaddr ) );
 
-            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            if( pxSocket->bits.bIsIPv6 != ipFALSE_BOOL )
             {
                 pxAddress->sin_family = FREERTOS_AF_INET6;
             }
@@ -2195,7 +2195,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                      * See printf-stdarg.c */
 
                     #if ( ipconfigUSE_IPv4 != 0 )
-                        case pdFALSE_UNSIGNED:
+                        case ipFALSE_BOOL:
                             ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ), "%xip port %u to %xip port %u",
                                                ( unsigned ) pxSocket->xLocalAddress.ulIP_IPv4,
                                                pxSocket->usLocalPort,
@@ -2205,7 +2205,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        case pdTRUE_UNSIGNED:
+                        case ipTRUE_BOOL:
                             ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ), "%pip port %u to %pip port %u",
                                                ( void * ) pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
                                                pxSocket->usLocalPort,
@@ -2227,7 +2227,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
-                    case pdFALSE_UNSIGNED:
+                    case ipFALSE_BOOL:
                         ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ),
                                            "%xip port %u",
                                            ( unsigned ) pxSocket->xLocalAddress.ulIP_IPv4,
@@ -2236,7 +2236,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    case pdTRUE_UNSIGNED:
+                    case ipTRUE_BOOL:
                         ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ),
                                            "%pip port %u",
                                            ( void * ) pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
@@ -2296,8 +2296,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
                 if( ( pxOtherSocket->u.xTCP.eTCPState != eTCP_LISTEN ) &&
                     ( pxOtherSocket->usLocalPort == usLocalPort ) &&
-                    ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                      ( pxOtherSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) ) )
+                    ( ( pxOtherSocket->u.xTCP.bits.bPassQueued != ipFALSE_BOOL ) ||
+                      ( pxOtherSocket->u.xTCP.bits.bPassAccept != ipFALSE_BOOL ) ) )
                 {
                     /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
@@ -2540,7 +2540,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
             /* In case the socket has already initialised its tcpWin,
              * adapt the window size parameters */
-            if( pxTCP->xTCPWindow.u.bits.bHasInit != pdFALSE_UNSIGNED )
+            if( pxTCP->xTCPWindow.u.bits.bHasInit != ipFALSE_BOOL )
             {
                 pxTCP->xTCPWindow.xSize.ulRxWindowLength = ( uint32_t ) ( pxTCP->uxRxWinSize * pxTCP->usMSS );
                 pxTCP->xTCPWindow.xSize.ulTxWindowLength = ( uint32_t ) ( pxTCP->uxTxWinSize * pxTCP->usMSS );
@@ -2613,11 +2613,11 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         {
             if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
             {
-                pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = ipTRUE_BOOL;
             }
             else
             {
-                pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = pdFALSE_UNSIGNED;
+                pxSocket->u.xTCP.xTCPWindow.u.bits.bSendFullSize = ipFALSE_BOOL;
             }
 
             if( ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
@@ -2656,14 +2656,14 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         {
             if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
             {
-                pxSocket->u.xTCP.bits.bRxStopped = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bRxStopped = ipTRUE_BOOL;
             }
             else
             {
-                pxSocket->u.xTCP.bits.bRxStopped = pdFALSE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bRxStopped = ipFALSE_BOOL;
             }
 
-            pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bWinChange = ipTRUE_BOOL;
             pxSocket->u.xTCP.usTimeout = 1U; /* to set/clear bRxStopped */
             ( void ) xSendEventToIPTask( eTCPTimerEvent );
             xReturn = 0;
@@ -2740,11 +2740,11 @@ static void prvSetOptionTimeout( FreeRTOS_Socket_t * pxSocket,
         {
             if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
             {
-                pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bReuseSocket = ipTRUE_BOOL;
             }
             else
             {
-                pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bReuseSocket = ipFALSE_BOOL;
             }
 
             xReturn = 0;
@@ -2775,11 +2775,11 @@ static void prvSetOptionTimeout( FreeRTOS_Socket_t * pxSocket,
         {
             if( *( ( const BaseType_t * ) pvOptionValue ) != 0 )
             {
-                pxSocket->u.xTCP.bits.bCloseAfterSend = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bCloseAfterSend = ipTRUE_BOOL;
             }
             else
             {
-                pxSocket->u.xTCP.bits.bCloseAfterSend = pdFALSE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bCloseAfterSend = ipFALSE_BOOL;
             }
 
             xReturn = 0;
@@ -3497,7 +3497,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
     switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
     {
         #if ( ipconfigUSE_IPv4 != 0 )
-            case pdFALSE_UNSIGNED:
+            case ipFALSE_BOOL:
                 pxAddress->sin_family = FREERTOS_AF_INET;
                 pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
                 /* IP address of local machine. */
@@ -3509,7 +3509,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
         #if ( ipconfigUSE_IPv6 != 0 )
-            case pdTRUE_UNSIGNED:
+            case ipTRUE_BOOL:
                 pxAddress->sin_family = FREERTOS_AF_INET6;
                 /* IP address of local machine. */
                 ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_address.xIP_IPv6.ucBytes ) );
@@ -3712,14 +3712,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Start the connect procedure, kernel will start working on it */
             if( xResult == 0 )
             {
-                pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+                pxSocket->u.xTCP.bits.bConnPrepared = ipFALSE_BOOL;
                 pxSocket->u.xTCP.ucRepCount = 0U;
 
                 switch( pxAddress->sin_family )
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case FREERTOS_AF_INET6:
-                            pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+                            pxSocket->bits.bIsIPv6 = ipTRUE_BOOL;
                             FreeRTOS_printf( ( "FreeRTOS_connect: %u to %pip port %u\n",
                                                pxSocket->usLocalPort, ( void * ) pxAddress->sin_address.xIP_IPv6.ucBytes,
                                                FreeRTOS_ntohs( pxAddress->sin_port ) ) );
@@ -3729,7 +3729,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case FREERTOS_AF_INET4:
-                            pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                            pxSocket->bits.bIsIPv6 = ipFALSE_BOOL;
                             FreeRTOS_printf( ( "FreeRTOS_connect: %u to %xip:%u\n",
                                                pxSocket->usLocalPort, ( unsigned int ) FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
                             pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
@@ -3897,7 +3897,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         /* Is there a new client? */
         vTaskSuspendAll();
         {
-            if( pxParentSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+            if( pxParentSocket->u.xTCP.bits.bReuseSocket == ipFALSE_BOOL )
             {
                 pxClientSocket = pxParentSocket->u.xTCP.pxPeerSocket;
             }
@@ -3909,14 +3909,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             if( pxClientSocket != NULL )
             {
                 /* Is it still not taken ? */
-                if( pxClientSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED )
+                if( pxClientSocket->u.xTCP.bits.bPassAccept != ipFALSE_BOOL )
                 {
                     if( pxParentSocket->u.xTCP.pxPeerSocket != NULL )
                     {
                         pxParentSocket->u.xTCP.pxPeerSocket = NULL;
                     }
 
-                    pxClientSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+                    pxClientSocket->u.xTCP.bits.bPassAccept = ipFALSE_BOOL;
                 }
                 else
                 {
@@ -3926,7 +3926,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         ( void ) xTaskResumeAll();
 
-        if( ( pxClientSocket != NULL ) && ( pxParentSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) )
+        if( ( pxClientSocket != NULL ) && ( pxParentSocket->u.xTCP.bits.bReuseSocket == ipFALSE_BOOL ) )
         {
             FreeRTOS_printf( ( "prvAcceptWaitClient: client %p parent %p\n",
                                ( void * ) pxClientSocket, ( void * ) pxParentSocket ) );
@@ -3942,7 +3942,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             switch( pxClientSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
-                    case pdFALSE_UNSIGNED:
+                    case ipFALSE_BOOL:
 
                         if( pxAddress != NULL )
                         {
@@ -3955,7 +3955,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    case pdTRUE_UNSIGNED:
+                    case ipTRUE_BOOL:
 
                         if( pxAddress != NULL )
                         {
@@ -4012,7 +4012,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* coverity[misra_c_2012_rule_11_4_violation] */
             pxClientSocket = FREERTOS_INVALID_SOCKET;
         }
-        else if( ( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) &&
+        else if( ( pxSocket->u.xTCP.bits.bReuseSocket == ipFALSE_BOOL ) &&
                  ( pxSocket->u.xTCP.eTCPState != eTCP_LISTEN ) )
         {
             /* Parent socket is not in listening mode */
@@ -4031,7 +4031,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                 if( pxClientSocket != NULL )
                 {
-                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == ipFALSE_BOOL )
                     {
                         /* Ask to set an event in 'xEventGroup' as soon as a new
                          * client gets connected for this listening socket. */
@@ -4114,7 +4114,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                                             ( size_t ) uxBufferLength,
                                             xIsPeek );
 
-            if( pxSocket->u.xTCP.bits.bLowWater != pdFALSE_UNSIGNED )
+            if( pxSocket->u.xTCP.bits.bLowWater != ipFALSE_BOOL )
             {
                 /* We had reached the low-water mark, now see if the flag
                  * can be cleared */
@@ -4122,8 +4122,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                 if( uxFrontSpace >= pxSocket->u.xTCP.uxEnoughSpace )
                 {
-                    pxSocket->u.xTCP.bits.bLowWater = pdFALSE_UNSIGNED;
-                    pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
+                    pxSocket->u.xTCP.bits.bLowWater = ipFALSE_BOOL;
+                    pxSocket->u.xTCP.bits.bWinChange = ipTRUE_BOOL;
                     pxSocket->u.xTCP.usTimeout = 1U; /* because bLowWater is cleared. */
                     ( void ) xSendEventToIPTask( eTCPTimerEvent );
                 }
@@ -4178,7 +4178,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 /* Return -ENOTCONN, unless there was a malloc failure. */
                 xByteCount = -pdFREERTOS_ERRNO_ENOTCONN;
 
-                if( pxSocket->u.xTCP.bits.bMallocError != pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bMallocError != ipFALSE_BOOL )
                 {
                     /* The no-memory error has priority above the non-connected error.
                      * Both are fatal and will lead to closing the socket. */
@@ -4346,7 +4346,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_EINVAL;
         }
-        else if( pxSocket->u.xTCP.bits.bMallocError != pdFALSE_UNSIGNED )
+        else if( pxSocket->u.xTCP.bits.bMallocError != ipFALSE_BOOL )
         {
             xResult = -pdFREERTOS_ERRNO_ENOMEM;
         }
@@ -4356,7 +4356,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             xResult = -pdFREERTOS_ERRNO_ENOTCONN;
         }
-        else if( pxSocket->u.xTCP.bits.bFinSent != pdFALSE_UNSIGNED )
+        else if( pxSocket->u.xTCP.bits.bFinSent != ipFALSE_BOOL )
         {
             /* This TCP connection is closing already, the FIN flag has been sent.
              * Maybe it is still delivering or receiving data.
@@ -4413,7 +4413,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* If the TX buffer hasn't been created yet,
              * and if no malloc error has occurred on this socket yet. */
             if( ( pxBuffer == NULL ) &&
-                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE_UNSIGNED ) )
+                ( pxSocket->u.xTCP.bits.bMallocError == ipFALSE_BOOL ) )
             {
                 /* Create the outgoing stream only when it is needed */
                 ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
@@ -4460,7 +4460,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* If the TX buffer hasn't been created yet,
              * and if no malloc error has occurred on this socket yet. */
             if( ( pxBuffer == NULL ) &&
-                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE_UNSIGNED ) )
+                ( pxSocket->u.xTCP.bits.bMallocError == ipFALSE_BOOL ) )
             {
                 /* Create the outgoing stream only when it is needed */
                 ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
@@ -4532,7 +4532,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     xByteCount = xBytesLeft;
                 }
 
-                if( ( pxSocket->u.xTCP.bits.bCloseAfterSend != pdFALSE_UNSIGNED ) &&
+                if( ( pxSocket->u.xTCP.bits.bCloseAfterSend != ipFALSE_BOOL ) &&
                     ( xByteCount == xBytesLeft ) )
                 {
                     xCloseAfterSend = pdTRUE;
@@ -4540,7 +4540,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     /* Now suspend the scheduler: sending the last data and
                      * setting bCloseRequested must be done together */
                     vTaskSuspendAll();
-                    pxSocket->u.xTCP.bits.bCloseRequested = pdTRUE_UNSIGNED;
+                    pxSocket->u.xTCP.bits.bCloseRequested = ipTRUE_BOOL;
 
                     /* The flag 'bCloseAfterSend' can be set before sending data
                      * using setsockopt()
@@ -4748,7 +4748,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             /* This cleaning is necessary only if a listening socket is being
              * reused as it might have had a previous connection. */
-            if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
+            if( pxSocket->u.xTCP.bits.bReuseSocket != ipFALSE_BOOL )
             {
                 if( pxSocket->u.xTCP.rxStream != NULL )
                 {
@@ -4766,7 +4766,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
                 /* Now set the bReuseSocket flag again, because the bits have
                  * just been cleared. */
-                pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
+                pxSocket->u.xTCP.bits.bReuseSocket = ipTRUE_BOOL;
             }
 
             vTCPStateChange( pxSocket, eTCP_LISTEN );
@@ -4811,7 +4811,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         }
         else
         {
-            pxSocket->u.xTCP.bits.bUserShutdown = pdTRUE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bUserShutdown = ipTRUE_BOOL;
 
             /* Let the IP-task perform the shutdown of the connection. */
             pxSocket->u.xTCP.usTimeout = 1U;
@@ -5123,7 +5123,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         if( pxBuffer == NULL )
         {
             FreeRTOS_debug_printf( ( "prvTCPCreateStream: malloc failed\n" ) );
-            pxSocket->u.xTCP.bits.bMallocError = pdTRUE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bMallocError = ipTRUE_BOOL;
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
         }
         else
@@ -5214,14 +5214,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     static void vTCPAddRxdata_Stored( FreeRTOS_Socket_t * pxSocket )
     {
         /* See if running out of space. */
-        if( pxSocket->u.xTCP.bits.bLowWater == pdFALSE_UNSIGNED )
+        if( pxSocket->u.xTCP.bits.bLowWater == ipFALSE_BOOL )
         {
             size_t uxFrontSpace = uxStreamBufferFrontSpace( pxSocket->u.xTCP.rxStream );
 
             if( uxFrontSpace <= pxSocket->u.xTCP.uxLittleSpace )
             {
-                pxSocket->u.xTCP.bits.bLowWater = pdTRUE_UNSIGNED;
-                pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bLowWater = ipTRUE_BOOL;
+                pxSocket->u.xTCP.bits.bWinChange = ipTRUE_BOOL;
 
                 /* bLowWater was reached, send the changed window size. */
                 pxSocket->u.xTCP.usTimeout = 1U;
@@ -5378,7 +5378,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
-                    case pdFALSE_UNSIGNED:
+                    case ipFALSE_BOOL:
                         pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
                         pxAddress->sin_family = FREERTOS_AF_INET;
 
@@ -5391,7 +5391,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    case pdTRUE_UNSIGNED:
+                    case ipTRUE_BOOL:
                         pxAddress->sin_family = FREERTOS_AF_INET6;
 
                         /* IP address of remote machine. */
@@ -5812,13 +5812,13 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
     switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
     {
         #if ( ipconfigUSE_IPv4 != 0 )
-            case pdFALSE_UNSIGNED:
+            case ipFALSE_BOOL:
                 xResult = ( BaseType_t ) ipTYPE_IPv4;
                 break;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
         #if ( ipconfigUSE_IPv6 != 0 )
-            case pdTRUE_UNSIGNED:
+            case ipTRUE_BOOL:
                 xResult = ( BaseType_t ) ipTYPE_IPv6;
                 break;
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -5872,13 +5872,13 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
         switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
-                case pdFALSE_UNSIGNED:
+                case ipFALSE_BOOL:
                     ( void ) snprintf( pcRemoteIp, sizeof( pcRemoteIp ), "%xip", ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             #if ( ipconfigUSE_IPv6 != 0 )
-                case pdTRUE_UNSIGNED:
+                case ipTRUE_BOOL:
                     ( void ) snprintf( pcRemoteIp,
                                        sizeof( pcRemoteIp ),
                                        "%pip", ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes );
@@ -5981,9 +5981,9 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
             BaseType_t bAccepted = pdFALSE;
             EventBits_t xSocketBits = 0U;
 
-            if( pxSocket->u.xTCP.bits.bPassQueued == pdFALSE_UNSIGNED )
+            if( pxSocket->u.xTCP.bits.bPassQueued == ipFALSE_BOOL )
             {
-                if( pxSocket->u.xTCP.bits.bPassAccept == pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bPassAccept == ipFALSE_BOOL )
                 {
                     bAccepted = pdTRUE;
                 }
@@ -5994,12 +5994,12 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
             {
                 if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
                 {
-                    if( ( pxSocket->u.xTCP.pxPeerSocket != NULL ) && ( pxSocket->u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                    if( ( pxSocket->u.xTCP.pxPeerSocket != NULL ) && ( pxSocket->u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept != ipFALSE_BOOL ) )
                     {
                         xSocketBits |= ( EventBits_t ) eSELECT_READ;
                     }
                 }
-                else if( ( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED ) && ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                else if( ( pxSocket->u.xTCP.bits.bReuseSocket != ipFALSE_BOOL ) && ( pxSocket->u.xTCP.bits.bPassAccept != ipFALSE_BOOL ) )
                 {
                     /* This socket has the re-use flag. After connecting it turns into
                      * a connected socket. Set the READ event, so that accept() will be called. */
@@ -6039,11 +6039,11 @@ BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
 
                 if( bMatch == pdFALSE )
                 {
-                    if( ( pxSocket->u.xTCP.bits.bConnPrepared != pdFALSE_UNSIGNED ) &&
+                    if( ( pxSocket->u.xTCP.bits.bConnPrepared != ipFALSE_BOOL ) &&
                         ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
-                        ( pxSocket->u.xTCP.bits.bConnPassed == pdFALSE_UNSIGNED ) )
+                        ( pxSocket->u.xTCP.bits.bConnPassed == ipFALSE_BOOL ) )
                     {
-                        pxSocket->u.xTCP.bits.bConnPassed = pdTRUE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bConnPassed = ipTRUE_BOOL;
                         bMatch = pdTRUE;
                     }
                 }

@@ -875,14 +875,14 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
      * unicast frames that are destined to MAC addresses that we send from. Because of this,
      * the EMAC doesn't need to do heavy filtering for unicasts.
      * On the other hand, most networking hardware ( both wired and wireless ) will happily
-     * send us all traffic that has a multicast destination MAC. It is therefor much more
+     * send us all traffic that has a multicast destination MAC. It is therefore much more
      * important to filter out unnecessary multicast traffic. Ideally, we could explicitly
      * allow all multicast MAC addresses that the TCP stack requests, however, this EMAC controller
      * only has 4 specific MAC match registers. Beyond that, we can use the hash match register to
      * match unicast and/or multicast addresses. Every bit in the hash match register corresponds
      * to millions of MAC addresses, so the usage of the hash register should be kept to a minimum.
      * As a side note, setting all bits in the hash register is somewhat equivalent to
-     * promiscuous mode and is therefor not very useful.
+     * promiscuous mode and is therefore not very useful.
      * Due to the filtering nature of network infrastructure, It would make sense to use the
      * specific match registers for matching multicasts and use the hash match register for unicasts
      * because they are already well filtered. Due to the EMAC hardware limitations, such approach

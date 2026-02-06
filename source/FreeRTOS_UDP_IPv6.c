@@ -544,7 +544,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                  * socket is closed) will be treated here. */
                 if( FreeRTOS_ntohs( pxUDPPacket_IPv6->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
                 {
-                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                    xReturn = xDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
             #endif
@@ -554,7 +554,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 if( ( usPort == FreeRTOS_htons( ipLLMNR_PORT ) ) ||
                     ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_htons( ipLLMNR_PORT ) ) )
                 {
-                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                    xReturn = xDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
             #endif /* ipconfigUSE_LLMNR */
@@ -564,7 +564,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 if( ( usPort == FreeRTOS_ntohs( ipMDNS_PORT ) ) ||
                     ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipMDNS_PORT ) ) )
                 {
-                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                    xReturn = xDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
             #endif /* ipconfigUSE_MDNS */

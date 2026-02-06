@@ -262,7 +262,7 @@
         uint16_t x;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
-        BaseType_t xDNSHookReturn = 0U;
+        BaseType_t xDNSHookReturn = 0;
         NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
@@ -388,6 +388,9 @@
                     {
                         /* Note that the Questions section turns into the Answers section.
                          * uxSkipCount points to the first byte after e.g. 'name.local' */
+                        /* MISRA Ref 10.8.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-108 */
+                        /* coverity[misra_c_2012_rule_10_8_violation] */
                         xSet.uxSkipCount = ( size_t ) ( xSet.pucByte - pucUDPPayloadBuffer );
                     }
 

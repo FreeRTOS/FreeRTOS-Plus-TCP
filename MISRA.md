@@ -97,7 +97,17 @@ _Ref 10.5.1_
 
 - MISRA C-2012 Rule 10.5 Converting from an unsigned to an enum type. The
   operation is safe to perform in that case, as we are using a generic API to
-  send and receive data, in that case the exact data sent it is received
+  send and receive data, in that case the exact data sent it is received.
+
+#### Rule 10.8
+
+_Ref 10.8.1_
+
+- MISRA C-2012 Rule 10.8 Casting a composite expression from a signed to an
+  unsigned type. The operation is safe to perform in this case as we have verified
+  that the pointer being subtracted from is greater than or equal to the pointer
+  being subtracted thereby making the result positive. This result can be safely
+  casted to an unsigned type like size_t.
 
 #### Rule 11.1
 

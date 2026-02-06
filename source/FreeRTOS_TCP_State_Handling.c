@@ -199,7 +199,7 @@
 
                     /* When 'bPassQueued' true, this socket is an orphan until it
                      * gets connected. */
-                    if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+                    if( pxSocket->u.xTCP.bits.bPassQueued != ipFALSE_BOOL )
                     {
                         /* vTCPStateChange() has called vSocketCloseNextTime()
                          * in case the socket is not yet owned by the application.
@@ -249,22 +249,22 @@
             pxTCPWindow->rx.ulCurrentSequenceNumber = pxTCPWindow->rx.ulFINSequenceNumber + 1U;
         }
 
-        if( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED )
+        if( pxSocket->u.xTCP.bits.bFinSent == ipFALSE_BOOL )
         {
             /* We haven't yet replied with a FIN, do so now. */
             pxTCPWindow->tx.ulFINSequenceNumber = pxTCPWindow->tx.ulCurrentSequenceNumber;
-            pxSocket->u.xTCP.bits.bFinSent = pdTRUE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bFinSent = ipTRUE_BOOL;
         }
         else
         {
             /* We did send a FIN already, see if it's ACK'd. */
             if( ulAckNr == ( pxTCPWindow->tx.ulFINSequenceNumber + 1U ) )
             {
-                pxSocket->u.xTCP.bits.bFinAcked = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bFinAcked = ipTRUE_BOOL;
             }
         }
 
-        if( pxSocket->u.xTCP.bits.bFinAcked == pdFALSE_UNSIGNED )
+        if( pxSocket->u.xTCP.bits.bFinAcked == ipFALSE_BOOL )
         {
             pxTCPWindow->tx.ulCurrentSequenceNumber = pxTCPWindow->tx.ulFINSequenceNumber;
             pxTCPHeader->ucTCPFlags = ( uint8_t ) tcpTCP_FLAG_ACK | ( uint8_t ) tcpTCP_FLAG_FIN;
@@ -277,7 +277,7 @@
             /* Our FIN has been ACK'd, the outgoing sequence number is now fixed. */
             pxTCPWindow->tx.ulCurrentSequenceNumber = pxTCPWindow->tx.ulFINSequenceNumber + 1U;
 
-            if( pxSocket->u.xTCP.bits.bFinRecv == pdFALSE_UNSIGNED )
+            if( pxSocket->u.xTCP.bits.bFinRecv == ipFALSE_BOOL )
             {
                 /* We have sent out a FIN but the peer hasn't replied with a FIN
                  * yet. Do nothing for the moment. */
@@ -285,7 +285,7 @@
             }
             else
             {
-                if( pxSocket->u.xTCP.bits.bFinLast == pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bFinLast == ipFALSE_BOOL )
                 {
                     /* This is the third of the three-way hand shake: the last
                      * ACK. */
@@ -437,7 +437,7 @@
             #if ( ipconfigUSE_TCP_WIN == 1 )
             {
                 char pcBuffer[ 40 ]; /* Space to print an IP-address. */
-                ( void ) FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
+                ( void ) FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != ipFALSE_BOOL ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
                                              ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
                                              pcBuffer,
                                              sizeof( pcBuffer ) );
@@ -461,7 +461,7 @@
 
             #if ( ipconfigUSE_TCP_WIN != 0 )
             {
-                if( pxSocket->u.xTCP.bits.bWinScaling == pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bWinScaling == ipFALSE_BOOL )
                 {
                     /* The other party did not send a scaling factor.
                      * A shifting factor in this side must be canceled. */
@@ -579,7 +579,7 @@
 
             pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = pxTCPWindow->tx.ulCurrentSequenceNumber;
 
-            if( ( pxSocket->u.xTCP.bits.bFinAccepted != pdFALSE_UNSIGNED ) || ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U ) )
+            if( ( pxSocket->u.xTCP.bits.bFinAccepted != ipFALSE_BOOL ) || ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U ) )
             {
                 /* Peer is requesting to stop, see if we're really finished. */
                 xMayClose = pdTRUE;
@@ -587,7 +587,7 @@
                 lDistance = ( int32_t ) ulIntermediateResult;
 
                 /* Checks are only necessary if we haven't sent a FIN yet. */
-                if( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bFinSent == ipFALSE_BOOL )
                 {
                     /* xTCPWindowTxDone returns true when all Tx queues are empty. */
                     bRxComplete = xTCPWindowRxEmpty( pxTCPWindow );
@@ -637,7 +637,7 @@
 
                 if( xMayClose != pdFALSE )
                 {
-                    pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE_UNSIGNED;
+                    pxSocket->u.xTCP.bits.bFinAccepted = ipTRUE_BOOL;
                     xSendLength = prvTCPHandleFin( pxSocket, *ppxNetworkBuffer );
                 }
             }
@@ -653,7 +653,7 @@
                     /* TCP-offset equals '( ( length / 4 ) << 4 )', resulting in a shift-left 2 */
                     pxTCPHeader->ucTCPOffset = ( uint8_t ) ( ( ipSIZE_OF_TCP_HEADER + uxOptionsLength ) << 2 );
 
-                    if( pxSocket->u.xTCP.bits.bFinSent != pdFALSE_UNSIGNED )
+                    if( pxSocket->u.xTCP.bits.bFinSent != ipFALSE_BOOL )
                     {
                         pxTCPWindow->tx.ulCurrentSequenceNumber = pxTCPWindow->tx.ulFINSequenceNumber;
                     }
@@ -748,7 +748,7 @@
                 /* This is most probably a keep-alive message from peer.  Setting
                  * 'bWinChange' doesn't cause a window-size-change, the flag is used
                  * here to force sending an immediate ACK. */
-                pxSocket->u.xTCP.bits.bWinChange = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bWinChange = ipTRUE_BOOL;
             }
         }
 
@@ -783,18 +783,18 @@
                 vTCPStateChange( pxSocket, eSYN_FIRST );
             }
 
-            if( ( ( ucTCPFlags & tcpTCP_FLAG_FIN ) != 0U ) && ( pxSocket->u.xTCP.bits.bFinRecv == pdFALSE_UNSIGNED ) )
+            if( ( ( ucTCPFlags & tcpTCP_FLAG_FIN ) != 0U ) && ( pxSocket->u.xTCP.bits.bFinRecv == ipFALSE_BOOL ) )
             {
                 /* It's the first time a FIN has been received, remember its
                  * sequence number. */
                 pxTCPWindow->rx.ulFINSequenceNumber = ulSequenceNumber + ulReceiveLength;
-                pxSocket->u.xTCP.bits.bFinRecv = pdTRUE_UNSIGNED;
+                pxSocket->u.xTCP.bits.bFinRecv = ipTRUE_BOOL;
 
                 /* Was peer the first one to send a FIN? */
-                if( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bFinSent == ipFALSE_BOOL )
                 {
                     /* If so, don't send the-last-ACK. */
-                    pxSocket->u.xTCP.bits.bFinLast = pdTRUE_UNSIGNED;
+                    pxSocket->u.xTCP.bits.bFinLast = ipTRUE_BOOL;
                 }
             }
 
@@ -1007,7 +1007,7 @@
 
             /* When bPassQueued is true, the socket is an orphan until it gets
              * connected. */
-            pxNewSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+            pxNewSocket->u.xTCP.bits.bPassQueued = ipTRUE_BOOL;
             pxNewSocket->u.xTCP.pxPeerSocket = pxSocket;
         }
         #else
@@ -1017,7 +1017,7 @@
 
             /* When bPassAccept is true, this socket may be returned in a call to
              * accept(). */
-            pxNewSocket->u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+            pxNewSocket->u.xTCP.bits.bPassAccept = ipTRUE_BOOL;
 
             if( pxSocket->u.xTCP.pxPeerSocket == NULL )
             {

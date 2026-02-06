@@ -107,12 +107,12 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
      * it. */
     if( xHasSequence != pdFALSE )
     {
-        if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
+        if( pxSocket->u.xTCP.bits.bReuseSocket != ipFALSE_BOOL )
         {
             /* The flag bReuseSocket indicates that the same instance of the
              * listening socket should be used for the connection. */
             pxReturn = pxSocket;
-            pxSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bPassQueued = ipTRUE_BOOL;
             pxSocket->u.xTCP.pxPeerSocket = pxSocket;
         }
         else
@@ -177,7 +177,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
                                                             &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
 
             pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
-            pxReturn->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+            pxReturn->bits.bIsIPv6 = ipTRUE_BOOL;
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */

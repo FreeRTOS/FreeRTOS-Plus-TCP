@@ -835,7 +835,7 @@
         const int32_t l500ms = 500;
 
         pxWindow->u.ulFlags = 0U;
-        pxWindow->u.bits.bHasInit = pdTRUE_UNSIGNED;
+        pxWindow->u.bits.bHasInit = ipTRUE_BOOL;
 
         if( ulMSS != 0U )
         {
@@ -1429,7 +1429,7 @@
              * verified). */
             if( ( pxSegment != NULL ) &&
                 ( pxSegment->lDataLength < pxSegment->lMaxLength ) &&
-                ( pxSegment->u.bits.bOutstanding == pdFALSE_UNSIGNED ) &&
+                ( pxSegment->u.bits.bOutstanding == ipFALSE_BOOL ) &&
                 ( pxSegment->lDataLength != 0 ) )
             {
                 lToWrite = prvTCPWindowTxAdd_FrontSegment( pxWindow, pxSegment, lBytesLeft );
@@ -1649,7 +1649,7 @@
                         /* Too many outstanding messages. */
                         xReturn = pdFALSE;
                     }
-                    else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) &&
+                    else if( ( pxWindow->u.bits.bSendFullSize != ipFALSE_BOOL ) &&
                              ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
                     {
                         /* 'bSendFullSize' is a special optimisation.  If true, the
@@ -1694,7 +1694,7 @@
                     /* A normal (non-fast) retransmission.  Move it from the
                      * head of the waiting queue. */
                     pxSegment = xTCPWindowGetHead( &( pxWindow->xWaitQueue ) );
-                    pxSegment->u.bits.ucDupAckCount = ( uint8_t ) pdFALSE_UNSIGNED;
+                    pxSegment->u.bits.ucDupAckCount = ( uint8_t ) 0U;
 
                     /* Some detailed logging. */
                     if( ( xTCPWindowLoggingLevel != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) ) )
@@ -1739,7 +1739,7 @@
             {
                 /* No segments queued. */
             }
-            else if( ( pxWindow->u.bits.bSendFullSize != pdFALSE_UNSIGNED ) &&
+            else if( ( pxWindow->u.bits.bSendFullSize != ipFALSE_BOOL ) &&
                      ( pxSegment->lDataLength < pxSegment->lMaxLength ) )
             {
                 /* A segment has been queued but the driver waits until it
@@ -1850,7 +1850,7 @@
                 vListInsertFifo( &pxWindow->xWaitQueue, &pxSegment->xQueueItem );
 
                 /* And mark it as outstanding. */
-                pxSegment->u.bits.bOutstanding = pdTRUE_UNSIGNED;
+                pxSegment->u.bits.bOutstanding = ipTRUE_BOOL;
 
                 /* Administer the transmit count, needed for fast
                  * retransmissions. */
@@ -2014,7 +2014,7 @@
 
                 ulDataLength = ( uint32_t ) pxSegment->lDataLength;
 
-                if( pxSegment->u.bits.bAcked == pdFALSE_UNSIGNED )
+                if( pxSegment->u.bits.bAcked == ipFALSE_BOOL )
                 {
                     if( xSequenceGreaterThan( pxSegment->ulSequenceNumber + ( uint32_t ) ulDataLength, ulLast ) != pdFALSE )
                     {
@@ -2040,7 +2040,7 @@
                     }
 
                     /* This segment is fully ACK'd, set the flag. */
-                    pxSegment->u.bits.bAcked = pdTRUE;
+                    pxSegment->u.bits.bAcked = ipTRUE_BOOL;
 
                     /* Calculate the RTT only if the segment was sent-out for the
                      * first time and if this is the last ACK'd segment in a range. */
@@ -2134,7 +2134,7 @@
                  * When 3 packets with a higher sequence number have been acknowledged
                  * by the peer, it is very unlikely a current packet will ever arrive.
                  * It will be retransmitted far before the RTO. */
-                if( pxSegment->u.bits.bAcked == pdFALSE_UNSIGNED )
+                if( pxSegment->u.bits.bAcked == ipFALSE_BOOL )
                 {
                     if( xSequenceLessThan( pxSegment->ulSequenceNumber, ulFirst ) != pdFALSE )
                     {

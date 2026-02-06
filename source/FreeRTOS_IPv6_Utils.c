@@ -348,7 +348,7 @@ void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
                 pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
             }
         }
-    } while( pdFALSE );
+    } while( ipFALSE_BOOL );
 }
 /*-----------------------------------------------------------*/
 

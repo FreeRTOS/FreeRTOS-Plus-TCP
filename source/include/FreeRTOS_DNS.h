@@ -87,7 +87,7 @@ extern IPPreference_t xDNS_IP_Preference;
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
  */
-uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t xDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 #if ( ipconfigUSE_NBNS != 0 )
 

@@ -94,13 +94,13 @@
         switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
-                case pdFALSE_UNSIGNED:
+                case ipFALSE_BOOL:
                     prvSocketSetMSS_IPV4( pxSocket );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             #if ( ipconfigUSE_IPv6 != 0 )
-                case pdTRUE_UNSIGNED:
+                case ipTRUE_BOOL:
                     prvSocketSetMSS_IPV6( pxSocket );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
