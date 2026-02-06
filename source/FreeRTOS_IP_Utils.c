@@ -839,9 +839,9 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
          pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
     {
         /* The bit 'bEndPointUp' stays low until vIPNetworkUpCalls() is called. */
-        pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
+        pxEndPoint->bits.bEndPointUp = ipFALSE_BOOL;
 
-        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+        if( pxEndPoint->bits.bIPv6 == ipTRUE_BOOL )
         {
             /* IPv6 end-points have a solicited-node address that needs extra housekeeping. */
             #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
@@ -851,7 +851,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
 
         #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
-            if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
+            if( pxEndPoint->bits.bCallDownHook != ipFALSE_BOOL )
             {
                 #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                 {
@@ -866,7 +866,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
             else
             {
                 /* The next time NetworkEventHook will be called for this end-point. */
-                pxEndPoint->bits.bCallDownHook = pdTRUE_UNSIGNED;
+                pxEndPoint->bits.bCallDownHook = ipTRUE_BOOL;
             }
         }
         #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
@@ -887,7 +887,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
             if( END_POINT_USES_DHCP( pxEndPoint ) )
             {
                 #if ( ( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
-                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    if( pxEndPoint->bits.bIPv6 != ipFALSE_BOOL )
                     {
                         vDHCPv6Stop( pxEndPoint );
                     }
@@ -915,7 +915,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
 
     if( pxInterface->pfInitialise( pxInterface ) == pdPASS )
     {
-        pxInterface->bits.bInterfaceUp = pdTRUE_UNSIGNED;
+        pxInterface->bits.bInterfaceUp = ipTRUE_BOOL;
         /* Set remaining time to 0 so it will become active immediately. */
 
         /* The network is not up until DHCP has completed.
@@ -929,7 +929,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                 if( END_POINT_USES_DHCP( pxEndPoint ) )
                 {
                     #if ( ( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
-                        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                        if( pxEndPoint->bits.bIPv6 != ipFALSE_BOOL )
                         {
                             vDHCPv6Process( pdTRUE, pxEndPoint );
                         }
@@ -956,13 +956,13 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                 switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
-                        case pdFALSE_UNSIGNED:
+                        case ipFALSE_BOOL:
                             ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        case pdTRUE_UNSIGNED:
+                        case ipTRUE_BOOL:
                             ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */

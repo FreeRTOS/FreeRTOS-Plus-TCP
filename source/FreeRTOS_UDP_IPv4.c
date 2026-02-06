@@ -80,9 +80,6 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
     uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     size_t uxPayloadSize;
-    /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-    const void * pvCopySource;
-    void * pvCopyDest;
 
     /* Map the UDP packet onto the start of the frame. */
 
@@ -131,6 +128,9 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 0x00, 0x00,                         /* usHeaderChecksum. */
                 0x00, 0x00, 0x00, 0x00              /* Source IP address. */
             };
+            /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+            const void * pvCopySource;
+            void * pvCopyDest;
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 uint8_t ucSocketOptions;
@@ -515,7 +515,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 {
                     vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
                                            pxNetworkBuffer->pxEndPoint );
-                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                    xReturn = xDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
             #endif
@@ -527,7 +527,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 {
                     vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
                                            pxNetworkBuffer->pxEndPoint );
-                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                    xReturn = xDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
             #endif /* ipconfigUSE_LLMNR */
@@ -548,7 +548,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                                                pxNetworkBuffer->pxEndPoint );
                     }
 
-                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                    xReturn = xDNSHandlePacket( pxNetworkBuffer );
                 }
                 else
             #endif /* ipconfigUSE_MDNS */

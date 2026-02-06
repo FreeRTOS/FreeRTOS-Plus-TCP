@@ -282,7 +282,7 @@ struct xIPv6_Couple
         }
 
         #if ( ipconfigUSE_IPv6 != 0 )
-            if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+            if( pxEndPoint->bits.bIPv6 == ipTRUE_BOOL )
             {
                 FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv6: %pip\n",
                                    pxEndPoint->xMACAddress.ucBytes[ 4 ],
@@ -291,7 +291,7 @@ struct xIPv6_Couple
             }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         #if ( ipconfigUSE_IPv4 != 0 )
-            if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
+            if( pxEndPoint->bits.bIPv6 == ipFALSE_BOOL )
             {
                 FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv4: %xip\n",
                                    pxEndPoint->xMACAddress.ucBytes[ 4 ],
@@ -385,7 +385,7 @@ struct xIPv6_Couple
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    if( pxEndPoint->bits.bIPv6 == 0U )
+                    if( pxEndPoint->bits.bIPv6 == ipFALSE_BOOL )
                 #endif
                 {
                     if( ( ulIPAddress == 0U ) ||
@@ -502,7 +502,7 @@ struct xIPv6_Couple
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
+                        if( pxEndPoint->bits.bIPv6 == ipFALSE_BOOL )
                     #endif
                     {
                         if( ( ulIPAddress == ~0U ) ||
@@ -552,7 +552,7 @@ struct xIPv6_Couple
             {
                 if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
                 {
-                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    if( pxEndPoint->bits.bIPv6 != ipFALSE_BOOL )
                     {
                         if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
                         {
@@ -607,7 +607,7 @@ struct xIPv6_Couple
             {
                 ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
 
-                pxEndPoint->bits.bIPv6 = pdTRUE_UNSIGNED;
+                pxEndPoint->bits.bIPv6 = ipTRUE_BOOL;
 
                 pxEndPoint->ipv6_settings.uxPrefixLength = uxPrefixLength;
 
@@ -989,7 +989,7 @@ struct xIPv6_Couple
                     break;
                 }
             #else
-                if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
+                if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != ipFALSE_BOOL ) )
                 {
                     /* Check if the IP-address is non-zero. */
                     if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
@@ -1000,7 +1000,7 @@ struct xIPv6_Couple
 
                 #if ( ipconfigUSE_IPv4 != 0 )
                     else
-                    if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
+                    if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == ipFALSE_BOOL ) )
                     {
                         if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U )
                         {
@@ -1038,7 +1038,7 @@ struct xIPv6_Couple
 
             while( pxEndPoint != NULL )
             {
-                if( ( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
+                if( ( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) ) && ( pxEndPoint->bits.bIPv6 != ipFALSE_BOOL ) )
                 {
                     break;
                 }
@@ -1481,7 +1481,7 @@ struct xIPv6_Couple
             switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
-                    case pdFALSE_UNSIGNED:
+                    case ipFALSE_BOOL:
                         ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
                                                      ( const void * ) &( pxEndPoint->ipv4_settings.ulIPAddress ),
                                                      pcBuffer,
@@ -1490,7 +1490,7 @@ struct xIPv6_Couple
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    case pdTRUE_UNSIGNED:
+                    case ipTRUE_BOOL:
                         ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
                                                      pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                                      pcBuffer,

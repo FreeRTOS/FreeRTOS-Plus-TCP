@@ -401,14 +401,14 @@ static void prvIPTimerStart( IPTimer_t * pxTimer,
 
     if( xTime == ( TickType_t ) 0 )
     {
-        pxTimer->bExpired = pdTRUE_UNSIGNED;
+        pxTimer->bExpired = ipTRUE_BOOL;
     }
     else
     {
-        pxTimer->bExpired = pdFALSE_UNSIGNED;
+        pxTimer->bExpired = ipFALSE_BOOL;
     }
 
-    pxTimer->bActive = pdTRUE_UNSIGNED;
+    pxTimer->bActive = ipTRUE_BOOL;
 }
 /*-----------------------------------------------------------*/
 
@@ -559,15 +559,15 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
     {
         /* The timer might have set the bExpired flag already, if not, check the
          * value of xTimeOut against ulRemainingTime. */
-        if( pxTimer->bExpired == pdFALSE_UNSIGNED )
+        if( pxTimer->bExpired == ipFALSE_BOOL )
         {
             if( xTaskCheckForTimeOut( &( pxTimer->xTimeOut ), &( pxTimer->ulRemainingTime ) ) != pdFALSE )
             {
-                pxTimer->bExpired = pdTRUE_UNSIGNED;
+                pxTimer->bExpired = ipTRUE_BOOL;
             }
         }
 
-        if( pxTimer->bExpired != pdFALSE_UNSIGNED )
+        if( pxTimer->bExpired != ipFALSE_BOOL )
         {
             prvIPTimerStart( pxTimer, pxTimer->ulReloadTime );
             xReturn = pdTRUE;
@@ -591,15 +591,15 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
  */
     void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState )
     {
-        xTCPTimer.bActive = pdTRUE_UNSIGNED;
+        xTCPTimer.bActive = ipTRUE_BOOL;
 
         if( xExpiredState != pdFALSE )
         {
-            xTCPTimer.bExpired = pdTRUE_UNSIGNED;
+            xTCPTimer.bExpired = ipTRUE_BOOL;
         }
         else
         {
-            xTCPTimer.bExpired = pdFALSE_UNSIGNED;
+            xTCPTimer.bExpired = ipFALSE_BOOL;
         }
     }
 #endif /* if ( ipconfigUSE_TCP == 1 ) */
@@ -616,11 +616,11 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
     {
         if( xEnableState != pdFALSE )
         {
-            xARPTimer.bActive = pdTRUE_UNSIGNED;
+            xARPTimer.bActive = ipTRUE_BOOL;
         }
         else
         {
-            xARPTimer.bActive = pdFALSE_UNSIGNED;
+            xARPTimer.bActive = ipFALSE_BOOL;
         }
     }
     /*-----------------------------------------------------------*/
@@ -634,11 +634,11 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
     {
         if( xEnableState != pdFALSE )
         {
-            xARPResolutionTimer.bActive = pdTRUE_UNSIGNED;
+            xARPResolutionTimer.bActive = ipTRUE_BOOL;
         }
         else
         {
-            xARPResolutionTimer.bActive = pdFALSE_UNSIGNED;
+            xARPResolutionTimer.bActive = ipFALSE_BOOL;
         }
     }
 #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
@@ -655,11 +655,11 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
     {
         if( xEnableState != pdFALSE )
         {
-            xNDTimer.bActive = pdTRUE_UNSIGNED;
+            xNDTimer.bActive = ipTRUE_BOOL;
         }
         else
         {
-            xNDTimer.bActive = pdFALSE_UNSIGNED;
+            xNDTimer.bActive = ipFALSE_BOOL;
         }
     }
     /*-----------------------------------------------------------*/
@@ -673,11 +673,11 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
     {
         if( xEnableState != pdFALSE )
         {
-            xNDResolutionTimer.bActive = pdTRUE_UNSIGNED;
+            xNDResolutionTimer.bActive = ipTRUE_BOOL;
         }
         else
         {
-            xNDResolutionTimer.bActive = pdFALSE_UNSIGNED;
+            xNDResolutionTimer.bActive = ipFALSE_BOOL;
         }
     }
 #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
@@ -699,11 +699,11 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
         /* 'xDHCP_RATimer' is shared between DHCP (IPv4) and RA/SLAAC (IPv6). */
         if( xEnableState != 0 )
         {
-            pxEndPoint->xDHCP_RATimer.bActive = pdTRUE_UNSIGNED;
+            pxEndPoint->xDHCP_RATimer.bActive = ipTRUE_BOOL;
         }
         else
         {
-            pxEndPoint->xDHCP_RATimer.bActive = pdFALSE_UNSIGNED;
+            pxEndPoint->xDHCP_RATimer.bActive = ipFALSE_BOOL;
         }
     }
 #endif /* if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 ) */
@@ -720,11 +720,11 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
     {
         if( xEnableState != 0 )
         {
-            xDNSTimer.bActive = pdTRUE_UNSIGNED;
+            xDNSTimer.bActive = ipTRUE_BOOL;
         }
         else
         {
-            xDNSTimer.bActive = pdFALSE_UNSIGNED;
+            xDNSTimer.bActive = ipFALSE_BOOL;
         }
     }
 

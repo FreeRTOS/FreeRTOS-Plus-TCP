@@ -343,7 +343,7 @@ static void prvProcessIPEventsAndTimers( void )
             switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
-                    case pdFALSE_UNSIGNED:
+                    case ipFALSE_BOOL:
                         xAddress.sin_family = FREERTOS_AF_INET;
                         xAddress.sin_address.ulIP_IPv4 = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
                         /* 'ulLocalAddress' will be set again by vSocketBind(). */
@@ -352,7 +352,7 @@ static void prvProcessIPEventsAndTimers( void )
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    case pdTRUE_UNSIGNED:
+                    case ipTRUE_BOOL:
                         xAddress.sin_family = FREERTOS_AF_INET6;
                         ( void ) memcpy( xAddress.sin_address.xIP_IPv6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( xAddress.sin_address.xIP_IPv6.ucBytes ) );
                         /* 'ulLocalAddress' will be set again by vSocketBind(). */
@@ -568,10 +568,10 @@ static void prvIPTask_CheckPendingEvents( void )
              pxInterface != NULL;
              pxInterface = FreeRTOS_NextNetworkInterface( pxInterface ) )
         {
-            if( pxInterface->bits.bCallDownEvent != pdFALSE_UNSIGNED )
+            if( pxInterface->bits.bCallDownEvent != ipFALSE_BOOL )
             {
                 prvProcessNetworkDownEvent( pxInterface );
-                pxInterface->bits.bCallDownEvent = pdFALSE_UNSIGNED;
+                pxInterface->bits.bCallDownEvent = ipFALSE_BOOL;
             }
         }
     }
@@ -656,7 +656,7 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
         #endif
     }
 
-    pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
+    pxEndPoint->bits.bEndPointUp = ipTRUE_BOOL;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
@@ -762,7 +762,7 @@ void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface )
     IPStackEvent_t xNetworkDownEvent;
     const TickType_t xDontBlock = ( TickType_t ) 0;
 
-    pxNetworkInterface->bits.bInterfaceUp = pdFALSE_UNSIGNED;
+    pxNetworkInterface->bits.bInterfaceUp = ipFALSE_BOOL;
     xNetworkDownEvent.eEventType = eNetworkDownEvent;
     xNetworkDownEvent.pvData = pxNetworkInterface;
 
@@ -770,13 +770,13 @@ void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface )
     if( xSendEventStructToIPTask( &xNetworkDownEvent, xDontBlock ) != pdPASS )
     {
         /* Could not send the message, so it is still pending. */
-        pxNetworkInterface->bits.bCallDownEvent = pdTRUE;
+        pxNetworkInterface->bits.bCallDownEvent = ipTRUE_BOOL;
         xNetworkDownEventPending = pdTRUE;
     }
     else
     {
         /* Message was sent so it is not pending. */
-        pxNetworkInterface->bits.bCallDownEvent = pdFALSE;
+        pxNetworkInterface->bits.bCallDownEvent = ipFALSE_BOOL;
     }
 
     iptraceNETWORK_DOWN();
@@ -805,13 +805,13 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
     if( xQueueSendToBackFromISR( xNetworkEventQueue, &xNetworkDownEvent, &xHigherPriorityTaskWoken ) != pdPASS )
     {
         /* Could not send the message, so it is still pending. */
-        pxNetworkInterface->bits.bCallDownEvent = pdTRUE;
+        pxNetworkInterface->bits.bCallDownEvent = ipTRUE_BOOL;
         xNetworkDownEventPending = pdTRUE;
     }
     else
     {
         /* Message was sent so it is not pending. */
-        pxNetworkInterface->bits.bCallDownEvent = pdFALSE;
+        pxNetworkInterface->bits.bCallDownEvent = ipFALSE_BOOL;
         xNetworkDownEventPending = pdFALSE;
     }
 
@@ -1773,7 +1773,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     break;
             } /* switch( pxEthernetHeader->usFrameType ) */
         }
-    } while( pdFALSE );
+    } while( ipFALSE_BOOL );
 
     /* Perform any actions that resulted from processing the Ethernet frame. */
     switch( eReturned )

@@ -151,7 +151,7 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -183,7 +183,7 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -215,7 +215,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -247,7 +247,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -279,7 +279,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -311,7 +311,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
+    xDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 

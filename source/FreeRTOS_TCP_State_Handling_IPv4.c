@@ -112,12 +112,12 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
      * it. */
     if( ulInitialSequenceNumber != 0U )
     {
-        if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
+        if( pxSocket->u.xTCP.bits.bReuseSocket != ipFALSE_BOOL )
         {
             /* The flag bReuseSocket indicates that the same instance of the
              * listening socket should be used for the connection. */
             pxReturn = pxSocket;
-            pxSocket->u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bPassQueued = ipTRUE_BOOL;
             pxSocket->u.xTCP.pxPeerSocket = pxSocket;
         }
         else
@@ -182,7 +182,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
 
             /* The endpoint in network buffer must be valid in this condition. */
             pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
-            pxReturn->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+            pxReturn->bits.bIsIPv6 = ipFALSE_BOOL;
             pxReturn->u.xTCP.usRemotePort = FreeRTOS_htons( pxTCPPacket->xTCPHeader.usSourcePort );
             pxReturn->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );
             pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber = ulInitialSequenceNumber;

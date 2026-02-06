@@ -455,7 +455,7 @@ void test_FreeRTOS_gethostbyname_Success( void )
  *        pdFAIL
  * @warning Function not really tested besides code coverage
  */
-void test_ulDNSHandlePacket_Success( void )
+void test_xDNSHandlePacket_Success( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -467,7 +467,7 @@ void test_ulDNSHandlePacket_Success( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 0 );
 
-    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    ret = xDNSHandlePacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFAIL, ret );
     free( xNetworkBuffer.pucEthernetBuffer );
 }
@@ -476,7 +476,7 @@ void test_ulDNSHandlePacket_Success( void )
  * @brief This function always returns pdFAIL
  * @warning Function not really tested besides code coverage
  */
-void test_ulDNSHandlePacket_FailSmallBuffer( void )
+void test_xDNSHandlePacket_FailSmallBuffer( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -486,7 +486,7 @@ void test_ulDNSHandlePacket_FailSmallBuffer( void )
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    ret = xDNSHandlePacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFAIL, ret );
     free( xNetworkBuffer.pucEthernetBuffer );
 }
@@ -496,7 +496,7 @@ void test_ulDNSHandlePacket_FailSmallBuffer( void )
  *        coverage
  * @warning Function not really tested besides code coverage
  */
-void test_ulDNSHandlePacket_FailSmallBuffer2( void )
+void test_xDNSHandlePacket_FailSmallBuffer2( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -506,7 +506,7 @@ void test_ulDNSHandlePacket_FailSmallBuffer2( void )
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    ret = xDNSHandlePacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFAIL, ret );
     free( xNetworkBuffer.pucEthernetBuffer );
 }
@@ -514,7 +514,7 @@ void test_ulDNSHandlePacket_FailSmallBuffer2( void )
 /**
  * @brief Make sure function release the allocated buffer from DNS_ParseDNSReply
  */
-void test_ulDNSHandlePacket_FreeBuffer( void )
+void test_xDNSHandlePacket_FreeBuffer( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -536,7 +536,7 @@ void test_ulDNSHandlePacket_FreeBuffer( void )
     DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 0 );
     DNS_ParseDNSReply_ReturnThruPtr_ppxAddressInfo( &pxAddress );
 
-    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    ret = xDNSHandlePacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFAIL, ret );
 }
 

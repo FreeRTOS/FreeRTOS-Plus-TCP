@@ -1573,7 +1573,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
  * @return Always pdFAIL to indicate that the packet was not consumed and must
  *         be released by the caller.
  */
-    uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+    BaseType_t xDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         uint8_t * pucPayLoadBuffer;
         size_t uxPayloadSize;

@@ -160,7 +160,7 @@
             {
                 /* The first task of this regular socket check is to send-out delayed
                  * ACK's. */
-                if( pxSocket->u.xTCP.bits.bUserShutdown == pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bUserShutdown == ipFALSE_BOOL )
                 {
                     /* Earlier data was received but not yet acknowledged.  This
                      * function is called when the TCP timer for the socket expires, the
@@ -254,8 +254,8 @@
 
         #if ( ipconfigTCP_KEEP_ALIVE == 1 )
         {
-            pxSocket->u.xTCP.bits.bWaitKeepAlive = pdFALSE_UNSIGNED;
-            pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bWaitKeepAlive = ipFALSE_BOOL;
+            pxSocket->u.xTCP.bits.bSendKeepAlive = ipFALSE_BOOL;
             pxSocket->u.xTCP.ucKeepRepCount = 0U;
             pxSocket->u.xTCP.xLastAliveTime = xTaskGetTickCount();
         }
@@ -344,10 +344,10 @@
         if( bBefore != bAfter )
         {
             /* if bPassQueued is true, this socket is an orphan until it gets connected. */
-            if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+            if( pxSocket->u.xTCP.bits.bPassQueued != ipFALSE_BOOL )
             {
                 /* Find it's parent if the reuse bit is not set. */
-                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bReuseSocket == ipFALSE_BOOL )
                 {
                     xParent = pxSocket->u.xTCP.pxPeerSocket;
                     configASSERT( xParent != NULL );
@@ -358,7 +358,7 @@
             if( bAfter != pdFALSE )
             {
                 /* if bPassQueued is true, this socket is an orphan until it gets connected. */
-                if( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED )
+                if( pxSocket->u.xTCP.bits.bPassQueued != ipFALSE_BOOL )
                 {
                     if( xParent != NULL )
                     {
@@ -388,7 +388,7 @@
                         #if ( ipconfigUSE_CALLBACKS == 1 )
                         {
                             if( ( ipconfigIS_VALID_PROG_ADDRESS( xParent->u.xTCP.pxHandleConnected ) ) &&
-                                ( xParent->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) )
+                                ( xParent->u.xTCP.bits.bReuseSocket == ipFALSE_BOOL ) )
                             {
                                 /* The listening socket does not become connected itself, in stead
                                  * a child socket is created.
@@ -402,10 +402,10 @@
                     /* Don't need to access the parent socket anymore, so the
                      * reference 'pxPeerSocket' may be cleared. */
                     pxSocket->u.xTCP.pxPeerSocket = NULL;
-                    pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+                    pxSocket->u.xTCP.bits.bPassQueued = ipFALSE_BOOL;
 
                     /* When true, this socket may be returned in a call to accept(). */
-                    pxSocket->u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+                    pxSocket->u.xTCP.bits.bPassAccept = ipTRUE_BOOL;
                 }
                 else
                 {
@@ -473,6 +473,10 @@
                 xParent = pxSocket->u.xTCP.pxPeerSocket;
             }
 
+            /* Parent is not NULL in a socket which is in listening mode. If reuse socket
+             * flag is set to false, a new socket is created on a 'listen' even and added
+             * to the peer socket field. */
+            /* coverity[NULL_FIELD] */
             if( ( xParent->u.xTCP.pxPeerSocket != NULL ) &&
                 ( xParent->u.xTCP.pxPeerSocket == pxSocket ) )
             {
@@ -494,16 +498,16 @@
 
             vTaskSuspendAll();
             {
-                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                if( ( pxSocket->u.xTCP.bits.bPassQueued != ipFALSE_BOOL ) ||
+                    ( pxSocket->u.xTCP.bits.bPassAccept != ipFALSE_BOOL ) )
                 {
-                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == ipFALSE_BOOL )
                     {
                         xHasCleared = vTCPRemoveTCPChild( pxSocket );
                         ( void ) xHasCleared;
 
-                        pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
-                        pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bPassQueued = ipFALSE_BOOL;
+                        pxSocket->u.xTCP.bits.bPassAccept = ipFALSE_BOOL;
                         configASSERT( xIsCallingFromIPTask() != pdFALSE );
                         vSocketCloseNextTime( pxSocket );
                     }
@@ -514,7 +518,7 @@
                                ( int ) xHasCleared ) );
         }
 
-        if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
+        if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == ipTRUE_BOOL ) )
         {
             switch( xPreviousState )
             {
@@ -549,7 +553,7 @@
                 switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
-                        case pdFALSE_UNSIGNED:
+                        case ipFALSE_BOOL:
                            {
                                uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
                                FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
@@ -561,7 +565,7 @@
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        case pdTRUE_UNSIGNED:
+                        case ipTRUE_BOOL:
                             FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
                                                 pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
                                                 pcBuffer,
@@ -616,7 +620,7 @@
         if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
         {
             /* The socket is actively connecting to a peer. */
-            if( pxSocket->u.xTCP.bits.bConnPrepared != pdFALSE_UNSIGNED )
+            if( pxSocket->u.xTCP.bits.bConnPrepared != ipFALSE_BOOL )
             {
                 /* Ethernet address has been found, use progressive timeout for
                  * active connect(). */
@@ -1016,7 +1020,7 @@
             {
                 pxFound = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
-                if( ( pxFound->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP ) && ( pxFound->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                if( ( pxFound->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP ) && ( pxFound->u.xTCP.bits.bPassAccept != ipFALSE_BOOL ) )
                 {
                     pxSocket->u.xTCP.pxPeerSocket = pxFound;
                     FreeRTOS_debug_printf( ( "xTCPCheckNewClient[0]: client on port %u\n", pxSocket->usLocalPort ) );
