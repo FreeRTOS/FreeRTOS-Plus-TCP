@@ -324,7 +324,8 @@
         if( ( ( xPreviousState == eCONNECT_SYN ) ||
               ( xPreviousState == eSYN_FIRST ) ||
               ( xPreviousState == eSYN_RECEIVED ) ) &&
-            ( eTCPState == eCLOSE_WAIT ) )
+            ( ( eTCPState == eCLOSE_WAIT ) ||
+              ( eTCPState == eCLOSED ) ) )
         {
             /* A socket was in the connecting phase but something
              * went wrong and it should be closed. */
