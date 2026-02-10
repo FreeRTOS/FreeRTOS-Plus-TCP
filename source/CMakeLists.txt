@@ -92,6 +92,12 @@ target_include_directories( freertos_plus_tcp
     include
 )
 
+if(STANDALONE_TEST_BUILD_UNIX)
+    target_include_directories(freertos_plus_tcp
+    PUBLIC
+         ${CMAKE_CURRENT_SOURCE_DIR}/../test/build-combination/DefaultConf )
+endif()
+
 target_link_libraries( freertos_plus_tcp
   PUBLIC
     freertos_config

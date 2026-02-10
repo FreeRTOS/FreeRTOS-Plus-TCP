@@ -173,6 +173,14 @@ add_subdirectory(source)
 add_subdirectory(tools)
 add_subdirectory(test)
 
+if(STANDALONE_TEST_BUILD_UNIX)
+    add_library(freertos_config INTERFACE)
+    target_include_directories(freertos_config INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/build-combination/Common
+    )
+    set(FREERTOS_PORT GCC_POSIX CACHE STRING "")
+endif()
+
 if(PROJECT_IS_TOP_LEVEL)
     FetchContent_MakeAvailable(freertos_kernel cmock)
 endif()
