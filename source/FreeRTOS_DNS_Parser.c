@@ -650,6 +650,7 @@
                 ( void ) uxBytesRead;
             } while( ipFALSE_BOOL );
 
+            /* coverity[deadcode] */
             if( pxNewBuffer != NULL )
             {
                 vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
