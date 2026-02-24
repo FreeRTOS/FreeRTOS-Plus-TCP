@@ -186,7 +186,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
     {
         xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xSize & baALIGNMENT_MASK );
 
-        if( baADD_WILL_OVERFLOW( xSize, xBytesRequiredForAlignment ) == pdFAIL )
+        if( baADD_WILL_OVERFLOW( xSize, xBytesRequiredForAlignment ) == ipFALSE_BOOL )
         {
             xSize += xBytesRequiredForAlignment;
         }
@@ -196,7 +196,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
         }
     }
 
-    if( baADD_WILL_OVERFLOW( xSize, ipBUFFER_PADDING ) == pdFAIL )
+    if( baADD_WILL_OVERFLOW( xSize, ipBUFFER_PADDING ) == ipFALSE_BOOL )
     {
         xAllocatedBytes = xSize + ipBUFFER_PADDING;
     }
@@ -269,7 +269,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     /* Add 2 bytes to xRequestedSizeBytesCopy and round up xRequestedSizeBytesCopy
      * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
-    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2U ) == pdFAIL )
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2U ) == ipFALSE_BOOL )
     {
         xRequestedSizeBytesCopy += 2U;
     }
@@ -282,7 +282,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     {
         xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xRequestedSizeBytesCopy & baALIGNMENT_MASK );
 
-        if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, xBytesRequiredForAlignment ) == pdFAIL )
+        if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, xBytesRequiredForAlignment ) == ipFALSE_BOOL )
         {
             xRequestedSizeBytesCopy += xBytesRequiredForAlignment;
         }
@@ -292,7 +292,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         }
     }
 
-    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, ipBUFFER_PADDING ) == pdFAIL )
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, ipBUFFER_PADDING ) == ipFALSE_BOOL )
     {
         xAllocatedBytes = xRequestedSizeBytesCopy + ipBUFFER_PADDING;
     }
@@ -459,7 +459,7 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
 
     xOriginalLength = pxNetworkBufferCopy->xDataLength + ipBUFFER_PADDING;
 
-    if( baADD_WILL_OVERFLOW( uxSizeBytes, ipBUFFER_PADDING ) == pdFAIL )
+    if( baADD_WILL_OVERFLOW( uxSizeBytes, ipBUFFER_PADDING ) == ipFALSE_BOOL )
     {
         uxSizeBytes = uxSizeBytes + ipBUFFER_PADDING;
 
