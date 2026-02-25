@@ -1,5 +1,92 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.4.0 and V4.3.1 released February 25, 2026:
+	+ [Security] Fix CWE-126/476/822: IPv6 buffer validation and bounds
+	  checking. Fix missing NULL pointer checks in ND, add ICMPv6 minimum
+	  packet size validation, move IPv6 version field check after buffer
+	  validation, and fix integer wrap-around in IPv6 payload length
+	  processing.
+	+ [Security] Fix potential out of bounds write (CWE-787) when processing
+	  LLMNR or mDNS queries (#1258).
+	+ Fix DHCP race condition (#1230).
+	+ Fix possible network buffer leak in DHCP v4 and v6 state machines
+	  (#1231).
+	+ Fix ARP lookups for gateway address when destination is outside of
+	  subnet (#1248). We thank @htibosch for their contribution.
+	+ Fix endpoint mismatch in FreeRTOS_MatchingEndpoint (#1239).
+	  We thank @ravitd for their contribution.
+	+ Fix compilation error if DNS features are disabled (#1243).
+	  We thank @MarcusBetter for their contribution.
+	+ Fix buffer allocation failure handling in STM32 NetworkInterface.
+	  We thank @PhilGreenland for their contribution.
+	+ Fix Windows Simulator demo build failures by adding missing windows.h
+	  includes (#1305).
+	+ Fix TI CCS compiler errors (#1281).
+	  We thank @SvenP91 for their contribution.
+	+ Fix warning concerning return value of non-void function (#1275).
+	  We thank @EmilioLopes for their contribution.
+	+ Fix IPv4 and IPv6 broadcast address detection. We thank @evpopov for
+	  their contribution.
+	+ Fix IPv6 loopback type detection (#1220). We thank @evpopov for their
+	  contribution.
+	+ Fix Zynq network interface incoming packet filtering by correcting
+	  endianness.
+	+ Fix printf format warnings by casting to unsigned long (#1222).
+	  We thank @concatime for their contribution.
+	+ Fix smsc9220_eth_drv.c warnings from gcc -Wconversion (#1245).
+	  We thank @FlorianLaRoche for their contribution.
+	+ Fix Coverity dead code and MISRA 10.4 findings.
+	+ Use the expected sequence number for challenge ACK messages (#1236).
+	  We thank @MathiasJochum for their contribution.
+	+ mDNS: when a reply do not repeat the questions, set authoritative
+	  flag (#1292). We thank @htibosch for their contribution.
+	+ Allow the use of IP-clash detection, also when auto-IP is not enabled
+	  (#1299). We thank @htibosch for their contribution.
+	+ Let valid broadcast packets in when endpoint is not yet up (#1240).
+	+ Update IPv4 packet filtering to let packets destined to endpoint's
+	  MAC address when endpoint is not yet up (#1232).
+	+ Add ipconfigIP_TASK_AFFINITY (#1288). We thank @mike919192 for their
+	  contribution.
+	+ Add configuration option to prevent configASSERT checks on
+	  ipBUFFER_PADDING (#1271). We thank @DaveSkok for their contribution.
+	+ Add #include "FreeRTOS_ARP.h" to loopbackNetworkInterface.c (#1290).
+	  We thank @NikolayPokhilchenko for their contribution.
+	+ Alternative function for potential optimization of data copying in
+	  stream buffers (#1233). We thank @DenisZaikin for their contribution.
+	+ Support ADIN1200 (#1280). We thank @GeorgeElliott-Hunter for their
+	  contribution.
+	+ Rename ETH_TxPacketConfig in STM32F4 to match other STMs (#1278).
+	  We thank @GeorgeElliott-Hunter for their contribution.
+	+ STM32H legacy driver: change parameter to pucGetRXBuffer() (#1285).
+	  We thank @htibosch for their contribution.
+	+ Zynq driver: avoid race conditions (#1286). We thank @htibosch for
+	  their contribution.
+	+ Zynq port: Add niEMAC_HANDLER_TASK_AFFINITY (#1291). We thank
+	  @mike919192 for their contribution.
+	+ Update Zynq portable for Xilinx SDT drivers (#1227). We thank
+	  @mike919192 for their contribution.
+	+ Workaround in Zynq port for missing macros when using SDT drivers.
+	+ Remove unused variable in ultrascale port (ulDMAReg) (#1269).
+	  We thank @PeteBone for their contribution.
+	+ Avoid portTICK_PERIOD_MS usage in library code (#1242). We thank
+	  @StefanBalt for their contribution.
+	+ Remove redundant function declaration (#1241). We thank
+	  @FlorianLaRoche for their contribution.
+	+ Improve maximum network buffer allocation size check when Buffer
+	  Allocation scheme 1 is used (#1263).
+	+ Move FreeRTOS_printf from suspended scheduler region in
+	  prvAcceptWaitClient (#1250).
+	+ Remove xHigherPriorityTaskWoken (#1215).
+	+ Fix MISRA 2012 violations (#1272).
+	+ Fix MISRA violations.
+	+ Unittest: Fix, enable and forbid specific warnings (#1228). We thank
+	  @AndreasNordal for their contribution.
+	+ Update scripts to run unit tests with respect to Ubuntu 24.04 (#1237).
+	+ Update CI script to use latest lcov (#1251).
+	+ Fix CI: replace hardcoded gcov-9 with gcov.
+	+ Make CBMC use 64 core runners.
+	+ Add CI build with compiler optimizations.
+
 Changes between FreeRTOS-plus-TCP V4.3.1 and V4.3.0 released December 16, 2024:
 	+ Update README.md with information related to migrating to V4.3.0 and above
 	  for users utilising the STM32 network interface.
