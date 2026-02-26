@@ -171,7 +171,9 @@ FetchContent_Declare( cmock
 
 add_subdirectory(source)
 add_subdirectory(tools)
-add_subdirectory(test)
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
+    add_subdirectory(test)
+endif()
 
 if(STANDALONE_TEST_BUILD_UNIX)
     add_library(freertos_config INTERFACE)
