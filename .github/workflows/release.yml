@@ -26,6 +26,6 @@ jobs:
           version_number: ${{ github.event.inputs.version_number }}
           branch: ${{ github.event.inputs.branch }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          repo_build_command: rm -rf ../build && cmake -S. -B ../build -DSTANDALONE_TEST_BUILD_UNIX=1 && make -C ../build all
+          repo_build_command: sudo apt-get install -y libpcap-dev && rm -rf ../build && cmake -S. -B ../build -DSTANDALONE_TEST_BUILD_UNIX=1 && make -C ../build all
           run_test_command: 'sudo apt-get install -y lcov unifdef ninja-build && rm -rf ../build && cmake --fresh -G Ninja -S test/unit-test -B ../build/ -DBUILD_CLONE_SUBMODULES=1 -DSANITIZE=address,undefined && ninja -C ../build && ASAN_OPTIONS=detect_odr_violation=0 ctest --test-dir ../build/ -E system --output-on-failure'
           changelog_file: History.txt
