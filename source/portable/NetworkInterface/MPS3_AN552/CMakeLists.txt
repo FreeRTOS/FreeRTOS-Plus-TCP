@@ -6,19 +6,18 @@ if (NOT (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "MPS3_AN552") )
     return()
 endif()
 
-#------------------------------------------------------------------------------
 add_library( freertos_plus_tcp_network_if STATIC )
-
-# CMSIS Ethernet driver for LAN91C111
-add_subdirectory(CMSIS_Driver)
 
 target_sources( freertos_plus_tcp_network_if
   PRIVATE
-    NetworkInterface.c
+    ${CMAKE_CURRENT_LIST_DIR}/../CMSIS/NetworkInterface.c
+    CMSIS_Driver/ETH_LAN91C111.c
 )
 
 target_include_directories( freertos_plus_tcp_network_if
   PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../CMSIS/Driver/Include
+    CMSIS_Driver
     Device/Include
 )
 
