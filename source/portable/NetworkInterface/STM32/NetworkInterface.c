@@ -145,8 +145,8 @@
 
 #if ipconfigIS_DISABLED( ipconfigPORT_SUPPRESS_WARNING )
 
-    #if defined( niEMAC_STM32FX ) && defined( ETH_RX_BUF_SIZE )
-        #warning "As of F7 V1.17.1 && F4 V1.28.0, a bug exists in the ETH HAL Driver where ETH_RX_BUF_SIZE is used instead of RxBuffLen, so ETH_RX_BUF_SIZE must == niEMAC_DATA_BUFFER_SIZE"
+    #if defined( niEMAC_STM32FX ) && defined( ETH_RX_BUF_SIZE )  && defined( STM32F4 )
+        #warning "As of F4 V1.28.0, a bug exists in the ETH HAL Driver where ETH_RX_BUF_SIZE is used instead of RxBuffLen, so ETH_RX_BUF_SIZE must == niEMAC_DATA_BUFFER_SIZE"
     #endif
 
     #if ipconfigIS_DISABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM )
@@ -982,7 +982,7 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle,
     pxEthHandle->Init.RxBuffLen = niEMAC_DATA_BUFFER_SIZE;
     /* configASSERT( pxEthHandle->Init.RxBuffLen <= ETH_MAX_PACKET_SIZE ); */
     configASSERT( pxEthHandle->Init.RxBuffLen % 4U == 0 );
-    #if ( defined( niEMAC_STM32FX ) && defined( ETH_RX_BUF_SIZE ) )
+    #if ( defined( niEMAC_STM32FX ) && defined( ETH_RX_BUF_SIZE ) && defined( STM32F4 ) )
         configASSERT( pxEthHandle->Init.RxBuffLen == ETH_RX_BUF_SIZE );
     #endif
 
@@ -1785,8 +1785,6 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
 
 void ETH_IRQHandler( void )
 {
-    traceISR_ENTER();
-
     ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
 
     xSwitchRequired = pdFALSE;
