@@ -2646,6 +2646,24 @@ void test_xIPv6_GetIPType_SiteLocal()
 }
 
 /**
+ * @brief xIPv6_GetIPType returns eIPv6_UniqueLocal if input address matches FC00::/7.
+ *
+ * Test step:
+ *  - Create 1 IPv6 address.
+ *     - Set the IP address to FD12:3456:789A:1::1.
+ *  - Call xIPv6_GetIPType to check IP type.
+ *  - Check if it returns eIPv6_UniqueLocal.
+ */
+void test_xIPv6_GetIPType_UniqueLocal()
+{
+    const IPv6_Address_t xIPv6Address = { 0xFD, 0x12, 0x34, 0x56, 0x78, 0x9A, 0, 0x01, 0, 0, 0, 0, 0, 0, 0, 0x01 };
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( &xIPv6Address );
+    TEST_ASSERT_EQUAL( eIPv6_UniqueLocal, xReturn );
+}
+
+/**
  * @brief xIPv6_GetIPType returns eIPv6_Multicast if input address matches FF00::/8.
  *
  * Test step:
