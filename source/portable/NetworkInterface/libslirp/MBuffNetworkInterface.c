@@ -29,6 +29,8 @@
 
 #if defined( _WIN32 )
     #include <windows.h>
+    /* Required when compiling with WIN32_LEAN_AND_MEAN as it strips this header which defines TRUE/FALSE */
+    #include <windef.h>
 #endif
 
 /* FreeRTOS includes. */
