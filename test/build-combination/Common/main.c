@@ -172,7 +172,25 @@ int main( void )
 
 #if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 )
 
-    BaseType_t xApplicationDNSQueryHook( const char * pcName )
+    DNSRecord_t * xApplicationDNSRecordQueryHook( UBaseType_t * outLen )
+    {
+        static DNSRecord_t xRecord[ 2 ] =
+        {
+            {
+                .pcName = mainHOST_NAME,
+                .usRecordType = dnsTYPE_A_HOST,
+            },
+            {
+                .pcName = mainDEVICE_NICK_NAME,
+                .usRecordType = dnsTYPE_A_HOST,
+            }
+        };
+
+        *outLen = 2;
+        return xRecord;
+    }
+
+    BaseType_t xApplicationNBNSQueryHook( const char * pcName )
     {
         BaseType_t xReturn;
 
@@ -194,6 +212,7 @@ int main( void )
 
         return xReturn;
     }
+
 
 #endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) */
 /*-----------------------------------------------------------*/

@@ -4002,11 +4002,14 @@ void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
     TEST_ASSERT_EQUAL( 44, uxBytesRead );
 }
 
-BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                           const char * pcName )
+DNSRecord_t * xApplicationDNSRecordQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                    UBaseType_t * outLen )
 {
+    static DNSRecord_t xRecord;
+
     hook_called = pdTRUE;
-    return hook_return;
+    *outLen = 0;
+    return &xRecord;
 }
 
 void test_prepareReplyDNSMessage_null_pointer( void )

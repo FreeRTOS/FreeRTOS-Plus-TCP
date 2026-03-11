@@ -68,8 +68,12 @@
     #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
     #define dnsTYPE_AAAA_HOST         0x001CU
     #define dnsTYPE_ANY_HOST          0x00FFU
+    #define dnsTYPE_TXT               0x0010U /**< DNS type TXT (Text Record). */
+    #define dnsTYPE_PTR               0x000CU /**< DNS type PTR (Pointer Record). */
+    #define dnsTYPE_SRV               0x0021U /**< DNS type SRV (Service Record). */
+    #define dnsTYPE_ANY               0x00FFU /**< DNS type ANY. */
 
-    #define dnsCLASS_IN               0x01U /**< DNS class IN (Internet). */
+    #define dnsCLASS_IN               0x01U   /**< DNS class IN (Internet). */
 
 /* Maximum hostname length as defined in RFC 1035 section 3.1. */
     #define dnsMAX_HOSTNAME_LENGTH    0xFFU
@@ -177,7 +181,6 @@
         uint16_t usAnswers;                /**< The number of DNS answers that were given. */
         uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
         uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
-        size_t uxSkipCount;                /**< Points to the byte after the complete name (mDNS only) */
         size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
         size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
         uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
@@ -216,6 +219,35 @@
         }
         #include "pack_struct_end.h"
         typedef struct xLLMNRAnswer LLMNRAnswer_t;
+
+        #include "pack_struct_start.h"
+        struct xMDNSResponseMiddle
+        {
+            uint16_t usType;       /**< Type of the Resource record. */
+            uint16_t usClass;      /**< Class of the Resource record. */
+            uint32_t ulTTL;        /**< Seconds till this entry can be cached. */
+            uint16_t usDataLength; /**< Length of the address in this record. */
+        }
+        #include "pack_struct_end.h"
+        typedef struct xMDNSResponseMiddle MDNSResponseMiddle_t;
+
+        #include "pack_struct_start.h"
+        struct xMDNSResponseSRVEnd
+        {
+            uint16_t priority;
+            uint16_t weight;
+            uint16_t port;
+        }
+        #include "pack_struct_end.h"
+        typedef struct xMDNSResponseSRVEnd MDNSResponseSRVEnd_t;
+
+        #include "pack_struct_start.h"
+        struct xMDNSResponseHostAEnd
+        {
+            uint32_t ipAddr;
+        }
+        #include "pack_struct_end.h"
+        typedef struct xMDNSResponseHostAEnd MDNSResponseHostAEnd_t;
     #endif /* if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) */
 
     #if ( ipconfigUSE_NBNS == 1 )
@@ -285,6 +317,24 @@
 
     #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 
+        typedef struct xDNSRecord
+        {
+            uint16_t usRecordType;
+            /* Used by the backend to determine which fields to report */
+            BaseType_t uxIncludeInAnswer;
+            const char * pcName;
+            union
+            {
+                char * pcPtrRecord;
+                struct
+                {
+                    const char * pcTarget;
+                    uint16_t usPort;
+                } xSrvRecord;
+                char * pcTxtRecord;
+            } xData;
+        } DNSRecord_t;
+
 /*
  * The following function should be provided by the user and return true if it
  * matches the domain name.
@@ -292,15 +342,18 @@
         #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             /* Even though the function is defined in main.c, the rule is violated. */
             /* misra_c_2012_rule_8_6_violation */
-            extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
+            extern DNSRecord_t * xApplicationDNSRecordQueryHook( UBaseType_t * outLen );
+            extern BaseType_t xApplicationNBNSQueryHook( const char * pcName );
         #else
             /* Even though the function is defined in main.c, the rule is violated. */
             /* misra_c_2012_rule_8_6_violation */
-            extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                                              const char * pcName );
-        #endif
+            extern DNSRecord_t * xApplicationDNSRecordQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                                       UBaseType_t * outLen );
+            extern BaseType_t xApplicationNBNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                               const char * pcName );
+        #endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
-    #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
+    #endif /* ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
 
 /* Keeping this outside of ipconfigUSE_DNS flag as these are used inside IPv4 UDP code */
