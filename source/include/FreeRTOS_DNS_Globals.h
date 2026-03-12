@@ -122,6 +122,58 @@
     #define ipNBNS_PORT                  137U    /* NetBIOS Name Service. */
     #define ipNBDGM_PORT                 138U    /* Datagram Service, not included. */
 
+    #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
+
+        typedef struct xDNSRecord
+        {
+            uint16_t usRecordType;
+            /* Used by the backend to determine which fields to report */
+            BaseType_t uxIncludeInAnswer;
+            const char * pcName;
+            union
+            {
+                char * pcPtrRecord;
+                struct
+                {
+                    const char * pcTarget;
+                    uint16_t usPort;
+                } xSrvRecord;
+                char * pcTxtRecord;
+            } xData;
+        } DNSRecord_t;
+
+/*
+ * The following function should be provided by the user and return true if it
+ * matches the domain name.
+ */
+        #if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 )
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                /* Even though the function is defined in main.c, the rule is violated. */
+                /* misra_c_2012_rule_8_6_violation */
+                extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
+                #define xApplicationNBNSQueryHook    xApplicationDNSQueryHook
+            #else
+                /* Even though the function is defined in main.c, the rule is violated. */
+                /* misra_c_2012_rule_8_6_violation */
+                extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                                  const char * pcName );
+                #define xApplicationNBNSQueryHook_Multi    xApplicationDNSQueryHook_Multi
+            #endif
+        #else /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                extern DNSRecord_t * xApplicationDNSRecordQueryHook( UBaseType_t * outLen );
+                extern BaseType_t xApplicationNBNSQueryHook( const char * pcName );
+            #else
+                extern DNSRecord_t * xApplicationDNSRecordQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                                           UBaseType_t * outLen );
+                extern BaseType_t xApplicationNBNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                                   const char * pcName );
+            #endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
+        #endif /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
+
+    #endif /* ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
+
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
     {
@@ -194,6 +246,9 @@
         #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
             uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
             char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
+            DNSRecord_t * pxDNSRecords;    /**< A pointer to an array of DNS records that are being served by this device. */
+            UBaseType_t uxDNSRecordCount;  /**< The number of records in the array pointed to by 'pxDNSRecords'. */
+            BaseType_t xDNSRecordsMatched; /**< Becomes true when a question matches with one of the records in 'pxDNSRecords'. */
         #endif
 
         #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
@@ -315,45 +370,6 @@
         size_t uxPayloadLength;     /**< Payload size */
     } DNSBuffer_t;
 
-    #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
-
-        typedef struct xDNSRecord
-        {
-            uint16_t usRecordType;
-            /* Used by the backend to determine which fields to report */
-            BaseType_t uxIncludeInAnswer;
-            const char * pcName;
-            union
-            {
-                char * pcPtrRecord;
-                struct
-                {
-                    const char * pcTarget;
-                    uint16_t usPort;
-                } xSrvRecord;
-                char * pcTxtRecord;
-            } xData;
-        } DNSRecord_t;
-
-/*
- * The following function should be provided by the user and return true if it
- * matches the domain name.
- */
-        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-            /* Even though the function is defined in main.c, the rule is violated. */
-            /* misra_c_2012_rule_8_6_violation */
-            extern DNSRecord_t * xApplicationDNSRecordQueryHook( UBaseType_t * outLen );
-            extern BaseType_t xApplicationNBNSQueryHook( const char * pcName );
-        #else
-            /* Even though the function is defined in main.c, the rule is violated. */
-            /* misra_c_2012_rule_8_6_violation */
-            extern DNSRecord_t * xApplicationDNSRecordQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                                                       UBaseType_t * outLen );
-            extern BaseType_t xApplicationNBNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                                               const char * pcName );
-        #endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
-
-    #endif /* ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
 
 /* Keeping this outside of ipconfigUSE_DNS flag as these are used inside IPv4 UDP code */

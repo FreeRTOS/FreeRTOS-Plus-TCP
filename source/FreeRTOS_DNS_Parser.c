@@ -369,6 +369,7 @@
             }
         }
 
+
 /**
  * @brief Format a dot-separated name string into a DNS label sequence format in the given buffer.
  *        This will always take strlen(pcDotString) + 2 bytes
@@ -416,8 +417,204 @@
                 }
             }
         }
-
     #endif /* if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) ) */
+
+
+
+/**
+ * @brief Process the DNS questions and populated relevant fields in xSet
+ *        Assumes that the xSet parsing context is set to the start of the
+ *        questions section
+ *
+ *        If LLMNR/MDNS are enabled then the following will be populated:
+ *          - pcRequestedName (the name in the first question)
+ *          - pxDNSRecords and uxDNSRecordCount
+ *
+ * @param[in,out] xSet a set of variables that are shared among the helper functions.
+ * @param[in] pxEndPoint The end-point on which the DNS message was received.
+ *                       Necessary when LLMNR/MDNS are enabled, and IPv4_BACKWARD_COMPATIBLE is 0.
+ *                       Otherwise may be NULL.
+ * @return pdTRUE if everything went okay
+ */
+    static BaseType_t parseDNSQuestions( ParseSet_t * xSet,
+                                         NetworkEndPoint_t const * pxEndPoint )
+    {
+        UBaseType_t x;
+        size_t uxResult;
+
+        ( void ) pxEndPoint;
+        #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 )
+                NetworkEndPoint_t xEndPoint;
+                configASSERT( pxEndPoint != NULL );
+
+                /* Make a copy of the end-point because xApplicationDNSQueryHook() is allowed
+                 * to write into it. */
+                ( void ) memcpy( &( xEndPoint ), pxEndPoint, sizeof( xEndPoint ) );
+            #else
+            #endif
+
+            #if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 )
+                xSet->uxDNSRecordCount = 0;
+            #else
+                #if ( ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) )
+                    xSet->pxDNSRecords = xApplicationDNSRecordQueryHook( &xSet->uxDNSRecordCount );
+                #else
+                    xSet->pxDNSRecords = xApplicationDNSRecordQueryHook_Multi( &xEndPoint, &xSet->uxDNSRecordCount );
+                #endif
+
+                for( x = 0U; x < xSet->uxDNSRecordCount; x++ )
+                {
+                    xSet->pxDNSRecords[ x ].uxIncludeInAnswer = pdFALSE;
+                }
+            #endif /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
+        #endif /* if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
+
+        for( x = 0U; x < xSet->usQuestions; x++ )
+        {
+            #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+                const uint8_t * const pucThisNameField = xSet->pucByte;
+
+                if( x == 0U )
+                {
+                    /* We assume that any answers relate to the first question.
+                     * So we use its name for the pcRequestedName field. */
+                    xSet->pcRequestedName = ( char * ) xSet->pucByte;
+                }
+            #endif
+
+            #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                if( x == 0U )
+                {
+                    uxResult = DNS_ReadNameField( xSet,
+                                                  sizeof( xSet->pcName ) );
+                    ( void ) uxResult;
+                }
+                else
+            #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
+            {
+                /* Skip the variable length pcName field. */
+                uxResult = DNS_SkipNameField( xSet->pucByte,
+                                              xSet->uxSourceBytesRemaining );
+            }
+
+            /* Check for a malformed response. */
+            if( uxResult == 0U )
+            {
+                return pdFALSE;
+            }
+
+            xSet->pucByte = &( xSet->pucByte[ uxResult ] );
+            xSet->uxSourceBytesRemaining -= uxResult;
+
+            /* Check the remaining buffer size. */
+            if( xSet->uxSourceBytesRemaining >= sizeof( uint32_t ) )
+            {
+                #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
+                {
+                    UBaseType_t i;
+                    /* usChar2u16 returns value in host endianness. */
+                    xSet->usType = usChar2u16( xSet->pucByte );
+                    xSet->usClass = usChar2u16( &( xSet->pucByte[ 2 ] ) );
+
+                    #if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) )
+                    {
+                        ( void ) i;
+                        /* This should have been set in the main DNS function */
+                        configASSERT( xSet->pxDNSRecords != NULL );
+
+                        if( x == 0U )
+                        {
+                            #if ( ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) )
+                                BaseType_t const xIsMatched = xApplicationDNSQueryHook( xSet->pcName );
+                            #else
+                                BaseType_t const xIsMatched = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet->pcName );
+                            #endif
+
+                            if( xIsMatched == pdTRUE )
+                            {
+                                xSet->xDNSRecordsMatched = pdTRUE;
+                                #if ( ( ipconfigUSE_IPv6 != 0 ) )
+                                    if( ( xSet->usType == dnsTYPE_AAAA_HOST ) || ( xSet->usType == dnsTYPE_ANY_HOST ) )
+                                    {
+                                        xSet->pxDNSRecords[ xSet->uxDNSRecordCount++ ] =
+                                            ( DNSRecord_t ) {
+                                            .usRecordType = dnsTYPE_AAAA_HOST,
+                                            .pcName = xSet->pcName,
+                                            .uxIncludeInAnswer = pdTRUE,
+                                        };
+                                    }
+                                #endif
+                                #if ( ( ipconfigUSE_IPv4 != 0 ) )
+                                    if( ( xSet->usType == dnsTYPE_A_HOST ) || ( xSet->usType == dnsTYPE_ANY_HOST ) )
+                                    {
+                                        xSet->pxDNSRecords[ xSet->uxDNSRecordCount++ ] =
+                                            ( DNSRecord_t ) {
+                                            .usRecordType = dnsTYPE_A_HOST,
+                                            .pcName = xSet->pcName,
+                                            .uxIncludeInAnswer = pdTRUE,
+                                        };
+                                    }
+                                #endif
+                            }
+                        }
+                    }
+                    #else /* if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) ) */
+                        /* For each DNS record we serve, check if this question matches it. */
+                        for( i = 0; i < xSet->uxDNSRecordCount; i++ )
+                        {
+                            DNSRecord_t * pRecord = &xSet->pxDNSRecords[ i ];
+                            BaseType_t xTypeMatch;
+                            BaseType_t xNameMatch;
+
+                            switch( pRecord->usRecordType )
+                            {
+                                #if ( ipconfigUSE_IPv4 != 0 )
+                                    case dnsTYPE_A_HOST:
+                                #endif
+                                #if ( ipconfigUSE_IPv6 != 0 )
+                                    case dnsTYPE_AAAA_HOST:
+                                #endif
+                                case dnsTYPE_SRV:
+                                case dnsTYPE_TXT:
+                                case dnsTYPE_PTR:
+                                    break;
+
+                                default:
+                                    FreeRTOS_printf( ( "DNS_ParseDNSReply: Unsupported record type %u\n", pRecord->usRecordType ) );
+                                    /* Unsupported record type. Skip. */
+                                    continue;
+                            }
+
+                            xTypeMatch = ( pRecord->usRecordType == xSet->usType ) || ( xSet->usType == dnsTYPE_ANY );
+                            xNameMatch = DNS_NameEqual(
+                                pucThisNameField,
+                                ( const uint8_t * ) xSet->pxDNSMessageHeader,
+                                xSet->pucUDPPayloadBuffer + xSet->uxBufferLength,
+                                pRecord->pcName ) == pdTRUE;
+
+                            if( ( xTypeMatch == pdTRUE ) && ( xNameMatch == pdTRUE ) )
+                            {
+                                pRecord->uxIncludeInAnswer = pdTRUE;
+                                xSet->xDNSRecordsMatched = pdTRUE;
+                            }
+                        }
+                    #endif /* if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) ) */
+                }
+                #endif /* ipconfigUSE_LLMNR */
+
+                /* Skip the type and class fields. */
+                xSet->pucByte = &( xSet->pucByte[ sizeof( uint32_t ) ] );
+                xSet->uxSourceBytesRemaining -= sizeof( uint32_t );
+            }
+            else
+            {
+                return pdFALSE;
+            }
+        } /* for( x = 0U; x < xSet.usQuestions; x++ ) */
+
+        return pdTRUE;
+    }
 
 /**
  * @brief Process a response packet from a DNS server, or an LLMNR/MDNS reply.
@@ -443,7 +640,6 @@
                                 uint16_t usPort )
     {
         ParseSet_t xSet;
-        uint16_t x;
         UBaseType_t i;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
@@ -483,16 +679,18 @@
             /* Introduce a do {} while (0) to allow the use of breaks. */
             do
             {
-                size_t uxBytesRead = 0U;
                 size_t uxResult;
                 BaseType_t xIsResponse = pdFALSE;
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
                     NetworkBufferDescriptor_t * pxNetworkBuffer;
-                    struct xNetworkEndPoint * pxEndPoint;
-                    struct xNetworkEndPoint xEndPoint;
-                    UBaseType_t uxRecordCount;
-                    DNSRecord_t * pxDNSRecords;
-                    BaseType_t uxDNSRecordMatched = pdFALSE;
+                    #if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) )
+
+                        /* We need to make dummy records to shim the old system to the new.
+                         * We need up to two records, one for A and for AAAA.
+                         * parseDNSQuestions will do this job. */
+                        DNSRecord_t xShimDNSRecords[ 2 ];
+                        xSet.pxDNSRecords = xShimDNSRecords;
+                    #endif
                 #endif
 
                 /* Start at the first byte after the header. */
@@ -533,8 +731,8 @@
                         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
                             uxResult = DNS_ReadNameField( &xSet,
                                                           sizeof( xSet.pcName ) );
-                            ( void ) uxResult;
                         #endif
+                        ( void ) uxResult;
                     }
                 }
                 else
@@ -550,138 +748,16 @@
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
                     pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
 
-                    if( pxNetworkBuffer == NULL )
+                    if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pxEndPoint == NULL ) )
                     {
-                        FreeRTOS_printf( ( "DNS_ParseDNSReply: pucUDPPayloadBuffer was invalid\n" ) );
+                        FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to get NetworkBufferDescriptor_t from UDP payload buffer.\n" ) );
                         break;
                     }
 
-                    if( pxNetworkBuffer->pxEndPoint == NULL )
-                    {
-                        break;
-                    }
-
-                    pxEndPoint = pxNetworkBuffer->pxEndPoint;
-
-                    /* Make a copy of the end-point because xApplicationDNSQueryHook() is allowed
-                     * to write into it. */
-                    ( void ) memcpy( &( xEndPoint ), pxEndPoint, sizeof( xEndPoint ) );
-
-                    /* Fetch our DNS record listing and mark them all, initially,
-                     * as "do not include". */
-                    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-                        pxDNSRecords = xApplicationDNSRecordQueryHook( &uxRecordCount );
-                    #else
-                        pxDNSRecords = xApplicationDNSRecordQueryHook_Multi( &xEndPoint, &uxRecordCount );
-                    #endif
-                    uxDNSRecordMatched = pdFALSE;
-
-                    for( i = 0; i < uxRecordCount; i++ )
-                    {
-                        pxDNSRecords[ i ].uxIncludeInAnswer = pdFALSE;
-                    }
+                    xReturn = parseDNSQuestions( &xSet, pxNetworkBuffer->pxEndPoint );
+                #else
+                    xReturn = parseDNSQuestions( &xSet, NULL );
                 #endif /* if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
-
-                for( x = 0U; x < xSet.usQuestions; x++ )
-                {
-                    #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-                        const uint8_t * const pucThisNameField = xSet.pucByte;
-
-                        if( x == 0U )
-                        {
-                            /* We assume that any answers relate to the first question.
-                             * So we use its name for the pcRequestedName field. */
-                            xSet.pcRequestedName = ( char * ) xSet.pucByte;
-                        }
-                    #endif
-
-                    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
-                        if( x == 0U )
-                        {
-                            uxResult = DNS_ReadNameField( &xSet,
-                                                          sizeof( xSet.pcName ) );
-                            ( void ) uxResult;
-                        }
-                        else
-                    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
-                    {
-                        /* Skip the variable length pcName field. */
-                        uxResult = DNS_SkipNameField( xSet.pucByte,
-                                                      xSet.uxSourceBytesRemaining );
-                    }
-
-                    /* Check for a malformed response. */
-                    if( uxResult == 0U )
-                    {
-                        xReturn = pdFALSE;
-                        break;
-                    }
-
-                    uxBytesRead += uxResult;
-                    xSet.pucByte = &( xSet.pucByte[ uxResult ] );
-                    xSet.uxSourceBytesRemaining -= uxResult;
-
-                    /* Check the remaining buffer size. */
-                    if( xSet.uxSourceBytesRemaining >= sizeof( uint32_t ) )
-                    {
-                        #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-                        {
-                            /* usChar2u16 returns value in host endianness. */
-                            xSet.usType = usChar2u16( xSet.pucByte );
-                            xSet.usClass = usChar2u16( &( xSet.pucByte[ 2 ] ) );
-
-                            /* For each DNS record we serve, check if this question matches it. */
-                            for( i = 0; i < uxRecordCount; i++ )
-                            {
-                                DNSRecord_t * pRecord = &pxDNSRecords[ i ];
-                                BaseType_t xTypeMatch;
-                                BaseType_t xNameMatch;
-
-                                switch( pRecord->usRecordType )
-                                {
-                                    #if ( ipconfigUSE_IPv4 != 0 )
-                                        case dnsTYPE_A_HOST:
-                                    #endif
-                                    #if ( ipconfigUSE_IPv6 != 0 )
-                                        case dnsTYPE_AAAA_HOST:
-                                    #endif
-                                    case dnsTYPE_SRV:
-                                    case dnsTYPE_TXT:
-                                    case dnsTYPE_PTR:
-                                        break;
-
-                                    default:
-                                        FreeRTOS_printf( ( "DNS_ParseDNSReply: Unsupported record type %u\n", pRecord->usRecordType ) );
-                                        /* Unsupported record type. Skip. */
-                                        continue;
-                                }
-
-                                xTypeMatch = ( pRecord->usRecordType == xSet.usType ) || ( xSet.usType == dnsTYPE_ANY );
-                                xNameMatch = DNS_NameEqual(
-                                    pucThisNameField,
-                                    ( const uint8_t * ) xSet.pxDNSMessageHeader,
-                                    xSet.pucUDPPayloadBuffer + xSet.uxBufferLength,
-                                    pRecord->pcName ) == pdTRUE;
-
-                                if( ( xTypeMatch == pdTRUE ) && ( xNameMatch == pdTRUE ) )
-                                {
-                                    pRecord->uxIncludeInAnswer = pdTRUE;
-                                    uxDNSRecordMatched = pdTRUE;
-                                }
-                            }
-                        }
-                        #endif /* ipconfigUSE_LLMNR */
-
-                        /* Skip the type and class fields. */
-                        xSet.pucByte = &( xSet.pucByte[ sizeof( uint32_t ) ] );
-                        xSet.uxSourceBytesRemaining -= sizeof( uint32_t );
-                    }
-                    else
-                    {
-                        xReturn = pdFALSE;
-                        break;
-                    }
-                } /* for( x = 0U; x < xSet.usQuestions; x++ ) */
 
                 if( xReturn == pdFALSE )
                 {
@@ -692,11 +768,11 @@
                 if( xIsResponse == pdTRUE )
                 {
                     /* Search through the answer records. */
-                    ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo, &uxBytesRead );
+                    ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo, NULL );
                 }
 
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-                    else if( uxDNSRecordMatched == pdTRUE )
+                    else if( xSet.xDNSRecordsMatched == pdTRUE )
                     {
                         UBaseType_t const uxUDPOffset = ( UBaseType_t ) ( pucUDPPayloadBuffer - pxNetworkBuffer->pucEthernetBuffer );
                         UBaseType_t uxExtraSize = 0;
@@ -714,9 +790,9 @@
                                        uxIPHeaderSizePacket( pxNetworkBuffer );
 
                         /* Calculate how big our response is going to end up being. */
-                        for( i = 0; i < uxRecordCount; i++ )
+                        for( i = 0; i < xSet.uxDNSRecordCount; i++ )
                         {
-                            DNSRecord_t const * pRecord = &pxDNSRecords[ i ];
+                            DNSRecord_t const * pRecord = &xSet.pxDNSRecords[ i ];
 
                             if( pRecord->uxIncludeInAnswer == pdFALSE )
                             {
@@ -822,9 +898,9 @@
 
                         start_of_dns_answers = xSet.pucByte;
 
-                        for( i = 0; i < uxRecordCount; i++ )
+                        for( i = 0; i < xSet.uxDNSRecordCount; i++ )
                         {
-                            DNSRecord_t const * record = &pxDNSRecords[ i ];
+                            DNSRecord_t const * record = &xSet.pxDNSRecords[ i ];
                             MDNSResponseMiddle_t * middle;
 
                             if( record->uxIncludeInAnswer == pdFALSE )
@@ -951,7 +1027,6 @@
                         vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
                     }
                 #endif /* ipconfigUSE_LLMNR == 1 || ipconfigUSE_MDNS == 1 */
-                ( void ) uxBytesRead;
             } while( ipFALSE_BOOL );
 
             /* coverity[deadcode] */
