@@ -245,19 +245,27 @@
  *  "\x3www\x6google\x3com" with "www.google.com"
  *
  * The Dns sequence may contain pointers for label compression.
- * pcDnsString MUST be within the DNS message
+ * pcDNSMessage <= pcDNSString < pcDNSMessageEnd must hold. If following labels
+ * would walk past pcDNSMessageEnd, an error will be returned.
+ *
+ * @param[in] pcDNSString Pointer to the DNS label string.
+ * @param[in] pcDNSMessage Pointer to the start of the DNS payload.
+ * @param[in] pcDNSMessageEnd The pointer to one-past-the-end of the DNS payload.
+ * @param[in] pcDotString The pointer to the dot-separated string.
  *
  * @returns True when there is a match. False in malformed and non-matching cases.
  */
-        static BaseType_t DNS_NameEqual( uint8_t const * pcDnsString,
+        static BaseType_t DNS_NameEqual( uint8_t const * pcDNSString,
                                          uint8_t const * pcDNSMessage,
+                                         uint8_t const * pcDNSMessageEnd,
                                          char const * pcDotString )
         {
-            uint8_t const * pcDnsSegment = pcDnsString;
+            uint8_t const * pcDnsSegment = pcDNSString;
             char const * pcDotSegment = pcDotString;
             UBaseType_t uxNumPointerFollows = 5;
 
-            configASSERT( pcDnsString >= pcDNSMessage );
+            configASSERT( pcDNSString >= pcDNSMessage );
+            configASSERT( pcDNSString < pcDNSMessageEnd );
 
             for( ; ; )
             {
@@ -266,13 +274,15 @@
 
                 if( uxSegmentLength == 0 )
                 {
-                    /* If we have reached the end of the DNS string, we should also be at the end of */
-                    /* the dotted string. */
+                    /* If we have reached the end of the DNS string, we should also be at the end of
+                     * the dotted string. */
                     return *pcDotSegment == '\0';
                 }
 
                 if( ( uxSegmentLength & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
                 {
+                    /* This is a compressed label pointing to previous data in the DNS body */
+
                     uint16_t usLocation;
 
                     if( uxNumPointerFollows == 0 )
@@ -284,6 +294,13 @@
                     /* This is a pointer to another location in the DNS message.
                      * Follow the pointer and compare the rest of the string there. */
                     usLocation = ( pcDnsSegment[ 0 ] & ~dnsNAME_IS_OFFSET ) << 8;
+
+                    if( ( pcDnsSegment + 1 ) >= pcDNSMessageEnd )
+                    {
+                        /* Reading one further would go past the end of the message */
+                        return pdFALSE;
+                    }
+
                     usLocation |= ( uint16_t ) pcDnsSegment[ 1 ];
 
                     if( usLocation >= ( pcDnsSegment - pcDNSMessage ) )
@@ -304,6 +321,33 @@
                 }
 
                 pcDnsSegment++;
+
+                if( ( pcDnsSegment + uxSegmentLength ) >= pcDNSMessageEnd )
+                {
+                    /* The segment would go past the end of the message, so the message is malformed. */
+                    return pdFALSE;
+                }
+
+                /* Verify that the next dot-string segment is exactly uxSegmentLength bytes
+                 * (terminated by '.' or '\0'). Without this check, an attacker-controlled
+                 * uxSegmentLength larger than the dot-string segment combined with a
+                 * NUL byte in the DNS data could cause strncasecmp to match prematurely,
+                 * advancing pcDotSegment past the end of pcDotString. */
+                {
+                    UBaseType_t uxDotSegLen = 0;
+
+                    while( ( pcDotSegment[ uxDotSegLen ] != '.' ) &&
+                           ( pcDotSegment[ uxDotSegLen ] != '\0' ) )
+                    {
+                        uxDotSegLen++;
+                    }
+
+                    if( uxDotSegLen != uxSegmentLength )
+                    {
+                        return pdFALSE;
+                    }
+                }
+
                 /* The dot string should have a segment of the same length at this point. */
                 ulComparison = strncasecmp( ( char const * ) pcDnsSegment, pcDotSegment, uxSegmentLength );
 
@@ -315,11 +359,7 @@
                 pcDnsSegment += uxSegmentLength;
                 pcDotSegment += uxSegmentLength;
 
-                if( ( *pcDotSegment != '.' ) && ( *pcDotSegment != '\0' ) )
-                {
-                    /* Each segment in the dotted string must end in either a dot or the end of the string */
-                    return pdFALSE;
-                }
+                /* pcDotSegment now points to '.' or '\0' (verified above). */
 
                 if( *pcDotSegment == '.' )
                 {
@@ -617,7 +657,11 @@
                                 }
 
                                 xTypeMatch = ( pRecord->usRecordType == xSet.usType ) || ( xSet.usType == dnsTYPE_ANY );
-                                xNameMatch = DNS_NameEqual( pucThisNameField, ( const uint8_t * ) xSet.pxDNSMessageHeader, pRecord->pcName ) == pdTRUE;
+                                xNameMatch = DNS_NameEqual(
+                                    pucThisNameField,
+                                    ( const uint8_t * ) xSet.pxDNSMessageHeader,
+                                    xSet.pucUDPPayloadBuffer + xSet.uxBufferLength,
+                                    pRecord->pcName ) == pdTRUE;
 
                                 if( ( xTypeMatch == pdTRUE ) && ( xNameMatch == pdTRUE ) )
                                 {
