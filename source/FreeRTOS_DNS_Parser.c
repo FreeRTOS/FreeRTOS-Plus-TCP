@@ -457,8 +457,85 @@
                 }
             }
         }
-    #endif /* if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) ) */
 
+/**
+ * @brief Get the network buffer associated with the given parse set.
+ * Will calculate it if necessary, otherwise just return the previously calculated value.
+ *
+ * @param[in,out] xSet A set of variables that are shared among the helper functions.
+ * @return A pointer to the network buffer descriptor.
+ */
+        static NetworkBufferDescriptor_t * DNS_GetNetworkBuffer( ParseSet_t * xSet )
+        {
+            if( xSet->pxNetworkBuffer == NULL )
+            {
+                xSet->pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( xSet->pucUDPPayloadBuffer );
+            }
+
+            return xSet->pxNetworkBuffer;
+        }
+
+/**
+ * @brief Get the endpoint (by copy) associated with the given parse set.
+ *
+ * @param[in,out] xSet A set of variables that are shared among the helper functions.
+ * @param[out] pxEndPointOut A pointer to the endpoint structure where the result will be stored.
+ * @return pdTRUE if the endpoint was successfully retrieved, pdFALSE otherwise.
+ */
+        static BaseType_t DNS_GetEndpoint( ParseSet_t * xSet,
+                                           NetworkEndPoint_t * pxEndPointOut )
+        {
+            NetworkBufferDescriptor_t * pxNetworkBuffer = DNS_GetNetworkBuffer( xSet );
+
+            if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pxEndPoint == NULL ) )
+            {
+                return pdFALSE;
+            }
+
+            memcpy( pxEndPointOut, pxNetworkBuffer->pxEndPoint, sizeof( NetworkEndPoint_t ) );
+            return pdTRUE;
+        }
+
+/**
+ * @brief Get the DNS records to be used for answering the questions in xSet.
+ * Will call the application hook if necessary, or return a cached answer if not.
+ * @param[in,out] xSet A set of variables that are shared among the helper functions.
+ * @return pdTRUE if the records were successfully retrieved, pdFALSE otherwise.
+ */
+        static BaseType_t DNS_GetRecords( ParseSet_t * xSet )
+        {
+            UBaseType_t x;
+
+            #if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 )
+
+                /* No need to do anything. We aren't *really* fetching records in the back-compatible
+                 * path, we're instead creating them on the way*/
+            #else
+                NetworkEndPoint_t xEndPoint;
+
+                if( xSet->pxDNSRecords == NULL )
+                {
+                    #if ( ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) )
+                        ( void ) xEndPoint;
+                        xSet->pxDNSRecords = xApplicationDNSRecordQueryHook( &xSet->uxDNSRecordCount );
+                    #else
+                        if( DNS_GetEndpoint( xSet, &xEndPoint ) == pdFALSE )
+                        {
+                            return pdFALSE;
+                        }
+                        xSet->pxDNSRecords = xApplicationDNSRecordQueryHook_Multi( &xEndPoint, &xSet->uxDNSRecordCount );
+                    #endif
+
+                    for( x = 0U; x < xSet->uxDNSRecordCount; x++ )
+                    {
+                        xSet->pxDNSRecords[ x ].uxIncludeInAnswer = pdFALSE;
+                    }
+                }
+            #endif /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
+            return pdTRUE;
+        }
+
+    #endif /* if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) ) */
 
 
 /**
@@ -471,47 +548,23 @@
  *          - pxDNSRecords and uxDNSRecordCount
  *
  * @param[in,out] xSet a set of variables that are shared among the helper functions.
- * @param[in] pxEndPoint The endpoint on which the DNS message was received.
- *                       Necessary when LLMNR/MDNS are enabled
- *                       Otherwise may be NULL.
  * @return pdTRUE if everything went okay
  */
-    static BaseType_t parseDNSQuestions( ParseSet_t * xSet,
-                                         NetworkEndPoint_t const * pxEndPoint )
+    static BaseType_t parseDNSQuestions( ParseSet_t * xSet )
     {
         UBaseType_t x;
         size_t uxResult;
 
         #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
             NetworkEndPoint_t xEndPoint;
-            configASSERT( pxEndPoint != NULL );
-
-            /* Make a copy of the end-point because xApplicationDNSQueryHook() is allowed
-             * to write into it. */
-            ( void ) memcpy( &( xEndPoint ), pxEndPoint, sizeof( xEndPoint ) );
-
-            #if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 )
-                xSet->uxDNSRecordCount = 0;
-            #else
-                #if ( ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) )
-                    xSet->pxDNSRecords = xApplicationDNSRecordQueryHook( &xSet->uxDNSRecordCount );
-                #else
-                    xSet->pxDNSRecords = xApplicationDNSRecordQueryHook_Multi( &xEndPoint, &xSet->uxDNSRecordCount );
-                #endif
-
-                for( x = 0U; x < xSet->uxDNSRecordCount; x++ )
-                {
-                    xSet->pxDNSRecords[ x ].uxIncludeInAnswer = pdFALSE;
-                }
-            #endif /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
-        #endif /* if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
-
-        ( void ) pxEndPoint;
+            const uint8_t * pucThisNameField;
+            BaseType_t xEndPointValid = pdFALSE;
+        #endif
 
         for( x = 0U; x < xSet->usQuestions; x++ )
         {
             #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-                const uint8_t * const pucThisNameField = xSet->pucByte;
+                pucThisNameField = xSet->pucByte;
 
                 if( x == 0U )
                 {
@@ -555,8 +608,10 @@
                     xSet->usType = usChar2u16( xSet->pucByte );
                     xSet->usClass = usChar2u16( &( xSet->pucByte[ 2 ] ) );
 
-                    /* This should have been set by now. */
-                    configASSERT( xSet->pxDNSRecords != NULL );
+                    if( DNS_GetRecords( xSet ) == pdFALSE )
+                    {
+                        return pdFALSE;
+                    }
 
                     #if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) )
                     {
@@ -564,10 +619,22 @@
 
                         if( x == 0U )
                         {
+                            BaseType_t xIsMatched;
+
+                            if( xEndPointValid == pdFALSE )
+                            {
+                                if( DNS_GetEndpoint( xSet, &xEndPoint ) == pdFALSE )
+                                {
+                                    return pdFALSE;
+                                }
+
+                                xEndPointValid = pdTRUE;
+                            }
+
                             #if ( ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) )
-                                BaseType_t const xIsMatched = xApplicationDNSQueryHook( xSet->pcName );
+                                xIsMatched = xApplicationDNSQueryHook( xSet->pcName );
                             #else
-                                BaseType_t const xIsMatched = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet->pcName );
+                                xIsMatched = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet->pcName );
                             #endif
 
                             if( xIsMatched == pdTRUE )
@@ -640,7 +707,17 @@
 
                             if( ( xTypeMatch == pdTRUE ) && ( xNameMatch == pdTRUE ) )
                             {
-                                if( ( pRecord->usRecordType == dnsTYPE_A_HOST ) && ( xEndPoint.ipv4_settings.ulIPAddress == 0U ) )
+                                if( xEndPointValid == pdFALSE )
+                                {
+                                    if( DNS_GetEndpoint( xSet, &xEndPoint ) == pdFALSE )
+                                    {
+                                        return pdFALSE;
+                                    }
+
+                                    xEndPointValid = pdTRUE;
+                                }
+
+                                if( ( pRecord->usRecordType == dnsTYPE_A_HOST ) && ( ENDPOINT_IS_IPv4( &xEndPoint ) && ( xEndPoint.ipv4_settings.ulIPAddress == 0U ) ) )
                                 {
                                     FreeRTOS_printf( ( "parseDNSQuestions: No IPV4 address, skipping A record even though it matches.\n" ) );
                                     continue;
@@ -658,7 +735,7 @@
                         }
                     #endif /* if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) ) */
                 }
-                #endif /* ipconfigUSE_LLMNR */
+                #endif /* ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
 
                 /* Skip the type and class fields. */
                 xSet->pucByte = &( xSet->pucByte[ sizeof( uint32_t ) ] );
@@ -739,7 +816,6 @@
                 size_t uxResult;
                 BaseType_t xIsResponse = pdFALSE;
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-                    NetworkBufferDescriptor_t * pxNetworkBuffer;
                     #if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) )
 
                         /* We need to make dummy records to shim the old system to the new.
@@ -747,6 +823,7 @@
                          * parseDNSQuestions will do this job. */
                         DNSRecord_t xShimDNSRecords[ 2 ];
                         xSet.pxDNSRecords = xShimDNSRecords;
+                        xSet.uxDNSRecordCount = 0;
                     #endif
                 #endif
 
@@ -802,19 +879,7 @@
                     }
                 }
 
-                #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-                    pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
-
-                    if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pxEndPoint == NULL ) )
-                    {
-                        FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to get NetworkBufferDescriptor_t from UDP payload buffer.\n" ) );
-                        break;
-                    }
-
-                    xReturn = parseDNSQuestions( &xSet, pxNetworkBuffer->pxEndPoint );
-                #else
-                    xReturn = parseDNSQuestions( &xSet, NULL );
-                #endif /* if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
+                xReturn = parseDNSQuestions( &xSet );
 
                 if( xReturn == pdFALSE )
                 {
@@ -831,7 +896,6 @@
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
                     else if( xSet.xDNSRecordsMatched == pdTRUE )
                     {
-                        UBaseType_t const uxUDPOffset = ( UBaseType_t ) ( pucUDPPayloadBuffer - pxNetworkBuffer->pucEthernetBuffer );
                         UBaseType_t uxExtraSize = 0;
                         UBaseType_t uxDataLength;
                         UBaseType_t uxNumAnswers = 0;
@@ -839,6 +903,12 @@
                         uint8_t * start_of_dns_answers;
                         UBaseType_t uxIsLLMNR;
                         BaseType_t uxLength;
+                        UBaseType_t uxUDPOffset;
+                        NetworkBufferDescriptor_t * pxNetworkBuffer;
+                        pxNetworkBuffer = DNS_GetNetworkBuffer( &xSet );
+                        /* This test could be replaced with a assert(). */
+                        configASSERT( pxNetworkBuffer != NULL );
+                        uxUDPOffset = ( UBaseType_t ) ( pucUDPPayloadBuffer - pxNetworkBuffer->pucEthernetBuffer );
                         configASSERT( ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv4 ) || ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv6 ) );
 
                         uxDataLength = uxBufferLength +

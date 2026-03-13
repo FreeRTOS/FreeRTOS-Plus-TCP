@@ -33,7 +33,9 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
+#include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
+
 
 #define dnsPARSE_ERROR              0UL
 
@@ -228,27 +230,28 @@
  */
     typedef struct xParseSet
     {
-        DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
-        uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
-        uint16_t usAnswers;                /**< The number of DNS answers that were given. */
-        uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
-        uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
-        size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
-        size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
-        uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
-                                            *   dnsTYPE_AAAA_HOST ( IPv6 ). */
-        uint32_t ulIPAddress;              /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
-                                            *   an IPv6 address was found. */
-        size_t uxAddressLength;            /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
-                                            *   ipSIZE_OF_IPv6_ADDRESS */
-        uint16_t usNumARecordsStored;      /**< The number of A-records stored during a look-up. */
-        uint16_t usPortNumber;             /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
+        DNSMessage_t * pxDNSMessageHeader;               /**< A pointer to the UDP payload buffer where the DNS message is stored. */
+        uint16_t usQuestions;                            /**< The number of DNS questions that were asked. */
+        uint16_t usAnswers;                              /**< The number of DNS answers that were given. */
+        uint8_t * pucUDPPayloadBuffer;                   /**< A pointer to the original UDP load buffer. */
+        uint8_t * pucByte;                               /**< A pointer that is used while parsing. */
+        size_t uxBufferLength;                           /**< The total number of bytes received in the UDP payload. */
+        size_t uxSourceBytesRemaining;                   /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
+        uint16_t usType;                                 /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
+                                                          *   dnsTYPE_AAAA_HOST ( IPv6 ). */
+        uint32_t ulIPAddress;                            /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
+                                                          *   an IPv6 address was found. */
+        size_t uxAddressLength;                          /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
+                                                          *   ipSIZE_OF_IPv6_ADDRESS */
+        uint16_t usNumARecordsStored;                    /**< The number of A-records stored during a look-up. */
+        uint16_t usPortNumber;                           /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
         #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
-            uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
-            char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
-            DNSRecord_t * pxDNSRecords;    /**< A pointer to an array of DNS records that are being served by this device. */
-            UBaseType_t uxDNSRecordCount;  /**< The number of records in the array pointed to by 'pxDNSRecords'. */
-            BaseType_t xDNSRecordsMatched; /**< Becomes true when a question matches with one of the records in 'pxDNSRecords'. */
+            uint16_t usClass;                            /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
+            char * pcRequestedName;                      /**< A pointer to the full name of the host being looked up. */
+            DNSRecord_t * pxDNSRecords;                  /**< A pointer to an array of DNS records that are being served by this device. */
+            UBaseType_t uxDNSRecordCount;                /**< The number of records in the array pointed to by 'pxDNSRecords'. */
+            BaseType_t xDNSRecordsMatched;               /**< Becomes true when a question matches with one of the records in 'pxDNSRecords'. */
+            NetworkBufferDescriptor_t * pxNetworkBuffer; /**< A network buffer that is used to prepare an LLMNR or MDNS response. */
         #endif
 
         #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
