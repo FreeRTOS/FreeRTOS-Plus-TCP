@@ -70,8 +70,8 @@ static int callback_called = 0;
 static BaseType_t hook_return = pdFALSE;
 static BaseType_t hook_called = pdFALSE;
 
-static char prvDNSRecordNames[ 2 ][ 256 ];
-static DNSRecord_t prvDNSRecords[ 2 ];
+static char prvDNSRecordNames[ 16 ][ 256 ];
+static DNSRecord_t prvDNSRecords[ 16 ];
 static UBaseType_t prvDNSRecordsLen = 0;
 
 /* ===========================  STATIC FUNCTIONS  =========================== */
@@ -132,7 +132,7 @@ DNSRecord_t * xApplicationDNSRecordQueryHook_Multi( struct xNetworkEndPoint * px
     return prvDNSRecords;
 }
 
-static void SetDNSRecords( char const * pcName )
+static void SetDNSRecordsSimple( char const * pcName )
 {
     strncpy( prvDNSRecordNames[ 0 ], pcName, sizeof( prvDNSRecordNames[ 0 ] ) - 1 );
     strncpy( prvDNSRecordNames[ 1 ], pcName, sizeof( prvDNSRecordNames[ 1 ] ) - 1 );
@@ -2449,7 +2449,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer( void )
     dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
-    SetDNSRecords( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    SetDNSRecordsSimple( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
@@ -2525,7 +2525,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer2( void )
     dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
-    SetDNSRecords( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    SetDNSRecordsSimple( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
@@ -2614,7 +2614,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer( void )
     dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
-    SetDNSRecords( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    SetDNSRecordsSimple( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
@@ -2708,7 +2708,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer2( void )
     dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
-    SetDNSRecords( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    SetDNSRecordsSimple( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
@@ -2802,7 +2802,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer3( void )
     dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
-    SetDNSRecords( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    SetDNSRecordsSimple( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
@@ -2894,7 +2894,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_fixed_buffer( void )
     dns_header->usAnswers = FreeRTOS_htons( 2 );
     dns_header->usFlags = dnsDNS_PORT;
 
-    SetDNSRecords( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    SetDNSRecordsSimple( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
@@ -2987,7 +2987,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
     dns_header->usAnswers = FreeRTOS_htons( 0 );
     dns_header->usFlags = dnsDNS_PORT;
 
-    SetDNSRecords( "FreeRTOSFreeRTOSFree" );
+    SetDNSRecordsSimple( "FreeRTOSFreeRTOSFree" );
 
     /* First 5 queries have maximum length. */
 
@@ -3113,6 +3113,713 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+typedef struct
+{
+    uint8_t * pucUDPPayloadBuffer;
+    size_t uxBufferLength;
+    struct freertos_addrinfo * pxAddressInfo;
+    uint16_t usPort;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    uint8_t * write_head;
+    size_t uxNumQuestions;
+} DnsQTestData_t;
+
+DnsQTestData_t const dns_q_test_init( size_t uxNumQuestions )
+{
+    static uint8_t udp_buffer[ ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ] = { 0 };
+    static NetworkEndPoint_t xEndPoint = { 0 };
+    static NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+    static struct freertos_addrinfo * pxAddressInfo;
+
+    uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
+    /* Maximum UDP payload length is 1500 + 14 - 42 = 1472. */
+    size_t uxBufferLength = ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - ipUDP_PAYLOAD_OFFSET_IPv4;
+    uint16_t usPort = ipMDNS_PORT;
+    int i;
+
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
+
+    xBufferAllocFixedSize = pdTRUE;
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    pxNetworkBuffer.xDataLength = uxBufferLength;
+    pxNetworkBuffer.pxEndPoint = &xEndPoint;
+
+    UDPPacket_t * pxUDPPacket;
+    IPHeader_t * pxIPHeader;
+    UDPHeader_t * pxUDPHeader;
+
+    pxUDPPacket = ( ( UDPPacket_t * )
+                    pxNetworkBuffer.pucEthernetBuffer );
+    pxIPHeader = &pxUDPPacket->xIPHeader;
+    pxIPHeader->ucVersionHeaderLength = 0x0;
+    pxUDPHeader = &pxUDPPacket->xUDPHeader;
+    IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer.pucEthernetBuffer );
+
+    pxIPHeader->ulSourceIPAddress = 1234;
+
+    BaseType_t xExpected = pdFALSE;
+
+    DNSMessage_t * dns_header;
+
+    dns_header = ( DNSMessage_t * ) pucUDPPayloadBuffer;
+    memset( dns_header, 0x00, sizeof( DNSMessage_t ) );
+    dns_header->usQuestions = FreeRTOS_htons( uxNumQuestions );
+    dns_header->usAnswers = FreeRTOS_htons( 0 );
+    dns_header->usFlags = dnsDNS_PORT;
+
+    return ( DnsQTestData_t ) {
+               .pucUDPPayloadBuffer = pucUDPPayloadBuffer,
+               .uxBufferLength = uxBufferLength,
+               .pxAddressInfo = pxAddressInfo,
+               .usPort = usPort,
+               .pxNetworkBuffer = &pxNetworkBuffer,
+               .write_head = pucUDPPayloadBuffer + sizeof( DNSMessage_t ),
+               .uxNumQuestions = uxNumQuestions
+    };
+}
+
+#define PUSH_LABEL( buff, data )               \
+    do {                                       \
+        size_t const len = sizeof( data ) - 1; \
+        buff[ 0 ] = ( uint8_t ) len;           \
+        memcpy( buff + 1, data, len );         \
+        buff += ( len + 1 );                   \
+    } while( 0 )
+
+#define END_LABELS( buff ) \
+    do {                   \
+        buff[ 0 ] = 0;     \
+        buff++;            \
+    } while( 0 )
+
+#define A_TYPE_IN_CLASS( buff )              \
+    do {                                     \
+        memcpy( buff, "\x00\x01\00\01", 4 ); \
+        buff += 4;                           \
+    } while( 0 )
+
+#define PUSH_OFFSET( buff, offset ) \
+    do {                            \
+        buff[ 0 ] = 0xC0;           \
+        buff[ 1 ] = offset;         \
+        buff += 2;                  \
+    } while( 0 )
+
+void static expect_dns_result( DnsQTestData_t * test_data,
+                               BaseType_t uxShouldSucceed,
+                               uint16_t usType )
+{
+    if( test_data->uxNumQuestions > 0 )
+    {
+        UBaseType_t i;
+        usChar2u16_ExpectAnyArgsAndReturn( usType );      /* usType */
+        usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); /* usClass */
+        pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data->pxNetworkBuffer );
+
+        for( i = 0; i < test_data->uxNumQuestions - 1; i++ )
+        {
+            usChar2u16_ExpectAnyArgsAndReturn( usType );      /* usType */
+            usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); /* usClass */
+        }
+    }
+
+    if( uxShouldSucceed )
+    {
+        uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+        usGenerateChecksum_ExpectAnyArgsAndReturn( 555 );
+        usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 444 );
+        vReturnEthernetFrame_Expect( test_data->pxNetworkBuffer, pdFALSE );
+    }
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data->pucUDPPayloadBuffer,
+                                        test_data->write_head - test_data->pucUDPPayloadBuffer,
+                                        &test_data->pxAddressInfo,
+                                        pdFALSE,
+                                        test_data->usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+void test_DNS_ParseDNSReply_questions_case_insensitivity( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "fREErtos" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_multi_label( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    SetDNSRecordsSimple( "FreeRTOS.TCP" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    size_t last_offset = test_data.write_head - test_data.pucUDPPayloadBuffer;
+    PUSH_LABEL( test_data.write_head, "TCP" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_comparison_negative( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 2 );
+
+    SetDNSRecordsSimple( "F@eeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "F@efRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    PUSH_LABEL( test_data.write_head, "F@edRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_comparison_early_termination( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 3 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    /* Q1 says it has length 10, but the string is null terminated after 8.
+     * This matches our record, but the length is wrong. It should fail */
+    PUSH_LABEL( test_data.write_head, "FreeRTOS\0\0" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    /* Q2 has length 4 that is a prefix of our record, but isn't long enough */
+    PUSH_LABEL( test_data.write_head, "Free" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    /* Q3 has our record as a suffix, but is too long */
+    PUSH_LABEL( test_data.write_head, "FreeRTOStcp" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_follow_offset( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 2 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "prefix" );
+    size_t const offset = test_data.write_head - test_data.pucUDPPayloadBuffer;
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+    PUSH_OFFSET( test_data.write_head, offset );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_offset_oob( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 2 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "0" );
+    size_t const offset = ( test_data.write_head - test_data.pucUDPPayloadBuffer ) - 1;
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    /* This offset points to the 0 in the previous record, ascii 48
+     * If this were to be followed as an actual label length, we would
+     * walk past the end of the DNS record. That must be caught.
+     */
+
+    PUSH_OFFSET( test_data.write_head, offset );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_label_goes_forward( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_OFFSET( test_data.write_head, 0 );
+    uint8_t * offset_loc = test_data.write_head - 1;
+    A_TYPE_IN_CLASS( test_data.write_head );
+    /* Make the previous question point forward to this future, matching question */
+    *offset_loc = test_data.write_head - test_data.pucUDPPayloadBuffer;
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
+}
+
+
+void test_DNS_ParseDNSReply_questions_input_segment_too_long( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    /* Label length is 26 * 3 == 78, which is illegally long */
+    PUSH_LABEL( test_data.write_head, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_nested_follows( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 3 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "prefix" );
+    size_t last_offset = test_data.write_head - test_data.pucUDPPayloadBuffer;
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    size_t offset_of_offset = test_data.write_head - test_data.pucUDPPayloadBuffer;
+    PUSH_OFFSET( test_data.write_head, last_offset );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    PUSH_OFFSET( test_data.write_head, offset_of_offset );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    /* This will still work, because the first offset is a valid question.
+     */
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_srv_record( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_SRV,
+        .xData.xSrvRecord.pcTarget = "TCP", .xData.xSrvRecord.usPort = 1234
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_SRV );
+}
+
+void test_DNS_ParseDNSReply_questions_txt_record( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_TXT,
+        .xData.pcTxtRecord = "Some Text"
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_TXT );
+}
+
+void test_DNS_ParseDNSReply_questions_txt_record_too_long( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_TXT,
+        .xData.pcTxtRecord =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    UBaseType_t i;
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_TXT ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
+                                        test_data.write_head - test_data.pucUDPPayloadBuffer,
+                                        &test_data.pxAddressInfo,
+                                        pdFALSE,
+                                        test_data.usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+void test_DNS_ParseDNSReply_questions_ptr_record( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_PTR,
+        .xData.pcPtrRecord = "TCP"
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_PTR );
+}
+
+void test_DNS_ParseDNSReply_questions_ptr_record_matches_any( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_PTR,
+        .xData.pcPtrRecord = "TCP"
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_ANY );
+}
+
+void test_DNS_ParseDNSReply_questions_unsupported_record( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_PTR,
+        .xData.pcPtrRecord = "TCP"
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdFALSE, 0x0D );
+}
+
+void test_DNS_ParseDNSReply_questions_unsupported_record_in_hook( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = 0x0D,
+        .xData.pcPtrRecord = "TCP"
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_no_ipv4_address( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    test_data.pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress = 0;
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_no_ipv6_address( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    test_data.pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress = 0;
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x1C\x00\x01", 4 ); /* AAAA record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdFALSE, dnsTYPE_AAAA_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_ipv4_when_ipv6( void )
+{
+    /* If we are asked for our ipv4 record but we're on ipv6, we should
+     * still serve it.
+     */
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    test_data.pxNetworkBuffer->pxEndPoint->bits.bIPv6 = pdTRUE;
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_missing_endpoint( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    test_data.pxNetworkBuffer->pxEndPoint = NULL;
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+    test_data.write_head += 4;
+
+    UBaseType_t i;
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
+                                        test_data.write_head - test_data.pucUDPPayloadBuffer,
+                                        &test_data.pxAddressInfo,
+                                        pdFALSE,
+                                        test_data.usPort );
+
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_NOT_CALLED();
+}
+
+void test_DNS_ParseDNSReply_questions_fixed_size_not_big_enough( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+    test_data.write_head += 4;
+
+    xBufferAllocFixedSize = true;
+
+    UBaseType_t i;
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
+                                        ipconfigNETWORK_MTU,
+                                        &test_data.pxAddressInfo,
+                                        pdFALSE,
+                                        test_data.usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+void test_DNS_ParseDNSReply_questions_wrong_port( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+
+    test_data.usPort = 1234; /* Some garbage port */
+
+    UBaseType_t i;
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    /* usGenerateChecksum_ExpectAnyArgsAndReturn( 555 ); */
+    /* usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 444 ); */
+    /* vReturnEthernetFrame_Expect( test_data.pxNetworkBuffer, pdFALSE ); */
+
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
+                                        test_data.write_head - test_data.pucUDPPayloadBuffer,
+                                        &test_data.pxAddressInfo,
+                                        pdFALSE,
+                                        test_data.usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+
+void test_DNS_ParseDNSReply_questions_ptr_output_segment_too_long( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_PTR,
+        /* This is longer than 63 so it will be rejected*/
+        .xData.pcPtrRecord = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x0C\x00\x01", 4 ); /* PTR record, IN class */
+    test_data.write_head += 4;
+
+    UBaseType_t i;
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_PTR ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
+                                        test_data.write_head - test_data.pucUDPPayloadBuffer,
+                                        &test_data.pxAddressInfo,
+                                        pdFALSE,
+                                        test_data.usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+void test_DNS_ParseDNSReply_questions_srv_output_segment_too_long( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_SRV,
+        /* This is longer than 63 so it will be rejected*/
+        .xData.xSrvRecord.pcTarget = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        .xData.xSrvRecord.usPort = 1234
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x0C\x00\x01", 4 ); /* PTR record, IN class */
+    test_data.write_head += 4;
+
+    UBaseType_t i;
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_SRV ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
+                                        test_data.write_head - test_data.pucUDPPayloadBuffer,
+                                        &test_data.pxAddressInfo,
+                                        pdFALSE,
+                                        test_data.usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+void test_DNS_ParseDNSReply_questions_srv_output_segment_zero_len( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_SRV,
+        /* The middle segment is len 0 so it will be rejected*/
+        .xData.xSrvRecord.pcTarget = "a..b",
+        .xData.xSrvRecord.usPort = 1234
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x0C\x00\x01", 4 ); /* PTR record, IN class */
+    test_data.write_head += 4;
+
+    UBaseType_t i;
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_SRV ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); /* usClass */
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
+                                        test_data.write_head - test_data.pucUDPPayloadBuffer,
+                                        &test_data.pxAddressInfo,
+                                        pdFALSE,
+                                        test_data.usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ASSERT_DNS_QUERY_HOOK_CALLED();
+}
+
+void test_DNS_ParseDNSReply_questions_multimatch( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    SetDNSRecordsSimple( "FreeRTOS" );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\xFF\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_ANY_HOST );
 }
 
 /**
@@ -4057,7 +4764,7 @@ void test_DNS_ParseDNSReply_mdns_request( void )
     strcpy( pucPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38 + 1 + 4;            /* Skip name, nul-byte, and Type/Class. */
 
-    SetDNSRecords( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    SetDNSRecordsSimple( "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     /* xApplicationDNSQueryHook_Multi() must be called. */
     hook_return = pdTRUE;
