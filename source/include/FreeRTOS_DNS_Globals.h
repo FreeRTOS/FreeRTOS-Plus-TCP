@@ -33,7 +33,9 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
+#include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
+
 
 #define dnsPARSE_ERROR              0UL
 
@@ -68,8 +70,12 @@
     #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
     #define dnsTYPE_AAAA_HOST         0x001CU
     #define dnsTYPE_ANY_HOST          0x00FFU
+    #define dnsTYPE_TXT               0x0010U /**< DNS type TXT (Text Record). */
+    #define dnsTYPE_PTR               0x000CU /**< DNS type PTR (Pointer Record). */
+    #define dnsTYPE_SRV               0x0021U /**< DNS type SRV (Service Record). */
+    #define dnsTYPE_ANY               0x00FFU /**< DNS type ANY. */
 
-    #define dnsCLASS_IN               0x01U /**< DNS class IN (Internet). */
+    #define dnsCLASS_IN               0x01U   /**< DNS class IN (Internet). */
 
 /* Maximum hostname length as defined in RFC 1035 section 3.1. */
     #define dnsMAX_HOSTNAME_LENGTH    0xFFU
@@ -117,6 +123,73 @@
     #define ipDNS_PORT                   53U     /* Standard DNS port. */
     #define ipNBNS_PORT                  137U    /* NetBIOS Name Service. */
     #define ipNBDGM_PORT                 138U    /* Datagram Service, not included. */
+
+    #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
+
+/* Do not serve this record */
+        #define dnsRECORD_SERVE_NO            0U
+
+/* Serve this record as an additional RR
+ * Writing `.uxServeRecord |= dnsRECORD_SERVE_ADDITIONAL` will cause the
+ * record to be served as an additional RR only if it was previously not
+ * being served, but will leave answers unchanged.
+ */
+        #define dnsRECORD_SERVE_ADDITIONAL    1U
+        /* Serve this record as an answer */
+        #define dnsRECORD_SERVE_ANSWER        3U
+
+        typedef struct xDNSRecord
+        {
+            uint16_t usRecordType;
+
+            /* How to serve this record.
+             * See `dnsRECORD_SERVE_NO`, `dnsRECORD_SERVE_ADDITIONAL` and `dnsRECORD_SERVE_ANSWER`. */
+            BaseType_t uxServeRecord;
+            const char * pcName;
+            union
+            {
+                char * pcPtrRecord;
+                struct
+                {
+                    const char * pcTarget;
+                    uint16_t usPort;
+                } xSrvRecord;
+                char * pcTxtRecord;
+            } xData;
+        } DNSRecord_t;
+
+/*
+ * The following function should be provided by the user and return true if it
+ * matches the domain name.
+ */
+        #if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 )
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                /* Even though the function is defined in main.c, the rule is violated. */
+                /* misra_c_2012_rule_8_6_violation */
+                extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
+                #define xApplicationNBNSQueryHook    xApplicationDNSQueryHook
+            #else
+                /* Even though the function is defined in main.c, the rule is violated. */
+                /* misra_c_2012_rule_8_6_violation */
+                extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                                  const char * pcName );
+                #define xApplicationNBNSQueryHook_Multi    xApplicationDNSQueryHook_Multi
+            #endif
+        #else /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
+            extern void xApplicationDNSRecordsMatchedHook( void );
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                extern DNSRecord_t * xApplicationDNSRecordQueryHook( UBaseType_t * outLen );
+                extern BaseType_t xApplicationNBNSQueryHook( const char * pcName );
+            #else
+                extern DNSRecord_t * xApplicationDNSRecordQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                                           UBaseType_t * outLen );
+                extern BaseType_t xApplicationNBNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                                   const char * pcName );
+            #endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
+        #endif /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
+
+    #endif /* ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
@@ -172,25 +245,28 @@
  */
     typedef struct xParseSet
     {
-        DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
-        uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
-        uint16_t usAnswers;                /**< The number of DNS answers that were given. */
-        uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
-        uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
-        size_t uxSkipCount;                /**< Points to the byte after the complete name (mDNS only) */
-        size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */
-        size_t uxSourceBytesRemaining;     /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
-        uint16_t usType;                   /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
-                                            *   dnsTYPE_AAAA_HOST ( IPv6 ). */
-        uint32_t ulIPAddress;              /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
-                                            *   an IPv6 address was found. */
-        size_t uxAddressLength;            /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
-                                            *   ipSIZE_OF_IPv6_ADDRESS */
-        uint16_t usNumARecordsStored;      /**< The number of A-records stored during a look-up. */
-        uint16_t usPortNumber;             /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
+        DNSMessage_t * pxDNSMessageHeader;               /**< A pointer to the UDP payload buffer where the DNS message is stored. */
+        uint16_t usQuestions;                            /**< The number of DNS questions that were asked. */
+        uint16_t usAnswers;                              /**< The number of DNS answers that were given. */
+        uint8_t * pucUDPPayloadBuffer;                   /**< A pointer to the original UDP load buffer. */
+        uint8_t * pucByte;                               /**< A pointer that is used while parsing. */
+        size_t uxBufferLength;                           /**< The total number of bytes received in the UDP payload. */
+        size_t uxSourceBytesRemaining;                   /**< As pucByte is incremented, 'uxSourceBytesRemaining' will be decremented. */
+        uint16_t usType;                                 /**< The type of address, recognised are dnsTYPE_A_HOST ( Ipv4 ) and
+                                                          *   dnsTYPE_AAAA_HOST ( IPv6 ). */
+        uint32_t ulIPAddress;                            /**< The IPv4 address found. In an IPv6 look-up, store a non-zero value when
+                                                          *   an IPv6 address was found. */
+        size_t uxAddressLength;                          /**< The size of the address, either ipSIZE_OF_IPv4_ADDRESS or
+                                                          *   ipSIZE_OF_IPv6_ADDRESS */
+        uint16_t usNumARecordsStored;                    /**< The number of A-records stored during a look-up. */
+        uint16_t usPortNumber;                           /**< The port number that belong to the protocol ( DNS, MDNS etc ). */
         #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
-            uint16_t usClass;              /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
-            char * pcRequestedName;        /**< A pointer to the full name of the host being looked up. */
+            uint16_t usClass;                            /**< Only the value 'dnsCLASS_IN' is recognised, which stands for "Internet". */
+            char * pcRequestedName;                      /**< A pointer to the full name of the host being looked up. */
+            DNSRecord_t * pxDNSRecords;                  /**< A pointer to an array of DNS records that are being served by this device. */
+            UBaseType_t uxDNSRecordCount;                /**< The number of records in the array pointed to by 'pxDNSRecords'. */
+            BaseType_t xDNSRecordsMatched;               /**< Becomes true when a question matches with one of the records in 'pxDNSRecords'. */
+            NetworkBufferDescriptor_t * pxNetworkBuffer; /**< A network buffer that is used to prepare an LLMNR or MDNS response. */
         #endif
 
         #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
@@ -216,6 +292,35 @@
         }
         #include "pack_struct_end.h"
         typedef struct xLLMNRAnswer LLMNRAnswer_t;
+
+        #include "pack_struct_start.h"
+        struct xMDNSResponseMiddle
+        {
+            uint16_t usType;       /**< Type of the Resource record. */
+            uint16_t usClass;      /**< Class of the Resource record. */
+            uint32_t ulTTL;        /**< Seconds till this entry can be cached. */
+            uint16_t usDataLength; /**< Length of the address in this record. */
+        }
+        #include "pack_struct_end.h"
+        typedef struct xMDNSResponseMiddle MDNSResponseMiddle_t;
+
+        #include "pack_struct_start.h"
+        struct xMDNSResponseSRVEnd
+        {
+            uint16_t priority;
+            uint16_t weight;
+            uint16_t port;
+        }
+        #include "pack_struct_end.h"
+        typedef struct xMDNSResponseSRVEnd MDNSResponseSRVEnd_t;
+
+        #include "pack_struct_start.h"
+        struct xMDNSResponseHostAEnd
+        {
+            uint32_t ipAddr;
+        }
+        #include "pack_struct_end.h"
+        typedef struct xMDNSResponseHostAEnd MDNSResponseHostAEnd_t;
     #endif /* if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) */
 
     #if ( ipconfigUSE_NBNS == 1 )
@@ -283,24 +388,6 @@
         size_t uxPayloadLength;     /**< Payload size */
     } DNSBuffer_t;
 
-    #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
-
-/*
- * The following function should be provided by the user and return true if it
- * matches the domain name.
- */
-        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-            /* Even though the function is defined in main.c, the rule is violated. */
-            /* misra_c_2012_rule_8_6_violation */
-            extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
-        #else
-            /* Even though the function is defined in main.c, the rule is violated. */
-            /* misra_c_2012_rule_8_6_violation */
-            extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                                              const char * pcName );
-        #endif
-
-    #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
 
 /* Keeping this outside of ipconfigUSE_DNS flag as these are used inside IPv4 UDP code */
