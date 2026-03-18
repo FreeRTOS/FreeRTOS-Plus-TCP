@@ -73,6 +73,7 @@ static BaseType_t hook_called = pdFALSE;
 static char prvDNSRecordNames[ 16 ][ 256 ];
 static DNSRecord_t prvDNSRecords[ 16 ];
 static UBaseType_t prvDNSRecordsLen = 0;
+static size_t prvDNSAdditionalRecordIndex = SIZE_MAX;
 
 /* ===========================  STATIC FUNCTIONS  =========================== */
 static void dns_callback( const char * pcName,
@@ -99,6 +100,7 @@ void setUp( void )
     xBufferAllocFixedSize = pdFALSE;
     callback_called = 0;
     prvDNSRecordsLen = 0;
+    prvDNSAdditionalRecordIndex = SIZE_MAX;
 }
 
 /**
@@ -132,6 +134,14 @@ DNSRecord_t * xApplicationDNSRecordQueryHook_Multi( struct xNetworkEndPoint * px
     return prvDNSRecords;
 }
 
+void xApplicationDNSRecordsMatchedHook( void )
+{
+    if( prvDNSAdditionalRecordIndex != SIZE_MAX )
+    {
+        prvDNSRecords[ prvDNSAdditionalRecordIndex ].uxServeRecord |= dnsRECORD_SERVE_ADDITIONAL;
+    }
+}
+
 static void SetDNSRecordsSimple( char const * pcName )
 {
     strncpy( prvDNSRecordNames[ 0 ], pcName, sizeof( prvDNSRecordNames[ 0 ] ) - 1 );
@@ -146,6 +156,11 @@ static void SetDNSRecordsSimple( char const * pcName )
         .pcName = prvDNSRecordNames[ 1 ]
     };
     prvDNSRecordsLen = 2;
+}
+
+static void SetDNSRecordServeAdditional( size_t n )
+{
+    prvDNSAdditionalRecordIndex = n;
 }
 
 /* =============================  TEST CASES  =============================== */
@@ -3508,6 +3523,70 @@ void test_DNS_ParseDNSReply_questions_ptr_record( void )
 
     expect_dns_result( &test_data, pdTRUE, dnsTYPE_PTR );
 }
+
+void test_DNS_ParseDNSReply_questions_additional_record( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_A_HOST,
+    };
+    prvDNSRecords[ 1 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS_Additional",
+        .usRecordType = dnsTYPE_PTR,
+        .xData.pcPtrRecord = "TCP"
+    };
+    prvDNSRecordsLen = 2;
+
+    SetDNSRecordServeAdditional( 1 );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
+}
+
+void test_DNS_ParseDNSReply_questions_additional_record_fail_to_serve( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_A_HOST,
+    };
+
+    /* This record should not serve because it is too long,
+     * but the first record should still be served */
+    prvDNSRecords[ 1 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS_Additional",
+        .usRecordType = dnsTYPE_TXT,
+        .xData.pcTxtRecord =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+    };
+    prvDNSRecordsLen = 2;
+
+    SetDNSRecordServeAdditional( 1 );
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    A_TYPE_IN_CLASS( test_data.write_head );
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
+}
+
 
 void test_DNS_ParseDNSReply_questions_ptr_record_matches_any( void )
 {
