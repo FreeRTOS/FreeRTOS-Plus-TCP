@@ -126,11 +126,25 @@
 
     #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 
+/* Do not serve this record */
+        #define dnsRECORD_SERVE_NO            0U
+
+/* Serve this record as an additional RR
+ * Writing `.uxServeRecord |= dnsRECORD_SERVE_ADDITIONAL` will cause the
+ * record to be served as an additional RR only if it was previously not
+ * being served, but will leave answers unchanged.
+ */
+        #define dnsRECORD_SERVE_ADDITIONAL    1U
+        /* Serve this record as an answer */
+        #define dnsRECORD_SERVE_ANSWER        3U
+
         typedef struct xDNSRecord
         {
             uint16_t usRecordType;
-            /* Used by the backend to determine which fields to report */
-            BaseType_t uxIncludeInAnswer;
+
+            /* How to serve this record.
+             * See `dnsRECORD_SERVE_NO`, `dnsRECORD_SERVE_ADDITIONAL` and `dnsRECORD_SERVE_ANSWER`. */
+            BaseType_t uxServeRecord;
             const char * pcName;
             union
             {
@@ -162,6 +176,7 @@
                 #define xApplicationNBNSQueryHook_Multi    xApplicationDNSQueryHook_Multi
             #endif
         #else /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
+            extern void xApplicationDNSRecordsMatchedHook( void );
             #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                 extern DNSRecord_t * xApplicationDNSRecordQueryHook( UBaseType_t * outLen );
                 extern BaseType_t xApplicationNBNSQueryHook( const char * pcName );

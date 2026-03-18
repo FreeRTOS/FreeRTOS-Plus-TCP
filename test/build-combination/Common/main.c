@@ -213,6 +213,10 @@ int main( void )
         return xReturn;
     }
 
+    void xApplicationDNSRecordsMatchedHook( void )
+    {
+    }
+
 
 #endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) */
 /*-----------------------------------------------------------*/

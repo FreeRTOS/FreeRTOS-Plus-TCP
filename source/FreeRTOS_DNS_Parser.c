@@ -520,12 +520,153 @@
 
                     for( x = 0U; x < xSet->uxDNSRecordCount; x++ )
                     {
-                        xSet->pxDNSRecords[ x ].uxIncludeInAnswer = pdFALSE;
+                        xSet->pxDNSRecords[ x ].uxServeRecord = dnsRECORD_SERVE_NO;
                     }
                 }
             #endif /* if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) */
             return pdTRUE;
         }
+
+/** @brief Write a DNS record into the response buffer.
+ *
+ * @param[in,out] xSet A set of variables that are shared among the helper functions.
+ * @param[in] pxRecord The DNS record to write.
+ * @returns pdTRUE if the record was successfully written, pdFALSE otherwise.
+ *          In the pdFALSE case, xSet.pucByte will be unchanged.
+ */
+        static BaseType_t prvWriteDNSRecord( ParseSet_t * xSet,
+                                             DNSRecord_t const * pxRecord )
+        {
+            uint8_t * pucWriteHead;
+            MDNSResponseMiddle_t * middle;
+            NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+            pucWriteHead = xSet->pucByte;
+            pxNetworkBuffer = DNS_GetNetworkBuffer( xSet );
+
+            /* By the time we get here we should already have a valid network buffer,
+             * so this should never fail*/
+            if( pxNetworkBuffer == NULL ) /* LCOV_EXCL_BR_LINE */
+            {
+                /* LCOV_EXCL_START */
+                FreeRTOS_printf( ( "prvWriteDNSRecord: Failed to get network buffer\n" ) );
+                return pdFALSE;
+                /* LCOV_EXCL_STOP */
+            }
+
+            /* Exclude from coverage because this should be impossible to fail.
+             * We already checked the name during question parsing. */
+            if( !DNS_WriteName( ( char * ) pucWriteHead, pxRecord->pcName ) ) /* LCOV_EXCL_BR_LINE */
+            {
+                /* LCOV_EXCL_START */
+                FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write record name" ) );
+                /* This should not happen, since we have already calculated the required size. */
+                return pdFALSE;
+                /* LCOV_EXCL_STOP */
+            }
+
+            /* Interim write pointer that we will only "commit" once everything is done */
+            pucWriteHead += strlen( pxRecord->pcName ) + 2;
+            middle = ( MDNSResponseMiddle_t * ) pucWriteHead;
+
+            vSetField16( middle, MDNSResponseMiddle_t, usType, pxRecord->usRecordType );
+            vSetField16( middle, MDNSResponseMiddle_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
+            vSetField32( middle, MDNSResponseMiddle_t, ulTTL, dnsLLMNR_TTL_VALUE );
+
+            switch( pxRecord->usRecordType ) /* LCOV_EXCL_BR_LINE The default case is not reached */
+            {
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case dnsTYPE_A_HOST:
+                       {
+                           MDNSResponseHostAEnd_t * host_end;
+                           vSetField16( middle, MDNSResponseMiddle_t, usDataLength, 4 );
+                           pucWriteHead += sizeof( *middle );
+                           host_end = ( MDNSResponseHostAEnd_t * ) pucWriteHead;
+                           vSetField32( host_end, MDNSResponseHostAEnd_t, ipAddr, FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress ) );
+                           pucWriteHead += sizeof( *host_end );
+                           break;
+                       }
+                #endif /* ipconfigUSE_IPv4 */
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case dnsTYPE_AAAA_HOST:
+                        vSetField16( middle, MDNSResponseMiddle_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
+                        pucWriteHead += sizeof( *middle );
+                        ( void ) memcpy( pucWriteHead, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        pucWriteHead += ipSIZE_OF_IPv6_ADDRESS;
+                        break;
+                #endif /* ipconfigUSE_IPv6 */
+                case dnsTYPE_PTR:
+                    vSetField16( middle, MDNSResponseMiddle_t, usDataLength, strlen( pxRecord->xData.pcPtrRecord ) + 2 );
+                    pucWriteHead += sizeof( *middle );
+
+                    if( DNS_WriteName( ( char * ) pucWriteHead, pxRecord->xData.pcPtrRecord ) == pdFALSE )
+                    {
+                        FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write PTR record" ) );
+                        /* Skip this record */
+                        return pdFALSE;
+                    }
+
+                    pucWriteHead += strlen( pxRecord->xData.pcPtrRecord ) + 2;
+                    break;
+
+                case dnsTYPE_SRV:
+                   {
+                       MDNSResponseSRVEnd_t * srv_end;
+                       vSetField16(
+                           middle,
+                           MDNSResponseMiddle_t,
+                           usDataLength,
+                           sizeof( MDNSResponseSRVEnd_t ) + strlen( pxRecord->xData.xSrvRecord.pcTarget ) + 2 );
+                       pucWriteHead += sizeof( *middle );
+                       srv_end = ( MDNSResponseSRVEnd_t * ) pucWriteHead;
+                       vSetField16( srv_end, MDNSResponseSRVEnd_t, priority, 0 );
+                       vSetField16( srv_end, MDNSResponseSRVEnd_t, weight, 0 );
+                       vSetField16( srv_end, MDNSResponseSRVEnd_t, port, pxRecord->xData.xSrvRecord.usPort );
+                       pucWriteHead += sizeof( *srv_end );
+
+                       if( DNS_WriteName( ( char * ) pucWriteHead, pxRecord->xData.xSrvRecord.pcTarget ) == pdFALSE )
+                       {
+                           FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write SRV record target name" ) );
+                           /* Skip this record */
+                           return pdFALSE;
+                       }
+
+                       pucWriteHead += strlen( pxRecord->xData.xSrvRecord.pcTarget ) + 2;
+                       break;
+                   }
+
+                case dnsTYPE_TXT:
+                   {
+                       size_t xTextLength = strlen( pxRecord->xData.pcTxtRecord );
+
+                       if( xTextLength > 255 )
+                       {
+                           /* Each TXT record must be less than 256 bytes, since the length is stored in a single byte. */
+                           FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write TXT record" ) );
+                           return pdFALSE;
+                       }
+
+                       vSetField16( middle, MDNSResponseMiddle_t, usDataLength, strlen( pxRecord->xData.pcTxtRecord ) + 1 );
+                       pucWriteHead += sizeof( *middle );
+                       *pucWriteHead++ = ( uint8_t ) xTextLength;
+                       memcpy( pucWriteHead, pxRecord->xData.pcTxtRecord, xTextLength );
+                       pucWriteHead += xTextLength;
+                       break;
+                   }
+
+                /* This region is unreachable in practice, because we already filtered the records in the question
+                 * parsing */
+                /* LCOV_EXCL_START */
+                default:
+                    FreeRTOS_printf( ( "DNS_ParseDNSReply: Unsupported record type %u\n", pxRecord->usRecordType ) );
+                    return pdFALSE;
+                    /* LCOV_EXCL_STOP */
+            }
+
+            xSet->pucByte = pucWriteHead;
+            return pdTRUE;
+        }
+
 
     #endif /* if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) ) */
 
@@ -642,7 +783,7 @@
                                             ( DNSRecord_t ) {
                                             .usRecordType = dnsTYPE_AAAA_HOST,
                                             .pcName = xSet->pcName,
-                                            .uxIncludeInAnswer = pdTRUE,
+                                            .uxServeRecord = dnsRECORD_SERVE_ANSWER,
                                         };
                                     }
                                 #endif /* if ( ( ipconfigUSE_IPv6 != 0 ) ) */
@@ -656,7 +797,7 @@
                                             ( DNSRecord_t ) {
                                             .usRecordType = dnsTYPE_A_HOST,
                                             .pcName = xSet->pcName,
-                                            .uxIncludeInAnswer = pdTRUE,
+                                            .uxServeRecord = dnsRECORD_SERVE_ANSWER,
                                         };
                                     }
                                 #endif /* if ( ( ipconfigUSE_IPv4 != 0 ) ) */
@@ -724,9 +865,14 @@
                                     continue;
                                 }
 
-                                pRecord->uxIncludeInAnswer = pdTRUE;
+                                pRecord->uxServeRecord = dnsRECORD_SERVE_ANSWER;
                                 xSet->xDNSRecordsMatched = pdTRUE;
                             }
+                        }
+
+                        if( xSet->xDNSRecordsMatched )
+                        {
+                            xApplicationDNSRecordsMatchedHook();
                         }
                     #endif /* if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) ) */
                 }
@@ -744,6 +890,7 @@
 
         return pdTRUE;
     }
+
 
 /**
  * @brief Process a response packet from a DNS server, or an LLMNR/MDNS reply.
@@ -894,8 +1041,9 @@
                         UBaseType_t uxExtraSize = 0;
                         UBaseType_t uxDataLength;
                         UBaseType_t uxNumAnswers = 0;
+                        UBaseType_t uxNumAdditionalRRs = 0;
                         uint8_t * pucNewBuffer = NULL;
-                        uint8_t * start_of_dns_answers;
+                        uint8_t * pucStartOfAnswers;
                         UBaseType_t uxIsLLMNR;
                         BaseType_t uxLength;
                         UBaseType_t uxUDPOffset;
@@ -928,7 +1076,7 @@
                         {
                             DNSRecord_t const * pRecord = &xSet.pxDNSRecords[ i ];
 
-                            if( pRecord->uxIncludeInAnswer == pdFALSE )
+                            if( pRecord->uxServeRecord == dnsRECORD_SERVE_NO )
                             {
                                 continue;
                             }
@@ -1039,132 +1187,44 @@
                             xSet.usPortNumber == ipLLMNR_PORT ? dnsLLMNR_FLAGS_IS_RESPONSE : dnsMDNS_FLAGS_IS_RESPONSE ); /* Set the response flag */
                         /* Number of answers will be filled later */
                         vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                          /* No authority */
-                        vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );
+                        /* Number of additional records will be filled later */
 
-                        start_of_dns_answers = xSet.pucByte;
+                        pucStartOfAnswers = xSet.pucByte;
 
                         for( i = 0; i < xSet.uxDNSRecordCount; i++ )
                         {
                             DNSRecord_t const * record = &xSet.pxDNSRecords[ i ];
-                            MDNSResponseMiddle_t * middle;
-                            uint8_t * pucInterimWrite = xSet.pucByte;
 
-                            if( record->uxIncludeInAnswer == pdFALSE )
+                            if( record->uxServeRecord != dnsRECORD_SERVE_ANSWER )
                             {
                                 continue;
                             }
 
-                            /* Exclude from coverage because this should be impossible to fail.
-                             * We already checked the name during question parsing. */
-                            if( !DNS_WriteName( ( char * ) pucInterimWrite, record->pcName ) ) /* LCOV_EXCL_BR_LINE */
+                            if( prvWriteDNSRecord( &xSet, record ) == pdFALSE )
                             {
-                                /* LCOV_EXCL_START */
-                                FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write record name" ) );
-                                /* This should not happen, since we have already calculated the required size. */
-                                break;
-                                /* LCOV_EXCL_STOP */
+                                /* If writing this record failed, we skip it and move on to the next one. */
+                                continue;
                             }
 
-                            /* Interim write pointer that we will only "commit" once everything is done */
-                            pucInterimWrite += strlen( record->pcName ) + 2;
-                            middle = ( MDNSResponseMiddle_t * ) pucInterimWrite;
-
-                            vSetField16( middle, MDNSResponseMiddle_t, usType, record->usRecordType );
-                            vSetField16( middle, MDNSResponseMiddle_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
-                            vSetField32( middle, MDNSResponseMiddle_t, ulTTL, dnsLLMNR_TTL_VALUE );
-
-                            switch( record->usRecordType ) /* LCOV_EXCL_BR_LINE The default case is not reached */
-                            {
-                                #if ( ipconfigUSE_IPv4 != 0 )
-                                    case dnsTYPE_A_HOST:
-                                       {
-                                           MDNSResponseHostAEnd_t * host_end;
-                                           vSetField16( middle, MDNSResponseMiddle_t, usDataLength, 4 );
-                                           pucInterimWrite += sizeof( *middle );
-                                           host_end = ( MDNSResponseHostAEnd_t * ) pucInterimWrite;
-                                           vSetField32( host_end, MDNSResponseHostAEnd_t, ipAddr, FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress ) );
-                                           pucInterimWrite += sizeof( *host_end );
-                                           break;
-                                       }
-                                #endif /* ipconfigUSE_IPv4 */
-                                #if ( ipconfigUSE_IPv6 != 0 )
-                                    case dnsTYPE_AAAA_HOST:
-                                        vSetField16( middle, MDNSResponseMiddle_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
-                                        pucInterimWrite += sizeof( *middle );
-                                        ( void ) memcpy( pucInterimWrite, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                                        pucInterimWrite += ipSIZE_OF_IPv6_ADDRESS;
-                                        break;
-                                #endif /* ipconfigUSE_IPv6 */
-                                case dnsTYPE_PTR:
-                                    vSetField16( middle, MDNSResponseMiddle_t, usDataLength, strlen( record->xData.pcPtrRecord ) + 2 );
-                                    pucInterimWrite += sizeof( *middle );
-
-                                    if( DNS_WriteName( ( char * ) pucInterimWrite, record->xData.pcPtrRecord ) == pdFALSE )
-                                    {
-                                        FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write PTR record" ) );
-                                        /* Skip this record */
-                                        continue;
-                                    }
-
-                                    pucInterimWrite += strlen( record->xData.pcPtrRecord ) + 2;
-                                    break;
-
-                                case dnsTYPE_SRV:
-                                   {
-                                       MDNSResponseSRVEnd_t * srv_end;
-                                       vSetField16(
-                                           middle,
-                                           MDNSResponseMiddle_t,
-                                           usDataLength,
-                                           sizeof( MDNSResponseSRVEnd_t ) + strlen( record->xData.xSrvRecord.pcTarget ) + 2 );
-                                       pucInterimWrite += sizeof( *middle );
-                                       srv_end = ( MDNSResponseSRVEnd_t * ) pucInterimWrite;
-                                       vSetField16( srv_end, MDNSResponseSRVEnd_t, priority, 0 );
-                                       vSetField16( srv_end, MDNSResponseSRVEnd_t, weight, 0 );
-                                       vSetField16( srv_end, MDNSResponseSRVEnd_t, port, record->xData.xSrvRecord.usPort );
-                                       pucInterimWrite += sizeof( *srv_end );
-
-                                       if( DNS_WriteName( ( char * ) pucInterimWrite, record->xData.xSrvRecord.pcTarget ) == pdFALSE )
-                                       {
-                                           FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write SRV record target name" ) );
-                                           /* Skip this record */
-                                           continue;
-                                       }
-
-                                       pucInterimWrite += strlen( record->xData.xSrvRecord.pcTarget ) + 2;
-                                       break;
-                                   }
-
-                                case dnsTYPE_TXT:
-                                   {
-                                       size_t xTextLength = strlen( record->xData.pcTxtRecord );
-
-                                       if( xTextLength > 255 )
-                                       {
-                                           /* Each TXT record must be less than 256 bytes, since the length is stored in a single byte. */
-                                           FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write TXT record" ) );
-                                           continue;
-                                       }
-
-                                       vSetField16( middle, MDNSResponseMiddle_t, usDataLength, strlen( record->xData.pcTxtRecord ) + 1 );
-                                       pucInterimWrite += sizeof( *middle );
-                                       *pucInterimWrite++ = ( uint8_t ) xTextLength;
-                                       memcpy( pucInterimWrite, record->xData.pcTxtRecord, xTextLength );
-                                       pucInterimWrite += xTextLength;
-                                       break;
-                                   }
-
-                                /* This region is unreachable in practice, because we already filtered the records in the question
-                                 * parsing */
-                                /* LCOV_EXCL_START */
-                                default:
-                                    FreeRTOS_printf( ( "DNS_ParseDNSReply: Unsupported record type %u\n", record->usRecordType ) );
-                                    continue;
-                                    /* LCOV_EXCL_STOP */
-                            }
-
-                            xSet.pucByte = pucInterimWrite;
                             uxNumAnswers++;
+                        }
+
+                        for( i = 0; i < xSet.uxDNSRecordCount; i++ )
+                        {
+                            DNSRecord_t const * record = &xSet.pxDNSRecords[ i ];
+
+                            if( record->uxServeRecord != dnsRECORD_SERVE_ADDITIONAL )
+                            {
+                                continue;
+                            }
+
+                            if( prvWriteDNSRecord( &xSet, record ) == pdFALSE )
+                            {
+                                /* If writing this record failed, we skip it and move on to the next one. */
+                                continue;
+                            }
+
+                            uxNumAdditionalRRs++;
                         }
 
                         if( uxNumAnswers == 0U )
@@ -1175,6 +1235,7 @@
                         }
 
                         vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, uxNumAnswers );
+                        vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, uxNumAdditionalRRs );
 
                         if( xSet.usPortNumber == ipLLMNR_PORT )
                         {
@@ -1194,12 +1255,12 @@
                         if( uxIsLLMNR == pdFALSE )
                         {
                             /* In MDNS, we need to remove the questions section */
-                            uint8_t * const start_of_questions = ( uint8_t * ) ( xSet.pxDNSMessageHeader ) + sizeof( DNSMessage_t );
+                            uint8_t * const pucStartOfQuestions = ( uint8_t * ) ( xSet.pxDNSMessageHeader ) + sizeof( DNSMessage_t );
 
-                            UBaseType_t const size_of_questions = ( UBaseType_t ) ( start_of_dns_answers - start_of_questions );
+                            UBaseType_t const size_of_questions = ( UBaseType_t ) ( pucStartOfAnswers - pucStartOfQuestions );
 
-                            UBaseType_t const size_of_answers = ( UBaseType_t ) ( xSet.pucByte - start_of_dns_answers );
-                            memmove( start_of_questions, start_of_dns_answers, size_of_answers );
+                            UBaseType_t const size_of_answers = ( UBaseType_t ) ( xSet.pucByte - pucStartOfAnswers );
+                            memmove( pucStartOfQuestions, pucStartOfAnswers, size_of_answers );
                             xSet.pucByte -= size_of_questions;
                             vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usQuestions, 0 );
                         }
