@@ -3722,6 +3722,56 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
 }
 
 /**
+ * @brief Verify that parseDNSAnswer bounds answer parsing to
+ *        ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY even when xDoStore is pdFALSE
+ *        for an unsolicited reply.
+ *
+ *        This ensures an attacker-controlled ANCOUNT does not cause the parser
+ *        to iterate over an excessive number of advertised answers.
+ */
+void test_parseDNSAnswer_unsolicited_reply_loop_bounded( void )
+{
+    BaseType_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+    int index = 0;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    /* Place a valid name field for each expected iteration so that
+     * DNS_SkipNameField succeeds and usChar2u16 is reached every time. */
+    for( uint16_t i = 0U; i < ( uint16_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
+    {
+        pucByte[ index ] = 38;
+        strcpy( pucByte + index + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+        index += 40;
+    }
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdFALSE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 0xFFFFU; /* Simulated attacker-controlled ANCOUNT. */
+
+    /* Expect exactly ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY calls to
+     * usChar2u16.  If the loop exceeds the cap, CMock fails on an
+     * unexpected call; if it falls short, CMock fails on an unmet
+     * expectation. */
+    for( uint16_t i = 0U; i < ( uint16_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
+    {
+        usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
+    }
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    TEST_ASSERT_EQUAL( 0, ret );
+}
+
+/**
  * @brief ensures that when the number of entries is larger than the configured
  *        cache address entries, not packet is sent over the network
  */
