@@ -3738,12 +3738,13 @@ void test_parseDNSAnswer_unsolicited_reply_loop_bounded( void )
     ParseSet_t xSet = { 0 };
     struct freertos_addrinfo * pxAddressInfo = NULL;
     int index = 0;
+    uint16_t i;
 
     memset( pucByte, 0x00, sizeof( pucByte ) );
 
     /* Place a valid name field for each expected iteration so that
      * DNS_SkipNameField succeeds and usChar2u16 is reached every time. */
-    for( uint16_t i = 0U; i < ( uint16_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
+    for( i = 0U; i < ( uint16_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
     {
         pucByte[ index ] = 38;
         strcpy( pucByte + index + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
@@ -3761,7 +3762,7 @@ void test_parseDNSAnswer_unsolicited_reply_loop_bounded( void )
      * usChar2u16.  If the loop exceeds the cap, CMock fails on an
      * unexpected call; if it falls short, CMock fails on an unmet
      * expectation. */
-    for( uint16_t i = 0U; i < ( uint16_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
+    for( i = 0U; i < ( uint16_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
     {
         usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
     }
