@@ -125,7 +125,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
             /* Check if the complete IPv6-header plus protocol data have been transferred: */
             usPayloadLength = FreeRTOS_ntohs( pxIPv6Packet->xIPHeader.usPayloadLength );
 
-            if( uxBufferLength != ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
+            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
                 break;
@@ -542,22 +542,12 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
          * define, so that the checksum won't be checked again here */
         if( eReturn == eProcessBuffer )
         {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-            const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
-
             /* IPv6 does not have a separate checksum in the IP-header */
             /* Is the upper-layer checksum (TCP/UDP/ICMP) correct? */
-            /* Do not check the checksum of loop-back messages. */
-            if( pxEndPoint == NULL )
+            if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
             {
-                if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
-                {
-                    /* Protocol checksum not accepted. */
-                    eReturn = eReleaseBuffer;
-                }
+                /* Protocol checksum not accepted. */
+                eReturn = eReleaseBuffer;
             }
         }
     }

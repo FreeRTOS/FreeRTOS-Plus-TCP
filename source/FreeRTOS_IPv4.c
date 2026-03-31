@@ -487,34 +487,28 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
          * define, so that the checksum won't be checked again here */
         if( eReturn == eProcessBuffer )
         {
-            const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
-
-            /* Do not check the checksum of loop-back messages. */
-            if( pxEndPoint == NULL )
+            /* Is the IP header checksum correct?
+             *
+             * NOTE: When the checksum of IP header is calculated while not omitting
+             * the checksum field, the resulting value of the checksum always is 0xffff
+             * which is denoted by ipCORRECT_CRC. See this wiki for more information:
+             * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
+             * and this RFC: https://tools.ietf.org/html/rfc1624#page-4
+             */
+            if( usGenerateChecksum( 0U, ( const uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
             {
-                /* Is the IP header checksum correct?
-                 *
-                 * NOTE: When the checksum of IP header is calculated while not omitting
-                 * the checksum field, the resulting value of the checksum always is 0xffff
-                 * which is denoted by ipCORRECT_CRC. See this wiki for more information:
-                 * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
-                 * and this RFC: https://tools.ietf.org/html/rfc1624#page-4
-                 */
-                if( usGenerateChecksum( 0U, ( const uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
-                {
-                    /* Check sum in IP-header not correct. */
-                    eReturn = eReleaseBuffer;
-                }
-                /* Is the upper-layer checksum (TCP/UDP/ICMP) correct? */
-                else if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
-                {
-                    /* Protocol checksum not accepted. */
-                    eReturn = eReleaseBuffer;
-                }
-                else
-                {
-                    /* The checksum of the received packet is OK. */
-                }
+                /* Check sum in IP-header not correct. */
+                eReturn = eReleaseBuffer;
+            }
+            /* Is the upper-layer checksum (TCP/UDP/ICMP) correct? */
+            else if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
+            {
+                /* Protocol checksum not accepted. */
+                eReturn = eReleaseBuffer;
+            }
+            else
+            {
+                /* The checksum of the received packet is OK. */
             }
         }
     }

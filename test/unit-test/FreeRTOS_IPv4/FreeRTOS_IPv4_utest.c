@@ -623,7 +623,6 @@ void test_prvAllowIPPacketIPv4_EndpointDown_HappyPath( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xEndpoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdFALSE );
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
 
@@ -704,7 +703,6 @@ void test_prvAllowIPPacketIPv4_EndpointDown_UnHappyPathBroadcast( void )
     memset( xEndpoint.xMACAddress.ucBytes, 0xCD, sizeof( MACAddress_t ) );
 
     FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdFALSE );
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
 
@@ -786,7 +784,6 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPBroadcastAndIncorrectChkSum(
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
     FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC - 1 );
 
@@ -942,7 +939,6 @@ void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC - 1 );
 
@@ -986,7 +982,6 @@ void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
 
@@ -1031,7 +1026,6 @@ void test_prvAllowIPPacketIPv4_HappyPath( void )
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
 
@@ -1073,7 +1067,8 @@ void test_prvAllowIPPacketIPv4_LoopbackHappyPath( void )
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( pxEndpoint );
+    usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
+    usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -1226,8 +1221,6 @@ static void xRunBadIPv4Loopback( uint32_t ulSource,
 
     if( eExpected != eReleaseBuffer )
     {
-        FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
         usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
 
         usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
@@ -1283,7 +1276,6 @@ void test_xBadIPv4Loopback_0_test( void )
 
     FreeRTOS_IsEndPointUp_ExpectAndReturn( &xEndpoint, pdTRUE );
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
 
