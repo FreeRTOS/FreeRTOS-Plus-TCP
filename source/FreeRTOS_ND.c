@@ -1081,6 +1081,11 @@
                                        break;
                                    }
 
+                                   if( uxDataLength < sizeof( *pxICMPEchoHeader ) )
+                                   {
+                                       break;
+                                   }
+
                                    uxDataLength = uxDataLength - sizeof( *pxICMPEchoHeader );
 
                                    /* Find the first byte of the data within the ICMP packet. */
