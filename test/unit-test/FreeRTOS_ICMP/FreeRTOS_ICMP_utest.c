@@ -88,8 +88,6 @@ void test_ProcessICMPPacket_AllZeroData( void )
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
-    vApplicationPingReplyHook_Expect( eInvalidData, 0 );
-
     eResult = ProcessICMPPacket( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
