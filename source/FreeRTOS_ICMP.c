@@ -65,7 +65,7 @@
  * vApplicationPingReplyHook() is called with the results.
  */
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-    static void prvProcessICMPEchoReply( ICMPPacket_t * const pxICMPPacket );
+    static void prvProcessICMPEchoReply( const NetworkBufferDescriptor_t * const pxNetworkBuffer );
 #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
@@ -110,7 +110,7 @@
                 case ipICMP_ECHO_REPLY:
                     #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
                     {
-                        prvProcessICMPEchoReply( pxICMPPacket );
+                        prvProcessICMPEchoReply( pxNetworkBuffer );
                     }
                     #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
                     break;
@@ -201,46 +201,67 @@
 /**
  * @brief Process an ICMP echo reply.
  *
- * @param[in] pxICMPPacket The IP packet that contains the ICMP message.
+ * @param[in] pxNetworkBuffer The network buffer descriptor containing the ICMP packet.
  */
-    static void prvProcessICMPEchoReply( ICMPPacket_t * const pxICMPPacket )
+    static void prvProcessICMPEchoReply( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
+        /* The packet contained an ICMPv4 frame. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        ICMPPacket_t * pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
         ePingReplyStatus_t eStatus = eSuccess;
-        uint16_t usDataLength, usCount;
+        uint16_t usDataLength, usByteCount, usCount;
+        size_t usByteAvail;
         uint8_t * pucByte;
 
         /* Find the total length of the IP packet. */
         usDataLength = pxICMPPacket->xIPHeader.usLength;
-        usDataLength = FreeRTOS_ntohs( usDataLength );
+        usByteCount = FreeRTOS_ntohs( usDataLength );
+        usByteAvail = pxNetworkBuffer->xDataLength;
 
-        /* Remove the length of the IP headers to obtain the length of the ICMP
-         * message itself. */
-        usDataLength = ( uint16_t ) ( ( ( uint32_t ) usDataLength ) - ipSIZE_OF_IPv4_HEADER );
-
-        /* Remove the length of the ICMP header, to obtain the length of
-         * data contained in the ping. */
-        usDataLength = ( uint16_t ) ( ( ( uint32_t ) usDataLength ) - ipSIZE_OF_ICMPv4_HEADER );
-
-        /* Checksum has already been checked before in prvProcessIPPacket */
-
-        /* Find the first byte of the data within the ICMP packet. */
-        pucByte = ( uint8_t * ) pxICMPPacket;
-        pucByte = &( pucByte[ sizeof( ICMPPacket_t ) ] );
-
-        /* Check each byte. */
-        for( usCount = 0; usCount < usDataLength; usCount++ )
+        if( usByteAvail >= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER ) )
         {
-            if( *pucByte != ( uint8_t ) ipECHO_DATA_FILL_BYTE )
+            usByteAvail = usByteAvail - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER );
+
+            if( usByteCount >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER ) )
             {
-                eStatus = eInvalidData;
-                break;
+                usByteCount = ( uint16_t ) ( usByteCount - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER ) );
+
+                if( usByteCount <= usByteAvail )
+                {
+                    /* Checksum has already been checked before in prvProcessIPPacket */
+
+                    /* Find the first byte of the data within the ICMP packet. */
+                    pucByte = ( uint8_t * ) pxICMPPacket;
+                    /* Add an offset of 14 + 20 + 8. */
+                    pucByte = &( pucByte[ sizeof( ICMPPacket_t ) ] );
+
+                    /* Check each byte. */
+                    for( usCount = 0; usCount < usByteCount; usCount++ )
+                    {
+                        if( *pucByte != ( uint8_t ) ipECHO_DATA_FILL_BYTE )
+                        {
+                            eStatus = eInvalidData;
+                            break;
+                        }
+
+                        pucByte++;
+                    }
+
+                    /* Call back into the application to pass it the result. */
+                    vApplicationPingReplyHook( eStatus, pxICMPPacket->xICMPHeader.usIdentifier );
+                }
             }
-
-            pucByte++;
+            else
+            {
+                /* usByteCount too small, drop. */
+            }
         }
-
-        /* Call back into the application to pass it the result. */
-        vApplicationPingReplyHook( eStatus, pxICMPPacket->xICMPHeader.usIdentifier );
+        else
+        {
+            /* Buffer too small, drop. */
+        }
     }
 
 #endif /* if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
