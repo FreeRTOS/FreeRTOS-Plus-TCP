@@ -488,7 +488,7 @@ void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, &xNetworkBuffer );
 
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
@@ -1081,7 +1081,7 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, &xNetworkBuffer );
 
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
@@ -2445,7 +2445,7 @@ void test_vARPAgeCache( void )
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
 
 
     vARPAgeCache();
@@ -2463,14 +2463,14 @@ void test_vARPAgeCache( void )
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
 
     /* Let the value returned first time be 100. */
     xTaskGetTickCount_ExpectAndReturn( 100 );
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
 
     vARPAgeCache();
     /* =================================================== */
@@ -2486,7 +2486,7 @@ void test_vARPAgeCache( void )
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
 
     /* Let the value returned first time be 100. */
     xTaskGetTickCount_ExpectAndReturn( 100 );
@@ -2507,7 +2507,7 @@ void test_vARPAgeCache( void )
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
 
     vARPAgeCache();
     /* =================================================== */
@@ -2590,7 +2590,7 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, &xNetworkBuffer );
 
     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
 
@@ -2603,7 +2603,7 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, &xNetworkBuffer );
 
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
@@ -2617,7 +2617,7 @@ void test_FreeRTOS_OutputARPRequest( void )
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, &xNetworkBuffer );
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
     xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
 
@@ -2633,7 +2633,7 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, &xNetworkBuffer );
     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
 
     FreeRTOS_OutputARPRequest( ulIPAddress );
@@ -2648,7 +2648,7 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, &xNetworkBuffer );
     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
 
     FreeRTOS_OutputARPRequest( ulIPAddress );
@@ -2771,7 +2771,7 @@ void test_xARPWaitResolution_GNWFailsNoTimeout( void )
     for( i = 0; i < ipconfigMAX_ARP_RETRANSMISSIONS; i++ )
     {
         FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
-        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
         xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
@@ -2824,7 +2824,7 @@ void test_xARPWaitResolution( void )
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 1 ); i++ )
     {
         FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
-        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
         xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
@@ -2834,7 +2834,7 @@ void test_xARPWaitResolution( void )
     }
 
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
     vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
     xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
@@ -2875,7 +2875,7 @@ void test_xARPWaitResolution( void )
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 2 ); i++ )
     {
         FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
-        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+        pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
         vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
         xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
         xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
@@ -2885,7 +2885,7 @@ void test_xARPWaitResolution( void )
     }
 
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, &xEndPoint );
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES, 0, NULL );
     vTaskDelay_Expect( pdMS_TO_TICKS( 250U ) );
     xIsIPv4Loopback_ExpectAndReturn( ulIPAddress, 0UL );
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 1UL );
