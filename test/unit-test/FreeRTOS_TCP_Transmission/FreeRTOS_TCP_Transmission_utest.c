@@ -2653,3 +2653,68 @@ void test_prvTCPSendReset( void )
     TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK | tcpTCP_FLAG_RST, pxTCPPacket->xTCPHeader.ucTCPFlags );
     TEST_ASSERT_EQUAL( 0x50, pxTCPPacket->xTCPHeader.ucTCPOffset );
 }
+
+/**
+ * @brief This test verifies that when ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM is 0,
+ *        the TCP checksum is calculated with the correct data length that includes
+ *        the Ethernet header (ulLen + ipSIZE_OF_ETH_HEADER).
+ *
+ * This is a regression test for a bug where the checksum was calculated with
+ * xDataLength that did NOT include the Ethernet header, resulting in incorrect
+ * checksums on outgoing TCP packets.
+ */
+void test_prvTCPReturnPacket_TxChecksum_DataLength( void )
+{
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = 1000;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    struct xNetworkEndPoint * pxEndPoint;
+
+    MACAddress_t NewSourceMacAddr = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, NewSourceMacAddr.ucBytes, sizeof( xEndPoint.xMACAddress.ucBytes ) );
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+    pxSocket->pxEndPoint = &xEndPoint;
+
+    pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
+    pxSocket->u.xTCP.uxRxStreamSize = 1500;
+    pxSocket->u.xTCP.bits.bLowWater = pdFALSE;
+    pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
+    pxSocket->u.xTCP.usMSS = 1000;
+    pxSocket->u.xTCP.ucMyWinScaleFactor = 0;
+    pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE;
+    pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = 100;
+    pxTCPWindow->xSize.ulRxWindowLength = 500;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
+    pxTCPPacket->xTCPHeader.ulAckNr = 0;
+    pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+
+    usGenerateProtocolChecksum_ExpectAndReturn(
+        pxNetworkBuffer->pucEthernetBuffer,
+        1000 + ipSIZE_OF_ETH_HEADER,
+        pdTRUE,
+        ipCORRECT_CRC );
+
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 1000, pdTRUE );
+
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
+    TEST_ASSERT_EQUAL( 1000 + ipSIZE_OF_ETH_HEADER, pxNetworkBuffer->xDataLength );
+}

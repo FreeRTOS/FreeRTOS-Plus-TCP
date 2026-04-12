@@ -214,7 +214,8 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                 pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
                 /* calculate the TCP checksum for an outgoing packet. */
-                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
+                uint32_t ulTotalLength = ( uint32_t ) ulLen + ipSIZE_OF_ETH_HEADER;
+                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, ulTotalLength, pdTRUE );
             }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
