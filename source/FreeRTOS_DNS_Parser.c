@@ -696,275 +696,295 @@
 
         struct freertos_addrinfo * pxNewAddress = NULL;
 
-        for( x = 0U; x < pxSet->usAnswers; x++ )
+        /* Sanity check: each answer record is at minimum a 2-byte compressed
+         * name reference (0xC00C), the fixed-size header, and 1 byte of
+         * payload.  If ANCOUNT claims more records than the remaining buffer
+         * can physically contain, the packet is malformed. */
+        if( pxSet->usAnswers > ( uint16_t )
+            ( pxSet->uxSourceBytesRemaining / ( sizeof( DNSAnswerRecord_t ) + 1U + 2U ) ) )
         {
-            BaseType_t xDoAccept = pdFALSE;
+            xReturn = pdFALSE;
+        }
 
-            if( pxSet->usNumARecordsStored >= usCount )
+        if( xReturn == pdTRUE )
+        {
+            for( x = 0U; x < pxSet->usAnswers; x++ )
             {
-                /* Only count ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY number of records. */
-                break;
-            }
+                BaseType_t xDoAccept = pdFALSE;
 
-            uxResult = DNS_SkipNameField( pxSet->pucByte,
-                                          pxSet->uxSourceBytesRemaining );
-
-            /* Check for a malformed response. */
-            if( uxResult == 0U )
-            {
-                xReturn = pdFALSE;
-                break;
-            }
-
-            if( uxBytesRead != NULL )
-            {
-                *uxBytesRead += uxResult;
-            }
-
-            pxSet->pucByte = &( pxSet->pucByte[ uxResult ] );
-            pxSet->uxSourceBytesRemaining -= uxResult;
-
-            /* Is there enough data for an IPv4 A record answer and, if so,
-             * is this an A record? */
-            if( pxSet->uxSourceBytesRemaining < sizeof( uint16_t ) )
-            {
-                xReturn = pdFALSE;
-                break;
-            }
-
-            pxSet->usType = usChar2u16( pxSet->pucByte );
-
-            if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
-            {
-                pxSet->uxAddressLength = ipSIZE_OF_IPv6_ADDRESS;
-
-                if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
+                if( pxSet->usNumARecordsStored >= usCount )
                 {
-                    xDoAccept = pdTRUE;
-                }
-            }
-            else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
-            {
-                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
-
-                if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
-                {
-                    /* Ignore responses containing an IP of 0.0.0.0.
-                     * If we don't stop parsing this now, the code below will
-                     * invoke the user callback and also store this invalid address in our cache. */
-                    void * pvCopyDest;
-                    const void * pvCopySource;
-                    uint32_t ulTestAddress;
-
-                    pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
-                    pvCopyDest = &( ulTestAddress );
-                    ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
-
-                    if( ulTestAddress != 0U )
-                    {
-                        xDoAccept = pdTRUE;
-                    }
-                }
-            }
-            else
-            {
-                /* Unknown host type, AAAA nor A.
-                 * 'xDoAccept' was already initialised as pdFALSE. */
-            }
-
-            if( xDoAccept != pdFALSE )
-            {
-                /* This is the required record type and is of sufficient size. */
-
-                /* Mapping pucBuffer to a DNSAnswerRecord allows easy access of the
-                 * fields of the structure. */
-
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
-
-                /* Sanity check the data length of an IPv4 answer. */
-                if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
-                    ( uint16_t ) pxSet->uxAddressLength )
-                {
-                    if( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) /*No check needed for pxSet->usType as uxAddressLength is set based on usType*/
-                    {
-                        ( void ) memcpy( xIP_Address.xIPAddress.xIP_IPv6.ucBytes,
-                                         &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
-                                         ipSIZE_OF_IPv6_ADDRESS );
-
-                        #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
-                            if( ppxAddressInfo != NULL )
-                            {
-                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xIPAddress.xIP_IPv6.ucBytes );
-                            }
-                        #endif
-
-                        xIP_Address.xIs_IPv6 = pdTRUE;
-
-                        /* Return non-zero to inform the caller that a valid
-                         * IPv6 address was found. */
-                        pxSet->ulIPAddress = 1U;
-                    }
-                    else
-                    {
-                        void * pvCopyDest;
-                        const void * pvCopySource;
-
-                        /* Copy the IP address out of the record. Using different pointers
-                         * to copy only the portion we want is intentional here. */
-
-                        /*
-                         * Use helper variables for memcpy() to remain
-                         * compliant with MISRA Rule 21.15.  These should be
-                         * optimized away.
-                         */
-                        pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
-                        pvCopyDest = &( pxSet->ulIPAddress );
-                        ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
-
-                        #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
-                            if( ppxAddressInfo != NULL )
-                            {
-                                const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
-
-                                pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
-                            }
-                        #endif
-
-                        xIP_Address.xIPAddress.ulIP_IPv4 = pxSet->ulIPAddress;
-                        xIP_Address.xIs_IPv6 = pdFALSE;
-                    }
-
-                    if( pxNewAddress != NULL )
-                    {
-                        if( *( ppxAddressInfo ) == NULL )
-                        {
-                            /* For the first address found. */
-                            *( ppxAddressInfo ) = pxNewAddress;
-                        }
-                        else
-                        {
-                            /* For the next address found. */
-                            *( pxSet->ppxLastAddress ) = pxNewAddress;
-                        }
-
-                        pxSet->ppxLastAddress = &( pxNewAddress->ai_next );
-                    }
-
-                    #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-                    {
-                        BaseType_t xCallbackResult;
-
-                        xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
-
-                        /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
-                        if( xCallbackResult != pdFALSE )
-                        {
-                            /* This device has requested this DNS look-up.
-                             * The result may be stored in the DNS cache. */
-                            pxSet->xDoStore = pdTRUE;
-                        }
-                    }
-                    #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
-                    #if ( ipconfigUSE_DNS_CACHE == 1 )
-                    {
-                        char cBuffer[ 40 ];
-
-                        /* The reply will only be stored in the DNS cache when the
-                         * request was issued by this device. */
-                        if( pxSet->xDoStore != pdFALSE )
-                        {
-                            ( void ) FreeRTOS_dns_update(
-                                pxSet->pcName,
-                                &xIP_Address,
-                                pxDNSAnswerRecord->ulTTL,
-                                pdFALSE,
-                                NULL );
-                            pxSet->usNumARecordsStored++; /* Track # of A records stored */
-                        }
-
-                        if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
-                        {
-                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xIPAddress.xIP_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
-                            FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
-                                               ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
-                                               pxSet->pcName,
-                                               cBuffer,
-                                               ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
-                        }
-                        else
-                        {
-                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
-                                                         ( const void * ) &( pxSet->ulIPAddress ),
-                                                         cBuffer,
-                                                         ( socklen_t ) sizeof( cBuffer ) );
-                            /* Show what has happened. */
-                            FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
-                                               pxSet->pxDNSMessageHeader->usIdentifier,
-                                               pxSet->pcName,
-                                               cBuffer,
-                                               ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
-                        }
-                    }
-                    #endif /* ipconfigUSE_DNS_CACHE */
-
-                    if( ulReturnIPAddress == 0U )
-                    {
-                        /* Here pxSet->ulIPAddress should be not equal tp 0 since pxSet->ulIPAddress is copied from
-                         * pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] and os verified to be non zero above. */
-                        /* Remember the first IP-address that is found. */
-                        ulReturnIPAddress = pxSet->ulIPAddress;
-                    }
-                }
-                else
-                {
-                    FreeRTOS_printf( ( "DNS sanity check failed: %u != %u\n",
-                                       FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ),
-                                       ( unsigned ) pxSet->uxAddressLength ) );
+                    /* Only count ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY number of records. */
+                    break;
                 }
 
-                pxSet->pucByte = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ] );
-                pxSet->uxSourceBytesRemaining -= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength );
-            }
-            else if( pxSet->uxSourceBytesRemaining >= sizeof( DNSAnswerRecord_t ) )
-            {
-                uint16_t usDataLength;
+                uxResult = DNS_SkipNameField( pxSet->pucByte,
+                                              pxSet->uxSourceBytesRemaining );
 
-                /* It's not an A record, so skip it. Get the header location
-                 * and then jump over the header. */
-                /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
-
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
-
-                pxSet->pucByte = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
-                pxSet->uxSourceBytesRemaining -= sizeof( DNSAnswerRecord_t );
-
-                /* Determine the length of the answer data from the header. */
-                usDataLength = FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength );
-
-                /* Jump over the answer. */
-                if( pxSet->uxSourceBytesRemaining >= usDataLength )
+                /* Check for a malformed response. */
+                if( uxResult == 0U )
                 {
-                    pxSet->pucByte = &( pxSet->pucByte[ usDataLength ] );
-                    pxSet->uxSourceBytesRemaining -= usDataLength;
-                }
-                else
-                {
-                    /* Malformed response. */
                     xReturn = pdFALSE;
                     break;
                 }
+
+                if( uxBytesRead != NULL )
+                {
+                    *uxBytesRead += uxResult;
+                }
+
+                pxSet->pucByte = &( pxSet->pucByte[ uxResult ] );
+                pxSet->uxSourceBytesRemaining -= uxResult;
+
+                /* Is there enough data for an IPv4 A record answer and, if so,
+                 * is this an A record? */
+                if( pxSet->uxSourceBytesRemaining < sizeof( uint16_t ) )
+                {
+                    xReturn = pdFALSE;
+                    break;
+                }
+
+                pxSet->usType = usChar2u16( pxSet->pucByte );
+
+                if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
+                {
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                    {
+                        pxSet->uxAddressLength = ipSIZE_OF_IPv6_ADDRESS;
+
+                        if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
+                        {
+                            xDoAccept = pdTRUE;
+                        }
+                    }
+                    #endif /* ipconfigUSE_IPv6 != 0 */
+                }
+                else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
+                {
+                    pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
+
+                    if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
+                    {
+                        /* Ignore responses containing an IP of 0.0.0.0.
+                         * If we don't stop parsing this now, the code below will
+                         * invoke the user callback and also store this invalid address in our cache. */
+                        void * pvCopyDest;
+                        const void * pvCopySource;
+                        uint32_t ulTestAddress;
+
+                        pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
+                        pvCopyDest = &( ulTestAddress );
+                        ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
+
+                        if( ulTestAddress != 0U )
+                        {
+                            xDoAccept = pdTRUE;
+                        }
+                    }
+                }
+                else
+                {
+                    /* Unknown host type, AAAA nor A.
+                     * 'xDoAccept' was already initialised as pdFALSE. */
+                }
+
+                if( xDoAccept != pdFALSE )
+                {
+                    /* This is the required record type and is of sufficient size. */
+
+                    /* Mapping pucBuffer to a DNSAnswerRecord allows easy access of the
+                     * fields of the structure. */
+
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
+                    pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
+
+                    /* Sanity check the data length of an IPv4 answer. */
+                    if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
+                        ( uint16_t ) pxSet->uxAddressLength )
+                    {
+                        if( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) /*No check needed for pxSet->usType as uxAddressLength is set based on usType*/
+                        {
+                            ( void ) memcpy( xIP_Address.xIPAddress.xIP_IPv6.ucBytes,
+                                             &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
+                                             ipSIZE_OF_IPv6_ADDRESS );
+
+                            #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                                if( ppxAddressInfo != NULL )
+                                {
+                                    pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xIPAddress.xIP_IPv6.ucBytes );
+                                }
+                            #endif
+
+                            xIP_Address.xIs_IPv6 = pdTRUE;
+
+                            /* Return non-zero to inform the caller that a valid
+                             * IPv6 address was found. */
+                            pxSet->ulIPAddress = 1U;
+                        }
+                        else
+                        {
+                            void * pvCopyDest;
+                            const void * pvCopySource;
+
+                            /* Copy the IP address out of the record. Using different pointers
+                             * to copy only the portion we want is intentional here. */
+
+                            /*
+                             * Use helper variables for memcpy() to remain
+                             * compliant with MISRA Rule 21.15.  These should be
+                             * optimized away.
+                             */
+                            pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
+                            pvCopyDest = &( pxSet->ulIPAddress );
+                            ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
+
+                            #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                                if( ppxAddressInfo != NULL )
+                                {
+                                    const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
+
+                                    pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
+                                }
+                            #endif
+
+                            xIP_Address.xIPAddress.ulIP_IPv4 = pxSet->ulIPAddress;
+                            xIP_Address.xIs_IPv6 = pdFALSE;
+                        }
+
+                        if( pxNewAddress != NULL )
+                        {
+                            if( *( ppxAddressInfo ) == NULL )
+                            {
+                                /* For the first address found. */
+                                *( ppxAddressInfo ) = pxNewAddress;
+                            }
+                            else
+                            {
+                                /* For the next address found. */
+                                *( pxSet->ppxLastAddress ) = pxNewAddress;
+                            }
+
+                            pxSet->ppxLastAddress = &( pxNewAddress->ai_next );
+                        }
+
+                        #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                        {
+                            BaseType_t xCallbackResult;
+
+                            xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
+
+                            /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
+                            if( xCallbackResult != pdFALSE )
+                            {
+                                /* This device has requested this DNS look-up.
+                                 * The result may be stored in the DNS cache. */
+                                pxSet->xDoStore = pdTRUE;
+                            }
+                        }
+                        #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
+                        #if ( ipconfigUSE_DNS_CACHE == 1 )
+                        {
+                            char cBuffer[ 40 ];
+
+                            /* The reply will only be stored in the DNS cache when the
+                             * request was issued by this device. */
+                            if( pxSet->xDoStore != pdFALSE )
+                            {
+                                ( void ) FreeRTOS_dns_update(
+                                    pxSet->pcName,
+                                    &xIP_Address,
+                                    pxDNSAnswerRecord->ulTTL,
+                                    pdFALSE,
+                                    NULL );
+                                pxSet->usNumARecordsStored++; /* Track # of A records stored */
+                            }
+
+                            if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
+                            {
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xIPAddress.xIP_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
+                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
+                                                   ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
+                                                   pxSet->pcName,
+                                                   cBuffer,
+                                                   ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
+                            }
+                            else
+                            {
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET,
+                                                             ( const void * ) &( pxSet->ulIPAddress ),
+                                                             cBuffer,
+                                                             ( socklen_t ) sizeof( cBuffer ) );
+                                /* Show what has happened. */
+                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
+                                                   pxSet->pxDNSMessageHeader->usIdentifier,
+                                                   pxSet->pcName,
+                                                   cBuffer,
+                                                   ( pxSet->xDoStore != 0 ) ? "" : " NOT" ) );
+                            }
+                        }
+                        #endif /* ipconfigUSE_DNS_CACHE */
+
+                        if( ulReturnIPAddress == 0U )
+                        {
+                            /* Here pxSet->ulIPAddress should be not equal tp 0 since pxSet->ulIPAddress is copied from
+                             * pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] and os verified to be non zero above. */
+                            /* Remember the first IP-address that is found. */
+                            ulReturnIPAddress = pxSet->ulIPAddress;
+                        }
+                    }
+                    else
+                    {
+                        FreeRTOS_printf( ( "DNS sanity check failed: %u != %u\n",
+                                           FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ),
+                                           ( unsigned ) pxSet->uxAddressLength ) );
+                    }
+
+                    pxSet->pucByte = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ] );
+                    pxSet->uxSourceBytesRemaining -= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength );
+                }
+                else if( pxSet->uxSourceBytesRemaining >= sizeof( DNSAnswerRecord_t ) )
+                {
+                    uint16_t usDataLength;
+
+                    /* It's not an A record, so skip it. Get the header location
+                     * and then jump over the header. */
+                    /* Cast the response to DNSAnswerRecord for easy access to fields of the DNS response. */
+
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
+                    pxDNSAnswerRecord = ( ( DNSAnswerRecord_t * ) pxSet->pucByte );
+
+                    pxSet->pucByte = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
+                    pxSet->uxSourceBytesRemaining -= sizeof( DNSAnswerRecord_t );
+
+                    /* Determine the length of the answer data from the header. */
+                    usDataLength = FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength );
+
+                    /* Jump over the answer. */
+                    if( pxSet->uxSourceBytesRemaining >= usDataLength )
+                    {
+                        pxSet->pucByte = &( pxSet->pucByte[ usDataLength ] );
+                        pxSet->uxSourceBytesRemaining -= usDataLength;
+                    }
+                    else
+                    {
+                        /* Malformed response. */
+                        xReturn = pdFALSE;
+                        break;
+                    }
+                }
+                else
+                {
+                    /* Not enough data remaining to read the fixed-size record
+                     * header for a record type we need to skip.  Stop parsing
+                     * but keep any addresses already collected. */
+                    break;
+                }
             }
-            else
-            {
-                /* Do nothing */
-            }
-        }
+        } /* if( xReturn == pdTRUE ) */
 
         return ( xReturn != 0 ) ? ulReturnIPAddress : 0U;
     }
