@@ -2653,3 +2653,130 @@ void test_prvTCPSendReset( void )
     TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK | tcpTCP_FLAG_RST, pxTCPPacket->xTCPHeader.ucTCPFlags );
     TEST_ASSERT_EQUAL( 0x50, pxTCPPacket->xTCPHeader.ucTCPOffset );
 }
+
+/* Stub for usGenerateProtocolChecksum that computes a simple byte-sum
+ * "checksum" over [ETH_HEADER, uxBufferLength) and writes it to the TCP
+ * checksum field.  A snapshot of the buffer at stub-invocation time is
+ * saved so the test can recompute the expected value independent of any
+ * post-checksum mutations the SUT performs (MAC rewrite, port flip, ...). */
+static uint8_t ucChecksumStubSnapshot[ ipconfigNETWORK_MTU ];
+static size_t xChecksumStubBufferLength;
+
+static uint16_t usGenerateProtocolChecksum_ByteSum( uint8_t * pucEthernetBuffer,
+                                                    size_t uxBufferLength,
+                                                    BaseType_t xOutgoingPacket,
+                                                    int cmock_num_calls )
+{
+    const size_t xChecksumOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + 16U;
+    uint16_t usSum = 0U;
+    size_t i;
+
+    ( void ) xOutgoingPacket;
+    ( void ) cmock_num_calls;
+
+    pucEthernetBuffer[ xChecksumOffset ] = 0U;
+    pucEthernetBuffer[ xChecksumOffset + 1U ] = 0U;
+
+    for( i = ipSIZE_OF_ETH_HEADER; i < uxBufferLength; i++ )
+    {
+        usSum = ( uint16_t ) ( usSum + pucEthernetBuffer[ i ] );
+    }
+
+    pucEthernetBuffer[ xChecksumOffset ] = ( uint8_t ) ( usSum >> 8 );
+    pucEthernetBuffer[ xChecksumOffset + 1U ] = ( uint8_t ) ( usSum & 0xFFU );
+
+    memcpy( ucChecksumStubSnapshot, pucEthernetBuffer, uxBufferLength );
+    xChecksumStubBufferLength = uxBufferLength;
+    return ipCORRECT_CRC;
+}
+
+/**
+ * @brief Verify that prvTCPReturnPacket computes the TCP checksum over the
+ *        outgoing packet length, not over the stale xDataLength which may
+ *        reflect an incoming frame padded to the Ethernet minimum (60 bytes).
+ */
+void test_prvTCPReturnPacket_ChecksumReceivesOutgoingLength( void )
+{
+    const uint32_t ulLen = ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + 12U; /* 52 */
+    const size_t xRxDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;        /* 60 */
+    const size_t xChecksumOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + 16U;
+    size_t i;
+    uint16_t usExpectedChecksum;
+    uint16_t usActualChecksum;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = xRxDataLength;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+    struct xNetworkEndPoint * pxEndPoint = &xEndPoint;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+    pxSocket->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+
+    pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
+    pxSocket->u.xTCP.uxRxStreamSize = 1500;
+    pxSocket->u.xTCP.bits.bLowWater = pdFALSE;
+    pxSocket->u.xTCP.bits.bRxStopped = pdFALSE;
+    pxSocket->u.xTCP.usMSS = 1000;
+    pxSocket->u.xTCP.ucMyWinScaleFactor = 0;
+    pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE;
+    pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = 100;
+    pxTCPWindow->xSize.ulRxWindowLength = 500;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
+
+    /* Populate the tail of the buffer (bytes ulLen+ETH..xRxDataLength) with a
+     * distinctive pattern so that including them in the sum produces a
+     * different result than summing only the outgoing bytes. */
+    for( i = 0; i < sizeof( ucEthernetBuffer ); i++ )
+    {
+        ucEthernetBuffer[ i ] = 0U;
+    }
+
+    for( i = ulLen + ipSIZE_OF_ETH_HEADER; i < xRxDataLength; i++ )
+    {
+        ucEthernetBuffer[ i ] = 0xFFU;
+    }
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_Stub( usGenerateProtocolChecksum_ByteSum );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+
+    xChecksumStubBufferLength = 0U;
+
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, pdFALSE );
+
+    TEST_ASSERT_NOT_EQUAL( 0U, xChecksumStubBufferLength );
+
+    /* Read the checksum the stub actually wrote into the packet, from the
+     * snapshot taken at stub invocation (before any post-checksum mutations
+     * by the SUT). */
+    usActualChecksum = ( uint16_t ) ( ( ucChecksumStubSnapshot[ xChecksumOffset ] << 8 ) |
+                                      ucChecksumStubSnapshot[ xChecksumOffset + 1U ] );
+
+    /* Recompute the expected checksum on the same snapshot, summing over the
+     * full outgoing packet length.  With the bug the stub saw only
+     * xRxDataLength bytes and its sum differs from this reference. */
+    ucChecksumStubSnapshot[ xChecksumOffset ] = 0U;
+    ucChecksumStubSnapshot[ xChecksumOffset + 1U ] = 0U;
+
+    usExpectedChecksum = 0U;
+
+    for( i = ipSIZE_OF_ETH_HEADER; i < ulLen + ipSIZE_OF_ETH_HEADER; i++ )
+    {
+        usExpectedChecksum = ( uint16_t ) ( usExpectedChecksum + ucChecksumStubSnapshot[ i ] );
+    }
+
+    TEST_ASSERT_EQUAL_HEX16( usExpectedChecksum, usActualChecksum );
+}
