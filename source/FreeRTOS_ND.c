@@ -1109,7 +1109,18 @@
                            size_t uxICMPSize;
                            BaseType_t xCompare;
                            const NetworkEndPoint_t * pxTargetedEndPoint = pxEndPoint;
-                           const NetworkEndPoint_t * pxEndPointInSameSubnet = FreeRTOS_InterfaceEPInSameSubnet_IPv6( pxNetworkBuffer->pxInterface, &( pxICMPHeader_IPv6->xIPv6Address ) );
+                           const NetworkEndPoint_t * pxEndPointInSameSubnet;
+
+                           uxICMPSize = sizeof( ICMPHeader_IPv6_t );
+                           uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
+
+                           if( uxNeededSize > pxNetworkBuffer->xDataLength )
+                           {
+                               FreeRTOS_printf( ( "Too small\n" ) );
+                               break;
+                           }
+
+                           pxEndPointInSameSubnet = FreeRTOS_InterfaceEPInSameSubnet_IPv6( pxNetworkBuffer->pxInterface, &( pxICMPHeader_IPv6->xIPv6Address ) );
 
                            if( pxEndPointInSameSubnet != NULL )
                            {
@@ -1119,15 +1130,6 @@
                            {
                                FreeRTOS_debug_printf( ( "prvProcessICMPMessage_IPv6: No match for %pip\n",
                                                         pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
-                           }
-
-                           uxICMPSize = sizeof( ICMPHeader_IPv6_t );
-                           uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
-
-                           if( uxNeededSize > pxNetworkBuffer->xDataLength )
-                           {
-                               FreeRTOS_printf( ( "Too small\n" ) );
-                               break;
                            }
 
                            xCompare = memcmp( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxTargetedEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );

@@ -1667,8 +1667,6 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitationIncorrectLen( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 5;
 
-    FreeRTOS_InterfaceEPInSameSubnet_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
-
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );

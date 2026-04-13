@@ -1194,7 +1194,7 @@
         {
             /* This is called from the context of the IP event task, so a block time
              * must not be used. */
-            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( ARPPacket_t ), ( TickType_t ) 0U );
+            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ( ( sizeof( ARPPacket_t ) > ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES ) ? sizeof( ARPPacket_t ) : ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES ), ( TickType_t ) 0U );
 
             if( pxNetworkBuffer != NULL )
             {
