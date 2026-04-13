@@ -892,14 +892,14 @@ void test_vReceiveRA_vRAProccess( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxInterface = &xInterface;
-    pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
+    pxNetworkBuffer->xDataLength = raHeaderBytesRA + sizeof( ICMPPrefixOption_IPv6_t );
     pxAdvertisement = &xICMPPacket.xAdvertisement;
     pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
 
     pxPrefixOption = &xICMPPacket.xPrefixOption;
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
-    /* Only 1 option */
-    pxPrefixOption->ucLength = 1;
+    pxPrefixOption->ucLength = 4;
+    pxPrefixOption->ucPrefixLength = 64;
 
     pxEndPoint->bits.bWantRA = pdTRUE_UNSIGNED;
 
@@ -929,14 +929,14 @@ void test_vReceiveRA_vRAProcess( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxInterface = &xInterface;
-    pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
+    pxNetworkBuffer->xDataLength = raHeaderBytesRA + sizeof( ICMPPrefixOption_IPv6_t );
     pxAdvertisement = &xICMPPacket.xAdvertisement;
     pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
 
     pxPrefixOption = &xICMPPacket.xPrefixOption;
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
-    /* Only 1 option */
-    pxPrefixOption->ucLength = 1;
+    pxPrefixOption->ucLength = 4;
+    pxPrefixOption->ucPrefixLength = 64;
 
 
     pxEndPoint->bits.bWantRA = pdTRUE_UNSIGNED;

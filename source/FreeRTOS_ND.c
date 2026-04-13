@@ -1361,30 +1361,51 @@
             /* A loopback IP-address has a prefix of 128. */
             configASSERT( ( uxPrefixLength > 0U ) && ( uxPrefixLength <= ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
 
-            if( uxPrefixLength >= 8U )
+            if( ( uxPrefixLength == 0U ) || ( uxPrefixLength > ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) )
+            {
+                FreeRTOS_printf( ( "Invalid prefix length %u\n",
+                                   ( unsigned ) uxPrefixLength ) );
+                xResult = pdFAIL;
+            }
+            else if( uxPrefixLength >= 8U )
             {
                 ( void ) memcpy( pxIPAddress->ucBytes, pxPrefix->ucBytes, ( uxPrefixLength + 7U ) / 8U );
             }
-
-            pucSource = ( uint8_t * ) pulRandom;
-            uxIndex = uxPrefixLength / 8U;
-
-            if( ( uxPrefixLength % 8U ) != 0U )
+            else
             {
-                /* uxHostLen is between 1 and 7 bits long. */
-                size_t uxHostLen = 8U - ( uxPrefixLength % 8U );
-                uint32_t uxHostMask = ( ( ( uint32_t ) 1U ) << uxHostLen ) - 1U;
-                uint8_t ucNetMask = ( uint8_t ) ~( uxHostMask );
-
-                pxIPAddress->ucBytes[ uxIndex ] &= ucNetMask;
-                pxIPAddress->ucBytes[ uxIndex ] |= ( pucSource[ 0 ] & ( ( uint8_t ) uxHostMask ) );
-                pucSource = &( pucSource[ 1 ] );
-                uxIndex++;
+                /* No bytes to copy for prefix lengths less than 8. */
+                FreeRTOS_printf( ( "Prefix length %u < 8, no full bytes to copy\n",
+                                   ( unsigned ) uxPrefixLength ) );
             }
 
-            if( uxIndex < ipSIZE_OF_IPv6_ADDRESS )
+            if( xResult == pdPASS )
             {
-                ( void ) memcpy( &( pxIPAddress->ucBytes[ uxIndex ] ), pucSource, ipSIZE_OF_IPv6_ADDRESS - uxIndex );
+                pucSource = ( uint8_t * ) pulRandom;
+                uxIndex = uxPrefixLength / 8U;
+
+                /*
+                 * When uxPrefixLength is 128, uxIndex is calculated as 128 / 8 = 16,
+                 * which is past the end of the 16-byte ucBytes array (valid indices 0-15).
+                 * Add bounds check before writing to ucBytes[uxIndex] in the partial-byte
+                 * prefix block.
+                 */
+                if( ( ( uxPrefixLength % 8U ) != 0U ) && ( uxIndex < ipSIZE_OF_IPv6_ADDRESS ) )
+                {
+                    /* uxHostLen is between 1 and 7 bits long. */
+                    size_t uxHostLen = 8U - ( uxPrefixLength % 8U );
+                    uint32_t uxHostMask = ( ( ( uint32_t ) 1U ) << uxHostLen ) - 1U;
+                    uint8_t ucNetMask = ( uint8_t ) ~( uxHostMask );
+
+                    pxIPAddress->ucBytes[ uxIndex ] &= ucNetMask;
+                    pxIPAddress->ucBytes[ uxIndex ] |= ( pucSource[ 0 ] & ( ( uint8_t ) uxHostMask ) );
+                    pucSource = &( pucSource[ 1 ] );
+                    uxIndex++;
+                }
+
+                if( uxIndex < ipSIZE_OF_IPv6_ADDRESS )
+                {
+                    ( void ) memcpy( &( pxIPAddress->ucBytes[ uxIndex ] ), pucSource, ipSIZE_OF_IPv6_ADDRESS - uxIndex );
+                }
             }
         }
 

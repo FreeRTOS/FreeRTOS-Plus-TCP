@@ -425,6 +425,14 @@
                     {
                         if( ( pxEndPoint->bits.bWantRA != ipFALSE_BOOL ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
                         {
+                            if( ( pxPrefixOption->ucPrefixLength == 0U ) ||
+                                ( pxPrefixOption->ucPrefixLength > ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) )
+                            {
+                                FreeRTOS_printf( ( "vReceiveRA: The prefix length "
+                                                   "is invalid\n" ) );
+                                break;
+                            }
+
                             pxEndPoint->ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
                             ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
                             ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
