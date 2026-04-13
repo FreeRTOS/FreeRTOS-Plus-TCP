@@ -276,6 +276,7 @@
         const size_t uxLast = pxNetworkBuffer->xDataLength - uxNeededSize;
         uint8_t * pucBytes = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
         ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
+        BaseType_t xMalformed = pdFALSE;
 
         while( ( uxIndex + 1U ) < uxLast )
         {
@@ -312,16 +313,29 @@
                     break;
 
                 case ndICMP_PREFIX_INFORMATION: /* 3 */
-                    /* MISRA Ref 11.3.1 [Misaligned access] */
-                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                    /* coverity[misra_c_2012_rule_11_3_violation] */
-                    pxPrefixOption = ( ( ICMPPrefixOption_IPv6_t * ) &( pucBytes[ uxIndex ] ) );
 
-                    FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
-                                       pxPrefixOption->ucPrefixLength,
-                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
-                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
-                                       ( void * ) pxPrefixOption->ucPrefix ) );
+                    if( uxLength < sizeof( ICMPPrefixOption_IPv6_t ) )
+                    {
+                        FreeRTOS_printf(
+                            ( "RA: Prefix option too short ( %u < %u )\n",
+                              ( unsigned ) uxLength,
+                              ( unsigned ) sizeof( ICMPPrefixOption_IPv6_t ) ) );
+                        xMalformed = pdTRUE;
+                    }
+                    else
+                    {
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        pxPrefixOption = ( ( ICMPPrefixOption_IPv6_t * ) &( pucBytes[ uxIndex ] ) );
+
+                        FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
+                                           pxPrefixOption->ucPrefixLength,
+                                           ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
+                                           ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
+                                           ( void * ) pxPrefixOption->ucPrefix ) );
+                    }
+
                     break;
 
                 case ndICMP_REDIRECTED_HEADER: /* 4 */
@@ -343,6 +357,12 @@
                 default:
                     FreeRTOS_printf( ( "RA: Type 0x%02x not implemented\n", ucType ) );
                     break;
+            }
+
+            if( xMalformed != pdFALSE )
+            {
+                FreeRTOS_printf( ( "RA: Malformed packet.\n" ) );
+                break;
             }
 
             uxIndex = uxIndex + uxLength;
