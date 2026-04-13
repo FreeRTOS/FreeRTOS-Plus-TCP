@@ -1196,13 +1196,14 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                 break;
 
             default:
-                ( void ) xBitConfig_read_uc( pxMessage, NULL, uxLength2 - uxUsed );
+                ( void ) xBitConfig_read_uc( pxMessage, NULL, uxLength2 );
                 FreeRTOS_printf( ( "prvDHCPv6Analyse: skipped unknown option %u\n", usOption2 ) );
                 break;
         }
 
-        if( xReturn != pdTRUE )
+        if( ( xReturn != pdTRUE ) || ( pxMessage->xHasError != pdFALSE ) )
         {
+            xReturn = pdFALSE;
             FreeRTOS_printf( ( "prvDHCPv6_subOption: One of sub-options %d returns error\n", usOption2 ) );
             break;
         }
