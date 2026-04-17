@@ -199,6 +199,9 @@ _Ref 14.3.1_
 
 - MISRA C-2012 Rule 14.3 False positive as the value might be changed depending
   on the conditionally compiled code
+- MISRA C-2012 Rule 14.3 The controlling expression compares sizeof against a
+  configuration constant. The result is invariant for a given configuration but
+  varies across different user configurations.
 
 #### Rule 17.2
 
