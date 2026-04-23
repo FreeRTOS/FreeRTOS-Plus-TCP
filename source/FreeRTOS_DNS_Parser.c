@@ -693,10 +693,16 @@
         BaseType_t xReturn = pdTRUE;
         const DNSAnswerRecord_t * pxDNSAnswerRecord;
         IPv46_Address_t xIP_Address;
+        uint16_t usMaxAnswers = pxSet->usAnswers;
 
         struct freertos_addrinfo * pxNewAddress = NULL;
 
-        for( x = 0U; x < pxSet->usAnswers; x++ )
+        if( usMaxAnswers > ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
+        {
+            usMaxAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+        }
+
+        for( x = 0U; x < usMaxAnswers; x++ )
         {
             BaseType_t xDoAccept = pdFALSE;
 
