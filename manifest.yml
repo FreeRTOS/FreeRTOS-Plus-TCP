@@ -16,7 +16,8 @@ dependencies:
 
   - name: "CMock"
     version: "afa2949"
+    license: "MIT"
     repository:
         type: "git"
-        url: " https://github.com/ThrowTheSwitch/CMock.git"
+        url: "https://github.com/ThrowTheSwitch/CMock.git"
         path: "tools/CMock"
