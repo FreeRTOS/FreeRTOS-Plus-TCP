@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -44,11 +44,11 @@
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */
-#define ipFR_TCP_VERSION_NUMBER    "V4.4.0"
+#define ipFR_TCP_VERSION_NUMBER    "V4.4.1"
 #define ipFR_TCP_VERSION_MAJOR     4
 #define ipFR_TCP_VERSION_MINOR     4
 /* Development builds are always version 999. */
-#define ipFR_TCP_VERSION_BUILD     0
+#define ipFR_TCP_VERSION_BUILD     1
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */

@@ -1,5 +1,14 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.4.1 and V4.4.0 released April 28, 2026:
+	+ Fix heap OOB read in prvProcessICMPEchoReply() (#1335).
+	+ Remove MAC-based loopback validation bypass (#1335).
+	+ Fix size_t underflow in ICMPv6 echo reply handler (#1335).
+	+ Fix DNS reply parsing loop and stall (#1335).
+	+ Fix DHCPv6 sub-option default case skip (#1335).
+	+ Validate PREFIX_INFORMATION option size in RA (#1335).
+	+ Validate RA prefix length bounds (#1335).
+
 Changes between FreeRTOS-plus-TCP V4.4.0 and V4.3.1 released February 25, 2026:
 	+ [Security] Fix CWE-126/476/822: IPv6 buffer validation and bounds
 	  checking. Fix missing NULL pointer checks in ND, add ICMPv6 minimum
