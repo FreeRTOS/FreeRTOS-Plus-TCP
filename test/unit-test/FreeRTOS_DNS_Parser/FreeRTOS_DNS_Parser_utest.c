@@ -3447,11 +3447,40 @@ void test_DNS_ParseDNSReply_questions_srv_record( void )
 void test_DNS_ParseDNSReply_questions_txt_record( void )
 {
     DnsQTestData_t test_data = dns_q_test_init( 1 );
+    char const * const txtRecord[] = { "Some Text" };
 
     prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
         .pcName = "FreeRTOS",
         .usRecordType = dnsTYPE_TXT,
-        .xData.pcTxtRecord = "Some Text"
+        .xData.xTxtRecord =
+        {
+            .ppcStrings    = txtRecord,
+            .uxStringCount = 1,
+        }
+    };
+    prvDNSRecordsLen = 1;
+
+    PUSH_LABEL( test_data.write_head, "FreeRTOS" );
+    END_LABELS( test_data.write_head );
+    memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
+    test_data.write_head += 4;
+
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_TXT );
+}
+
+void test_DNS_ParseDNSReply_questions_txt_record_multiple_strings( void )
+{
+    DnsQTestData_t test_data = dns_q_test_init( 1 );
+    char const * const txtRecord[] = { "Some Text", "Some more Text" };
+
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .pcName = "FreeRTOS",
+        .usRecordType = dnsTYPE_TXT,
+        .xData.xTxtRecord =
+        {
+            .ppcStrings    = txtRecord,
+            .uxStringCount = 2,
+        }
     };
     prvDNSRecordsLen = 1;
 
@@ -3467,20 +3496,28 @@ void test_DNS_ParseDNSReply_questions_txt_record_too_long( void )
 {
     DnsQTestData_t test_data = dns_q_test_init( 1 );
 
+    char const * const txtRecord[] =
+    {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+    };
+
     prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
         .pcName = "FreeRTOS",
         .usRecordType = dnsTYPE_TXT,
-        .xData.pcTxtRecord =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
+        .xData.xTxtRecord =
+        {
+            .ppcStrings    = txtRecord,
+            .uxStringCount = 1
+        }
     };
     prvDNSRecordsLen = 1;
 
@@ -3558,22 +3595,31 @@ void test_DNS_ParseDNSReply_questions_additional_record_fail_to_serve( void )
         .usRecordType = dnsTYPE_A_HOST,
     };
 
+    char const * const txtRecord[] =
+    {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+    };
+
+
     /* This record should not serve because it is too long,
      * but the first record should still be served */
     prvDNSRecords[ 1 ] = ( DNSRecord_t ) {
         .pcName = "FreeRTOS_Additional",
         .usRecordType = dnsTYPE_TXT,
-        .xData.pcTxtRecord =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz"
+        .xData.xTxtRecord =
+        {
+            .ppcStrings    = txtRecord,
+            .uxStringCount = 1
+        }
     };
     prvDNSRecordsLen = 2;
 

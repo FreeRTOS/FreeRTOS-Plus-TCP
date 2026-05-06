@@ -637,20 +637,30 @@
 
                 case dnsTYPE_TXT:
                    {
-                       size_t xTextLength = strlen( pxRecord->xData.pcTxtRecord );
+                       UBaseType_t i;
+                       uint16_t usTotalLength = 0;
+                       pucWriteHead += sizeof( *middle );
 
-                       if( xTextLength > 255 )
+                       for( i = 0; i < pxRecord->xData.xTxtRecord.uxStringCount; i++ )
                        {
-                           /* Each TXT record must be less than 256 bytes, since the length is stored in a single byte. */
-                           FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write TXT record" ) );
-                           return pdFALSE;
+                           char const * const pcString = pxRecord->xData.xTxtRecord.ppcStrings[ i ];
+                           size_t const xTextLength = strlen( pcString );
+
+                           if( xTextLength > 255 )
+                           {
+                               /* Each TXT record must be less than 256 bytes, since the length is stored in a single byte. */
+                               FreeRTOS_printf( ( "DNS_ParseDNSReply: Failed to write TXT record" ) );
+                               return pdFALSE;
+                           }
+
+                           *pucWriteHead++ = ( uint8_t ) xTextLength;
+                           memcpy( pucWriteHead, pcString, xTextLength );
+                           pucWriteHead += xTextLength;
+                           /* We've already checked total length so this cast should be safe */
+                           usTotalLength += ( uint16_t ) ( xTextLength + 1 );
                        }
 
-                       vSetField16( middle, MDNSResponseMiddle_t, usDataLength, strlen( pxRecord->xData.pcTxtRecord ) + 1 );
-                       pucWriteHead += sizeof( *middle );
-                       *pucWriteHead++ = ( uint8_t ) xTextLength;
-                       memcpy( pucWriteHead, pxRecord->xData.pcTxtRecord, xTextLength );
-                       pucWriteHead += xTextLength;
+                       vSetField16( middle, MDNSResponseMiddle_t, usDataLength, usTotalLength );
                        break;
                    }
 
@@ -1104,10 +1114,16 @@
 
                                 case dnsTYPE_TXT:
                                    {
-                                       size_t const uxTextLength = strlen( pRecord->xData.pcTxtRecord );
-                                       /* TXT records don't use length-label strings, so it's not +2. */
-                                       /* Just a length field and no null terminator. So it's +1. */
-                                       uxExtraSize += uxTextLength + 1; /* Text. */
+                                       UBaseType_t i;
+
+                                       for( i = 0; i < pRecord->xData.xTxtRecord.uxStringCount; i++ )
+                                       {
+                                           size_t const uxTextLength = strlen( pRecord->xData.xTxtRecord.ppcStrings[ i ] );
+                                           /* TXT records don't use length-label strings, so it's not +2. */
+                                           /* Just a length field and no null terminator. So it's +1. */
+                                           uxExtraSize += uxTextLength + 1; /* Text. */
+                                       }
+
                                        break;
                                    }
 

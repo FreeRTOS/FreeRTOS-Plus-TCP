@@ -148,13 +148,17 @@
             const char * pcName;
             union
             {
-                char * pcPtrRecord;
+                char const * pcPtrRecord;
                 struct
                 {
                     const char * pcTarget;
                     uint16_t usPort;
                 } xSrvRecord;
-                char * pcTxtRecord;
+                struct
+                {
+                    const char * const * ppcStrings;
+                    UBaseType_t uxStringCount;
+                } xTxtRecord;
             } xData;
         } DNSRecord_t;
 
