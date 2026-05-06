@@ -174,65 +174,58 @@
     size_t DNS_SkipNameField( const uint8_t * pucByte,
                               size_t uxLength )
     {
-        size_t uxChunkLength;
-        size_t uxSourceLenCpy = uxLength;
         size_t uxIndex = 0U;
+        uint8_t ucLength;
 
-        if( uxSourceLenCpy == 0U )
+        if( uxLength == 0U )
         {
-            uxIndex = 0U;
+            return 0U;
         }
 
-        /* Determine if the name is the fully coded name, or an offset to the name
-         * elsewhere in the message. */
-        else if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
+        if( pucByte[ 0 ] == 0U )
         {
-            /* Jump over the two byte offset. */
-            if( uxSourceLenCpy > sizeof( uint16_t ) )
+            return 0U;
+        }
+
+        /* Walk over labels until the terminating zero-length label, or a compression
+         * pointer. Per RFC 1035, a compression pointer always terminates the current
+         * name and consumes two bytes. */
+        while( uxIndex < uxLength )
+        {
+            ucLength = pucByte[ uxIndex ];
+
+            if( ucLength == 0U )
             {
+                uxIndex++;
+                return uxIndex;
+            }
+
+            if( ( ucLength & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
+            {
+                if( ( uxLength - uxIndex ) < sizeof( uint16_t ) )
+                {
+                    return 0U;
+                }
+
                 uxIndex += sizeof( uint16_t );
-            }
-            else
-            {
-                uxIndex = 0U;
-            }
-        }
-        else
-        {
-            /* pucByte points to the full name. Walk over the string. */
-            while( ( pucByte[ uxIndex ] != 0U ) && ( uxSourceLenCpy > 1U ) )
-            {
-                /* Conversion to size_t causes addition to be done
-                 * in size_t */
-                uxChunkLength = ( ( size_t ) pucByte[ uxIndex ] ) + 1U;
-
-                if( uxSourceLenCpy > uxChunkLength )
-                {
-                    uxSourceLenCpy -= uxChunkLength;
-                    uxIndex += uxChunkLength;
-                }
-                else
-                {
-                    uxIndex = 0U;
-                    break;
-                }
+                return uxIndex;
             }
 
-            /* Confirm that a fully formed name was found. */
-            if( uxIndex > 0U )
+            if( ucLength > 63U )
             {
-                if( pucByte[ uxIndex ] == 0U )
-                {
-                    uxIndex++;
-                }
-                else
-                {
-                    uxIndex = 0U;
-                }
+                return 0U;
             }
+
+            /* Check that this full label fits within the provided length. */
+            if( ( uxLength - uxIndex ) <= ( size_t ) ucLength )
+            {
+                return 0U;
+            }
+
+            uxIndex += ( size_t ) ucLength + 1U;
         }
 
-        return uxIndex;
+        return 0U;
     }
 
 

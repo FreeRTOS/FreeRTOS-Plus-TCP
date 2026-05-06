@@ -456,13 +456,13 @@ void test_DNS_SkipNameField_failed_()
  */
 void test_DNS_SkipNameField_fail_fully_coded( void )
 {
-    uint8_t pucByte[ 2 ] = { 0 };
+    uint8_t pucByte[ 1 ] = { 0 };
     size_t ret;
 
-    memset( pucByte, 0x00, 2 );
+    memset( pucByte, 0x00, 1 );
     pucByte[ 0 ] = dnsNAME_IS_OFFSET;
 
-    ret = DNS_SkipNameField( pucByte, 2 );
+    ret = DNS_SkipNameField( pucByte, 1 );
 
     TEST_ASSERT_EQUAL( 0, ret );
 }
@@ -520,6 +520,51 @@ void test_DNS_SkipNameField_small_buffer( void )
     size_t ret;
 
     ret = DNS_SkipNameField( pucByte, 6 );
+
+    TEST_ASSERT_EQUAL( 0, ret );
+}
+
+/**
+ * @brief ensures that when the last name field is less than the buffer
+ *        remaining size, zero is returned
+ */
+void test_DNS_SkipNameField_fail_no_terminator( void )
+{
+    uint8_t pucByte[ 300 ] = { 0 };
+
+    memset( pucByte, 0x00, 300 );
+    pucByte[ 0 ] = 8;
+    strcpy( pucByte + 1, "FreeRTOS" );
+    pucByte[ 9 ] = 7;
+    strcpy( pucByte + 10, "PlusTCP" );
+    size_t ret;
+
+    /* 16 is enough for *FreeRTOS*PlusTCP
+     * but not the final zero length label */
+    ret = DNS_SkipNameField( pucByte, 17 );
+
+    TEST_ASSERT_EQUAL( 0, ret );
+}
+
+/**
+ * @brief ensures that labels greater than 63 length are rejected
+ */
+void test_DNS_SkipNameField_fail_too_long( void )
+{
+    uint8_t pucByte[ 66 ] = { 0 };
+
+    memset( pucByte, 0x00, 66 );
+    pucByte[ 0 ] = 64;
+    strcpy( pucByte + 1,
+            "0123456789"
+            "0123456789"
+            "0123456789"
+            "0123456789"
+            "0123456789"
+            "0123456789"
+            "0123" );
+    size_t ret;
+    ret = DNS_SkipNameField( pucByte, 65 );
 
     TEST_ASSERT_EQUAL( 0, ret );
 }
@@ -1789,13 +1834,9 @@ void test_DNS_ParseDNSReply_answer_record_too_many_answers( void )
     beg++;
     strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
+    beg++; /* Null terminate */
 
     beg += sizeof( uint32_t );
-
-    pucUDPPayloadBuffer[ beg ] = 38;
-    beg++;
-    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
-    beg += 38;
 
     pucUDPPayloadBuffer[ beg ] = 38;
     beg++;
