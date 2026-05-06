@@ -1045,9 +1045,7 @@
                         UBaseType_t uxDataLength;
                         UBaseType_t uxNumAnswers = 0;
                         UBaseType_t uxNumAdditionalRRs = 0;
-                        uint8_t * pucNewBuffer = NULL;
-                        uint8_t * pucStartOfAnswers;
-                        UBaseType_t uxIsLLMNR;
+                        uint8_t * pucDNSPayloadBase = NULL;
                         BaseType_t uxLength;
                         UBaseType_t uxUDPOffset;
                         NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -1069,10 +1067,40 @@
                         uxUDPOffset = ( UBaseType_t ) ( pucUDPPayloadBuffer - pxNetworkBuffer->pucEthernetBuffer );
                         configASSERT( ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv4 ) || ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv6 ) ); /* LCOV_EXCL_BR_LINE */
 
-                        uxDataLength = uxBufferLength +
-                                       sizeof( UDPHeader_t ) +
-                                       sizeof( EthernetHeader_t ) +
-                                       uxIPHeaderSizePacket( pxNetworkBuffer );
+                        /* Base the outgoing packet size on only the DNS payload we actually
+                         * retain, not the full incoming buffer. Any incoming known-answer
+                         * records after the questions section are discarded and overwritten.
+                         * For mDNS the questions section is also stripped (RFC 6762-6), so
+                         * only the fixed-size header is kept. */
+                        {
+                            uint8_t * const pucStartOfQuestions = ( uint8_t * ) ( xSet.pxDNSMessageHeader ) + sizeof( DNSMessage_t );
+                            UBaseType_t const uxSizeOfQuestions = ( UBaseType_t ) ( xSet.pucByte - pucStartOfQuestions );
+                            UBaseType_t uxRetainedDNSPayload = sizeof( DNSMessage_t );
+
+                            if( xSet.usPortNumber == ipLLMNR_PORT )
+                            {
+                                uxRetainedDNSPayload += uxSizeOfQuestions;
+                            }
+                            else if( xSet.usPortNumber == ipMDNS_PORT )
+                            {
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usQuestions, 0 );
+                            }
+                            else
+                            {
+                                /* Should not happen. Let's refuse to send our answer */
+                                FreeRTOS_printf( ( "DNS_ParseDNSReply: Unexpected port number %u\n", xSet.usPortNumber ) );
+                                break;
+                            }
+
+                            uxDataLength = uxRetainedDNSPayload +
+                                           sizeof( UDPHeader_t ) +
+                                           sizeof( EthernetHeader_t ) +
+                                           uxIPHeaderSizePacket( pxNetworkBuffer );
+
+                            /* Move write-head to where response records start in the
+                             * retained DNS payload. */
+                            xSet.pucByte = &( pucUDPPayloadBuffer[ uxRetainedDNSPayload ] );
+                        }
 
                         /* Calculate how big our response is going to end up being. */
                         for( i = 0; i < xSet.uxDNSRecordCount; i++ )
@@ -1157,35 +1185,29 @@
                                 xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) xSet.pcRequestedName ) - pucUDPPayloadBuffer );
 
                                 pxNetworkBuffer = pxNewBuffer;
-                                pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
+                                pucDNSPayloadBase = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
 
-                                xSet.pucByte = &( pucNewBuffer[ xOffset1 ] );
-                                xSet.pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
-                                xSet.pxDNSMessageHeader = ( ( DNSMessage_t * ) pucNewBuffer );
+                                xSet.pucByte = &( pucDNSPayloadBase[ xOffset1 ] );
+                                xSet.pcRequestedName = ( char * ) &( pucDNSPayloadBase[ xOffset2 ] );
+                                xSet.pxDNSMessageHeader = ( ( DNSMessage_t * ) pucDNSPayloadBase );
                             }
                             else
                             {
-                                /* Just to indicate that the message may not be answered. */
-                                pxNetworkBuffer = NULL;
+                                break;
                             }
                         }
                         else
                         {
-                            /* When xBufferAllocFixedSize is TRUE, check if the buffer size is big enough. */
+                            /* When xBufferAllocFixedSize is TRUE, check if the buffer size is big enough.
+                             * We reuse the same buffer (no reallocation), so no pointer remapping needed. */
                             if( ( uxDataLength + uxExtraSize ) <= ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
                             {
-                                pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
+                                pucDNSPayloadBase = pucUDPPayloadBuffer;
                             }
                             else
                             {
-                                /* Just to indicate that the message may not be answered. */
-                                pxNetworkBuffer = NULL;
+                                break;
                             }
-                        }
-
-                        if( !pxNetworkBuffer )
-                        {
-                            break;
                         }
 
                         /* We leave 'usIdentifier' and 'usQuestions' untouched */
@@ -1197,8 +1219,6 @@
                         /* Number of answers will be filled later */
                         vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                          /* No authority */
                         /* Number of additional records will be filled later */
-
-                        pucStartOfAnswers = xSet.pucByte;
 
                         for( i = 0; i < xSet.uxDNSRecordCount; i++ )
                         {
@@ -1246,35 +1266,7 @@
                         vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, uxNumAnswers );
                         vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, uxNumAdditionalRRs );
 
-                        if( xSet.usPortNumber == ipLLMNR_PORT )
-                        {
-                            uxIsLLMNR = pdTRUE;
-                        }
-                        else if( xSet.usPortNumber == ipMDNS_PORT )
-                        {
-                            uxIsLLMNR = pdFALSE;
-                        }
-                        else
-                        {
-                            /* Should not happen. Let's refuse to send our answer */
-                            FreeRTOS_printf( ( "DNS_ParseDNSReply: Unexpected port number %u\n", xSet.usPortNumber ) );
-                            break;
-                        }
-
-                        if( uxIsLLMNR == pdFALSE )
-                        {
-                            /* In MDNS, we need to remove the questions section */
-                            uint8_t * const pucStartOfQuestions = ( uint8_t * ) ( xSet.pxDNSMessageHeader ) + sizeof( DNSMessage_t );
-
-                            UBaseType_t const size_of_questions = ( UBaseType_t ) ( pucStartOfAnswers - pucStartOfQuestions );
-
-                            UBaseType_t const size_of_answers = ( UBaseType_t ) ( xSet.pucByte - pucStartOfAnswers );
-                            memmove( pucStartOfQuestions, pucStartOfAnswers, size_of_answers );
-                            xSet.pucByte -= size_of_questions;
-                            vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usQuestions, 0 );
-                        }
-
-                        uxLength = ( BaseType_t ) ( xSet.pucByte - pucNewBuffer );
+                        uxLength = ( BaseType_t ) ( xSet.pucByte - pucDNSPayloadBase );
                         prepareReplyDNSMessage( pxNetworkBuffer, uxLength );
                         /* This function will fill in the eth addresses and send the packet */
                         vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );

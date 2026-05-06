@@ -3813,26 +3813,53 @@ void test_DNS_ParseDNSReply_questions_missing_endpoint( void )
 
 void test_DNS_ParseDNSReply_questions_fixed_size_not_big_enough( void )
 {
+    /* Create a single response to a text question with a really big
+     * string that will overflow the MTU */
     DnsQTestData_t test_data = dns_q_test_init( 1 );
 
-    SetDNSRecordsSimple( "FreeRTOS" );
+    char really_long_string[ 255 ];
+
+    memset( really_long_string, 'A', 254 );
+    really_long_string[ 254 ] = 0;
+
+    char const * const long_strings[ 6 ] =
+    {
+        really_long_string,
+        really_long_string,
+        really_long_string,
+        really_long_string,
+        really_long_string,
+        really_long_string,
+    };
+    prvDNSRecords[ 0 ] = ( DNSRecord_t ) {
+        .usRecordType = dnsTYPE_TXT,
+        .pcName = "FreeRTOS",
+        .xData.xTxtRecord =
+        {
+            .ppcStrings    = long_strings,
+            .uxStringCount = 6
+        }
+    };
+
+    prvDNSRecordsLen = 1;
 
     PUSH_LABEL( test_data.write_head, "FreeRTOS" );
     END_LABELS( test_data.write_head );
-    A_TYPE_IN_CLASS( test_data.write_head );
+
+    memcpy( test_data.write_head, "\x00\x10\00\01", 4 );
     test_data.write_head += 4;
 
     xBufferAllocFixedSize = true;
 
     UBaseType_t i;
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_TXT ); /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN ); /* usClass */
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( test_data.pxNetworkBuffer );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     BaseType_t ret = DNS_ParseDNSReply( test_data.pucUDPPayloadBuffer,
-                                        ipconfigNETWORK_MTU,
+                                        test_data.write_head - test_data.pucUDPPayloadBuffer,
                                         &test_data.pxAddressInfo,
                                         pdFALSE,
                                         test_data.usPort );
