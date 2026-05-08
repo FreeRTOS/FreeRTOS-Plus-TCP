@@ -3622,7 +3622,6 @@ void test_DNS_ParseDNSReply_questions_additional_record( void )
     PUSH_LABEL( test_data.write_head, "FreeRTOS" );
     END_LABELS( test_data.write_head );
     A_TYPE_IN_CLASS( test_data.write_head );
-    test_data.write_head += 4;
 
     expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
 }
@@ -3691,7 +3690,7 @@ void test_DNS_ParseDNSReply_questions_ptr_record_matches_any( void )
     memcpy( test_data.write_head, "\x00\x21\x00\x01", 4 ); /* SRV record, IN class */
     test_data.write_head += 4;
 
-    expect_dns_result( &test_data, pdTRUE, dnsTYPE_ANY );
+    expect_dns_result( &test_data, pdTRUE, dnsTYPE_ANY_HOST );
 }
 
 void test_DNS_ParseDNSReply_questions_unsupported_record( void )
@@ -3743,7 +3742,6 @@ void test_DNS_ParseDNSReply_questions_no_ipv4_address( void )
     PUSH_LABEL( test_data.write_head, "FreeRTOS" );
     END_LABELS( test_data.write_head );
     A_TYPE_IN_CLASS( test_data.write_head );
-    test_data.write_head += 4;
 
     expect_dns_result( &test_data, pdFALSE, dnsTYPE_A_HOST );
 }
@@ -3778,7 +3776,6 @@ void test_DNS_ParseDNSReply_questions_ipv4_when_ipv6( void )
     PUSH_LABEL( test_data.write_head, "FreeRTOS" );
     END_LABELS( test_data.write_head );
     A_TYPE_IN_CLASS( test_data.write_head );
-    test_data.write_head += 4;
 
     expect_dns_result( &test_data, pdTRUE, dnsTYPE_A_HOST );
 }

@@ -73,7 +73,6 @@
     #define dnsTYPE_TXT               0x0010U /**< DNS type TXT (Text Record). */
     #define dnsTYPE_PTR               0x000CU /**< DNS type PTR (Pointer Record). */
     #define dnsTYPE_SRV               0x0021U /**< DNS type SRV (Service Record). */
-    #define dnsTYPE_ANY               0x00FFU /**< DNS type ANY. */
 
     #define dnsCLASS_IN               0x01U   /**< DNS class IN (Internet). */
 

@@ -489,13 +489,12 @@
  */
         static BaseType_t DNS_GetRecords( ParseSet_t * xSet )
         {
-            UBaseType_t x;
-
             #if ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 )
 
                 /* No need to do anything. We aren't *really* fetching records in the back-compatible
                  * path, we're instead creating them on the way*/
             #else
+                UBaseType_t x;
                 NetworkEndPoint_t xEndPoint;
 
                 if( xSet->pxDNSRecords == NULL )
@@ -715,7 +714,6 @@
                 {
                     uxResult = DNS_ReadNameField( xSet,
                                                   sizeof( xSet->pcName ) );
-                    ( void ) uxResult;
                 }
                 else
             #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
@@ -834,7 +832,7 @@
                                     continue;
                             }
 
-                            xTypeMatch = ( pRecord->usRecordType == xSet->usType ) || ( xSet->usType == dnsTYPE_ANY );
+                            xTypeMatch = ( pRecord->usRecordType == xSet->usType ) || ( xSet->usType == dnsTYPE_ANY_HOST );
                             xNameMatch = DNS_NameEqual(
                                 pucThisNameField,
                                 ( const uint8_t * ) xSet->pxDNSMessageHeader,
@@ -872,11 +870,6 @@
                                 xSet->xDNSRecordsMatched = pdTRUE;
                             }
                         }
-
-                        if( xSet->xDNSRecordsMatched )
-                        {
-                            xApplicationDNSRecordsMatchedHook();
-                        }
                     #endif /* if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 1 ) ) */
                 }
                 #endif /* ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
@@ -890,6 +883,13 @@
                 return pdFALSE;
             }
         } /* for( x = 0U; x < xSet.usQuestions; x++ ) */
+
+        #if ( ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) && ( ipconfigDNSQuery_BACKWARD_COMPATIBLE == 0 ) )
+            if( xSet->xDNSRecordsMatched )
+            {
+                xApplicationDNSRecordsMatchedHook();
+            }
+        #endif
 
         return pdTRUE;
     }
@@ -919,14 +919,11 @@
                                 uint16_t usPort )
     {
         ParseSet_t xSet;
-        UBaseType_t i;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
         BaseType_t xDNSHookReturn = 0;
         NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
-        /* i is an iteration variable used in later code. If it's unused, no issue. */
-        ( void ) i;
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
         xSet.usPortNumber = usPort;
         xSet.ppxLastAddress = &( xSet.pxLastAddress );
@@ -1041,6 +1038,7 @@
                 #if ( ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
                     else if( xSet.xDNSRecordsMatched == pdTRUE )
                     {
+                        UBaseType_t i;
                         UBaseType_t uxExtraSize = 0;
                         UBaseType_t uxDataLength;
                         UBaseType_t uxNumAnswers = 0;
@@ -1135,11 +1133,11 @@
 
                                 case dnsTYPE_TXT:
                                    {
-                                       UBaseType_t i;
+                                       UBaseType_t j;
 
-                                       for( i = 0; i < pRecord->xData.xTxtRecord.uxStringCount; i++ )
+                                       for( j = 0; j < pRecord->xData.xTxtRecord.uxStringCount; j++ )
                                        {
-                                           size_t const uxTextLength = strlen( pRecord->xData.xTxtRecord.ppcStrings[ i ] );
+                                           size_t const uxTextLength = strlen( pRecord->xData.xTxtRecord.ppcStrings[ j ] );
                                            /* TXT records don't use length-label strings, so it's not +2. */
                                            /* Just a length field and no null terminator. So it's +1. */
                                            uxExtraSize += uxTextLength + 1; /* Text. */
