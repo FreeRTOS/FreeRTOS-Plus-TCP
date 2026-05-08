@@ -125,6 +125,57 @@
 
     #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 
+/*
+ * MDNS record serving can be used to implement DNS-SD. A minimal example:
+ *    static char const* const TxtRecordStrings[] = {
+ *        "name=FreeRTOS",
+ *        "example=DNS-SD",
+ *    };
+ *
+ *    static DNSRecord_t DnsRecords[] = {
+ *        {.usRecordType      = dnsTYPE_PTR,
+ *         .pcName            = "_services._dns-sd._udp.local",
+ *         .xData.pcPtrRecord = "_myservice._udp.local"},
+ *
+ *        {.usRecordType      = dnsTYPE_PTR,
+ *         .pcName            = "_myservice._udp.local",
+ *         .xData.pcPtrRecord = "instance._myservice._udp.local"},
+ *
+ *        {.usRecordType     = dnsTYPE_SRV,
+ *         .pcName           = "instance._myservice._udp.local",
+ *         .xData.xSrvRecord = {.pcTarget = "myhostname.local", .usPort = 123}},
+ *
+ *        {.usRecordType = dnsTYPE_TXT,
+ *         .pcName       = "instance._myservice._udp.local",
+ *         .xData.xTxtRecord =
+ *             {
+ *                 .ppcStrings    = TxtRecordStrings,
+ *                 .uxStringCount = 2,
+ *             }},
+ *
+ *        {.usRecordType = dnsTYPE_A_HOST, .pcName = "myhostname.local"},e
+ *    };
+ *
+ *    DNSRecord_t* xApplicationDNSRecordQueryHook(UBaseType_t* outLen) {
+ *        *outLen = sizeof(DnsRecords) / sizeof(DnsRecords[0]);
+ *        return DnsRecords;
+ *    }
+ *
+ *    extern void xApplicationDNSRecordsMatchedHook(void) {
+ *        // Serve additional records according to RFC6763, section 12
+ *        // Instance Enumeration implies all other records
+ *        if (DnsRecords[1].uxServeRecord == dnsRECORD_SERVE_ANSWER) {
+ *            DnsRecords[2].uxServeRecord = dnsRECORD_SERVE_ADDITIONAL;
+ *            DnsRecords[3].uxServeRecord = dnsRECORD_SERVE_ADDITIONAL;
+ *            DnsRecords[4].uxServeRecord = dnsRECORD_SERVE_ADDITIONAL;
+ *        }
+ *        // SRV record implies A record
+ *        if (DnsRecords[2].uxServeRecord == dnsRECORD_SERVE_ANSWER) {
+ *            DnsRecords[4].uxServeRecord = dnsRECORD_SERVE_ADDITIONAL;
+ *        }
+ *    }
+ */
+
 /* Do not serve this record */
         #define dnsRECORD_SERVE_NO            0U
 
