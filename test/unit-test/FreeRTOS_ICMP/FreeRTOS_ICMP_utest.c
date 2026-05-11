@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -87,8 +87,6 @@ void test_ProcessICMPPacket_AllZeroData( void )
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-
-    vApplicationPingReplyHook_Expect( eInvalidData, 0 );
 
     eResult = ProcessICMPPacket( pxNetworkBuffer );
 
