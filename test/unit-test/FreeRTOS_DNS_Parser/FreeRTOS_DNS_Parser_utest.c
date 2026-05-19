@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -3994,12 +3994,11 @@ void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
     xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST + 1 );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
-    TEST_ASSERT_EQUAL( 44, uxBytesRead );
+    TEST_ASSERT_EQUAL( 40, uxBytesRead );
 }
 
 BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,

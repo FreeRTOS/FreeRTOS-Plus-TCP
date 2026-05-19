@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -140,7 +140,7 @@
         NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
 
         configASSERT( pxEndPoint != NULL );
-        configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
+        configASSERT( pxEndPoint->bits.bIPv6 != ipFALSE_BOOL );
 
         xHasLocal = xGetLinkLocalAddress( pxEndPoint->pxNetworkInterface, &( xSourceAddress ) );
 
@@ -247,11 +247,11 @@
              pxPoint != NULL;
              pxPoint = FreeRTOS_NextEndPoint( pxInterface, pxPoint ) )
         {
-            if( ( pxPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxPoint->xRAData.eRAState == eRAStateIPWait ) )
+            if( ( pxPoint->bits.bWantRA != ipFALSE_BOOL ) && ( pxPoint->xRAData.eRAState == eRAStateIPWait ) )
             {
                 if( memcmp( pxPoint->ipv6_settings.xIPAddress.ucBytes, pxICMPHeader_IPv6->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
                 {
-                    pxPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
+                    pxPoint->xRAData.bits.bIPAddressInUse = ipTRUE_BOOL;
                     vDHCP_RATimerReload( pxPoint, 100U );
                 }
             }
@@ -276,6 +276,7 @@
         const size_t uxLast = pxNetworkBuffer->xDataLength - uxNeededSize;
         uint8_t * pucBytes = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
         ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
+        BaseType_t xMalformed = pdFALSE;
 
         while( ( uxIndex + 1U ) < uxLast )
         {
@@ -312,16 +313,29 @@
                     break;
 
                 case ndICMP_PREFIX_INFORMATION: /* 3 */
-                    /* MISRA Ref 11.3.1 [Misaligned access] */
-                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                    /* coverity[misra_c_2012_rule_11_3_violation] */
-                    pxPrefixOption = ( ( ICMPPrefixOption_IPv6_t * ) &( pucBytes[ uxIndex ] ) );
 
-                    FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
-                                       pxPrefixOption->ucPrefixLength,
-                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
-                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
-                                       ( void * ) pxPrefixOption->ucPrefix ) );
+                    if( uxLength < sizeof( ICMPPrefixOption_IPv6_t ) )
+                    {
+                        FreeRTOS_printf(
+                            ( "RA: Prefix option too short ( %u < %u )\n",
+                              ( unsigned ) uxLength,
+                              ( unsigned ) sizeof( ICMPPrefixOption_IPv6_t ) ) );
+                        xMalformed = pdTRUE;
+                    }
+                    else
+                    {
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        pxPrefixOption = ( ( ICMPPrefixOption_IPv6_t * ) &( pucBytes[ uxIndex ] ) );
+
+                        FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
+                                           pxPrefixOption->ucPrefixLength,
+                                           ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
+                                           ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
+                                           ( void * ) pxPrefixOption->ucPrefix ) );
+                    }
+
                     break;
 
                 case ndICMP_REDIRECTED_HEADER: /* 4 */
@@ -343,6 +357,12 @@
                 default:
                     FreeRTOS_printf( ( "RA: Type 0x%02x not implemented\n", ucType ) );
                     break;
+            }
+
+            if( xMalformed != pdFALSE )
+            {
+                FreeRTOS_printf( ( "RA: Malformed packet.\n" ) );
+                break;
             }
 
             uxIndex = uxIndex + uxLength;
@@ -403,17 +423,25 @@
                          pxEndPoint != NULL;
                          pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkBuffer->pxInterface, pxEndPoint ) )
                     {
-                        if( ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
+                        if( ( pxEndPoint->bits.bWantRA != ipFALSE_BOOL ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
                         {
+                            if( ( pxPrefixOption->ucPrefixLength == 0U ) ||
+                                ( pxPrefixOption->ucPrefixLength > ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) )
+                            {
+                                FreeRTOS_printf( ( "vReceiveRA: The prefix length "
+                                                   "is invalid\n" ) );
+                                break;
+                            }
+
                             pxEndPoint->ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
                             ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
                             ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
-                            pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
+                            pxEndPoint->xRAData.bits.bRouterReplied = ipTRUE_BOOL;
                             pxEndPoint->xRAData.uxRetryCount = 0U;
                             pxEndPoint->xRAData.ulPreferredLifeTime = FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime );
                             /* Force taking a new random IP-address. */
-                            pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
+                            pxEndPoint->xRAData.bits.bIPAddressInUse = ipTRUE_BOOL;
                             pxEndPoint->xRAData.eRAState = eRAStateIPTest;
                             vRAProcess( pdFALSE, pxEndPoint );
                         }
@@ -459,10 +487,10 @@
                 FreeRTOS_printf( ( "RA: Giving up waiting for a Router.\n" ) );
                 ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
 
-                pxEndPoint->xRAData.bits.bRouterReplied = pdFALSE_UNSIGNED;
+                pxEndPoint->xRAData.bits.bRouterReplied = ipFALSE_BOOL;
                 pxEndPoint->xRAData.uxRetryCount = 0U;
                 /* Force taking a new random IP-address. */
-                pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
+                pxEndPoint->xRAData.bits.bIPAddressInUse = ipTRUE_BOOL;
                 pxEndPoint->xRAData.eRAState = eRAStateIPTest;
             }
         }
@@ -470,7 +498,7 @@
         {
             /* A Neighbour Solicitation has been sent, waited for a reply.
              * Repeat this 'ipconfigRA_IP_TEST_COUNT' times to be sure. */
-            if( pxEndPoint->xRAData.bits.bIPAddressInUse != pdFALSE_UNSIGNED )
+            if( pxEndPoint->xRAData.bits.bIPAddressInUse != ipFALSE_BOOL )
             {
                 /* Another device has responded with the same IPv4 address. */
                 pxEndPoint->xRAData.uxRetryCount = 0U;
@@ -487,7 +515,7 @@
             else
             {
                 /* Now it is assumed that there is no other device using the same IP-address. */
-                if( pxEndPoint->xRAData.bits.bRouterReplied != pdFALSE_UNSIGNED )
+                if( pxEndPoint->xRAData.bits.bRouterReplied != ipFALSE_BOOL )
                 {
                     /* Obtained configuration from a router. */
                     uxNewReloadTime = pdMS_TO_TICKS( ( 1000U * ( uint64_t ) pxEndPoint->xRAData.ulPreferredLifeTime ) );
@@ -573,9 +601,9 @@
                    NetworkBufferDescriptor_t * pxNetworkBuffer;
 
                    /* Get an IP-address, using the network prefix and a random host address. */
-                   if( pxEndPoint->xRAData.bits.bIPAddressInUse != 0U )
+                   if( pxEndPoint->xRAData.bits.bIPAddressInUse != ipFALSE_BOOL )
                    {
-                       pxEndPoint->xRAData.bits.bIPAddressInUse = pdFALSE_UNSIGNED;
+                       pxEndPoint->xRAData.bits.bIPAddressInUse = ipFALSE_BOOL;
 
                        ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, pdTRUE );
 

@@ -42,7 +42,7 @@
  */
 
 /*
- * Support and FAQ: visit <a href="https://www.microchip.com/en-us/support/design-help">Atmel Support</a>
+ * Support and FAQ: visit Microchip Support website
  */
 
 

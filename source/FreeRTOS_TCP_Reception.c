@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -247,7 +247,7 @@
                             pxSocket->u.xTCP.ucPeerWinScaleFactor = pucPtr[ 2 ];
                         }
 
-                        pxSocket->u.xTCP.bits.bWinScaling = pdTRUE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bWinScaling = ipTRUE_BOOL;
                     }
 
                     lIndex = ( int32_t ) tcpTCP_OPT_WSOPT_LEN;
@@ -297,7 +297,7 @@
                     if( pxSocket->u.xTCP.usMSS > uxNewMSS )
                     {
                         /* our MSS was bigger than the MSS of the other party: adapt it. */
-                        pxSocket->u.xTCP.bits.bMssChange = pdTRUE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bMssChange = ipTRUE_BOOL;
 
                         if( pxSocket->u.xTCP.usMSS > uxNewMSS )
                         {

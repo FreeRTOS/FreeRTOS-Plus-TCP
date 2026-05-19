@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -68,6 +68,7 @@ void test_prvAllowIPPacketIPv6_SourceUnspecifiedAddress()
     memset( &xIPv6Address, 0, sizeof( xIPv6Address ) );
     memcpy( xIPv6Address.xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( xIPv6Address.xSourceAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xIPv6Address.ucVersionTrafficClass = 0x60U;
 
     eResult = prvAllowIPPacketIPv6( &xIPv6Address, NULL, 0U );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -85,6 +86,7 @@ void test_prvAllowIPPacketIPv6_DestinationUnspecifiedAddress()
     memset( &xIPv6Address, 0, sizeof( xIPv6Address ) );
     memcpy( xIPv6Address.xDestinationAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( xIPv6Address.xSourceAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xIPv6Address.ucVersionTrafficClass = 0x60U;
 
     eResult = prvAllowIPPacketIPv6( &xIPv6Address, NULL, 0U );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -100,7 +102,8 @@ void test_prvAllowIPPacketIPv6_HappyPath()
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
     eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -118,10 +121,10 @@ void test_prvAllowIPPacketIPv6_MulticastAddress()
     /* Multicast IPv6 address is FF02::1 */
     IPv6_Address_t xMCIPAddress = { 0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xMCIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &( pxTCPPacket->xIPHeader.xSourceAddress ), pxNetworkBuffer->pxEndPoint );
-    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
     eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -139,6 +142,7 @@ void test_prvAllowIPPacketIPv6_LoopbackAddress()
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     NetworkEndPoint_t xEndPoint;
 
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
     memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, FreeRTOS_in6addr_loopback.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, FreeRTOS_in6addr_loopback.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
@@ -146,7 +150,6 @@ void test_prvAllowIPPacketIPv6_LoopbackAddress()
 
     FreeRTOS_IsNetworkUp_IgnoreAndReturn( 0 );
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
     eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -163,11 +166,11 @@ void test_prvAllowIPPacketIPv6_LoopbackNotMatchDest()
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
     pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes[ 15 ] = 0x11;
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &pxTCPPacket->xIPHeader.xSourceAddress, pxNetworkBuffer->pxEndPoint );
     FreeRTOS_IsNetworkUp_IgnoreAndReturn( 0 );
-    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
     eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -185,6 +188,7 @@ void test_prvAllowIPPacketIPv6_LoopbackNotMatchSrc()
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     NetworkEndPoint_t xEndPoint;
 
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, FreeRTOS_in6addr_loopback.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &pxTCPPacket->xIPHeader.xSourceAddress, &xEndPoint );
@@ -206,9 +210,10 @@ void test_prvAllowIPPacketIPv6_NetworkDown()
 
     pxNetworkBuffer->pxEndPoint = NULL;
 
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &pxTCPPacket->xIPHeader.xSourceAddress, NULL );
     FreeRTOS_IsNetworkUp_IgnoreAndReturn( 0 );
-    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
     eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -225,7 +230,9 @@ void test_prvAllowIPPacketIPv6_SelfSend()
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, pxNetworkBuffer->pxEndPoint );
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
 
     eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -241,7 +248,8 @@ void test_prvAllowIPPacketIPv6_ChecksumError()
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipWRONG_CRC );
 
     eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -259,6 +267,8 @@ void test_prvAllowIPPacketIPv6_InvalidPacket()
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
     pxNetworkBuffer->pxEndPoint = NULL;
+
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &pxTCPPacket->xIPHeader.xSourceAddress, NULL );
     FreeRTOS_IsNetworkUp_IgnoreAndReturn( 1 );
@@ -284,6 +294,8 @@ void test_prvAllowIPPacketIPv6_EndpointDifferentAddress()
     xEndpoint.bits.bIPv6 = 1U;
     memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xDiffIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     pxNetworkBuffer->pxEndPoint = &xEndpoint;
+
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &( pxTCPPacket->xIPHeader.xSourceAddress ), NULL );
     FreeRTOS_IsNetworkUp_IgnoreAndReturn( 1 );

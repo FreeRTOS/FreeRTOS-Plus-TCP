@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -1173,7 +1173,7 @@ STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS ) <= portMAX_DELA
     #error ipconfigIP_TASK_AFFINITY must be at least 0
 #endif
 
-#if ( ipconfigIP_TASK_AFFINITY > 0 && configUSE_CORE_AFFINITY == 0 )
+#if ( ( ipconfigIP_TASK_AFFINITY > 0 ) && ( configUSE_CORE_AFFINITY == 0 ) )
     #error configUSE_CORE_AFFINITY must be 1 in order to use ipconfigIP_TASK_AFFINITY
 #endif
 

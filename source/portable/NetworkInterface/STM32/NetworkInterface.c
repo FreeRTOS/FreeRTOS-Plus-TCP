@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -1905,6 +1905,7 @@ void HAL_ETH_RxAllocateCallback( uint8_t ** ppucBuff )
     else
     {
         FreeRTOS_debug_printf( ( "HAL_ETH_RxAllocateCallback: failed\n" ) );
+        *ppucBuff = NULL;
     }
 }
 

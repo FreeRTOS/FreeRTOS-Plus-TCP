@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -87,7 +87,7 @@ extern IPPreference_t xDNS_IP_Preference;
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
  */
-uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t xDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 #if ( ipconfigUSE_NBNS != 0 )
 

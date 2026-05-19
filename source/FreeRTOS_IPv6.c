@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -93,7 +93,6 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
                                             size_t uxBufferLength )
     {
         BaseType_t xResult = pdFAIL;
-        uint16_t ucVersionTrafficClass;
         uint16_t usPayloadLength;
         uint8_t ucNextHeader;
         size_t uxMinimumLength;
@@ -116,15 +115,6 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
                 break;
             }
 
-            ucVersionTrafficClass = pxIPv6Packet->xIPHeader.ucVersionTrafficClass;
-
-            /* Test if the IP-version is 6. */
-            if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
-                break;
-            }
-
             /* Check if the IPv6-header is transferred. */
             if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) )
             {
@@ -135,7 +125,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
             /* Check if the complete IPv6-header plus protocol data have been transferred: */
             usPayloadLength = FreeRTOS_ntohs( pxIPv6Packet->xIPHeader.usPayloadLength );
 
-            if( uxBufferLength != ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
+            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
                 break;
@@ -497,6 +487,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
         const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
         const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
         BaseType_t xHasUnspecifiedAddress = pdFALSE;
+        uint16_t ucVersionTrafficClass = pxIPv6Header->ucVersionTrafficClass;
 
         /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
          * either in source or destination address. */
@@ -506,10 +497,17 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
             xHasUnspecifiedAddress = pdTRUE;
         }
 
+        /* Test if the IP-version is 6. */
+        if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
+        {
+            /* Can not handle, unknown or invalid header version. */
+            eReturn = eReleaseBuffer;
+            FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop packet, invalid header version: %u\n", ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) );
+        }
         /* Is the packet for this IP address? */
-        if( ( xHasUnspecifiedAddress == pdFALSE ) &&
-            ( pxNetworkBuffer->pxEndPoint != NULL ) &&
-            ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+                 ( pxNetworkBuffer->pxEndPoint != NULL ) &&
+                 ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             eReturn = eProcessBuffer;
         }
@@ -544,22 +542,12 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
          * define, so that the checksum won't be checked again here */
         if( eReturn == eProcessBuffer )
         {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-            const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
-
             /* IPv6 does not have a separate checksum in the IP-header */
             /* Is the upper-layer checksum (TCP/UDP/ICMP) correct? */
-            /* Do not check the checksum of loop-back messages. */
-            if( pxEndPoint == NULL )
+            if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
             {
-                if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
-                {
-                    /* Protocol checksum not accepted. */
-                    eReturn = eReleaseBuffer;
-                }
+                /* Protocol checksum not accepted. */
+                eReturn = eReleaseBuffer;
             }
         }
     }

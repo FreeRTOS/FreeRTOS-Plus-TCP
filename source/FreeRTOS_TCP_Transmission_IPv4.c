@@ -1,5 +1,5 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * FreeRTOS+TCP
  * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -401,7 +401,7 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
          * the buffer onto the TCPPacket_t struct to easily access it's field. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
         pxIPHeader = &pxTCPPacket->xIPHeader;
@@ -410,7 +410,7 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
         pxSocket->u.xTCP.ucRepCount = 0U;
 
         /* And remember that the connect/SYN data are prepared. */
-        pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
+        pxSocket->u.xTCP.bits.bConnPrepared = ipTRUE_BOOL;
 
         /* Now that the Ethernet address is known, the initial packet can be
          * prepared. */
