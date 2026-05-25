@@ -95,6 +95,11 @@ void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
     void vIPSetARPTimerEnableState( BaseType_t xEnableState );
 
 /*
+ * Set the pediod of the Gratuitous ARP timer.
+ */
+    void vARPGratuitousReload( TickType_t xTime );
+
+/*
  * Enable or disable the ARP resolution timer.
  */
     void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState );
@@ -106,6 +111,11 @@ void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
  * Sets the reload time of an ND timer and restarts it.
  */
     void vNDTimerReload( TickType_t xTime );
+
+/**
+ * Sets the reload time of sending an UNA and restarts it.
+ */
+void vND_UNA_TimerReload( TickType_t xTime );
 
 /*
  * Start an ND Resolution timer.

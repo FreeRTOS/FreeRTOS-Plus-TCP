@@ -2774,6 +2774,14 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
     #error ipconfigARP_CACHE_ENTRIES overflows a size_t
 #endif
 
+#indef ipARP_TIMER_PERIOD_MS
+    #define ipARP_TIMER_PERIOD_MS
+#endif
+
+#indef ipND_TIMER_PERIOD_MS
+    #define ipND_TIMER_PERIOD_MS
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /*
