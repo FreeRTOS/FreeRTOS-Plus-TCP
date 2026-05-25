@@ -323,6 +323,13 @@ static void prvProcessIPEventsAndTimers( void )
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             break;
 
+        case eARPGratuitousEvent:
+            /* Send a Gratuitous ARP request. */
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                vARPSendGratuitous();
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+            break;
+
         case eNDTimerEvent:
             /* The ND Resolution timer has expired, process the cache. */
             #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
@@ -330,6 +337,12 @@ static void prvProcessIPEventsAndTimers( void )
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             break;
 
+        case eNDSendUNAEvent:
+            /* The ARP Resolution timer has expired, process the cache. */
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                vSendUnsolicitedNeighborAdvertisement();
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            break;
         case eSocketBindEvent:
 
             /* FreeRTOS_bind (a user API) wants the IP-task to bind a socket

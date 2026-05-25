@@ -72,6 +72,15 @@
  */
     #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
+/** @brief  The time at which the last Unsolicited Neighbor Advertisements (UNA) was sent.
+ *  UNAs are used to ensure ND tables are up to date and to detect IPv6 address conflicts. */
+    #define ipconfigHAS_UNSOLICITED_NEIGHBOR_ADVERTISEMENT    1
+
+	#ifndef ndGRATUITOUS_UNA_PERIOD
+		#define ndGRATUITOUS_UNA_PERIOD   pdMS_TO_TICKS( 20000 )
+	#endif
+    void vSendUnsolicitedNeighborAdvertisement( void );
+
 /** @brief All nodes on the local network segment: IP address. */
     const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xffU, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x01U }; /* ff02::1 */
 /** @brief All nodes on the local network segment: MAC address. */
@@ -98,6 +107,8 @@
     static NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
 
 
+    static const IPv6_Address_t xDefaultIPv6Address = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
 /*-----------------------------------------------------------*/
 
 /*
@@ -421,6 +432,63 @@
         }
     }
 /*-----------------------------------------------------------*/
+
+    #if ( ipconfigHAS_UNSOLICITED_NEIGHBOR_ADVERTISEMENT != 0 )
+        void vSendUnsolicitedNeighborAdvertisement( void )
+        {
+            /* The IP-task is calling, allow it to actually send the packet. */
+            if( xIsCallingFromIPTask() )
+            {
+                NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+                BaseType_t xCount = 0;
+
+                while( pxEndPoint != NULL )
+                {
+                    BaseType_t isZero = ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xDefaultIPv6Address.ucBytes, sizeof( xDefaultIPv6Address.ucBytes ) ) == 0 ) ? pdTRUE : pdFALSE;
+
+                    if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( isZero == pdFALSE ) )
+                    {
+                        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) /* LCOV_EXCL_BR_LINE */
+                        {
+                            IPv6_Type_t xType = xIPv6_GetIPType( &pxEndPoint->ipv6_settings.xIPAddress );
+                            BaseType_t xAdvertiseIt = pdFALSE;
+
+                            switch( xType )
+                            {
+                                case eIPv6_Global:
+                                case eIPv6_LinkLocal:
+                                case eIPv6_UniqueLocal:
+                                    xAdvertiseIt = pdTRUE;
+                                    break;
+
+                                default:
+                                    break;
+                            }
+
+                            if( xAdvertiseIt != pdFALSE )
+                            {
+                                FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
+                                xCount++;
+                            }
+                        }
+                    }
+
+                    pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint );
+                }
+            } /* if( xIsCallingFromIPTask() ) */
+            uint32_t ulRand = 75u;
+            xApplicationGetRandomNumber( &ulRand );
+            if( ulRand > 150u )
+            {
+                ulRand %= 150u;
+            }
+            /* The normal time interval between advertisements
+             * is between 450 and 600 seconds */
+			TickType_t uxPeriod = pdMS_TO_TICKS( ndGRATUITOUS_UNA_PERIOD ) + pdMS_TO_TICKS( 1000u * ulRand );
+            vND_UNA_TimerReload (  );
+            FreeRTOS_printf( ("vND_UNA_TimerReload = %u\n", uxPeriod ) );
+        }
+    #endif /* if ipconfigHAS_UNSOLICITED_NEIGHBOR_ADVERTISEMENT > 0 */
 
 /**
  * @brief A call to this function will clear the ND cache.
@@ -1148,6 +1216,7 @@
                            {
                                pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
                                pxICMPHeader_IPv6->ucTypeOfService = 0U;
+
                                pxICMPHeader_IPv6->ulReserved = ndICMPv6_FLAG_SOLICITED | ndICMPv6_FLAG_UPDATE;
                                pxICMPHeader_IPv6->ulReserved = FreeRTOS_htonl( pxICMPHeader_IPv6->ulReserved );
 
@@ -1281,7 +1350,8 @@
             uxICMPSize = sizeof( ICMPHeader_IPv6_t );
             pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
             pxICMPHeader_IPv6->ucTypeOfService = 0;
-            pxICMPHeader_IPv6->ulReserved = ndICMPv6_FLAG_SOLICITED | ndICMPv6_FLAG_UPDATE;
+            /* The advertisement is not ndICMPv6_FLAG_SOLICITED. */
+            pxICMPHeader_IPv6->ulReserved = ndICMPv6_FLAG_UPDATE;
             pxICMPHeader_IPv6->ulReserved = FreeRTOS_htonl( pxICMPHeader_IPv6->ulReserved );
 
             /* Type of option. */
@@ -1454,7 +1524,11 @@
 
                 ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
                 eResult = eNDGetCacheEntry( pxIPAddress, &xMACAddress, &pxEndPoint );
-                FreeRTOS_printf( ( "xCheckRequiresNDResolution: eResult %s with EP %s\n", ( eResult == eResolutionCacheMiss ) ? "Miss" : ( eResult == eResolutionCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
+
+                if( eResult != eResolutionCacheHit )
+                {
+                    FreeRTOS_printf( ( "xCheckRequiresNDResolution: eResult %s with EP %s\n", ( eResult == eResolutionCacheMiss ) ? "Miss" : ( eResult == eResolutionCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
+                }
 
                 if( eResult == eResolutionCacheMiss )
                 {

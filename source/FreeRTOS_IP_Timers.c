@@ -102,6 +102,9 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 
 /** @brief ARP timer, to check its table entries. */
     static IPTimer_t xARPTimer;
+
+/** @brief Gratuitous timer, to send our IP-address unsolicited. */
+    static IPTimer_t xGratuitousTimer;
 #endif
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
 
@@ -111,6 +114,9 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 
 /** @brief ND timer, to check its table entries. */
     static IPTimer_t xNDTimer;
+
+/** @brief Timer to send Unsolicited Neighbor Advertisements (UNA). */
+    static IPTimer_t xUnaTimer;
 #endif
 #if ( ipconfigUSE_TCP != 0 )
     /** @brief TCP timer, to check for timeouts, resends. */
@@ -156,7 +162,15 @@ TickType_t xCalculateSleepTime( void )
                 uxMaximumSleepTime = xARPTimer.ulRemainingTime;
             }
         }
-    #endif
+
+        if( xGratuitousTimer.bActive != pdFALSE_UNSIGNED )
+        {
+            if( xGratuitousTimer.ulRemainingTime < uxMaximumSleepTime )
+            {
+                uxMaximumSleepTime = xGratuitousTimer.ulRemainingTime;
+            }
+        }
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
         if( xNDTimer.bActive != pdFALSE_UNSIGNED )
@@ -166,7 +180,15 @@ TickType_t xCalculateSleepTime( void )
                 uxMaximumSleepTime = xNDTimer.ulRemainingTime;
             }
         }
-    #endif
+
+        if( xUnaTimer.bActive != pdFALSE_UNSIGNED )
+        {
+            if( xUnaTimer.ulRemainingTime < uxMaximumSleepTime )
+            {
+                uxMaximumSleepTime = xUnaTimer.ulRemainingTime;
+            }
+        }
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
     {
@@ -254,6 +276,13 @@ void vCheckNetworkTimers( void )
         }
     #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
+    #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+        if( prvIPTimerCheck( &xGratuitousTimer ) != pdFALSE )
+        {
+            ( void ) xSendEventToIPTask( eARPGratuitousEvent );
+        }
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
         /* Is it time for ND processing? */
         if( prvIPTimerCheck( &xNDTimer ) != pdFALSE )
@@ -278,6 +307,11 @@ void vCheckNetworkTimers( void )
 
                 iptraceDELAYED_ND_TIMER_EXPIRED();
             }
+        }
+
+        if( prvIPTimerCheck( &xUnaTimer ) != pdFALSE )
+        {
+            ( void ) xSendEventToIPTask( eNDSendUNAEvent );
         }
     #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 
@@ -478,6 +512,34 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
     void vARPTimerReload( TickType_t xTime )
     {
         prvIPTimerReload( &xARPTimer, xTime );
+    }
+#endif
+/*-----------------------------------------------------------*/
+
+#if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+
+/**
+ * @brief Sets the reload time of the ARP gratuitous timer and restarts it.
+ *
+ * @param[in] xTime Time to be reloaded into the ARP timer.
+ */
+    void vARPGratuitousReload( TickType_t xTime )
+    {
+        prvIPTimerReload( &xGratuitousTimer, xTime );
+    }
+#endif
+/*-----------------------------------------------------------*/
+
+#if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+
+/**
+ * @brief Sets the reload time of the ARP gratuitous timer.
+ *
+ * @param[in] xTime Time to be reloaded into the timer.
+ */
+    void vND_UNA_TimerReload( TickType_t xTime )
+    {
+        prvIPTimerReload( &xUnaTimer, xTime );
     }
 #endif
 /*-----------------------------------------------------------*/
