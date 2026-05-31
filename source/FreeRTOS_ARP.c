@@ -62,14 +62,6 @@
  * entry is still valid and can therefore be refreshed. */
     #define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST    ( 3U )
 
-/** @brief The time between gratuitous ARPs. */
-    #ifndef arpGRATUITOUS_ARP_PERIOD
-
-/* The normal time interval between advertisements
- * is between 450 and 600 seconds */
-        #define arpGRATUITOUS_ARP_PERIOD    ( pdMS_TO_TICKS( 450000U ) )
-    #endif
-
 /** @brief When there is another device which has the same IP address as the IP address
  * of this device, a defensive ARP request should be sent out. However, according to
  * RFC 5227 section 1.1, there must be a minimum interval of 10 seconds between
@@ -225,8 +217,8 @@
                     FreeRTOS_OutputARPRequest_Multi( pxTargetEndPoint, pxTargetEndPoint->ipv4_settings.ulIPAddress );
 
                     /* Since an ARP Request for this IP was just sent, do not send a gratuitous
-                     * ARP for arpGRATUITOUS_ARP_PERIOD, normally 20 seconds. */
-					vARPGratuitousReload( pdMS_TO_TICKS( arpGRATUITOUS_ARP_PERIOD ) );
+                     * ARP for arpGRATUITOUS_ARP_PERIOD_MS, normally 300 seconds. */
+                    vGARP_TimerReload( arpGRATUITOUS_ARP_PERIOD_MS );
 
                     /* Note the time at which this request was sent. */
                     vTaskSetTimeOutState( &xARPClashTimeOut );
@@ -1145,9 +1137,9 @@
                 {
                     /* The age has just ticked down, with nothing to do. */
                 }
-                }
             }
         }
+    }
 /*-----------------------------------------------------------*/
 
 /**
@@ -1161,8 +1153,6 @@
         {
             NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-            FreeRTOS_printf( ( "Time active send event in vARPSendGratuitous from IP-task\n" ) );
-
             while( pxEndPoint != NULL )
             {
                 if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
@@ -1174,23 +1164,15 @@
                 }
 
                 pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint );
+            }
         }
-    }
         else
-    {
-        /* Let the IP-task call vARPAgeCache(). */
-            FreeRTOS_printf( ( "Time active send event in vARPSendGratuitous from user API\n" ) );
+        {
+            /* Let the IP-task call vARPAgeCache(). */
             ( void ) xSendEventToIPTask( eARPGratuitousEvent );
         }
-		uint32_t ulRand = 75u;
-		xApplicationGetRandomNumber( &ulRand );
-		if( ulRand > 150u )
-		{
-			ulRand %= 150u;
-		}
-        /* The normal time interval between advertisements
-         * is between 450 and 600 seconds */
-		vARPGratuitousReload ( arpGRATUITOUS_ARP_PERIOD + pdMS_TO_TICKS( 1000u * ulRand ) );
+
+        vGARP_TimerReload( arpGRATUITOUS_ARP_PERIOD_MS );
     }
 
 /*-----------------------------------------------------------*/
@@ -1207,11 +1189,11 @@
     {
         NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-    NetworkInterface_t * pxInterface = pxEndPoint->pxNetworkInterface;
+        NetworkInterface_t * pxInterface = pxEndPoint->pxNetworkInterface;
 
-    /* If the interface is up, and it is an IPv4 end-point, and it has an IP address. */
-    if( ( pxInterface->bits.bInterfaceUp == pdTRUE ) &&
-        ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
+        /* If the interface is up, and it is an IPv4 end-point, and it has an IP address. */
+        if( ( pxInterface->bits.bInterfaceUp == pdTRUE ) &&
+            ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
             ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
         {
             /* This is called from the context of the IP event task, so a block time
@@ -1322,7 +1304,7 @@
 
         if( xLookupResult == eResolutionCacheMiss )
         {
-        const TickType_t uxSleepTime = pdMS_TO_TICKS( 20U );
+            const TickType_t uxSleepTime = pdMS_TO_TICKS( 20U );
 
             /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
             vTaskSetTimeOutState( &xTimeOut );

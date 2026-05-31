@@ -72,13 +72,6 @@
  */
     #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
-/** @brief  The time at which the last Unsolicited Neighbor Advertisements (UNA) was sent.
- *  UNAs are used to ensure ND tables are up to date and to detect IPv6 address conflicts. */
-    #define ipconfigHAS_UNSOLICITED_NEIGHBOR_ADVERTISEMENT    1
-
-	#ifndef ndGRATUITOUS_UNA_PERIOD
-		#define ndGRATUITOUS_UNA_PERIOD   pdMS_TO_TICKS( 20000 )
-	#endif
     void vSendUnsolicitedNeighborAdvertisement( void );
 
 /** @brief All nodes on the local network segment: IP address. */
@@ -434,6 +427,9 @@
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigHAS_UNSOLICITED_NEIGHBOR_ADVERTISEMENT != 0 )
+
+/* vSendUnsolicitedNeighborAdvertisement() will be called
+ * when an 'eNDSendUNAEvent' is received. */
         void vSendUnsolicitedNeighborAdvertisement( void )
         {
             /* The IP-task is calling, allow it to actually send the packet. */
@@ -476,17 +472,8 @@
                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint );
                 }
             } /* if( xIsCallingFromIPTask() ) */
-            uint32_t ulRand = 75u;
-            xApplicationGetRandomNumber( &ulRand );
-            if( ulRand > 150u )
-            {
-                ulRand %= 150u;
-            }
-            /* The normal time interval between advertisements
-             * is between 450 and 600 seconds */
-			TickType_t uxPeriod = pdMS_TO_TICKS( ndGRATUITOUS_UNA_PERIOD ) + pdMS_TO_TICKS( 1000u * ulRand );
-            vND_UNA_TimerReload (  );
-            FreeRTOS_printf( ("vND_UNA_TimerReload = %u\n", uxPeriod ) );
+
+            vND_UNA_TimerReload( ndGRATUITOUS_UNA_PERIOD_MS );
         }
     #endif /* if ipconfigHAS_UNSOLICITED_NEIGHBOR_ADVERTISEMENT > 0 */
 

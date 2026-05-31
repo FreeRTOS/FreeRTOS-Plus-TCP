@@ -523,25 +523,62 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
  *
  * @param[in] xTime Time to be reloaded into the ARP timer.
  */
-    void vARPGratuitousReload( TickType_t xTime )
+    void vGARP_TimerReload( const TickType_t uxTimeMs )
     {
-        prvIPTimerReload( &xGratuitousTimer, xTime );
+        /* ulRandMs gives a random variation expressed in ms. */
+        /* E.g. every 300 seconds +/- 10% (randomized per endpoint). */
+        uint32_t ulRandMs = uxTimeMs;
+        TickType_t uxPeriod;
+        const TickType_t ulMaxMs = uxTimeMs / 10u;
+
+        xApplicationGetRandomNumber( &ulRandMs );
+
+        if( ulRandMs > ulMaxMs )
+        {
+            ulRandMs %= ulMaxMs;
+        }
+
+        uxPeriod = pdMS_TO_TICKS( uxTimeMs ) + pdMS_TO_TICKS( ulRandMs );
+        prvIPTimerReload( &xGratuitousTimer, uxPeriod );
+        FreeRTOS_printf( ( "vGARP_TimerReload: %u + %u = %u ms\n",
+                           ( unsigned ) uxTimeMs,
+                           ( unsigned ) ulRandMs,
+                           ( unsigned ) uxPeriod ) );
     }
-#endif
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 /*-----------------------------------------------------------*/
 
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
 
 /**
- * @brief Sets the reload time of the ARP gratuitous timer.
+ * @brief Sets the reload time of a UNA:
+ * Unsolicited Neighbor Advertisements.
  *
- * @param[in] xTime Time to be reloaded into the timer.
+ * @param[in] uxTimeMs Time (ms) to be reloaded into the timer.
  */
-    void vND_UNA_TimerReload( TickType_t xTime )
+    void vND_UNA_TimerReload( const TickType_t uxTimeMs )
     {
-        prvIPTimerReload( &xUnaTimer, xTime );
+        /* ulRandMs gives a random variation expressed in ms. */
+        /* E.g. every 300 seconds +/- 10% (randomized per endpoint). */
+        uint32_t ulRandMs = uxTimeMs;
+        TickType_t uxPeriod;
+        const TickType_t ulMaxMs = uxTimeMs / 10u;
+
+        xApplicationGetRandomNumber( &ulRandMs );
+
+        if( ulRandMs > ulMaxMs )
+        {
+            ulRandMs %= ulMaxMs;
+        }
+
+        uxPeriod = pdMS_TO_TICKS( uxTimeMs ) + pdMS_TO_TICKS( ulRandMs );
+        prvIPTimerReload( &xUnaTimer, uxPeriod );
+        FreeRTOS_printf( ( "vSUNA_TimerReload: %u + %u = %u ms\n",
+                           ( unsigned ) uxTimeMs,
+                           ( unsigned ) ulRandMs,
+                           ( unsigned ) uxPeriod ) );
     }
-#endif
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 /*-----------------------------------------------------------*/
 
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )

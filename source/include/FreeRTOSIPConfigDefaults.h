@@ -2774,12 +2774,12 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
     #error ipconfigARP_CACHE_ENTRIES overflows a size_t
 #endif
 
-#indef ipARP_TIMER_PERIOD_MS
-    #define ipARP_TIMER_PERIOD_MS
+#ifndef ipARP_TIMER_PERIOD_MS
+    #define ipARP_TIMER_PERIOD_MS    300000u
 #endif
 
-#indef ipND_TIMER_PERIOD_MS
-    #define ipND_TIMER_PERIOD_MS
+#ifndef ipND_TIMER_PERIOD_MS
+    #define ipND_TIMER_PERIOD_MS    300000u
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -3522,6 +3522,17 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 #ifndef ipconfigISO_STRICTNESS_VIOLATION_END
     #define ipconfigISO_STRICTNESS_VIOLATION_END
+#endif
+
+/* To be documented: */
+
+#ifndef ipconfigUSE_NAMED_ENDPOINTS
+    /* or DISABLE depending on your desired default */
+    #define ipconfigUSE_NAMED_ENDPOINTS    ipconfigENABLE
+#endif
+
+#if ( ipconfigUSE_NAMED_ENDPOINTS == ipconfigENABLE )
+    #define ipconfigENDPOINT_NAME_LENGTH    32
 #endif
 
 /*---------------------------------------------------------------------------*/

@@ -343,6 +343,7 @@ static void prvProcessIPEventsAndTimers( void )
                 vSendUnsolicitedNeighborAdvertisement();
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             break;
+
         case eSocketBindEvent:
 
             /* FreeRTOS_bind (a user API) wants the IP-task to bind a socket
@@ -534,11 +535,15 @@ static void prvIPTask_Initialise( void )
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
         /* Mark the ARP timer as inactive since we are not waiting on any resolution as of now. */
         vIPSetARPResolutionTimerEnableState( pdFALSE );
+        /* Make sure the GARP timer is started. */
+        vGARP_TimerReload( arpGRATUITOUS_ARP_PERIOD_MS );
     #endif
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
         /* Mark the ND timer as inactive since we are not waiting on any resolution as of now. */
         vIPSetNDResolutionTimerEnableState( pdFALSE );
+        /* Make sure the UNA timer is started. */
+        vND_UNA_TimerReload( ndGRATUITOUS_UNA_PERIOD_MS );
     #endif
 
     #if ( ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigUSE_DNS != 0 ) )

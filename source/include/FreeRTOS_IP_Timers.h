@@ -115,7 +115,7 @@ void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState );
 /**
  * Sets the reload time of sending an UNA and restarts it.
  */
-void vND_UNA_TimerReload( TickType_t xTime );
+    void vND_UNA_TimerReload( TickType_t xTime );
 
 /*
  * Start an ND Resolution timer.
