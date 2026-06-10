@@ -44,6 +44,7 @@
 #include "NetworkBufferManagement.h"
 
 #include <string.h>
+#include <strings.h>
 
 #if ( ipconfigUSE_DNS != 0 )
 
@@ -231,42 +232,6 @@
 
     #if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) )
 
-/**
- * @brief Check two strings for equality, up to the given length, with
- * ascii case-insensitivity.
- */
-        static BaseType_t prvCompareStringsCaseInsensitive( const char * s1,
-                                                            const char * s2,
-                                                            size_t n )
-        {
-            while( n-- != 0 )
-            {
-                char c1 = *s1++;
-                char c2 = *s2++;
-
-                if( ( c1 >= 'A' ) && ( c1 <= 'Z' ) )
-                {
-                    c1 += 'a' - 'A';
-                }
-
-                if( ( c2 >= 'A' ) && ( c2 <= 'Z' ) )
-                {
-                    c2 += 'a' - 'A';
-                }
-
-                if( c1 > c2 )
-                {
-                    return pdFALSE;
-                }
-
-                if( c2 > c1 )
-                {
-                    return pdFALSE;
-                }
-            }
-
-            return pdTRUE;
-        }
 
 /**
  * @brief Compare a DNS label sequence with a dot-separated name string.
@@ -374,7 +339,7 @@
                 }
 
                 /* The dot string should have a segment of the same length at this point. */
-                ulComparison = prvCompareStringsCaseInsensitive( ( char const * ) pcDnsSegment, pcDotSegment, uxSegmentLength );
+                ulComparison = strncasecmp( ( char const * ) pcDnsSegment, pcDotSegment, uxSegmentLength ) == 0;
 
                 if( ulComparison == pdFALSE )
                 {
