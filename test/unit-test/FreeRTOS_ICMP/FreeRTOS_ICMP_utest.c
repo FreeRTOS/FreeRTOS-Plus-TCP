@@ -65,6 +65,10 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* Declare the function under test, which is normally static but exposed
+ * via the preprocessed Annexed_TCP_Sources build. */
+void prvProcessICMPEchoReply( const NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
 void test_ProcessICMPPacket_CatchAssert( void )
 {
     eFrameProcessingResult_t eResult;
@@ -246,4 +250,63 @@ void test_ProcessICMPPacket_ICMPEchoReply_ImproperData( void )
     eResult = ProcessICMPPacket( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eSuccess, eResult );
+}
+
+/**
+ * @brief Ensures that when the network buffer xDataLength is too small to
+ *        contain the minimum ICMP headers, the function drops the packet
+ *        without calling vApplicationPingReplyHook.
+ */
+void test_ProcessICMPPacket_ICMPEchoReply_BufferTooSmall( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    ICMPPacket_t * pxICMPPacket;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+
+    /* Set xDataLength to exactly sizeof(ICMPPacket_t) so ProcessICMPPacket
+     * enters its if-block, but then set it smaller before prvProcessICMPEchoReply
+     * reads it. Since we can't do that through the public API, call
+     * prvProcessICMPEchoReply directly with a buffer too small for headers. */
+    xNetworkBuffer.xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1;
+
+    pxICMPPacket = ( ICMPPacket_t * ) ucEthBuffer;
+    pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER );
+
+    /* No vApplicationPingReplyHook_Expect() is set up — CMock's strict ordering
+     * mode will fail this test if the hook is called unexpectedly. */
+    prvProcessICMPEchoReply( &xNetworkBuffer );
+}
+
+/**
+ * @brief Ensures that when the IP header's usLength claims more payload data
+ *        than actually available in the buffer, the function drops the packet
+ *        without calling vApplicationPingReplyHook.
+ */
+void test_ProcessICMPPacket_ICMPEchoReply_ByteCountExceedsAvailable( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    ICMPPacket_t * pxICMPPacket;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    xNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+    /* Buffer has only 8 bytes of ICMP payload space beyond the headers. */
+    xNetworkBuffer.xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 8;
+
+    pxICMPPacket = ( ICMPPacket_t * ) ucEthBuffer;
+    pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
+
+    /* IP header claims 20 bytes of ICMP payload (IP hdr + ICMP hdr + 20 data bytes),
+     * but the buffer only has room for 8 data bytes. This makes usByteCount (20) > usByteAvail (8). */
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 20 );
+
+    /* No vApplicationPingReplyHook_Expect() is set up — CMock's strict ordering
+     * mode will fail this test if the hook is called unexpectedly. */
+    prvProcessICMPEchoReply( &xNetworkBuffer );
 }

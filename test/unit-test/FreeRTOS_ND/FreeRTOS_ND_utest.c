@@ -1584,6 +1584,43 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_IncorrectSize( void 
 /**
  * @brief This function process ICMP message when message type is
  *        ipICMP_PING_REPLY_IPv6.
+ *        It handles case where usPayloadLength is smaller than the
+ *        ICMPEcho_IPv6_t header, causing an early break without
+ *        calling vApplicationPingReplyHook.
+ */
+void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_PayloadTooSmallForEchoHeader( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t * pxICMPPacket;
+    uint8_t ucBuffer[ sizeof( ICMPPacket_IPv6_t ) + ipBUFFER_PADDING ];
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+
+    memset( ucBuffer, 0, sizeof( ucBuffer ) );
+
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &ucBuffer;
+    /* Buffer is large enough to pass the first size check. */
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 4;
+    pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxICMPPacket->xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
+
+    /* Set payload length to 4, which is less than sizeof(ICMPEcho_IPv6_t) = 8.
+     * This passes the first check (uxNeededSize = 14+40+4 = 58 <= 58 = xDataLength)
+     * but fails the second check (4 < 8). */
+    pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_ntohs( 4 );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    /* No vApplicationPingReplyHook_Expect() — CMock's strict ordering mode
+     * will fail this test if the hook is called unexpectedly. */
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+}
+
+/**
+ * @brief This function process ICMP message when message type is
+ *        ipICMP_PING_REPLY_IPv6.
  *        It handles case where A reply was received to an outgoing
  *        ping but the payload of the reply was not correct.
  */
