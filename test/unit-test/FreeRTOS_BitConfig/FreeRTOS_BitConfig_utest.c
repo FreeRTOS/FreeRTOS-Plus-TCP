@@ -539,7 +539,7 @@ void test_vBitConfig_write_uc_SizeExceedsRemaining( void )
     memset( ucData, 0xBB, sizeof( ucData ) );
 
     xConfig.xHasError = pdFALSE;
-    xConfig.uxIndex = 7;               /* 7 bytes already consumed */
+    xConfig.uxIndex = 7;                   /* 7 bytes already consumed */
     xConfig.uxSize = sizeof( ucContents ); /* 10-byte buffer */
     xConfig.ucContents = ucContents;
 
