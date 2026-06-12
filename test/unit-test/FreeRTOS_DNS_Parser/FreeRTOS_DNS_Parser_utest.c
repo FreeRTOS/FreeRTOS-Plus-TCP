@@ -3123,6 +3123,38 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
 }
 
 /**
+ * @brief ensures that when usAnswers exceeds what the remaining buffer can
+ *        physically contain (malformed ANCOUNT), parseDNSAnswer returns 0
+ *        without processing any records.
+ */
+void test_parseDNSAnswer_malformed_ancount_exceeds_buffer( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 30 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    /* Set remaining bytes to a small value so the sanity check triggers.
+     * sizeof(DNSAnswerRecord_t) + 1 + 2 = 13, so 10 / 13 = 0.
+     * usAnswers = 2 > 0 triggers the early exit. */
+    xSet.uxSourceBytesRemaining = 10;
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 2;
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    TEST_ASSERT_EQUAL( 0U, ret );
+    TEST_ASSERT_EQUAL( 0, uxBytesRead );
+}
+
+/**
  * @brief ensures that when the number of answers is zero no packet is sent over
  *        the network
  */
