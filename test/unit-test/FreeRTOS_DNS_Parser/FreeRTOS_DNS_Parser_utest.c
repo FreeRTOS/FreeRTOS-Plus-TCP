@@ -3140,6 +3140,7 @@ void test_parseDNSAnswer_malformed_ancount_exceeds_buffer( void )
 
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.pucByte = pucByte;
+
     /* Set remaining bytes to a small value so the sanity check triggers.
      * sizeof(DNSAnswerRecord_t) + 1 + 2 = 13, so 10 / 13 = 0.
      * usAnswers = 2 > 0 triggers the early exit. */
