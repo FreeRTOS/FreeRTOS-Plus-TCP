@@ -491,6 +491,66 @@ void test_vBitConfig_write_uc_OutOfBoundWrite( void )
 }
 
 /**
+ * @brief This function verifies that vBitConfig_write_uc correctly
+ *        sets xHasError when uxNeeded (write size) exceeds uxSize
+ *        (buffer size), which previously caused an unsigned integer
+ *        underflow in the bounds check.
+ */
+void test_vBitConfig_write_uc_SizeExceedsBuffer( void )
+{
+    BitConfig_t xConfig = { 0 };
+    uint8_t ucContents[ 4 ];
+    uint8_t ucData[ 8 ];
+
+    memset( ucContents, 0xAA, sizeof( ucContents ) );
+    memset( ucData, 0xBB, sizeof( ucData ) );
+
+    xConfig.xHasError = pdFALSE;
+    xConfig.uxIndex = 0;
+    xConfig.uxSize = sizeof( ucContents ); /* Buffer is only 4 bytes */
+    xConfig.ucContents = ucContents;
+
+    /* Attempt to write 8 bytes into a 4-byte buffer.
+     * Previously this caused uxSize - uxNeeded to underflow (4 - 8 wraps to
+     * a large value), making the bounds check pass and writing out of bounds. */
+    vBitConfig_write_uc( &xConfig, ucData, sizeof( ucData ) );
+
+    /* The write must be rejected. */
+    TEST_ASSERT_EQUAL( pdTRUE, xConfig.xHasError );
+    /* uxIndex must not have advanced. */
+    TEST_ASSERT_EQUAL( 0, xConfig.uxIndex );
+    /* Buffer contents must be unchanged (no out-of-bounds write occurred). */
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAA, ucContents, sizeof( ucContents ) );
+}
+
+/**
+ * @brief This function verifies that vBitConfig_write_uc correctly
+ *        sets xHasError when uxNeeded exceeds remaining space
+ *        (uxSize - uxIndex) but uxNeeded is still less than uxSize.
+ *        This is the partial-buffer-full scenario.
+ */
+void test_vBitConfig_write_uc_SizeExceedsRemaining( void )
+{
+    BitConfig_t xConfig = { 0 };
+    uint8_t ucContents[ 10 ];
+    uint8_t ucData[ 6 ];
+
+    memset( ucContents, 0xAA, sizeof( ucContents ) );
+    memset( ucData, 0xBB, sizeof( ucData ) );
+
+    xConfig.xHasError = pdFALSE;
+    xConfig.uxIndex = 7;               /* 7 bytes already consumed */
+    xConfig.uxSize = sizeof( ucContents ); /* 10-byte buffer */
+    xConfig.ucContents = ucContents;
+
+    /* Attempt to write 6 bytes when only 3 bytes remain. */
+    vBitConfig_write_uc( &xConfig, ucData, sizeof( ucData ) );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xConfig.xHasError );
+    TEST_ASSERT_EQUAL( 7, xConfig.uxIndex );
+}
+
+/**
  * @brief This functions verifies writing SIZE_OF_BINARY_STREAM
  *        bytes in the bit stream.
  */
