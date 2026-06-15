@@ -67,6 +67,12 @@ static void catchHandler_( int signal )
         else                                 \
         {                                    \
             lcatch++;                        \
+            sigset_t sigrid;                 \
+            sigemptyset( &sigrid );          \
+            sigaddset( &sigrid, SIGABRT );   \
+            pthread_sigmask(                 \
+                SIG_UNBLOCK, &sigrid, NULL   \
+            );                               \
         }                                    \
         sigaction( SIGABRT, &saveSa, NULL ); \
         dup2( saveFd, 2 );                   \
