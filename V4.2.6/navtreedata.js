@@ -24,14 +24,19 @@
 */
 var NAVTREE =
 [
-  [ "FreeRTOS-Plus-TCP", "index.html", ]
+  [ "FreeRTOS-Plus-TCP", "index.html", [
+    [ "Files", "files.html", [
+      [ "Files", "files.html", "files_dup" ]
+    ] ]
+  ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"index.html"
+"_free_r_t_o_s___a_r_p_8c.html",
+"_free_r_t_o_s___i_p___utils_8c.html#ab13b7eb688e635270861d515a0bdb792",
+"_free_r_t_o_s___t_c_p___i_p___i_pv6_8c.html"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronization';
-var SYNCOFFMSG = 'click to enable panel synchronization';
-var LISTOFALLMEMBERS = 'List of all members';
+var SYNCONMSG = 'click to disable panel synchronisation';
+var SYNCOFFMSG = 'click to enable panel synchronisation';

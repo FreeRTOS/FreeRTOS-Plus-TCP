@@ -25,7 +25,9 @@
 var NAVTREE =
 [
   [ "FreeRTOS-Plus-TCP", "index.html", [
-    [ "Files", "files.html", "files" ]
+    [ "Files", "files.html", [
+      [ "Files", "files.html", "files_dup" ]
+    ] ]
   ] ]
 ];
 
