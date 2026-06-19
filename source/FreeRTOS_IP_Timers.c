@@ -102,6 +102,9 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 
 /** @brief ARP timer, to check its table entries. */
     static IPTimer_t xARPTimer;
+
+/** @brief Gratuitous timer, to send our IP-address unsolicited. */
+    static IPTimer_t xGratuitousTimer;
 #endif
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
 
@@ -111,6 +114,9 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 
 /** @brief ND timer, to check its table entries. */
     static IPTimer_t xNDTimer;
+
+/** @brief Timer to send Unsolicited Neighbor Advertisements (UNA). */
+    static IPTimer_t xUnaTimer;
 #endif
 #if ( ipconfigUSE_TCP != 0 )
     /** @brief TCP timer, to check for timeouts, resends. */
@@ -156,7 +162,15 @@ TickType_t xCalculateSleepTime( void )
                 uxMaximumSleepTime = xARPTimer.ulRemainingTime;
             }
         }
-    #endif
+
+        if( xGratuitousTimer.bActive != pdFALSE_UNSIGNED )
+        {
+            if( xGratuitousTimer.ulRemainingTime < uxMaximumSleepTime )
+            {
+                uxMaximumSleepTime = xGratuitousTimer.ulRemainingTime;
+            }
+        }
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
         if( xNDTimer.bActive != pdFALSE_UNSIGNED )
@@ -166,7 +180,15 @@ TickType_t xCalculateSleepTime( void )
                 uxMaximumSleepTime = xNDTimer.ulRemainingTime;
             }
         }
-    #endif
+
+        if( xUnaTimer.bActive != pdFALSE_UNSIGNED )
+        {
+            if( xUnaTimer.ulRemainingTime < uxMaximumSleepTime )
+            {
+                uxMaximumSleepTime = xUnaTimer.ulRemainingTime;
+            }
+        }
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
     {
@@ -254,6 +276,13 @@ void vCheckNetworkTimers( void )
         }
     #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
 
+    #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+        if( prvIPTimerCheck( &xGratuitousTimer ) != pdFALSE )
+        {
+            ( void ) xSendEventToIPTask( eARPGratuitousEvent );
+        }
+    #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
         /* Is it time for ND processing? */
         if( prvIPTimerCheck( &xNDTimer ) != pdFALSE )
@@ -278,6 +307,11 @@ void vCheckNetworkTimers( void )
 
                 iptraceDELAYED_ND_TIMER_EXPIRED();
             }
+        }
+
+        if( prvIPTimerCheck( &xUnaTimer ) != pdFALSE )
+        {
+            ( void ) xSendEventToIPTask( eNDSendUNAEvent );
         }
     #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 
@@ -480,6 +514,71 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
         prvIPTimerReload( &xARPTimer, xTime );
     }
 #endif
+/*-----------------------------------------------------------*/
+
+#if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+
+/**
+ * @brief Sets the reload time of the ARP gratuitous timer and restarts it.
+ *
+ * @param[in] xTime Time to be reloaded into the ARP timer.
+ */
+    void vGARP_TimerReload( const TickType_t uxTimeMs )
+    {
+        /* ulRandMs gives a random variation expressed in ms. */
+        /* E.g. every 300 seconds +/- 10% (randomized per endpoint). */
+        uint32_t ulRandMs = uxTimeMs;
+        TickType_t uxPeriod;
+        const TickType_t ulMaxMs = uxTimeMs / 10u;
+
+        xApplicationGetRandomNumber( &ulRandMs );
+
+        if( ulRandMs > ulMaxMs )
+        {
+            ulRandMs %= ulMaxMs;
+        }
+
+        uxPeriod = pdMS_TO_TICKS( uxTimeMs ) + pdMS_TO_TICKS( ulRandMs );
+        prvIPTimerReload( &xGratuitousTimer, uxPeriod );
+        FreeRTOS_printf( ( "vGARP_TimerReload: %u + %u = %u ms\n",
+                           ( unsigned ) uxTimeMs,
+                           ( unsigned ) ulRandMs,
+                           ( unsigned ) uxPeriod ) );
+    }
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+/*-----------------------------------------------------------*/
+
+#if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+
+/**
+ * @brief Sets the reload time of a UNA:
+ * Unsolicited Neighbor Advertisements.
+ *
+ * @param[in] uxTimeMs Time (ms) to be reloaded into the timer.
+ */
+    void vND_UNA_TimerReload( const TickType_t uxTimeMs )
+    {
+        /* ulRandMs gives a random variation expressed in ms. */
+        /* E.g. every 300 seconds +/- 10% (randomized per endpoint). */
+        uint32_t ulRandMs = uxTimeMs;
+        TickType_t uxPeriod;
+        const TickType_t ulMaxMs = uxTimeMs / 10u;
+
+        xApplicationGetRandomNumber( &ulRandMs );
+
+        if( ulRandMs > ulMaxMs )
+        {
+            ulRandMs %= ulMaxMs;
+        }
+
+        uxPeriod = pdMS_TO_TICKS( uxTimeMs ) + pdMS_TO_TICKS( ulRandMs );
+        prvIPTimerReload( &xUnaTimer, uxPeriod );
+        FreeRTOS_printf( ( "vSUNA_TimerReload: %u + %u = %u ms\n",
+                           ( unsigned ) uxTimeMs,
+                           ( unsigned ) ulRandMs,
+                           ( unsigned ) uxPeriod ) );
+    }
+#endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
 /*-----------------------------------------------------------*/
 
 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )

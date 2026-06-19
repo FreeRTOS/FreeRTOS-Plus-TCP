@@ -62,11 +62,6 @@
  * entry is still valid and can therefore be refreshed. */
     #define arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST    ( 3U )
 
-/** @brief The time between gratuitous ARPs. */
-    #ifndef arpGRATUITOUS_ARP_PERIOD
-        #define arpGRATUITOUS_ARP_PERIOD    ( pdMS_TO_TICKS( 20000U ) )
-    #endif
-
 /** @brief When there is another device which has the same IP address as the IP address
  * of this device, a defensive ARP request should be sent out. However, according to
  * RFC 5227 section 1.1, there must be a minimum interval of 10 seconds between
@@ -126,10 +121,6 @@
     #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
 /*-----------------------------------------------------------*/
-
-/** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
- * to ensure ARP tables are up to date and to detect IP address conflicts. */
-    static TickType_t xLastGratuitousARPTime = 0U;
 
 /**
  * @brief Process the ARP packets.
@@ -226,8 +217,8 @@
                     FreeRTOS_OutputARPRequest_Multi( pxTargetEndPoint, pxTargetEndPoint->ipv4_settings.ulIPAddress );
 
                     /* Since an ARP Request for this IP was just sent, do not send a gratuitous
-                     * ARP for arpGRATUITOUS_ARP_PERIOD. */
-                    xLastGratuitousARPTime = xTaskGetTickCount();
+                     * ARP for arpGRATUITOUS_ARP_PERIOD_MS, normally 300 seconds. */
+                    vGARP_TimerReload( arpGRATUITOUS_ARP_PERIOD_MS );
 
                     /* Note the time at which this request was sent. */
                     vTaskSetTimeOutState( &xARPClashTimeOut );
@@ -943,6 +934,18 @@
             eReturn = eARPGetCacheEntryGateWay( pulIPAddress, pxMACAddress, ppxEndPoint );
         }
 
+        if( *ppxEndPoint != NULL )
+        {
+            struct xNetworkEndPoint * pxEndPoint = *ppxEndPoint;
+
+            if( ( pxEndPoint->bits.bEndPointUp == pdFALSE ) || ( pxEndPoint->pxNetworkInterface->bits.bInterfaceUp == pdFALSE ) )
+            {
+                /* _HT_ this printf is only used while testing. */
+                FreeRTOS_printf( ( "eARPGetCacheEntry: endpoint that serves %xip is not up.\n", ( unsigned ) ( *pulIPAddress ) ) );
+                eReturn = eResolutionFailed;
+            }
+        }
+
         return eReturn;
     }
 /*-----------------------------------------------------------*/
@@ -1110,9 +1113,16 @@
                  * When the age reaches zero it is no longer considered valid. */
                 ( xARPCache[ x ].ucAge )--;
 
+                if( xARPCache[ x ].ucAge == 0U )
+                {
+                    /* The entry is no longer valid.  Wipe it out. */
+                    iptraceARP_TABLE_ENTRY_EXPIRED( xARPCache[ x ].ulIPAddress );
+                    xARPCache[ x ].ulIPAddress = 0U;
+                }
+
                 /* If the entry is not yet valid, then it is waiting an ARP
                  * reply, and the ARP request should be retransmitted. */
-                if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )
+                else if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )
                 {
                     FreeRTOS_OutputARPRequest( xARPCache[ x ].ulIPAddress );
                 }
@@ -1127,21 +1137,21 @@
                 {
                     /* The age has just ticked down, with nothing to do. */
                 }
-
-                if( xARPCache[ x ].ucAge == 0U )
-                {
-                    /* The entry is no longer valid.  Wipe it out. */
-                    iptraceARP_TABLE_ENTRY_EXPIRED( xARPCache[ x ].ulIPAddress );
-                    xARPCache[ x ].ulIPAddress = 0U;
-                }
             }
         }
+    }
+/*-----------------------------------------------------------*/
 
-        xTimeNow = xTaskGetTickCount();
-
-        if( ( xLastGratuitousARPTime == ( TickType_t ) 0 ) || ( ( xTimeNow - xLastGratuitousARPTime ) > ( TickType_t ) arpGRATUITOUS_ARP_PERIOD ) )
+/**
+ * @brief Send a Gratuitous ARP packet to allow this node to announce the IP-MAC
+ *        mapping to the entire network.
+ */
+    void vARPSendGratuitous( void )
+    {
+        /* The IP-task is calling, allow it to actually send the packet. */
+        if( xIsCallingFromIPTask() )
         {
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+            NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
             while( pxEndPoint != NULL )
             {
@@ -1153,26 +1163,16 @@
                     }
                 }
 
-                pxEndPoint = pxEndPoint->pxNext;
+                pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint );
             }
-
-            xLastGratuitousARPTime = xTimeNow;
         }
-    }
-/*-----------------------------------------------------------*/
+        else
+        {
+            /* Let the IP-task call vARPAgeCache(). */
+            ( void ) xSendEventToIPTask( eARPGratuitousEvent );
+        }
 
-/**
- * @brief Send a Gratuitous ARP packet to allow this node to announce the IP-MAC
- *        mapping to the entire network.
- */
-    void vARPSendGratuitous( void )
-    {
-        /* Setting xLastGratuitousARPTime to 0 will force a gratuitous ARP the next
-         * time vARPAgeCache() is called. */
-        xLastGratuitousARPTime = ( TickType_t ) 0;
-
-        /* Let the IP-task call vARPAgeCache(). */
-        ( void ) xSendEventToIPTask( eARPTimerEvent );
+        vGARP_TimerReload( arpGRATUITOUS_ARP_PERIOD_MS );
     }
 
 /*-----------------------------------------------------------*/
@@ -1189,7 +1189,11 @@
     {
         NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-        if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
+        NetworkInterface_t * pxInterface = pxEndPoint->pxNetworkInterface;
+
+        /* If the interface is up, and it is an IPv4 end-point, and it has an IP address. */
+        if( ( pxInterface->bits.bInterfaceUp == pdTRUE ) &&
+            ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
             ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
         {
             /* This is called from the context of the IP event task, so a block time
@@ -1300,7 +1304,7 @@
 
         if( xLookupResult == eResolutionCacheMiss )
         {
-            const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
+            const TickType_t uxSleepTime = pdMS_TO_TICKS( 20U );
 
             /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
             vTaskSetTimeOutState( &xTimeOut );
