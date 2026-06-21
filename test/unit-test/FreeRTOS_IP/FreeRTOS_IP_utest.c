@@ -4419,6 +4419,26 @@ void test_prvIPNetworkUpCalls_SiteLocal()
     prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_METHOD );
 }
 
+void test_prvIPNetworkUpCalls_UniqueLocal()
+{
+    /* Use the unique local address fd12:3456:789a:1::1 */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFDU, 0x12U,
+        0x34U, 0x56U,
+        0x78U, 0x9AU,
+        0x00U, 0x01U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x01U
+    };
+
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_UniqueLocal, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_UniqueLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_UniqueLocal, ipHAS_IPV6 | ipHAS_METHOD );
+}
+
 void test_prvIPNetworkUpCalls_Multicast()
 {
     /* Use the multicast address "ff02::fb",

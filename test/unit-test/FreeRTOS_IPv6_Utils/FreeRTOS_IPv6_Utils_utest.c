@@ -789,6 +789,19 @@ void test_vManageSolicitedNodeAddress_NetworkGoingUp( void )
 
     TEST_ASSERT_EQUAL( pdTRUE, xMACAddFunctionCalled );
 
+    /* Happy path eIPv6_UniqueLocal */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACAddFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_UniqueLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdTRUE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACAddFunctionCalled );
+
     /* Happy path eIPv6_Global */
     xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
     xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
@@ -879,6 +892,19 @@ void test_vManageSolicitedNodeAddress_NetworkGoingDown( void )
     xMACRemoveFunctionCalled = pdFALSE;
 
     xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_SiteLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdFALSE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACRemoveFunctionCalled );
+
+    /* Happy path eIPv6_UniqueLocal */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACRemoveFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_UniqueLocal );
 
     vManageSolicitedNodeAddress( &xEndPoint, pdFALSE );
 
