@@ -416,6 +416,10 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
             prvShowWarnings();
         }
 
+        #if ( ipconfigBUFFER_AND_DESCRIPTOR_RELEASE_HOOK == 1 )
+            vReleaseNetworkBufferAndDescriptorHook( pxNetworkBuffer );
+        #endif /* if ( ipconfigBUFFER_AND_DESCRIPTOR_RELEASE_HOOK ) */
+
         iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
     }
 }
