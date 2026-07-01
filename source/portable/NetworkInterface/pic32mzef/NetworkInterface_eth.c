@@ -266,7 +266,7 @@
         if( xMacInitStatus == eMACInit )
         {
             /* This is the first time this function is called. */
-            if( StartInitMac() != false )
+            if( StartInitMac( pxInterface ) != false )
             {
                 /* Indicate that the MAC initialisation succeeded. */
                 xMacInitStatus = eMACPass;
