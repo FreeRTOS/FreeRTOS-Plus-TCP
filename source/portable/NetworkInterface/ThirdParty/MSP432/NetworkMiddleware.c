@@ -265,7 +265,7 @@ void pingReply( uint32_t ulIPAddress )
  *  Function that returns pdTRUE if the pcName matches the LLMNR node name */
 BaseType_t xApplicationDNSQueryHook( const char * pcName )
 {
-    if( strcmp( pcName, DEV_NAME ) )
+    if( strcmp( pcName, DEV_NAME ) == 0 )
     {
         return pdTRUE;
     }
