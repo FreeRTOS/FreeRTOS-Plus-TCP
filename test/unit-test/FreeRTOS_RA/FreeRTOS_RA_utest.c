@@ -853,7 +853,7 @@ void test_vReceiveRA_ValidICMPPrefix_IncorrectOption( void )
     memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
     memset( &xICMPPacket, 0, sizeof( ICMPPacket_IPv6_t ) );
     memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
-    memset( &xEndPoint, 0, sizeof( NetworkInterface_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
