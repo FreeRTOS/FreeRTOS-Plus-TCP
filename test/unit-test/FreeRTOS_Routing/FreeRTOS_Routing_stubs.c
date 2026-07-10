@@ -29,7 +29,6 @@
 #include "unity.h"
 
 /* Include standard libraries */
-#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -60,5 +59,7 @@ const char * pcStubFreeRTOS_inet_ntop( BaseType_t xAddressFamily,
     if( ( pcDestination != NULL ) && ( pcStubFreeRTOS_inet_ntop_TargetCopySource != NULL ) )
     {
         memcpy( pcDestination, pcStubFreeRTOS_inet_ntop_TargetCopySource, ulStubFreeRTOS_inet_ntop_CopySize );
+        return pcDestination;
     }
+    return NULL;
 }
