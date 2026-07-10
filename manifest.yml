@@ -15,7 +15,7 @@ dependencies:
       branch: "main"
 
   - name: "CMock"
-    version: "afa2949"
+    version: "bbfaf04"
     license: "MIT"
     repository:
         type: "git"
