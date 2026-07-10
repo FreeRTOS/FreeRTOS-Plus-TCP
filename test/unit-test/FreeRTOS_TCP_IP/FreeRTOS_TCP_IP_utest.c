@@ -828,6 +828,52 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSyn( void )
 }
 
 /**
+ * @brief Test functionality when the state to be reached is eCLOSED (e.g.
+ *        SYN retries exhausted, or an RST received while connecting) and
+ *        the current state is equal to connect syn. Per RFC 793, a failed
+ *        connection attempt must transition to eCLOSED, and this must be
+ *        recognised as a "connecting phase failure" the same way the
+ *        existing eCLOSE_WAIT case is, so that eSOCKET_CLOSED gets set and
+ *        FreeRTOS_connect() can return promptly instead of waiting for its
+ *        own timeout. See https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/issues/1301
+ */
+void test_vTCPStateChange_ClosedState_PrvStateSyn( void )
+{
+    FreeRTOS_Socket_t xSocket = { 0 };
+    enum eTCP_STATE eTCPState;
+    BaseType_t xTickCountAck = 0xAABBEEDD;
+    BaseType_t xTickCountAlive = 0xAABBEFDD;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    eTCPState = eCLOSED;
+
+    xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
+
+    prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
+    xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    vTCPStateChange( &xSocket, eTCPState );
+
+    TEST_ASSERT_EQUAL( eCLOSED, xSocket.u.xTCP.eTCPState );
+    TEST_ASSERT_EQUAL( xTickCountAck, xSocket.u.xTCP.xLastActTime );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bWaitKeepAlive );
+    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bSendKeepAlive );
+    TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
+    TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
+    /* This is the crux of the fix: without it, the connecting-phase branch
+     * is not taken for eCLOSED, bBefore == bAfter, and eSOCKET_CLOSED is
+     * never set - so FreeRTOS_connect() would only ever return via its own
+     * timeout instead of promptly detecting the failed connection. */
+    TEST_ASSERT_EQUAL( eSOCKET_CLOSED, xSocket.xEventBits );
+}
+
+/**
  * @brief Test functionality when the state to be reached is closed wait
  *        and current state is equal to syn first.
  */
