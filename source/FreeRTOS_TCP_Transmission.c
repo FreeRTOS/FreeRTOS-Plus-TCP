@@ -132,11 +132,11 @@
             {
                 /* The connection is in the SYN status. The packet will be repeated
                  * to most 3 times.  When there is no response, the socket get the
-                 * status 'eCLOSE_WAIT'. */
+                 * status 'eCLOSED'. */
                 FreeRTOS_debug_printf( ( "Connect: giving up %xip:%u\n",
                                          ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, /* IP address of remote machine. */
                                          pxSocket->u.xTCP.usRemotePort ) );                 /* Port on remote machine. */
-                vTCPStateChange( pxSocket, eCLOSE_WAIT );
+                vTCPStateChange( pxSocket, eCLOSED );
             }
             else if( prvTCPMakeSurePrepared( pxSocket ) == pdTRUE )
             {
