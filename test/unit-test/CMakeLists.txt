@@ -37,10 +37,10 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-Werror=format-security> # format string missing
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-Werror=comment> # comment within a comment
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-Werror=unused-value> # "statement has no effect"
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang>:-Werror=return-type> # "control reaches end of non-void function"
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=maybe-uninitialized> # possible use of uninitialized variable
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=memset-elt-size> # memsetting array by length instead of size
     # FIXME (part of -Wall):
-    # -Werror=return-type # "control reaches end of non-void function"
     # -Werror=array-parameter # name clash
     # -Werror=implicit-function-declaration # need header
     # -Werror=unused-but-set-variable
