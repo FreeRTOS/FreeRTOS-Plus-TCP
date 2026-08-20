@@ -57,6 +57,7 @@ void harness()
 
     /* Network buffer must be valid, it's checked in prvProcessEthernetPacket. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
+
     /* Ethernet buffer in network buffer must be valid, the data length is
      * checked in prvProcessEthernetPacket. */
     __CPROVER_assume( pucEthernetBuffer != NULL );

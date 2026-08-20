@@ -56,7 +56,7 @@ void harness()
     __CPROVER_assume( pxMessage != NULL );
 
     /* Model the bit-stream: buffer allocated to EXACTLY uxSize so any
-     * over-read is a genuine out-of-bounds access. Contents nondet. */
+    * over-read is a genuine out-of-bounds access. Contents nondet. */
     __CPROVER_assume( ( uxSize > 0U ) && ( uxSize <= DHCPv6_PAYLOAD_LENGTH_MAX ) );
     pxMessage->ucContents = safeMalloc( uxSize );
     __CPROVER_assume( pxMessage->ucContents != NULL );
