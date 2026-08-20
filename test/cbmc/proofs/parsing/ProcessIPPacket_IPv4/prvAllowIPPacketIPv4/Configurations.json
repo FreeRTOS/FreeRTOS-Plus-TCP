@@ -1,0 +1,51 @@
+{
+  "ENTRY": "prvAllowIPPacketIPv4",
+  "IPV4_MAC_LOOP": 7,
+  "MAX_IP4_SIZE_FIELDS_LOOP": 21,
+  "CBMCFLAGS":
+  [
+    "--unwind 1",
+    "--unwindset memcmp.0:{IPV4_MAC_LOOP}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_IPv4_c_xCheckIPv4SizeFields.0:{MAX_IP4_SIZE_FIELDS_LOOP}",
+    "--nondet-static"
+  ],
+  "OPT":
+  [
+    "--export-file-local-symbols"
+  ],
+  "OBJS":
+  [
+    "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/cbmc.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IPv4.goto"
+  ],
+  "DEF":
+  [
+    {
+      "ChecksumIncluded":
+      [
+        "ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM=1",
+        "ipconfigETHERNET_DRIVER_FILTERS_PACKETS=1",
+        "FREERTOS_TCP_ENABLE_VERIFICATION=1",
+        "ipconfigNETWORK_MTU=200",
+        "ipconfigTCP_MSS=586",
+        "ipconfigUSE_DHCP=0"
+      ]
+    },
+    {
+      "ChecksumNotIncluded":
+      [
+        "ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM=0",
+        "ipconfigETHERNET_DRIVER_FILTERS_PACKETS=0",
+        "FREERTOS_TCP_ENABLE_VERIFICATION=1",
+        "ipconfigNETWORK_MTU=200",
+        "ipconfigTCP_MSS=586",
+        "ipconfigUSE_DHCP=0"
+      ]
+    }
+  ],
+  "INC":
+  [
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/include"
+  ]
+}

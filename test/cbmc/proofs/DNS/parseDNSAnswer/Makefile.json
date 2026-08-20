@@ -1,0 +1,54 @@
+{
+  "ENTRY": "parseDNSAnswer",
+
+################################################################
+# Modeled length of the attacker-controlled DNS payload remaining to be
+# parsed.  Kept small to bound the name-parse / answer-record loops, but the
+# buffer is allocated to EXACTLY this length with nondeterministic contents so
+# any over-read is a real defect.  32 bytes is enough to hold a full AAAA
+# answer record (name ref 2 + fixed header 10 + IPv6 address 16 = 28).
+  "NETWORK_BUFFER_SIZE": 32,
+
+################################################################
+# parseDNSAnswer.0 : the "for( x = 0; x < usAnswers; x++ )" answer loop.
+#   The function's own ANCOUNT sanity check forces
+#   usAnswers <= uxSourceBytesRemaining / (sizeof(DNSAnswerRecord_t)+3),
+#   i.e. <= 32/13 = 2 before the loop is entered, so 3 fully covers it.
+  "ANSWERLOOP": "parseDNSAnswer.0",
+  "ANSWERLOOP_UNWIND": "3",
+
+################################################################
+# DNS_SkipNameField.0 : the name-walk while loop (linked in for real from the
+#   same translation unit).  Each iteration consumes >= 2 bytes, so
+#   (NETWORK_BUFFER_SIZE + 1) / 2 + 1 iterations soundly cover it.
+  "SKIPLOOP": "DNS_SkipNameField.0",
+  "SKIPLOOP_UNWIND": "17",
+
+################################################################
+
+  "CBMCFLAGS":
+  [
+    "--unwind 1",
+    "--unwindset {ANSWERLOOP}:{ANSWERLOOP_UNWIND},{SKIPLOOP}:{SKIPLOOP_UNWIND}"
+  ],
+
+  "OBJS":
+  [
+    "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/cbmc.goto"
+  ],
+
+  "DEF":
+  [
+    "NETWORK_BUFFER_SIZE={NETWORK_BUFFER_SIZE}",
+    "ipconfigUSE_LLMNR=1",
+    "ipconfigUSE_MDNS=1",
+    "ipconfigUSE_IPv4=1",
+    "ipconfigUSE_IPv6=1",
+    "ipconfigUSE_DNS_CACHE=0",
+    "ipconfigDNS_USE_CALLBACKS=0",
+    "ipconfigDNS_CACHE_NAME_LENGTH=16",
+    "ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY=4"
+  ]
+}
