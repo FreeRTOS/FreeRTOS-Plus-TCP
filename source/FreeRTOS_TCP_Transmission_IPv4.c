@@ -206,6 +206,10 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                 pxIPHeader->usFragmentOffset = 0U;
             #endif
 
+            /* Important: tell NIC driver how many bytes must be sent. */
+            pxNetworkBuffer->xDataLength = ( size_t ) ulLen;
+            pxNetworkBuffer->xDataLength += ipSIZE_OF_ETH_HEADER;
+
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
             {
                 /* calculate the IP header checksum, in case the driver won't do that. */
@@ -219,10 +223,6 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
             vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
-
-            /* Important: tell NIC driver how many bytes must be sent. */
-            pxNetworkBuffer->xDataLength = ( size_t ) ulLen;
-            pxNetworkBuffer->xDataLength += ipSIZE_OF_ETH_HEADER;
 
             #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
             {
