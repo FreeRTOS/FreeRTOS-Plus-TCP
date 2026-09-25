@@ -403,7 +403,7 @@
             const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
             FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
                                pxAdvertisement->ucTypeOfMessage,
-                               pxAdvertisement->ucTypeOfService,
+                               pxAdvertisement->ucCode,
                                FreeRTOS_ntohs( pxAdvertisement->usChecksum ),
                                pxAdvertisement->ucHopLimit,
                                pxAdvertisement->ucFlags,

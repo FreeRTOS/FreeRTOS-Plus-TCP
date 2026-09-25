@@ -428,8 +428,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 break;
             }
 
-            vNDRefreshCacheEntry( &( pxUDPPacket_IPv6->xEthernetHeader.xSourceAddress ), &( pxUDPPacket_IPv6->xIPHeader.xSourceAddress ),
-                                  pxNetworkBuffer->pxEndPoint );
+            vNDRefreshCacheEntryAge( &( pxUDPPacket_IPv6->xEthernetHeader.xSourceAddress ), &( pxUDPPacket_IPv6->xIPHeader.xSourceAddress ),
+                                     pxNetworkBuffer->pxEndPoint );
 
             #if ( ipconfigUSE_CALLBACKS == 1 )
             {

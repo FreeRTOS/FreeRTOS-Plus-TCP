@@ -405,11 +405,11 @@ static void prvProcessIPEventsAndTimers( void )
              * and update the socket field xSocketBits. */
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
             #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                {
-                    SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
-                    vSocketSelect( pxMessage->pxSocketSet );
-                    ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                }
+               {
+                   SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
+                   vSocketSelect( pxMessage->pxSocketSet );
+                   ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+               }
             #else
                 {
                     vSocketSelect( ( ( SocketSelect_t * ) xReceivedEvent.pvData ) );
@@ -463,13 +463,13 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eSocketSetDeleteEvent:
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-            {
-                SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+           {
+               SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
 
-                iptraceMEM_STATS_DELETE( pxSocketSet );
-                vEventGroupDelete( pxSocketSet->xSelectGroup );
-                vPortFree( ( void * ) pxSocketSet );
-            }
+               iptraceMEM_STATS_DELETE( pxSocketSet );
+               vEventGroupDelete( pxSocketSet->xSelectGroup );
+               vPortFree( ( void * ) pxSocketSet );
+           }
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
             break;
 
@@ -1823,9 +1823,16 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                     if( pxNDWaitingNetworkBuffer == NULL )
                     {
+                        const IPPacket_IPv6_t * pxIPPacket = ( const IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                        memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                                pxIPPacket->xIPHeader.xSourceAddress.ucBytes,
+                                ipSIZE_OF_IPv6_ADDRESS );
+
+                        FreeRTOS_debug_printf( ( "pxNDWaitingNetworkBuffer: Storing packet from %pip\n",
+                                                 pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes ) );
                         pxNDWaitingNetworkBuffer = pxNetworkBuffer;
                         vIPTimerStartNDResolution( ipND_RESOLUTION_MAX_DELAY );
-
+                        FreeRTOS_debug_printf( ( "NDBuffer: = %pip\n", pxNDWaitingNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes ) );
                         iptraceDELAYED_ND_REQUEST_STARTED();
                     }
                     else
@@ -1833,7 +1840,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 {
                     /* We are already waiting on one resolution. This frame will be dropped. */
                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-
+                    FreeRTOS_debug_printf( ( "NDBuffer: = full/release\n" ) );
                     iptraceDELAYED_ND_BUFFER_FULL();
                 }
 
@@ -2131,7 +2138,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
                             case ipIPv6_FRAME_TYPE:
-                                vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
+                                vNDRefreshCacheEntryAge( &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+                                                         &( pxIPHeader_IPv6->xSourceAddress ) );
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -2163,9 +2171,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                              * went wrong because it will not be able to validate what it
                              * receives. */
                             #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            {
                                 eReturn = ProcessICMPPacket( pxNetworkBuffer );
-                            }
                             #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */

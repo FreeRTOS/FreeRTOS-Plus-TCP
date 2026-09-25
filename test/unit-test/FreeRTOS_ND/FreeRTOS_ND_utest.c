@@ -50,6 +50,7 @@
 #include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_IPv6_Utils.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_Sockets.h"
 #include "mock_NetworkBufferManagement.h"
 
 #include "catch_assert.h"
@@ -264,7 +265,10 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_InvalidEndPoint( void )
     ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xNDCache[ xUseEntry ].ucAge = 1;
-    xNDCache[ xUseEntry ].ucValid = 1;
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE;
+
+    /* On a cache hit the lookup formats the MAC for a debug trace. */
+    FreeRTOS_EUI48_ntop_Ignore();
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, ppxEndPoint );
 
@@ -295,9 +299,12 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_ValidEndPoint( void )
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xNDCache[ xUseEntry ].ucAge = 1;
-    xNDCache[ xUseEntry ].ucValid = 1;
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE;
     xNDCache[ xUseEntry ].pxEndPoint = &xEndPoint2;
     pxEndPoint = &xEndPoint1;
+
+    /* On a cache hit the lookup formats the MAC for a debug trace. */
+    FreeRTOS_EUI48_ntop_Ignore();
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
@@ -322,7 +329,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_InvalidEntry( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xNDCache[ xUseEntry ].ucValid = 0; /*Invalid Cache entry needs to be skipped */
+    xNDCache[ xUseEntry ].ucState = eND_FREE; /*Invalid Cache entry needs to be skipped */
     pxEndPoint = &xEndPoint;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
@@ -349,7 +356,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_InvalidEntry2( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xNDCache[ xUseEntry ].ucValid = 0; /*Invalid Cache entry needs to be skipped */
+    xNDCache[ xUseEntry ].ucState = eND_FREE; /*Invalid Cache entry needs to be skipped */
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
@@ -376,7 +383,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEntry( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE; /*Valid Cache entry needs to be skipped */
     pxEndPoint = &xEndPoint;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
@@ -404,7 +411,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoLinkLocal( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE; /*Valid Cache entry needs to be skipped */
     pxEndPoint = &xEndPoint;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
@@ -466,7 +473,7 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_Gateway( void )
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE; /*Valid Cache entry needs to be skipped */
     ( void ) memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
@@ -475,6 +482,9 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_Gateway( void )
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
 
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint1 );
+
+    /* On a cache hit the lookup formats the MAC for a debug trace. */
+    FreeRTOS_EUI48_ntop_Ignore();
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
@@ -499,7 +509,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_Gateway( void )
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE; /*Valid Cache entry needs to be skipped */
     ( void ) memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
@@ -527,7 +537,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE; /*Valid Cache entry needs to be skipped */
     pxEndPoint = &xEndPoint;
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
@@ -563,7 +573,7 @@ void test_vNDRefreshCacheEntry_NoMatchingEntryCacheFull( void )
     {
         ( void ) memcpy( xNDCache[ i ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         xNDCache[ i ].ucAge = 255;
-        xNDCache[ i ].ucValid = pdTRUE;
+        xNDCache[ i ].ucState = eND_REACHABLE;
     }
 
     /* Pass a NULL IP address which will not match.*/
@@ -586,11 +596,16 @@ void test_vNDRefreshCacheEntry_NoMatchingEntryAdd( void )
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
+    /* The insert path timestamps the entry (ulLastMatchingNA) and formats the
+     * MAC for a debug trace. */
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_EUI48_ntop_Ignore();
+
     /* Since no matching entry will be found, 0th entry will be updated to have the below details. */
     vNDRefreshCacheEntry( &xMACAddress, &xIPAddress, &xEndPoint );
 
     TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, ( uint8_t ) ipconfigMAX_ND_AGE );
-    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucValid, pdTRUE );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_REACHABLE );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].pxEndPoint, &xEndPoint, sizeof( NetworkEndPoint_t ) );
@@ -611,7 +626,12 @@ void test_vNDRefreshCacheEntry_MatchingEntryRefresh( void )
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xNDCache[ xUseEntry ].ucValid = pdTRUE;
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE;
+
+    /* The update path timestamps the entry (ulLastMatchingNA) and formats the
+     * MAC for a debug trace. */
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_EUI48_ntop_Ignore();
 
     /* Since a matching entry is found at xUseEntry = 1st location, the entry will be refreshed.*/
     vNDRefreshCacheEntry( &xMACAddress, &xIPAddress, &xEndPoint );
@@ -659,7 +679,8 @@ void test_vNDAgeCache_AgeZero( void )
     }
 
     xNDCache[ xUseEntry ].ucAge = 1;
-    xNDCache[ xUseEntry ].ucValid = 1;
+    /* A STALE entry whose age reaches 0 is freed and its IP wiped. */
+    xNDCache[ xUseEntry ].ucState = eND_STALE;
     ( void ) memset( &xMACAddress, 0, sizeof( MACAddress_t ) );
     ( void ) memset( &xIPAddress, 0, ipSIZE_OF_IPv6_ADDRESS );
 
@@ -669,14 +690,13 @@ void test_vNDAgeCache_AgeZero( void )
     vNDAgeCache();
 
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
     TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, 0 );
-    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucValid, 0 );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_FREE );
 }
 
 /**
- * @brief This function checks the case when the entry is not yet valid,
- *        then it is waiting an ND advertisement.
+ * @brief A FREE cache entry is skipped entirely by vNDAgeCache - it is neither
+ *        aged nor does it trigger any neighbour solicitation.
  */
 void test_vNDAgeCache_InvalidEntry( void )
 {
@@ -684,19 +704,20 @@ void test_vNDAgeCache_InvalidEntry( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 
-    /*Update Entry one as invalid ucValid = 0 */
+    /* A FREE entry must be ignored by the ageing pass. */
     xNDCache[ xUseEntry ].ucAge = 10;
-    xNDCache[ xUseEntry ].ucValid = 0;
+    xNDCache[ xUseEntry ].ucState = eND_FREE;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-
+    /* No mock expectations: a FREE entry generates no buffer request. */
     vNDAgeCache();
+
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_FREE );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, 10 );
 }
 
 /**
- * @brief This function checks the case when the entry age is
- *        less than ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION.
- *        This entry will get removed soon.
+ * @brief A REACHABLE entry whose age has fallen to the stale threshold moves to
+ *        STALE on the next ageing pass. No solicitation is sent for this.
  */
 void test_vNDAgeCache_ValidEntry( void )
 {
@@ -704,13 +725,14 @@ void test_vNDAgeCache_ValidEntry( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 
-    /*Update Entry one as invalid ucValid = 0 */
+    /* REACHABLE at the stale threshold: next tick should demote it to STALE. */
     xNDCache[ xUseEntry ].ucAge = ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION;
-    xNDCache[ xUseEntry ].ucValid = 1;
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-
+    /* No mock expectations: the REACHABLE->STALE transition sends nothing. */
     vNDAgeCache();
+
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_STALE );
 }
 
 /**
@@ -728,7 +750,7 @@ void test_vNDAgeCache_ValidEntryDecrement( void )
 
     /*Update Entry one as Valid entry */
     xNDCache[ xUseEntry ].ucAge = xAgeDefault;
-    xNDCache[ xUseEntry ].ucValid = 1;
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE;
 
     vNDAgeCache();
 
@@ -736,64 +758,70 @@ void test_vNDAgeCache_ValidEntryDecrement( void )
 }
 
 /**
- * @brief This function handles Sending out an NEIGHBOR SOLICITATION request
- *        for the IPv6 address, and fails as Endpoint is NULL.
+ * @brief A PROBE entry reaching age 0 sends a unicast NS. When the entry has no
+ *        end-point, vNDSendNeighbourSolicitation cannot build the packet, so the
+ *        allocated buffer is simply left for the NS routine (endpoint guard fails).
  */
 
 void test_vNDAgeCache_NSNullEP( void )
 {
-    MACAddress_t xMACAddress;
-    IPv6_Address_t xIPAddress;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = NULL;
-    BaseType_t xUseEntry = 1, xAgeDefault = 10;
+    BaseType_t xUseEntry = 1;
     NetworkBufferDescriptor_t xNetworkBuffer;
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
-    /*Update Entry one as Valid entry */
-    xNDCache[ xUseEntry ].ucAge = xAgeDefault;
-    xNDCache[ xUseEntry ].ucValid = 0;
+    /* PROBE with age 1: this tick expires and triggers a unicast NS probe. */
+    xNDCache[ xUseEntry ].ucAge = 1;
+    xNDCache[ xUseEntry ].ucState = eND_PROBE;
+    xNDCache[ xUseEntry ].ucNumProbes = 0;
     xNDCache[ xUseEntry ].pxEndPoint = NULL;
 
+    /* The probe allocates a buffer; the NS routine bails out on the NULL EP
+     * and releases the descriptor it could not use. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     vNDAgeCache();
 
-    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, xAgeDefault - 1 );
+    /* A probe was attempted: counter incremented, short retry interval set. */
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucNumProbes, 1 );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, 1 );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_PROBE );
 }
 
 /**
- * @brief This function handles Sending out an NEIGHBOR SOLICITATION request
- *        for the IPv6 address, and fails as pxDescriptor is NULL.
+ * @brief A PROBE probe with a buffer too small for the NS packet takes the
+ *        duplicate-descriptor path; when duplication fails the original buffer
+ *        is released and no frame is sent.
  */
 
 void test_vNDAgeCache_NSIncorrectDataLen( void )
 {
-    MACAddress_t xMACAddress;
-    IPv6_Address_t xIPAddress;
     NetworkEndPoint_t xEndPoint;
-    BaseType_t xUseEntry = 1, xAgeDefault = 10;
+    BaseType_t xUseEntry = 1;
     NetworkBufferDescriptor_t xNetworkBuffer;
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
     xNetworkBuffer.xDataLength = xHeaderSize - 1;
-    /*Update Entry one as Valid entry */
-    xNDCache[ xUseEntry ].ucAge = xAgeDefault;
-    xNDCache[ xUseEntry ].ucValid = 0;
+    /* PROBE with age 1: expires this tick and triggers a unicast NS probe. */
+    xNDCache[ xUseEntry ].ucAge = 1;
+    xNDCache[ xUseEntry ].ucState = eND_PROBE;
+    xNDCache[ xUseEntry ].ucNumProbes = 0;
     xNDCache[ xUseEntry ].pxEndPoint = &xEndPoint;
     xEndPoint.bits.bIPv6 = 1;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
-
+    /* Buffer too small -> duplicate (fails) -> release the original. */
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     vNDAgeCache();
 
-    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, xAgeDefault - 1 );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucNumProbes, 1 );
 }
 
 /**
@@ -816,10 +844,13 @@ void test_vNDAgeCache_NSHappyPath( void )
     uint32_t ulPayloadLength = 32U;
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    /*Update Entry one as Valid entry */
-    xNDCache[ xUseEntry ].ucAge = xAgeDefault;
-    xNDCache[ xUseEntry ].ucValid = 0;
+    /* PROBE with age 1: expires this tick and sends a unicast NS. The buffer is
+     * correctly sized, so the frame is built and handed to vReturnEthernetFrame. */
+    xNDCache[ xUseEntry ].ucAge = 1;
+    xNDCache[ xUseEntry ].ucState = eND_PROBE;
+    xNDCache[ xUseEntry ].ucNumProbes = 0;
     xNDCache[ xUseEntry ].pxEndPoint = &xEndPoint;
     xEndPoint.bits.bIPv6 = 1;
     xNetworkBuffer.xDataLength = xHeaderSize;
@@ -831,7 +862,9 @@ void test_vNDAgeCache_NSHappyPath( void )
 
     vNDAgeCache();
 
-    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, xAgeDefault - 1 );
+    /* A probe was sent: counter incremented and short retry interval set. */
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucNumProbes, 1 );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, 1 );
     TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.ucVersionTrafficClass, 0x60 );
     TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.usPayloadLength, FreeRTOS_htons( ulPayloadLength ) );
     TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.ucNextHeader, ipPROTOCOL_ICMP_IPv6 );
@@ -899,7 +932,10 @@ void test_FreeRTOS_PrintNDCache( void )
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     /* First Entry added as a valid Cache Entry to be printed */
-    xNDCache[ xUseEntry ].ucValid = 1;
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE;
+
+    /* Printing a valid entry formats its MAC for the dump line. */
+    FreeRTOS_EUI48_ntop_Ignore();
 
     FreeRTOS_PrintNDCache();
 }
@@ -1738,7 +1774,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitation( void )
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucTypeOfMessage, ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6 );
-    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucTypeOfService, 0U );
+    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucCode, 0U );
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionType, ndICMP_TARGET_LINK_LAYER_ADDRESS );
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionLength, 1U );
     TEST_ASSERT_EQUAL_MEMORY( pxICMPHeader_IPv6->ucOptionBytes, xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
@@ -1886,6 +1922,10 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement4( void )
     ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
+    /* RFC 4861: a valid NA must arrive with hop limit 255, else the handler
+     * drops it before reaching the waiting-packet path. */
+    xICMPPacket.xIPHeader.ucHopLimit = 255;
+
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
@@ -1927,6 +1967,10 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement5( void )
     ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
+    /* RFC 4861: a valid NA must arrive with hop limit 255, else the handler
+     * drops it before reaching the waiting-packet path. */
+    xICMPPacket.xIPHeader.ucHopLimit = 255;
+
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
     xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
@@ -1936,6 +1980,359 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement5( void )
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
     TEST_ASSERT_EQUAL( pxNDWaitingNetworkBuffer, NULL );
+}
+
+/*-----------------------------------------------------------*/
+/* Tests for the RFC 4861 Neighbour Advertisement state machine introduced by  */
+/* GHSA-4cmm-53v6-5996 (prvProcessNA / prvDetermineAction).                    */
+/*                                                                             */
+/* These drive the static logic through the public prvProcessICMPMessage_IPv6  */
+/* entry point and assert the resulting xNDCache state, exercising each action */
+/* branch of the decision table.                                              */
+/*-----------------------------------------------------------*/
+
+/* Flag bits inside the NA "Reserved" field (see FreeRTOS_ND.c). They are held
+ * in host order in these locals and byte-swapped into the packet with htonl. */
+#define ndTEST_FLAG_ROUTER                0x80000000U
+#define ndTEST_FLAG_SOLICITED             0x40000000U
+#define ndTEST_FLAG_OVERRIDE              0x20000000U
+
+/* Payload length (host order) that admits exactly one 8-byte NDP option after
+ * the 24-byte ICMPv6 ND header (ndICMPv6_HEADER_SIZE). */
+#define ndTEST_PAYLOAD_WITH_ONE_OPTION    ( 32U )
+
+/**
+ * @brief Build a syntactically valid incoming Neighbour Advertisement packet in
+ *        the supplied ICMP packet buffer.
+ *
+ * @param[out] pxICMPPacket  Packet storage to populate.
+ * @param[in]  ulFlags       Host-order NA flags (ndTEST_FLAG_*).
+ * @param[in]  pxTargetIP    Target IPv6 address the NA is advertising.
+ * @param[in]  pxTargetMAC   Target MAC to place in the TLLA option, or NULL for
+ *                           an NA that carries no target link-layer address.
+ */
+static void prvBuildNaPacket( ICMPPacket_IPv6_t * pxICMPPacket,
+                              uint32_t ulFlags,
+                              const IPv6_Address_t * pxTargetIP,
+                              const MACAddress_t * pxTargetMAC )
+{
+    ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = &( pxICMPPacket->xICMPHeaderIPv6 );
+
+    ( void ) memset( pxICMPPacket, 0, sizeof( *pxICMPPacket ) );
+
+    pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
+    /* RFC 4861: a received NA must have hop limit 255. */
+    pxICMPPacket->xIPHeader.ucHopLimit = 255;
+    pxICMPHeader_IPv6->ulReserved = FreeRTOS_htonl( ulFlags );
+    ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxTargetIP->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    if( pxTargetMAC != NULL )
+    {
+        /* One Target Link-Layer Address option: type 2, length 1 (x8 bytes). */
+        pxICMPHeader_IPv6->ucOptionType = ndICMP_TARGET_LINK_LAYER_ADDRESS;
+        pxICMPHeader_IPv6->ucOptionLength = 1U;
+        ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxTargetMAC->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+        pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ndTEST_PAYLOAD_WITH_ONE_OPTION );
+    }
+    else
+    {
+        /* No options: payload is just the ND header. */
+        pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ( uint16_t ) ndICMPv6_HEADER_SIZE );
+    }
+}
+
+/**
+ * @brief SECURITY (GHSA-4cmm-53v6-5996): a solicited NA that tries to overwrite
+ *        an existing REACHABLE binding with a DIFFERENT MAC while Override=0 must
+ *        NOT poison the cache. The old MAC must be preserved and the entry demoted
+ *        to STALE (eNA_REJECT_MAC_SET_STALE).
+ */
+void test_prvProcessNA_OverrideZero_DifferentMac_KeepsOldMacSetsStale( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    BaseType_t xUseEntry = 0;
+    MACAddress_t xAttackerMAC = { { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF } };
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    /* Pre-existing trusted, REACHABLE binding for the target IP. */
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    xNDCache[ xUseEntry ].ucState = eND_REACHABLE;
+
+    /* Attacker NA: Solicited=1, Override=0, carrying a DIFFERENT MAC. */
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xDefaultIPAddress, &xAttackerMAC );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* The attacker MAC must be REJECTED: the original MAC is still in the cache. */
+    TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes,
+                              xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    /* And the entry is demoted to STALE so reachability is re-verified. */
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_STALE );
+}
+
+/**
+ * @brief An unknown neighbour advertised with a valid TLLA and Solicited=1 is
+ *        created as a REACHABLE entry (eNA_CREATE_NEW).
+ */
+void test_prvProcessNA_NewNeighbour_Solicited_CreatesReachable( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    MACAddress_t xNewMAC = { { 0x02, 0x11, 0x22, 0x33, 0x44, 0x55 } };
+    NDCacheRow_t * pxEntry;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xDefaultIPAddress, &xNewMAC );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    /* The insert path timestamps the entry and formats the MAC for a trace. */
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_EUI48_ntop_Ignore();
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* Assert on slot 0 directly: pxNDPCacheLookup has a STALE->DELAY side effect. */
+    pxEntry = &( xNDCache[ 0 ] );
+    TEST_ASSERT_EQUAL_MEMORY( pxEntry->xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( pxEntry->ucState, eND_REACHABLE );
+    TEST_ASSERT_EQUAL_MEMORY( pxEntry->xMACAddress.ucBytes, xNewMAC.ucBytes, sizeof( MACAddress_t ) );
+}
+
+/**
+ * @brief An unknown neighbour advertised UNSOLICITED with a valid TLLA is created
+ *        as a STALE entry (eNA_CREATE_NEW, initial state STALE).
+ */
+void test_prvProcessNA_NewNeighbour_Unsolicited_CreatesStale( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    MACAddress_t xNewMAC = { { 0x02, 0xAB, 0xCD, 0xEF, 0x01, 0x02 } };
+    NDCacheRow_t * pxEntry;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    /* No flags set: unsolicited. */
+    prvBuildNaPacket( &xICMPPacket, 0U, &xDefaultIPAddress, &xNewMAC );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_EUI48_ntop_Ignore();
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* Assert on slot 0 directly: pxNDPCacheLookup would demote STALE to DELAY. */
+    pxEntry = &( xNDCache[ 0 ] );
+    TEST_ASSERT_EQUAL_MEMORY( pxEntry->xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( pxEntry->ucState, eND_STALE );
+}
+
+/**
+ * @brief A solicited NA with Override=1 and a NEW MAC updates the binding and
+ *        marks it REACHABLE (eNA_UPDATE_REACHABLE). This is the legitimate MAC
+ *        change path (contrast with the Override=0 rejection above).
+ */
+void test_prvProcessNA_OverrideOne_Solicited_UpdatesReachable( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    BaseType_t xUseEntry = 0;
+    MACAddress_t xNewMAC = { { 0x02, 0x99, 0x88, 0x77, 0x66, 0x55 } };
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    xNDCache[ xUseEntry ].ucState = eND_STALE;
+
+    /* Solicited=1, Override=1, new MAC: the stack may adopt it. */
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED | ndTEST_FLAG_OVERRIDE, &xDefaultIPAddress, &xNewMAC );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_EUI48_ntop_Ignore();
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* The new MAC is adopted and the entry is REACHABLE. */
+    TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xNewMAC.ucBytes, sizeof( MACAddress_t ) );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_REACHABLE );
+}
+
+/**
+ * @brief A solicited NA for an existing entry that carries NO target link-layer
+ *        address simply confirms reachability (eNA_CONFIRM_REACHABLE): the MAC is
+ *        untouched and the state becomes REACHABLE.
+ */
+void test_prvProcessNA_ExistingEntry_NoTlla_Solicited_ConfirmsReachable( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    BaseType_t xUseEntry = 0;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    xNDCache[ xUseEntry ].ucState = eND_STALE;
+
+    /* Solicited=1, no TLLA option. */
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xDefaultIPAddress, NULL );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_REACHABLE );
+}
+
+/**
+ * @brief An NA whose target IP is multicast is rejected by prvIsValidNa and must
+ *        not create or modify any cache entry.
+ */
+void test_prvProcessNA_MulticastTargetIP_Rejected( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    MACAddress_t xNewMAC = { { 0x02, 0x11, 0x22, 0x33, 0x44, 0x55 } };
+    IPv6_Address_t xMulticastIP;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    /* Multicast target IP (first byte 0xFF) - invalid per RFC 4861 7.1.2. */
+    ( void ) memcpy( xMulticastIP.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xMulticastIP.ucBytes[ 0 ] = 0xFFU;
+
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xMulticastIP, &xNewMAC );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* No entry should have been created for the multicast target. */
+    TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_FREE );
+}
+
+/**
+ * @brief An NA that arrives with a hop limit other than 255 is dropped before the
+ *        state machine runs (RFC 4861 anti-spoofing): the cache is not modified.
+ */
+void test_prvProcessNA_BadHopLimit_Dropped( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    MACAddress_t xNewMAC = { { 0x02, 0x11, 0x22, 0x33, 0x44, 0x55 } };
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xDefaultIPAddress, &xNewMAC );
+    /* Corrupt the hop limit so the RFC 4861 guard rejects the packet. */
+    xICMPPacket.xIPHeader.ucHopLimit = 64;
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* Packet dropped: no entry created. */
+    TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_FREE );
+}
+
+/**
+ * @brief vNDRefreshCacheEntryAge (upper-layer reachability hint) promotes a STALE
+ *        entry to REACHABLE and resets its age, but must NOT resurrect an
+ *        INCOMPLETE entry.
+ */
+void test_vNDRefreshCacheEntryAge_PromotesStaleNotIncomplete( void )
+{
+    BaseType_t xStale = 0, xIncomplete = 1;
+    IPv6_Address_t xStaleIP, xIncompleteIP;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+
+    ( void ) memcpy( xStaleIP.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xIncompleteIP.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xIncompleteIP.ucBytes[ 15 ] ^= 0x01U; /* Distinct address. */
+
+    ( void ) memcpy( xNDCache[ xStale ].xIPAddress.ucBytes, xStaleIP.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xNDCache[ xStale ].ucState = eND_STALE;
+    xNDCache[ xStale ].ucAge = 1;
+
+    ( void ) memcpy( xNDCache[ xIncomplete ].xIPAddress.ucBytes, xIncompleteIP.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xNDCache[ xIncomplete ].ucState = eND_INCOMPLETE;
+
+    /* Hint for the STALE entry -> promoted to REACHABLE, age reset. */
+    vNDRefreshCacheEntryAge( &xDefaultMACAddress, &xStaleIP );
+    TEST_ASSERT_EQUAL( xNDCache[ xStale ].ucState, eND_REACHABLE );
+    TEST_ASSERT_EQUAL( xNDCache[ xStale ].ucAge, ( uint8_t ) ipconfigMAX_ND_AGE );
+
+    /* Hint for the INCOMPLETE entry -> left untouched (still resolving). */
+    vNDRefreshCacheEntryAge( &xDefaultMACAddress, &xIncompleteIP );
+    TEST_ASSERT_EQUAL( xNDCache[ xIncomplete ].ucState, eND_INCOMPLETE );
 }
 
 /**

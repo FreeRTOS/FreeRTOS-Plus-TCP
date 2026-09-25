@@ -46,19 +46,55 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief 'NDCacheRow_t' defines one row in the ND address cache.
- * @note About A value that is periodically decremented but can
- *       also be refreshed by active communication.  The ND cache entry
- *       is removed if the value reaches zero.
+ * @brief The possible actions the NDP handler should take after processing an NA.
  */
+    typedef enum
+    {
+        eNA_DROP = 0,             /* Invalid packet or no action needed. */
+        eNA_CREATE_NEW,           /* Entry not found, create a new STALE one. */
+        eNA_UPDATE_REACHABLE,     /* Update MAC and set state to REACHABLE. */
+        eNA_UPDATE_STALE,         /* Update MAC and set state to STALE. */
+        eNA_CONFIRM_REACHABLE,    /* MAC matches or not provided, set to REACHABLE. */
+        eNA_REJECT_MAC_SET_STALE, /* O=0 and MAC differs: Keep old MAC, set state STALE. */
+        eNA_MAINTAIN              /* Keep current state. */
+    } eNaAction_t;
+
+/**
+ * @brief Internal representation of an NA packet for the logic processor.
+ */
+    typedef struct xNA_PACKET
+    {
+        BaseType_t xRouter;    /* R-flag: Neighbor is a router. */
+        BaseType_t xSolicited; /* S-flag: Response to our NS. */
+        BaseType_t xOverride;  /* O-flag: Overwrite existing L2 mapping. */
+        IPv6_Address_t xTargetIP;
+        MACAddress_t xTargetMAC;
+        BaseType_t xHasTargetLLA;
+    } NaPacket_t;
+
+    typedef enum
+    {
+        eND_FREE = 0,   /* Entry is not used */
+        eND_INCOMPLETE, /* Address resolution in progress (NS sent, no NA yet) */
+        eND_REACHABLE,  /* Positive confirmation received (NA with S=1) */
+        eND_STALE,      /* MAC is known, but reachability is unknown */
+        eND_DELAY,      /* Packet sent to STALE neighbor; waiting for reachability confirmation */
+        eND_PROBE       /* Unicast NS is being sent to confirm reachability */
+    } eNDState_t;
+
     typedef struct xND_CACHE_TABLE_ROW
     {
         IPv6_Address_t xIPAddress;            /**< The IP address of an ND cache entry. */
         MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
-        struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the
-                                               * remote device had responded. */
-        uint8_t ucAge;                        /**< See here above. */
-        uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
+        struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the remote device responded. */
+
+        uint32_t ulLastMatchingNA;            /**< Timestamp of last received NA for this entry. */
+
+        uint8_t ucState;                      /**< The state of this entry (eNDState_t). Replaces ucValid. */
+        uint8_t ucAge;                        /**< Countdown timer for state transitions / expiry. */
+        uint8_t ucNumProbes;                  /**< Number of NS probes sent without response. */
+
+        uint8_t ucFlags;                      /**< Bitmask for metadata (see below). */
     } NDCacheRow_t;
 
 /*
@@ -70,6 +106,15 @@
     void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                                const IPv6_Address_t * pxIPAddress,
                                NetworkEndPoint_t * pxEndPoint );
+
+/*
+ * Refresh only the age/state of an ND cache entry that already exists, without
+ * ever creating a new binding.  Used on the receive path for validated,
+ * already-known neighbours so that unsolicited traffic from an unknown source
+ * can never seed the cache (see GHSA-4cmm-53v6-5996, issue 4).
+ */
+    void vNDRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                                  const IPv6_Address_t * pxIPAddress );
 
 /** @brief Options that can be sent in a ROuter Advertisement packet. */
     #define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
@@ -115,6 +160,9 @@
  */
     void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                        const IPv6_Address_t * pxIPAddress );
+
+/* See if pxNDWaitingNetworkBuffer is filled, and process it when address is resolved. */
+    void vNDCheckWaitingPacket( const IPv6_Address_t * pxTargetIP );
 
     #if ( ipconfigUSE_RA != 0 )
 
