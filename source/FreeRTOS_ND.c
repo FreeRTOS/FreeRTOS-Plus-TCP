@@ -1126,16 +1126,17 @@
     {
         NDCacheRow_t * pxRow;
         eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
+        size_t x;
 
         pxRow = pxNDPCacheLookup( pxAddressToLookup );
 
         if( pxRow != NULL )
         {
-            size_t x;
             char pcMAC[ 18 ];
 
             eReturn = eResolutionCacheHit;
             x = ( size_t ) ( pxRow - xNDCache );
+            ( void ) x; /* May be unused when FreeRTOS_debug_printf() is compiled out. */
             ( void ) memcpy( pxMACAddress->ucBytes, pxRow->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
             FreeRTOS_EUI48_ntop( pxMACAddress->ucBytes, pcMAC, 'a', '-' );
             FreeRTOS_debug_printf( ( "prvCacheLookup6[ %d ] %pip with %s\n",
@@ -1811,6 +1812,7 @@
                            }
 
                            eResult = prvProcessNA( pxNetworkBuffer, pxEndPoint );
+                           ( void ) eResult; /* May be unused when FreeRTOS_printf() is compiled out. */
                            FreeRTOS_printf( ( "NDP: Received Neighbour Advertisement: %s(%d)\n",
                                               pcNDActionName( eResult ),
                                               eResult ) );

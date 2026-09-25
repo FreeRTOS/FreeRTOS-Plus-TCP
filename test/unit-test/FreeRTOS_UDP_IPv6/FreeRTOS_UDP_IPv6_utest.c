@@ -546,7 +546,7 @@ void test_xProcessReceivedUDPPacket_IPv6_SocketRecvHandlerFail()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -588,7 +588,7 @@ void test_xProcessReceivedUDPPacket_IPv6_UDPListBufferFull()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
@@ -636,7 +636,7 @@ void test_xProcessReceivedUDPPacket_IPv6_Pass()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
@@ -703,7 +703,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
@@ -768,7 +768,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
@@ -832,7 +832,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
@@ -894,7 +894,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
@@ -957,7 +957,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresNDResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
