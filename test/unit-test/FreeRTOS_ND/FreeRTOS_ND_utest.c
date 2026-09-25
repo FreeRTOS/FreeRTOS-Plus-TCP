@@ -1827,6 +1827,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement1( void )
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
     pxNDWaitingNetworkBuffer = NULL;
 
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
