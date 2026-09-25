@@ -136,7 +136,7 @@ jobs:
         uses: FreeRTOS/CI-CD-Github-Actions/formatting@main
         with:
           path: ./
-          exclude-dirs: source/portable/NetworkInterface/STM32
+          exclude-dirs: source/portable/NetworkInterface/STM32, test/integration-test/ndp
 
   doxygen:
     runs-on: ubuntu-latest
