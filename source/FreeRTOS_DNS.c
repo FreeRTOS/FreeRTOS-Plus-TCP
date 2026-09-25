@@ -689,7 +689,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                                                   ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                         }
                     }
-                    else     /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
+                    else /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
                     {
                         /* The IP address is known, do the call-back now. */
                         pCallbackFunction( pcHostName, pvSearchID, *( ppxAddressInfo ) );
@@ -716,7 +716,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
         return ulIPAddress;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_IPv6 != 0 )
 
@@ -898,7 +898,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                     {
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case xPreferenceIPv4:
-                                pxAddress->sin_address.ulIP_IPv4 = ipMDNS_IP_ADDRESS;     /* Is in network byte order. */
+                                pxAddress->sin_address.ulIP_IPv4 = ipMDNS_IP_ADDRESS; /* Is in network byte order. */
                                 /* sin_family is default set to FREERTOS_AF_INET */
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -933,7 +933,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                     {
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case xPreferenceIPv4:
-                                pxAddress->sin_address.ulIP_IPv4 = ipLLMNR_IP_ADDR;     /* Is in network byte order. */
+                                pxAddress->sin_address.ulIP_IPv4 = ipLLMNR_IP_ADDR; /* Is in network byte order. */
                                 pxAddress->sin_family = FREERTOS_AF_INET;
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -1073,7 +1073,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                  uint16_t usPort )
     {
         uint32_t ulIPAddress = 0U;
-        BaseType_t xExpected;
+        BaseType_t xExpected = pdFALSE;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -1082,7 +1082,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
         #if ( ipconfigUSE_MDNS == 1 )
             /* _HT_ changed 'pxReceiveBuffer->sin_port' to 'usPort' */
-            if( FreeRTOS_ntohs( usPort ) == ipMDNS_PORT )             /* mDNS port 5353. */
+            if( FreeRTOS_ntohs( usPort ) == ipMDNS_PORT ) /* mDNS port 5353. */
             {
                 /* In mDNS, the query ID field is ignored. */
                 xExpected = pdTRUE;
@@ -1447,7 +1447,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
         return ulIPAddress;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Create the DNS message in the zero copy buffer passed in the first parameter.
@@ -1607,7 +1607,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
         /* The packet was not consumed. */
         return pdFAIL;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 
     #if ( ipconfigUSE_NBNS == 1 )
