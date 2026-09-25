@@ -52,149 +52,149 @@
 
 #if ( ipconfigUSE_LOOPBACK != 0 )
 
-#define ipICMP_ECHO_REQUEST    ( ( uint8_t ) 8 )
-#define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )
+    #define ipICMP_ECHO_REQUEST    ( ( uint8_t ) 8 )
+    #define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )
 
 /*-----------------------------------------------------------*/
 
-NetworkInterface_t * xLoopbackInterface;
+    NetworkInterface_t * xLoopbackInterface;
 
-static BaseType_t prvLoopback_Initialise( NetworkInterface_t * pxInterface );
-static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
-                                      NetworkBufferDescriptor_t * const pxGivenDescriptor,
-                                      BaseType_t bReleaseAfterSend );
-static BaseType_t prvLoopback_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
+    static BaseType_t prvLoopback_Initialise( NetworkInterface_t * pxInterface );
+    static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
+                                          NetworkBufferDescriptor_t * const pxGivenDescriptor,
+                                          BaseType_t bReleaseAfterSend );
+    static BaseType_t prvLoopback_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxLoopback_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface );
-BaseType_t xLoopback_Holdup;
+    NetworkInterface_t * pxLoopback_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                             NetworkInterface_t * pxInterface );
+    BaseType_t xLoopback_Holdup;
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvLoopback_Initialise( NetworkInterface_t * pxInterface )
-{
-    /* When returning non-zero, the stack will become active and
-     * start DHCP (in configured) */
-    ( void ) pxInterface;
-    return xLoopback_Holdup ? pdFAIL : pdPASS;;
-}
+    static BaseType_t prvLoopback_Initialise( NetworkInterface_t * pxInterface )
+    {
+        /* When returning non-zero, the stack will become active and
+         * start DHCP (in configured) */
+        ( void ) pxInterface;
+        return xLoopback_Holdup ? pdFAIL : pdPASS;
+    }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
  * objects.  See the description in FreeRTOS_Routing.h. */
-    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                    NetworkInterface_t * pxInterface )
-    {
-        return pxLoopback_FillInterfaceDescriptor( xEMACIndex, pxInterface );
-    }
+        NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                        NetworkInterface_t * pxInterface )
+        {
+            return pxLoopback_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        }
 
-#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) */
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) */
 /*-----------------------------------------------------------*/
 
 /* Function declared in loopbackNetworkInterface.c */
-NetworkInterface_t * pxLoopback_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface )
-{
+    NetworkInterface_t * pxLoopback_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                             NetworkInterface_t * pxInterface )
+    {
 /* This function pxLoopback_FillInterfaceDescriptor() adds a network-interface.
  * Make sure that the object pointed to by 'pxInterface'
  * is declared static or global, and that it will remain to exist. */
 
-    memset( pxInterface, '\0', sizeof( *pxInterface ) );
-    pxInterface->pcName = "Loopback";                /* Just for logging, debugging. */
-    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
-    pxInterface->pfInitialise = prvLoopback_Initialise;
-    pxInterface->pfOutput = prvLoopback_Output;
-    pxInterface->pfGetPhyLinkStatus = prvLoopback_GetPhyLinkStatus;
+        memset( pxInterface, '\0', sizeof( *pxInterface ) );
+        pxInterface->pcName = "Loopback";                /* Just for logging, debugging. */
+        pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+        pxInterface->pfInitialise = prvLoopback_Initialise;
+        pxInterface->pfOutput = prvLoopback_Output;
+        pxInterface->pfGetPhyLinkStatus = prvLoopback_GetPhyLinkStatus;
 
-    FreeRTOS_AddNetworkInterface( pxInterface );
-    xLoopbackInterface = pxInterface;
+        FreeRTOS_AddNetworkInterface( pxInterface );
+        xLoopbackInterface = pxInterface;
 
-    return pxInterface;
-}
+        return pxInterface;
+    }
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvLoopback_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
-{
-    /* This function returns true if the Link Status in the PHY is high. */
-    ( void ) pxInterface;
-    return pdTRUE;
-}
+    static BaseType_t prvLoopback_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
+    {
+        /* This function returns true if the Link Status in the PHY is high. */
+        ( void ) pxInterface;
+        return pdTRUE;
+    }
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
-                                      NetworkBufferDescriptor_t * const pxGivenDescriptor,
-                                      BaseType_t bReleaseAfterSend )
-{
-    NetworkBufferDescriptor_t * pxDescriptor = pxGivenDescriptor;
-
-    ( void ) pxInterface;
-
-    IPPacket_t * a = ( IPPacket_t * ) ( pxDescriptor->pucEthernetBuffer );
-
-    if( a->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+    static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
+                                          NetworkBufferDescriptor_t * const pxGivenDescriptor,
+                                          BaseType_t bReleaseAfterSend )
     {
-        usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
-    }
+        NetworkBufferDescriptor_t * pxDescriptor = pxGivenDescriptor;
 
-    {
-        const MACAddress_t * pxMACAddress = &( pxDescriptor->pxEndPoint->xMACAddress );
+        ( void ) pxInterface;
 
-        if( pxDescriptor->pxEndPoint->bits.bIPv6 != 0 )
+        IPPacket_t * a = ( IPPacket_t * ) ( pxDescriptor->pucEthernetBuffer );
+
+        if( a->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                if( xIsIPv6Loopback( &( pxDescriptor->xIPAddress.xIP_IPv6 ) ) != pdFALSE )
-                {
-                    vNDRefreshCacheEntry( pxMACAddress, &( pxDescriptor->xIPAddress.xIP_IPv6 ), pxDescriptor->pxEndPoint );
-                }
-            #endif
+            usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
         }
-        else
+
         {
-            #if ( ipconfigUSE_IPv4 != 0 )
-                if( xIsIPv4Loopback( pxDescriptor->xIPAddress.ulIP_IPv4 ) != pdFALSE )
-                {
-                    vARPRefreshCacheEntry( pxMACAddress, pxDescriptor->xIPAddress.ulIP_IPv4, pxDescriptor->pxEndPoint );
-                }
-            #endif
+            const MACAddress_t * pxMACAddress = &( pxDescriptor->pxEndPoint->xMACAddress );
+
+            if( pxDescriptor->pxEndPoint->bits.bIPv6 != 0 )
+            {
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    if( xIsIPv6Loopback( &( pxDescriptor->xIPAddress.xIP_IPv6 ) ) != pdFALSE )
+                    {
+                        vNDRefreshCacheEntry( pxMACAddress, &( pxDescriptor->xIPAddress.xIP_IPv6 ), pxDescriptor->pxEndPoint );
+                    }
+                #endif
+            }
+            else
+            {
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    if( xIsIPv4Loopback( pxDescriptor->xIPAddress.ulIP_IPv4 ) != pdFALSE )
+                    {
+                        vARPRefreshCacheEntry( pxMACAddress, pxDescriptor->xIPAddress.ulIP_IPv4, pxDescriptor->pxEndPoint );
+                    }
+                #endif
+            }
         }
-    }
 
-    if( bReleaseAfterSend == pdFALSE )
-    {
-        NetworkBufferDescriptor_t * pxNewDescriptor =
-            pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
-        pxDescriptor = pxNewDescriptor;
-    }
-
-    if( pxDescriptor != NULL )
-    {
-        IPStackEvent_t xRxEvent;
-
-        xRxEvent.eEventType = eNetworkRxEvent;
-        xRxEvent.pvData = ( void * ) pxDescriptor;
-
-        pxDescriptor->pxInterface = xLoopbackInterface;
-        pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( xLoopbackInterface, pxDescriptor->pucEthernetBuffer );
-
-        if( pxDescriptor->pxEndPoint == NULL )
+        if( bReleaseAfterSend == pdFALSE )
         {
-            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-            iptraceETHERNET_RX_EVENT_LOST();
-            FreeRTOS_printf( ( "prvLoopback_Output: Can not find a proper endpoint\n" ) );
+            NetworkBufferDescriptor_t * pxNewDescriptor =
+                pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
+            pxDescriptor = pxNewDescriptor;
         }
-        else if( xSendEventStructToIPTask( &xRxEvent, 0u ) != pdTRUE )
-        {
-            /* Sending failed, release the descriptor. */
-            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-            iptraceETHERNET_RX_EVENT_LOST();
-            FreeRTOS_printf( ( "prvLoopback_Output: Can not queue return packet!\n" ) );
-        }
-    }
 
-    /* The return value is actually ignored by the IP-stack. */
-    return pdTRUE;
-}
+        if( pxDescriptor != NULL )
+        {
+            IPStackEvent_t xRxEvent;
+
+            xRxEvent.eEventType = eNetworkRxEvent;
+            xRxEvent.pvData = ( void * ) pxDescriptor;
+
+            pxDescriptor->pxInterface = xLoopbackInterface;
+            pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( xLoopbackInterface, pxDescriptor->pucEthernetBuffer );
+
+            if( pxDescriptor->pxEndPoint == NULL )
+            {
+                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+                iptraceETHERNET_RX_EVENT_LOST();
+                FreeRTOS_printf( ( "prvLoopback_Output: Can not find a proper endpoint\n" ) );
+            }
+            else if( xSendEventStructToIPTask( &xRxEvent, 0u ) != pdTRUE )
+            {
+                /* Sending failed, release the descriptor. */
+                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+                iptraceETHERNET_RX_EVENT_LOST();
+                FreeRTOS_printf( ( "prvLoopback_Output: Can not queue return packet!\n" ) );
+            }
+        }
+
+        /* The return value is actually ignored by the IP-stack. */
+        return pdTRUE;
+    }
 /*-----------------------------------------------------------*/
 #endif /* ipconfigUSE_LOOPBACK */

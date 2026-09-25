@@ -1983,12 +1983,12 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement5( void )
 }
 
 /*-----------------------------------------------------------*/
-/* Tests for the RFC 4861 Neighbour Advertisement state machine introduced by  */
-/* GHSA-4cmm-53v6-5996 (prvProcessNA / prvDetermineAction).                    */
+/* Tests for the RFC 4861 Neighbour Advertisement state machine                */
+/* (prvProcessNA / prvDetermineAction).                                        */
 /*                                                                             */
 /* These drive the static logic through the public prvProcessICMPMessage_IPv6  */
 /* entry point and assert the resulting xNDCache state, exercising each action */
-/* branch of the decision table.                                              */
+/* branch of the decision table.                                               */
 /*-----------------------------------------------------------*/
 
 /* Flag bits inside the NA "Reserved" field (see FreeRTOS_ND.c). They are held
@@ -2042,7 +2042,7 @@ static void prvBuildNaPacket( ICMPPacket_IPv6_t * pxICMPPacket,
 }
 
 /**
- * @brief SECURITY (GHSA-4cmm-53v6-5996): a solicited NA that tries to overwrite
+ * @brief A solicited NA that tries to overwrite
  *        an existing REACHABLE binding with a DIFFERENT MAC while Override=0 must
  *        NOT poison the cache. The old MAC must be preserved and the entry demoted
  *        to STALE (eNA_REJECT_MAC_SET_STALE).

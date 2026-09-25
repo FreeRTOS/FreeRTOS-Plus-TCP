@@ -111,7 +111,7 @@
  * Refresh only the age/state of an ND cache entry that already exists, without
  * ever creating a new binding.  Used on the receive path for validated,
  * already-known neighbours so that unsolicited traffic from an unknown source
- * can never seed the cache (see GHSA-4cmm-53v6-5996, issue 4).
+ * can never seed the cache.
  */
     void vNDRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
                                   const IPv6_Address_t * pxIPAddress );

@@ -58,18 +58,25 @@
 
 /* RFC Flags */
 /** @brief Type of Neighbour Advertisement packets - ROUTER. */
-    #define ndICMPv6_FLAG_ROUTER                          0x80000000U
+    #define ndICMPv6_FLAG_ROUTER                 0x80000000U
 /** @brief Type of Neighbour Advertisement packets - SOLICIT. */
-    #define ndICMPv6_FLAG_SOLICITED                       0x40000000U
+    #define ndICMPv6_FLAG_SOLICITED              0x40000000U
 /** @brief Type of Neighbour Advertisement packets - OVERRIDE. */
-    #define ndICMPv6_FLAG_OVERRIDE                        0x20000000U
+    #define ndICMPv6_FLAG_OVERRIDE               0x20000000U
 
-    #define ndDELAY_FIRST_PROBE_TIME_SECONDS              ( 5U )
+/** @brief Seconds to remain in the DELAY state before sending the first probe. */
+    #define ndDELAY_FIRST_PROBE_TIME_SECONDS     ( 5U )
 
-    #define ipconfigMAX_ND_RE_LOOKUP_ATTEMPTS             ( 3U )
+/** @brief Maximum number of ND re-lookup attempts before giving up. */
+    #define ipconfigMAX_ND_RE_LOOKUP_ATTEMPTS    ( 3U )
 
-/* Ensure this is defined for the ucFlags field */
-    #define ndpFLAG_IS_ROUTER                             ( 0x01U )
+/** @brief ucFlags bit indicating the neighbour is a router. */
+    #define ndpFLAG_IS_ROUTER                    ( 0x01U )
+
+/** @brief Default lifetime (in age ticks) assigned to a fresh ND cache entry. */
+    #ifndef ipconfigMAX_ND_AGE
+        #define ipconfigMAX_ND_AGE    ( 150U )
+    #endif
 
 /** @brief A block time of 0 simply means "don't block". */
     #define ndDONT_BLOCK                                  ( ( TickType_t ) 0 )
@@ -106,7 +113,7 @@
 /** @brief Find the first end-point of type IPv6. */
     static NetworkEndPoint_t * pxFindLocalEndpoint( void );
 
-/* Two functions to faciliate debugging. */
+/* Two functions to facilitate debugging. */
 
     const char * pcNDStateName( eNDState_t eState );
     const char * pcNDActionName( eNaAction_t eState );
@@ -145,13 +152,7 @@
     static void vNDPCacheSetState( IPv6_Address_t * pxTargetIP,
                                    eNDState_t eState );
 
-/**
- * @brief Search the NDP cache for an IP address.
- *
- * @param[in] pxIPAddress: The IPv6 address to look up.
- *
- * @return Pointer to the cache row if found and valid; NULL otherwise.
- */
+/* Search the NDP cache for an IP address. Documented at the definition. */
     NDCacheRow_t * pxNDPCacheLookup( const IPv6_Address_t * pxIPAddress );
 
 /* Process an incoming packet of the type ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6. */
@@ -358,12 +359,6 @@
     void vNDAgeCache( void )
     {
         BaseType_t x;
-        extern NetworkBufferDescriptor_t * pxNDWaitingNetworkBuffer;
-
-        /* Ensure the ND age constant is defined. */
-        #ifndef ipconfigMAX_ND_AGE
-        #define ipconfigMAX_ND_AGE    ( 150U )
-        #endif
 
         for( x = 0; x < ( BaseType_t ) ipconfigND_CACHE_ENTRIES; x++ )
         {
@@ -556,7 +551,7 @@
             pxEntry->ucState = ( uint8_t ) eState;
             pxEntry->ucAge = ( uint8_t ) ipconfigMAX_ND_AGE;
             pxEntry->ucNumProbes = 0;
-            pxEntry->ulLastMatchingNA = xTaskGetTickCount();
+            pxEntry->ulLastMatchingNA = ( uint32_t ) xTaskGetTickCount();
 
             if( pxEndPoint != NULL )
             {
@@ -570,7 +565,7 @@
             }
             else
             {
-                pxEntry->ucFlags &= ~ndpFLAG_IS_ROUTER;
+                pxEntry->ucFlags &= ( uint8_t ) ~ndpFLAG_IS_ROUTER;
             }
 
             /* Essential: Check if a packet was waiting for this resolution. */
@@ -617,7 +612,7 @@
             pxEntry->ucState = ( uint8_t ) eState;
             pxEntry->ucAge = ( uint8_t ) ipconfigMAX_ND_AGE;
             pxEntry->ucNumProbes = 0;
-            pxEntry->ulLastMatchingNA = xTaskGetTickCount();
+            pxEntry->ulLastMatchingNA = ( uint32_t ) xTaskGetTickCount();
             pxEntry->pxEndPoint = pxEndPoint;
 
             if( xRouter != pdFALSE )
@@ -689,6 +684,8 @@
             /* If the Target Link-Layer Address (TLLA) is present, validate it. */
             if( pxNa->xHasTargetLLA != pdFALSE )
             {
+                static const uint8_t ucZeroMac[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0, 0, 0, 0, 0, 0 };
+
                 /* MAC cannot be multicast (the I/G bit). */
                 if( ( pxNa->xTargetMAC.ucBytes[ 0 ] & 0x01U ) != 0U )
                 {
@@ -696,8 +693,6 @@
                 }
 
                 /* MAC cannot be all zeros. */
-                static const uint8_t ucZeroMac[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0, 0, 0, 0, 0, 0 };
-
                 if( memcmp( pxNa->xTargetMAC.ucBytes, ucZeroMac, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
                 {
                     break;
@@ -900,7 +895,11 @@
     }
 /*-----------------------------------------------------------*/
 
-/* See if pxNDWaitingNetworkBuffer is filled, and process it when address is resolved.
+/**
+ * @brief Process a packet parked in pxNDWaitingNetworkBuffer once the target
+ *        address has been resolved, sending it if it matches or releasing it.
+ *
+ * @param[in] pxTargetIP The IPv6 address that has just been resolved.
  */
     void vNDCheckWaitingPacket( const IPv6_Address_t * pxTargetIP )
     {
@@ -910,7 +909,7 @@
          */
         if( pxNDWaitingNetworkBuffer != NULL )
         {
-            BaseType_t xhasReleased = pdFALSE;
+            BaseType_t xHasReleased = pdFALSE;
             NetworkBufferDescriptor_t * pxBuffer = pxNDWaitingNetworkBuffer;
             const ICMPPacket_IPv6_t * pxIPPacket;
             BaseType_t xMatch;
@@ -924,7 +923,7 @@
                                      xMatch ? "Sending" : "Giving up",
                                      pxIPPacket->xIPHeader.xSourceAddress.ucBytes,
                                      pxTargetIP->ucBytes ) );
-            FreeRTOS_debug_printf( ( "NDBuffer: match = %d\n", xMatch ) );
+            FreeRTOS_debug_printf( ( "NDBuffer: match = %d\n", ( int ) xMatch ) );
 
             /* Does the packet we parked match the IP we just resolved? */
             if( xMatch != pdFALSE )
@@ -940,13 +939,13 @@
 
                 if( xSendEventStructToIPTask( &xEventMessage, xDontBlock ) == pdTRUE )
                 {
-                    xhasReleased = pdTRUE;
+                    xHasReleased = pdTRUE;
                 }
 
                 pxBuffer = NULL;
             }
 
-            if( xhasReleased == pdFALSE )
+            if( xHasReleased == pdFALSE )
             {
                 /* Failed to send the message, so release the network buffer. */
                 vReleaseNetworkBufferAndDescriptor( pxBuffer );
@@ -1061,7 +1060,7 @@
  * to its own loopback IPv6 address).  Because the binding is trusted, it may
  * create a new entry - unlike vNDRefreshCacheEntryAge(), which never inserts.
  * Do NOT call this from the receive path for peer neighbours; that path must go
- * through prvProcessNA()/prvDetermineAction() (see GHSA-4cmm-53v6-5996).
+ * through prvProcessNA()/prvDetermineAction().
  */
     void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                                const IPv6_Address_t * pxIPAddress,
@@ -1174,7 +1173,6 @@
         void FreeRTOS_PrintNDCache( void )
         {
             BaseType_t x, xCount = 0;
-            char pcBuffer[ 40 ];
             char pcBuffer_EUI48[ 18 ];
 
             /* Loop through each entry in the ND cache. */
@@ -1182,9 +1180,10 @@
             {
                 if( xNDCache[ x ].ucState != ( uint8_t ) eND_FREE )
                 {
+                    const char * pcHostType = ( xNDCache[ x ].ucFlags & ndpFLAG_IS_ROUTER ) ? "Router" : "Host";
+
                     /* See if the MAC-address also matches, and we're all happy */
                     FreeRTOS_EUI48_ntop( xNDCache[ x ].xMACAddress.ucBytes, pcBuffer_EUI48, 'a', '-' );
-                    const char * pcHostType = ( xNDCache[ x ].ucFlags & ndpFLAG_IS_ROUTER ) ? "Router" : "Host";
 
                     FreeRTOS_printf( ( " %u | %pip | %s | %s | %u | %s \n",
                                        ( int ) x,
@@ -2119,9 +2118,16 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Return a human-readable name for an ND cache entry state.
+ *
+ * @param[in] eState The ND state to describe.
+ *
+ * @return A pointer to a constant string describing the state.
+ */
     const char * pcNDStateName( eNDState_t eState )
     {
-        static char pcSpace[ 16 ];
+        static char pcSpace[ 24 ];
         const char * pcReturn;
 
         switch( eState )
@@ -2159,9 +2165,16 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Return a human-readable name for a Neighbour Advertisement action.
+ *
+ * @param[in] eState The action to describe.
+ *
+ * @return A pointer to a constant string describing the action.
+ */
     const char * pcNDActionName( eNaAction_t eState )
     {
-        static char pcSpace[ 16 ];
+        static char pcSpace[ 24 ];
         const char * pcReturn;
 
         switch( eState )
