@@ -58,9 +58,9 @@
 
 /* Timer parameters */
 #ifndef dhcpINITIAL_DHCP_TX_PERIOD
-    /** @brief DHCP timer period in ms */
+/** @brief DHCP timer period in ms */
     #define dhcpINITIAL_TIMER_PERIOD      ( pdMS_TO_TICKS( 250U ) )
-    /** @brief DHCP transmit period in ms */
+/** @brief DHCP transmit period in ms */
     #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
 #endif
 

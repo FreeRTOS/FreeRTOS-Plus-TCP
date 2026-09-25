@@ -694,7 +694,10 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
     void vIPSetDHCP_RATimerEnableState( NetworkEndPoint_t * pxEndPoint,
                                         BaseType_t xEnableState )
     {
-        FreeRTOS_printf( ( "vIPSetDHCP_RATimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
+        if( ( xEnableState != 0 ) && ( pxEndPoint->xDHCP_RATimer.bActive != 0 ) )
+        {
+            FreeRTOS_printf( ( "vIPSetDHCP_RATimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
+        }
 
         /* 'xDHCP_RATimer' is shared between DHCP (IPv4) and RA/SLAAC (IPv6). */
         if( xEnableState != 0 )

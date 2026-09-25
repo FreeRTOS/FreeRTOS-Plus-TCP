@@ -191,6 +191,10 @@
             IPV6Parameters_t ipv6_defaults; /**< Use values form "ipv6_defaults" in case DHCP has failed. */
         #endif
         MACAddress_t xMACAddress;           /**< The MAC-address assigned to this end-point. */
+        #if ( ipconfigUSE_NAMED_ENDPOINTS != 0 )
+            /** @brief A human readable name for this end-point. */
+            char pcName[ ipconfigENDPOINT_NAME_LENGTH ];
+        #endif
         struct
         {
             uint32_t

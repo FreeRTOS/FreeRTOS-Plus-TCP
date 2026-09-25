@@ -65,7 +65,7 @@
     _static Socket_t xDHCPv4Socket;
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-        /* Define the Link Layer IP address: 169.254.x.x */
+/* Define the Link Layer IP address: 169.254.x.x */
         #define LINK_LAYER_ADDRESS_0    169
         #define LINK_LAYER_ADDRESS_1    254
 
@@ -170,7 +170,7 @@
 
         return xReturn;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 
 /**
@@ -880,7 +880,7 @@
                            ( xDHCPv4Socket != NULL ) ? "open" : "closed",
                            ( int ) xDHCPSocketUserCount ) );
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Create a DHCP socket with the defined timeouts. The same socket
@@ -948,7 +948,7 @@
                            ( xDHCPv4Socket != NULL ) ? "open" : "closed",
                            ( int ) xDHCPSocketUserCount ) );
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Initialise the DHCP state machine by creating DHCP socket and
@@ -1375,7 +1375,7 @@
 
         return xReturn;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Create a partial DHCP message by filling in all the 'constant' fields.
@@ -1504,7 +1504,7 @@
 
         return pucUDPPayloadBuffer;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Create and send a DHCP request message through the DHCP socket.
@@ -1577,7 +1577,7 @@
 
         return xResult;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Create and send a DHCP discover packet through the DHCP socket.
@@ -1662,7 +1662,7 @@
 
         return xResult;
     }
-    /*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
