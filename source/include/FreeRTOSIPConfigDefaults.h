@@ -404,6 +404,54 @@ STATIC_ASSERT( pdMS_TO_TICKS( ipconfigRA_IP_TEST_TIME_OUT_MSEC ) <= portMAX_DELA
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigUSE_NAMED_ENDPOINTS
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When enabled, each NetworkEndPoint_t carries a human readable name in the
+ * field pcName, which is useful when logging the activity of a multi-endpoint
+ * system.
+ */
+
+#ifndef ipconfigUSE_NAMED_ENDPOINTS
+    #define ipconfigUSE_NAMED_ENDPOINTS    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigUSE_NAMED_ENDPOINTS != ipconfigDISABLE ) && ( ipconfigUSE_NAMED_ENDPOINTS != ipconfigENABLE ) )
+    #error Invalid ipconfigUSE_NAMED_ENDPOINTS configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigENDPOINT_NAME_LENGTH
+ *
+ * Type: size_t
+ * Unit: count of endpoint name chars
+ * Minimum: 1
+ *
+ * The maximum number of characters the name of an endpoint can take, including
+ * the NULL terminator. Only used when ipconfigUSE_NAMED_ENDPOINTS is enabled,
+ * in which case every NetworkEndPoint_t contains:
+ *
+ *     char pcName[ ipconfigENDPOINT_NAME_LENGTH ];
+ */
+
+#ifndef ipconfigENDPOINT_NAME_LENGTH
+    #define ipconfigENDPOINT_NAME_LENGTH    ( 32U )
+#endif
+
+#if ( ipconfigENDPOINT_NAME_LENGTH < 1 )
+    #error ipconfigENDPOINT_NAME_LENGTH must be at least 1
+#endif
+
+#if ( ipconfigENDPOINT_NAME_LENGTH > SIZE_MAX )
+    #error ipconfigENDPOINT_NAME_LENGTH overflows a size_t
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigFORCE_IP_DONT_FRAGMENT
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigFORCE_IP_DONT_FRAGMENT

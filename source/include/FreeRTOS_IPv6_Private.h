@@ -162,7 +162,7 @@ typedef struct xIP_EXT_HEADER_IPv6 IPExtHeader_IPv6_t;
 struct xICMPEcho_IPv6
 {
     uint8_t ucTypeOfMessage;   /**< The message type.     0 +  1 = 1 */
-    uint8_t ucTypeOfService;   /**< Type of service.      1 +  1 = 2 */
+    uint8_t ucCode;            /**< Code field.           1 +  1 = 2 */
     uint16_t usChecksum;       /**< Checksum.             2 +  2 = 4 */
     uint16_t usIdentifier;     /**< Identifier.           4 +  2 = 6 */
     uint16_t usSequenceNumber; /**< Sequence number.      6 +  2 = 8 */
@@ -174,7 +174,7 @@ typedef struct xICMPEcho_IPv6 ICMPEcho_IPv6_t;
 struct xICMPRouterSolicitation_IPv6
 {
     uint8_t ucTypeOfMessage; /**<  0 +  1 =  1 */
-    uint8_t ucTypeOfService; /**<  1 +  1 =  2 */
+    uint8_t ucCode;          /**<  1 +  1 =  2 */
     uint16_t usChecksum;     /**<  2 +  2 =  4 */
     uint32_t ulReserved;     /**<  4 +  4 =  8 */
 }
@@ -185,7 +185,7 @@ typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
 struct xICMPRouterAdvertisement_IPv6
 {
     uint8_t ucTypeOfMessage;       /*  0 +  1 =  1 */
-    uint8_t ucTypeOfService;       /*  1 +  1 =  2 */
+    uint8_t ucCode;                /*  1 +  1 =  2 */
     uint16_t usChecksum;           /*  2 +  2 =  4 */
     uint8_t ucHopLimit;            /*  4 +  1 =  5 */
     uint8_t ucFlags;               /*  5 +  1 =  6 */

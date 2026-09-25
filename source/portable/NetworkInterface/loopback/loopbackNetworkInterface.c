@@ -49,6 +49,9 @@
     #error Please define ipconfigUSE_LOOPBACK as 1 if you want to use the loop-back interface
 #endif
 
+
+#if ( ipconfigUSE_LOOPBACK != 0 )
+
 #define ipICMP_ECHO_REQUEST    ( ( uint8_t ) 8 )
 #define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )
 
@@ -64,7 +67,7 @@ static BaseType_t prvLoopback_GetPhyLinkStatus( NetworkInterface_t * pxInterface
 
 NetworkInterface_t * pxLoopback_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                          NetworkInterface_t * pxInterface );
-
+BaseType_t xLoopback_Holdup;
 /*-----------------------------------------------------------*/
 
 static BaseType_t prvLoopback_Initialise( NetworkInterface_t * pxInterface )
@@ -72,7 +75,7 @@ static BaseType_t prvLoopback_Initialise( NetworkInterface_t * pxInterface )
     /* When returning non-zero, the stack will become active and
      * start DHCP (in configured) */
     ( void ) pxInterface;
-    return pdTRUE;
+    return xLoopback_Holdup ? pdFAIL : pdPASS;;
 }
 /*-----------------------------------------------------------*/
 
@@ -90,6 +93,7 @@ static BaseType_t prvLoopback_Initialise( NetworkInterface_t * pxInterface )
 #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) */
 /*-----------------------------------------------------------*/
 
+/* Function declared in loopbackNetworkInterface.c */
 NetworkInterface_t * pxLoopback_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                          NetworkInterface_t * pxInterface )
 {
@@ -193,3 +197,4 @@ static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
     return pdTRUE;
 }
 /*-----------------------------------------------------------*/
+#endif /* ipconfigUSE_LOOPBACK */
