@@ -1256,6 +1256,7 @@ void test_SendPingRequestIPv6_SendToIP_Fail( void )
     uint16_t usSequenceNumber = 1;
 
     xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    xNetworkBuffer.xDataLength = sizeof( ucEthernetBuffer );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
@@ -1828,6 +1829,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement1( void )
     pxNDWaitingNetworkBuffer = NULL;
 
     xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_EUI48_ntop_Ignore();
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
