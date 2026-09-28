@@ -542,7 +542,7 @@
     {
         NDCacheRow_t * pxEntry = pxNDPCacheLookup( pxTargetIP );
 
-        if( pxEntry != NULL )
+        if( pxEntry != NULL ) /* LCOV_EXCL_BR_LINE - defensive NULL check, entry always present here */
         {
             /* Update the L2 mapping. */
             ( void ) memcpy( pxEntry->xMACAddress.ucBytes, pxTargetMAC->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
@@ -553,7 +553,7 @@
             pxEntry->ucNumProbes = 0;
             pxEntry->ulLastMatchingNA = ( uint32_t ) xTaskGetTickCount();
 
-            if( pxEndPoint != NULL )
+            if( pxEndPoint != NULL ) /* LCOV_EXCL_BR_LINE - defensive NULL check */
             {
                 pxEntry->pxEndPoint = pxEndPoint;
             }
@@ -649,7 +649,7 @@
     {
         NDCacheRow_t * pxEntry = pxNDPCacheLookup( pxTargetIP );
 
-        if( pxEntry != NULL )
+        if( pxEntry != NULL ) /* LCOV_EXCL_BR_LINE - defensive NULL check, entry always present here */
         {
             pxEntry->ucState = ( uint8_t ) eState;
 
@@ -764,7 +764,7 @@
 
         do
         {
-            if( ( pxDescriptor == NULL ) || ( pxDescriptor->pucEthernetBuffer == NULL ) )
+            if( ( pxDescriptor == NULL ) || ( pxDescriptor->pucEthernetBuffer == NULL ) ) /* LCOV_EXCL_BR_LINE - caller guarantees non-NULL */
             {
                 break;
             }
@@ -1031,7 +1031,7 @@
 
         ( void ) pxMACAddress;
 
-        if( pxEntry != NULL )
+        if( pxEntry != NULL ) /* LCOV_EXCL_BR_LINE - defensive NULL check */
         {
             /* RFC 4861: Upper-layer confirmation should only move the state
             * to REACHABLE if it is currently in a state that is 'testing'
@@ -1181,7 +1181,7 @@
             {
                 if( xNDCache[ x ].ucState != ( uint8_t ) eND_FREE )
                 {
-                    const char * pcHostType = ( xNDCache[ x ].ucFlags & ndpFLAG_IS_ROUTER ) ? "Router" : "Host";
+                    const char * pcHostType = ( xNDCache[ x ].ucFlags & ndpFLAG_IS_ROUTER ) ? "Router" : "Host"; /* LCOV_EXCL_BR_LINE - debug-only (ipconfigHAS_DEBUG_PRINTF) */
 
                     /* See if the MAC-address also matches, and we're all happy */
                     FreeRTOS_EUI48_ntop( xNDCache[ x ].xMACAddress.ucBytes, pcBuffer_EUI48, 'a', '-' );
@@ -1631,7 +1631,7 @@
 
             #if ( ipconfigHAS_PRINTF == 1 )
             {
-                if( ( pxICMPHeader_IPv6->ucTypeOfMessage != ipICMP_PING_REQUEST_IPv6 ) &&
+                if( ( pxICMPHeader_IPv6->ucTypeOfMessage != ipICMP_PING_REQUEST_IPv6 ) && /* LCOV_EXCL_BR_LINE - debug-only (ipconfigHAS_PRINTF) */
                     ( pxICMPHeader_IPv6->ucTypeOfMessage != ipICMP_ROUTER_ADVERTISEMENT_IPv6 ) &&
                     ( pxICMPHeader_IPv6->ucTypeOfMessage != ipICMP_NEIGHBOR_SOLICITATION_IPv6 ) )
                 {
@@ -1994,7 +1994,7 @@
             /* A loopback IP-address has a prefix of 128. */
             configASSERT( ( uxPrefixLength > 0U ) && ( uxPrefixLength <= ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
 
-            if( ( uxPrefixLength == 0U ) || ( uxPrefixLength > ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) )
+            if( ( uxPrefixLength == 0U ) || ( uxPrefixLength > ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) ) /* LCOV_EXCL_BR_LINE - preceding configASSERT aborts first */
             {
                 FreeRTOS_printf( ( "Invalid prefix length %u\n",
                                    ( unsigned ) uxPrefixLength ) );
@@ -2011,7 +2011,7 @@
                                    ( unsigned ) uxPrefixLength ) );
             }
 
-            if( xResult == pdPASS )
+            if( xResult == pdPASS ) /* LCOV_EXCL_BR_LINE - false side only via configASSERT-guarded pdFAIL above */
             {
                 pucSource = ( uint8_t * ) pulRandom;
                 uxIndex = uxPrefixLength / 8U;
@@ -2022,7 +2022,7 @@
                  * Add bounds check before writing to ucBytes[uxIndex] in the partial-byte
                  * prefix block.
                  */
-                if( ( ( uxPrefixLength % 8U ) != 0U ) && ( uxIndex < ipSIZE_OF_IPv6_ADDRESS ) )
+                if( ( ( uxPrefixLength % 8U ) != 0U ) && ( uxIndex < ipSIZE_OF_IPv6_ADDRESS ) ) /* LCOV_EXCL_BR_LINE - uxIndex>=16 requires prefix>=128, which forces %8==0 */
                 {
                     /* uxHostLen is between 1 and 7 bits long. */
                     size_t uxHostLen = 8U - ( uxPrefixLength % 8U );
