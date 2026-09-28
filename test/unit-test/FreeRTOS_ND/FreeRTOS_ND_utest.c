@@ -2612,6 +2612,7 @@ void test_prvProcessNA_MalformedOptionZeroLength_Dropped( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
 
     prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xDefaultIPAddress, &xNewMAC );
+
     /* Corrupt the option length to 0: a length-0 option can never advance the
      * walker, so the parser must flag it as malformed. */
     xICMPPacket.xICMPHeaderIPv6.ucOptionLength = 0U;
@@ -3555,6 +3556,7 @@ void test_prvProcessNA_CacheFullAllIncomplete_NoEviction( void )
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+
     /* No INCOMPLETE slot was overwritten with the new binding. */
     for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
     {
@@ -3595,6 +3597,7 @@ void test_prvProcessNA_ExistingEntry_OverrideZero_Unsolicited_Maintains( void )
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+
     /* MAINTAIN keeps the action a no-op, but pxNDPCacheLookup promotes a STALE
      * entry to DELAY on lookup, so the resulting state is DELAY. */
     TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucState, eND_DELAY );
@@ -3616,6 +3619,7 @@ void test_prvProcessNA_ExistingEntry_OverrideZero_Unsolicited_Maintains( void )
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+
     /* MAINTAIN: old MAC kept. State is DELAY because pxNDPCacheLookup promoted
      * the STALE entry to DELAY on lookup and MAINTAIN did not change it. */
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
