@@ -323,6 +323,142 @@ void test_ReadReply_wrong_family( void )
 }
 
 /**
+ * @brief IPv6 target, reply from the queried IPv6 server: accepted. Exercises
+ *        the IPv6 branches of the source-IP check (family selection, length
+ *        selection, and the IPv6 debug-print path).
+ */
+void test_ReadReply_IPv6_source_matches_server_accepted( void )
+{
+    Socket_t s = ( Socket_t ) 123;
+    struct freertos_sockaddr xAddress;
+    struct xDNSBuffer pxDNSBuf;
+    IPv46_Address_t xTarget;
+    BaseType_t xReturn;
+    const uint8_t ucServer[ ipSIZE_OF_IPv6_ADDRESS ] =
+    { 0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01 };
+
+    ( void ) memset( &xTarget, 0, sizeof( xTarget ) );
+    xTarget.xIs_IPv6 = pdTRUE;
+    ( void ) memcpy( xTarget.xIPAddress.xIP_IPv6.ucBytes, ucServer, ipSIZE_OF_IPv6_ADDRESS );
+
+    ( void ) memset( &xStubFromAddress, 0, sizeof( xStubFromAddress ) );
+    xStubFromAddress.sin_family = FREERTOS_AF_INET6;
+    ( void ) memcpy( xStubFromAddress.sin_address.xIP_IPv6.ucBytes, ucServer, ipSIZE_OF_IPv6_ADDRESS );
+
+    xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ReturnFromAddress );
+
+    xReturn = DNS_ReadReply( s, &xAddress, &pxDNSBuf, &xTarget );
+
+    /* The reply came from the queried IPv6 server: accepted. */
+    TEST_ASSERT_EQUAL( 300, xReturn );
+}
+
+/**
+ * @brief IPv6 mDNS legacy mode: the query is addressed to the IPv6 mDNS
+ *        multicast address and the responder answers from its own unicast
+ *        address. Accepted even with the source-IP check enabled. Exercises
+ *        the IPv6 side of the mDNS carve-out.
+ */
+void test_ReadReply_IPv6_mdns_target_accepts_any_source( void )
+{
+    Socket_t s = ( Socket_t ) 123;
+    struct freertos_sockaddr xAddress;
+    struct xDNSBuffer pxDNSBuf;
+    IPv46_Address_t xTarget;
+    BaseType_t xReturn;
+    const uint8_t ucResponder[ ipSIZE_OF_IPv6_ADDRESS ] =
+    { 0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x99 };
+
+    ( void ) memset( &xTarget, 0, sizeof( xTarget ) );
+    xTarget.xIs_IPv6 = pdTRUE;
+    ( void ) memcpy( xTarget.xIPAddress.xIP_IPv6.ucBytes, ipMDNS_IP_ADDR_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    /* Responder answers from an arbitrary unicast address. */
+    ( void ) memset( &xStubFromAddress, 0, sizeof( xStubFromAddress ) );
+    xStubFromAddress.sin_family = FREERTOS_AF_INET6;
+    ( void ) memcpy( xStubFromAddress.sin_address.xIP_IPv6.ucBytes, ucResponder, ipSIZE_OF_IPv6_ADDRESS );
+
+    xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ReturnFromAddress );
+
+    xReturn = DNS_ReadReply( s, &xAddress, &pxDNSBuf, &xTarget );
+
+    TEST_ASSERT_EQUAL( 300, xReturn );
+}
+
+/**
+ * @brief IPv6 target, reply from a DIFFERENT source than the queried server
+ *        and the target is not the mDNS address. Exercises the IPv6 mDNS
+ *        carve-out taking the not-equal path.
+ */
+void test_ReadReply_IPv6_source_mismatch( void )
+{
+    Socket_t s = ( Socket_t ) 123;
+    struct freertos_sockaddr xAddress;
+    struct xDNSBuffer pxDNSBuf;
+    IPv46_Address_t xTarget;
+    BaseType_t xReturn;
+    const uint8_t ucServer[ ipSIZE_OF_IPv6_ADDRESS ] =
+    { 0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01 };
+    const uint8_t ucWrong[ ipSIZE_OF_IPv6_ADDRESS ] =
+    { 0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xee };
+
+    ( void ) memset( &xTarget, 0, sizeof( xTarget ) );
+    xTarget.xIs_IPv6 = pdTRUE;
+    ( void ) memcpy( xTarget.xIPAddress.xIP_IPv6.ucBytes, ucServer, ipSIZE_OF_IPv6_ADDRESS );
+
+    ( void ) memset( &xStubFromAddress, 0, sizeof( xStubFromAddress ) );
+    xStubFromAddress.sin_family = FREERTOS_AF_INET6;
+    ( void ) memcpy( xStubFromAddress.sin_address.xIP_IPv6.ucBytes, ucWrong, ipSIZE_OF_IPv6_ADDRESS );
+
+    xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ReturnFromAddress );
+
+    xReturn = DNS_ReadReply( s, &xAddress, &pxDNSBuf, &xTarget );
+
+    #if ( ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 )
+        /* Forged/off-path IPv6 reply from the wrong source is discarded. */
+        TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    #else
+        TEST_ASSERT_EQUAL( 300, xReturn );
+    #endif
+}
+
+/**
+ * @brief When NOT called from the IP task, DNS_ReadReply uses a non-zero
+ *        receive timeout. Exercises the false side of the xIsCallingFromIPTask
+ *        ternary.
+ */
+void test_ReadReply_not_from_ip_task( void )
+{
+    Socket_t s = ( Socket_t ) 123;
+    struct freertos_sockaddr xAddress;
+    struct xDNSBuffer pxDNSBuf;
+    IPv46_Address_t xTarget;
+    BaseType_t xReturn;
+
+    ( void ) memset( &xTarget, 0, sizeof( xTarget ) );
+    xTarget.xIs_IPv6 = pdFALSE;
+    xTarget.xIPAddress.ulIP_IPv4 = TEST_SERVER_IPv4;
+
+    ( void ) memset( &xStubFromAddress, 0, sizeof( xStubFromAddress ) );
+    xStubFromAddress.sin_family = FREERTOS_AF_INET4;
+    xStubFromAddress.sin_address.ulIP_IPv4 = TEST_SERVER_IPv4;
+
+    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
+    FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ReturnFromAddress );
+
+    xReturn = DNS_ReadReply( s, &xAddress, &pxDNSBuf, &xTarget );
+
+    TEST_ASSERT_EQUAL( 300, xReturn );
+}
+
+/**
  * @brief  recvfrom failure/timeout is propagated unchanged.
  */
 void test_ReadReply_recvfrom_timeout( void )

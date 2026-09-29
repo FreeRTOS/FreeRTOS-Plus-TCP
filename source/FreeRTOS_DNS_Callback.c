@@ -49,7 +49,7 @@
  *        call the handler.
  *
  * @param[in,out] pxSet a set of variables that are shared among the helper functions.
- * @param[out] pvSearchID The search ID of the callback function associated
+ * @param[out] ppvSearchID The search ID of the callback function associated
  * @return Returns not NULL if a matching callback function was found.
  */
     FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,

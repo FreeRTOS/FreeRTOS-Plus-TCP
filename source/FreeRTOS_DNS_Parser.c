@@ -538,13 +538,15 @@
 
                             if( xBufferAllocFixedSize == pdFALSE )
                             {
-                            	/* network buffers are allocated dynamically. */
+                                /* network buffers are allocated dynamically. */
+
                                 /* Set the size of the outgoing packet.
                                  * setting 'xDataLength' determines the minimum number of bytes copied. */
                                 pxNetworkBuffer->xDataLength = uxDataLength;
                                 pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
                                                                                       uxDataLength +
                                                                                       uxExtraLength );
+
                                 if( pxNewBuffer != NULL )
                                 {
                                     BaseType_t xOffset1, xOffset2;
@@ -567,7 +569,8 @@
                             }
                             else
                             {
-                            	/* network buffers are allocated statically. */
+                                /* network buffers are allocated statically. */
+
                                 /* When xBufferAllocFixedSize is TRUE, check if the buffer size is big enough to
                                  * store the answer. */
                                 if( ( uxDataLength + uxExtraLength ) <= ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
@@ -789,6 +792,7 @@
                 void * pvSearchID = NULL;
             #endif
             #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+
                 /* Snapshot of the queried name, used to validate that each
                  * answer record's owner name matches what was asked.
                  * Please check if enough stack memory is available. */
@@ -899,7 +903,7 @@
                 {
                     /* Unknown host type, AAAA nor A.
                      * 'xDoAccept' was already initialised as pdFALSE. */
-					/* Do not break here, just continue looking for A and AAAA records. */
+                    /* Do not break here, just continue looking for A and AAAA records. */
                 }
 
                 if( xDoAccept != pdFALSE )
