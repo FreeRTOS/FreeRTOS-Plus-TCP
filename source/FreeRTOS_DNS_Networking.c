@@ -151,7 +151,7 @@
  * @param[in] pxTargetAddress: The IP-address of the DNS used when sending.
  * @return The result: number of bytes, zero, or negative when error.
  */
-    BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
+    BaseType_t DNS_ReadReply( Socket_t xDNSSocket,
                               struct freertos_sockaddr * pxAddress,
                               struct xDNSBuffer * pxReceiveBuffer,
                               const IPv46_Address_t * pxTargetAddress )
