@@ -538,13 +538,13 @@
 
                             if( xBufferAllocFixedSize == pdFALSE )
                             {
+                            	/* network buffers are allocated dynamically. */
                                 /* Set the size of the outgoing packet.
                                  * setting 'xDataLength' determines the minimum number of bytes copied. */
                                 pxNetworkBuffer->xDataLength = uxDataLength;
                                 pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
                                                                                       uxDataLength +
                                                                                       uxExtraLength );
-
                                 if( pxNewBuffer != NULL )
                                 {
                                     BaseType_t xOffset1, xOffset2;
@@ -567,6 +567,7 @@
                             }
                             else
                             {
+                            	/* network buffers are allocated statically. */
                                 /* When xBufferAllocFixedSize is TRUE, check if the buffer size is big enough to
                                  * store the answer. */
                                 if( ( uxDataLength + uxExtraLength ) <= ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
@@ -676,6 +677,83 @@
     }
 
 /**
+ * @brief Decode the resource-record NAME at the current parse position into
+ *        @p pcNameOut for comparison against the queried name.
+ *
+ * DNS answer records almost always encode their NAME as a compression pointer
+ * (RFC 1035 s4.1.4) back into the question section rather than repeating the
+ * name inline. DNS_ReadNameField() advances correctly over such a pointer but
+ * decodes nothing, so a comparison against pxSet->pcName after it would pass
+ * vacuously and validate nothing. This helper resolves a single-level
+ * compression pointer against the start of the DNS message and decodes the
+ * referenced name, and otherwise decodes the inline name, so the caller can
+ * compare the ACTUAL answer name.
+ *
+ * It only reads for comparison; byte-pointer advancement is still driven by
+ * DNS_ReadNameField() in the caller.
+ *
+ * @param[in] pxSet The active parse set.
+ * @param[out] pcNameOut Destination buffer for the decoded name.
+ * @param[in] uxDestLen Size of @p pcNameOut.
+ * @return pdTRUE if a name was decoded, pdFALSE on a malformed/out-of-bounds
+ *         reference.
+ */
+    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+        static BaseType_t prvReadAnswerName( const ParseSet_t * pxSet,
+                                             char * pcNameOut,
+                                             size_t uxDestLen )
+        {
+            BaseType_t xReturn = pdFALSE;
+            ParseSet_t xNameSet;
+
+            if( ( pxSet->uxSourceBytesRemaining >= 1U ) && ( uxDestLen > 0U ) )
+            {
+                /* Decode into a scratch ParseSet_t so pxSet->pcName and the
+                 * live parse cursor are left untouched. */
+                ( void ) memcpy( &( xNameSet ), pxSet, sizeof( xNameSet ) );
+                pcNameOut[ 0 ] = '\0';
+
+                if( ( pxSet->pucByte[ 0 ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
+                {
+                    /* Compression pointer: the 14 low bits are an offset from
+                     * the start of the DNS message. Resolve it and decode the
+                     * name it points at. */
+                    if( pxSet->uxSourceBytesRemaining >= sizeof( uint16_t ) )
+                    {
+                        size_t uxOffset = ( ( ( size_t ) ( pxSet->pucByte[ 0 ] & 0x3FU ) ) << 8 ) |
+                                          ( ( size_t ) pxSet->pucByte[ 1 ] );
+
+                        if( uxOffset < pxSet->uxBufferLength )
+                        {
+                            xNameSet.pucByte = &( pxSet->pucUDPPayloadBuffer[ uxOffset ] );
+                            xNameSet.uxSourceBytesRemaining = pxSet->uxBufferLength - uxOffset;
+
+                            if( DNS_ReadNameField( &( xNameSet ), uxDestLen ) != 0U )
+                            {
+                                ( void ) strncpy( pcNameOut, xNameSet.pcName, uxDestLen );
+                                pcNameOut[ uxDestLen - 1U ] = '\0';
+                                xReturn = pdTRUE;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    /* Inline name: decode it directly. */
+                    if( DNS_ReadNameField( &( xNameSet ), uxDestLen ) != 0U )
+                    {
+                        ( void ) strncpy( pcNameOut, xNameSet.pcName, uxDestLen );
+                        pcNameOut[ uxDestLen - 1U ] = '\0';
+                        xReturn = pdTRUE;
+                    }
+                }
+            }
+
+            return xReturn;
+        }
+    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
+
+/**
  * @brief Process DNS answer field in a DNS response packet from a DNS server.
  * @param[in] pxSet a set of variables that are shared among the helper functions.
  * @param[out] ppxAddressInfo a linked list storing the DNS answers.
@@ -694,8 +772,6 @@
         const DNSAnswerRecord_t * pxDNSAnswerRecord;
         IPv46_Address_t xIP_Address;
 
-        struct freertos_addrinfo * pxNewAddress = NULL;
-
         /* Sanity check: each answer record is at minimum a 2-byte compressed
          * name reference (0xC00C), the fixed-size header, and 1 byte of
          * payload.  If ANCOUNT claims more records than the remaining buffer
@@ -708,9 +784,23 @@
 
         if( xReturn == pdTRUE )
         {
+            #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                FOnDNSEvent xCallbackEvent = NULL;
+                void * pvSearchID = NULL;
+            #endif
+            #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                /* Snapshot of the queried name, used to validate that each
+                 * answer record's owner name matches what was asked.
+                 * Please check if enough stack memory is available. */
+                char pcNameAnswer[ ipconfigDNS_CACHE_NAME_LENGTH ];
+                ( void ) strncpy( pcNameAnswer, pxSet->pcName, sizeof pcNameAnswer );
+                pcNameAnswer[ ipconfigDNS_CACHE_NAME_LENGTH - 1 ] = 0;
+            #endif
+
             for( x = 0U; x < pxSet->usAnswers; x++ )
             {
                 BaseType_t xDoAccept = pdFALSE;
+                struct freertos_addrinfo * pxNewAddress = NULL;
 
                 if( pxSet->usNumARecordsStored >= usCount )
                 {
@@ -718,8 +808,31 @@
                     break;
                 }
 
-                uxResult = DNS_SkipNameField( pxSet->pucByte,
-                                              pxSet->uxSourceBytesRemaining );
+                uxResult = DNS_ReadNameField( pxSet,
+                                              sizeof( pxSet->pcName ) );
+
+                #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                    if( uxResult != 0U )
+                    {
+                        char pcDecodedAnswer[ ipconfigDNS_CACHE_NAME_LENGTH ];
+
+                        /* Validate the answer's owner name against the queried
+                         * name. Decode the real name (following a compression
+                         * pointer if present) rather than relying on
+                         * DNS_ReadNameField(), which leaves pxSet->pcName
+                         * unchanged for a compressed name and would make the
+                         * comparison pass without validating anything. */
+                        if( ( prvReadAnswerName( pxSet, pcDecodedAnswer, sizeof pcDecodedAnswer ) == pdFALSE ) ||
+                            ( strcasecmp( pcDecodedAnswer, pcNameAnswer ) != 0 ) )
+                        {
+                            FreeRTOS_printf( ( "DNS: Security Violation! Answer name '%s' does not match '%s'\n",
+                                               pcDecodedAnswer,
+                                               pcNameAnswer ) );
+                            /* Return a malformed response. */
+                            uxResult = 0U;
+                        }
+                    }
+                #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
 
                 /* Check for a malformed response. */
                 if( uxResult == 0U )
@@ -786,6 +899,7 @@
                 {
                     /* Unknown host type, AAAA nor A.
                      * 'xDoAccept' was already initialised as pdFALSE. */
+					/* Do not break here, just continue looking for A and AAAA records. */
                 }
 
                 if( xDoAccept != pdFALSE )
@@ -871,12 +985,19 @@
 
                         #if ( ipconfigDNS_USE_CALLBACKS == 1 )
                         {
-                            BaseType_t xCallbackResult;
+                            FOnDNSEvent xNewEvent = xDNSDoCallback( pxSet, &( pvSearchID ) );
 
-                            xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
+                            if( xCallbackEvent == NULL )
+                            {
+                                /* After the loop, xCallbackEvent will be called
+                                 * as a function. */
+                                xCallbackEvent = xNewEvent;
+                            }
+
+                            FreeRTOS_debug_printf( ( "DNS_debug xCallbackResult = %p\n", ( void * ) xNewEvent ) );
 
                             /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
-                            if( xCallbackResult != pdFALSE )
+                            if( xCallbackEvent != NULL )
                             {
                                 /* This device has requested this DNS look-up.
                                  * The result may be stored in the DNS cache. */
@@ -943,7 +1064,7 @@
 
                     pxSet->pucByte = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ] );
                     pxSet->uxSourceBytesRemaining -= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength );
-                }
+                } /* if( xDoAccept != pdFALSE ) */
                 else if( pxSet->uxSourceBytesRemaining >= sizeof( DNSAnswerRecord_t ) )
                 {
                     uint16_t usDataLength;
@@ -983,11 +1104,20 @@
                      * but keep any addresses already collected. */
                     break;
                 }
-            }
+            } /* for( x = 0U; x < pxSet->usAnswers; x++ ) */
+
+            #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                if( xCallbackEvent != NULL )
+                {
+                    struct freertos_addrinfo * pxAddressInfo = ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL;
+                    /* pxSet->pcName, pvSearchID */
+                    xCallbackEvent( pxSet->pcName, pvSearchID, pxAddressInfo );
+                }
+            #endif
         } /* if( xReturn == pdTRUE ) */
 
         return ( xReturn != 0 ) ? ulReturnIPAddress : 0U;
-    }
+    } /* parseDNSAnswer() */
 
     #if ( ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) )
 

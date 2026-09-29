@@ -655,7 +655,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                             else
                         #endif
                         {
-                            FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %xip\n", pcHostName, ( unsigned ) ulIPAddress ) );
+                            FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %xip\n", pcHostName, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
                         }
                     }
                 }
@@ -900,6 +900,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                             case xPreferenceIPv4:
                                 pxAddress->sin_address.ulIP_IPv4 = ipMDNS_IP_ADDRESS;     /* Is in network byte order. */
                                 /* sin_family is default set to FREERTOS_AF_INET */
+                                pxAddress->sin_family = FREERTOS_AF_INET4;
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1073,7 +1074,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                  uint16_t usPort )
     {
         uint32_t ulIPAddress = 0U;
-        BaseType_t xExpected;
+        BaseType_t xExpected = pdFALSE;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -1240,7 +1241,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                         Socket_t xDNSSocket,
                                         struct freertos_addrinfo ** ppxAddressInfo,
                                         BaseType_t xFamily,
-                                        TickType_t uxReadTimeOut_ticks )
+                                        TickType_t uxReadTimeOut_ticks,
+                                        IPv46_Address_t * pxTargetAddress )
     {
         uint32_t ulIPAddress = 0;
         struct freertos_sockaddr xAddress;
@@ -1252,8 +1254,32 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
         /* Make sure all fields of the 'sockaddr' are cleared. */
         ( void ) memset( ( void * ) &xAddress, 0, sizeof( xAddress ) );
+        ( void ) memset( ( void * ) &xRecvAddress, 0, sizeof( xRecvAddress ) );
 
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
+
+        /* pxTargetAddress is a variable that remembers the IP-address
+         * of the DNS server.
+         * Later the received packet will be checked against this IP-address.*/
+        memset( pxTargetAddress, 0, sizeof( *pxTargetAddress ) );
+        xFamily = xAddress.sin_family;
+        FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp: xFamily = %u\n", xFamily ) );
+
+        /* Copy xAddress to pxTargetAddress */
+        if( xFamily == FREERTOS_AF_INET6 )
+        {
+            pxTargetAddress->xIs_IPv6 = pdTRUE;
+            memcpy( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes,
+                    xAddress.sin_address.xIP_IPv6.ucBytes,
+                    ipSIZE_OF_IPv6_ADDRESS );
+            FreeRTOS_debug_printf( ( "DNS_debug Memorizing server IPv6 %pip\n", pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes ) );
+        }
+        else if( xFamily == FREERTOS_AF_INET4 )
+        {
+            pxTargetAddress->xIs_IPv6 = pdFALSE;
+            pxTargetAddress->xIPAddress.ulIP_IPv4 = xAddress.sin_address.ulIP_IPv4;
+            FreeRTOS_debug_printf( ( "DNS_debug Memorizing server IPv4 %xip\n", ( unsigned ) FreeRTOS_ntohl( pxTargetAddress->xIPAddress.ulIP_IPv4 ) ) );
+        }
 
         if( pxEndPoint != NULL )
         {
@@ -1284,6 +1310,18 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                          xFamily,
                                          &xAddress );
 
+                /* Logging for debugging only. */
+                switch( xAddress.sin_family )
+                {
+                    case FREERTOS_AF_INET4:
+                        FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp sendto = %xip\n", ( unsigned ) FreeRTOS_ntohl( xAddress.sin_address.ulIP_IPv4 ) ) );
+                        break;
+
+                    case FREERTOS_AF_INET6:
+                        FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp sendto = %pip\n", xAddress.sin_address.xIP_IPv6.ucBytes ) );
+                        break;
+                }
+
                 if( xReturn == pdFAIL )
                 {
                     break;
@@ -1294,7 +1332,22 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                 /* receive a dns reply message */
                 xBytes = DNS_ReadReply( xDNSSocket,
                                         &xRecvAddress,
-                                        &xReceiveBuffer );
+                                        &xReceiveBuffer,
+                                        pxTargetAddress );
+
+                if( xBytes > 0 )
+                {
+                    switch( xRecvAddress.sin_family )
+                    {
+                        case FREERTOS_AF_INET4:
+                            FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp recvfrom %d bytes from %xip\n", ( int ) xBytes, ( unsigned ) FreeRTOS_ntohl( xRecvAddress.sin_address.ulIP_IPv4 ) ) );
+                            break;
+
+                        case FREERTOS_AF_INET6:
+                            FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp recvfrom %d bytes from %pip\n", ( int ) xBytes, xRecvAddress.sin_address.xIP_IPv6.ucBytes ) );
+                            break;
+                    }
+                }
 
                 if( ( uxReadTimeOut_ticks > 0U ) &&
                     ( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
@@ -1370,7 +1423,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                                   Socket_t xDNSSocket,
                                                   struct freertos_addrinfo ** ppxAddressInfo,
                                                   BaseType_t xFamily,
-                                                  TickType_t uxReadTimeOut_ticks )
+                                                  TickType_t uxReadTimeOut_ticks,
+                                                  IPv46_Address_t * pxTargetAddress )
     {
         uint32_t ulIPAddress = 0;
         BaseType_t xAttempt;
@@ -1382,7 +1436,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                               xDNSSocket,
                                               ppxAddressInfo,
                                               xFamily,
-                                              uxReadTimeOut_ticks );
+                                              uxReadTimeOut_ticks,
+                                              pxTargetAddress );
 
             if( ulIPAddress != 0U )
             { /* ip found, no need to retry */
@@ -1416,7 +1471,12 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
         Socket_t xDNSSocket;
         uint32_t ulIPAddress = 0U;
 
+        /* The IP-address of the DNS server will be stored in
+         * 'xTargetAddress'. */
+        IPv46_Address_t xTargetAddress;
 
+        /* Clearing not necessary, just while debugging. */
+        memset( &xTargetAddress, 0, sizeof xTargetAddress );
         xDNSSocket = DNS_CreateSocket( uxReadTimeOut_ticks );
 
         if( xDNSSocket != NULL )
@@ -1429,7 +1489,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                                   xDNSSocket,
                                                   ppxAddressInfo,
                                                   xFamily,
-                                                  uxReadTimeOut_ticks );
+                                                  uxReadTimeOut_ticks,
+                                                  &xTargetAddress );
             }
             else
             {
@@ -1438,7 +1499,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                                             xDNSSocket,
                                                             ppxAddressInfo,
                                                             xFamily,
-                                                            uxReadTimeOut_ticks );
+                                                            uxReadTimeOut_ticks,
+                                                            &xTargetAddress );
             }
 
             /* Finished with the socket. */
