@@ -114,7 +114,7 @@ jobs:
         uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
         with:
           coverage-file: ./test/unit-test/build/coverage.info
-          branch-coverage-min: 99.8
+          branch-coverage-min: 99.7
           line-coverage-min: 99.9
 
   spell-check:

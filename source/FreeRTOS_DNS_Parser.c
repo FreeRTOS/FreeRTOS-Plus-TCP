@@ -707,6 +707,7 @@
                                              size_t uxDestLen )
         {
             BaseType_t xReturn = pdFALSE;
+            BaseType_t xDoRead = pdFALSE;
             ParseSet_t xNameSet;
 
             if( ( pxSet->uxSourceBytesRemaining >= 1U ) && ( uxDestLen > 0U ) )
@@ -730,25 +731,31 @@
                         {
                             xNameSet.pucByte = &( pxSet->pucUDPPayloadBuffer[ uxOffset ] );
                             xNameSet.uxSourceBytesRemaining = pxSet->uxBufferLength - uxOffset;
-
-                            if( DNS_ReadNameField( &( xNameSet ), uxDestLen ) != 0U )
-                            {
-                                ( void ) strncpy( pcNameOut, xNameSet.pcName, uxDestLen );
-                                pcNameOut[ uxDestLen - 1U ] = '\0';
-                                xReturn = pdTRUE;
-                            }
+                            xDoRead = pdTRUE;
                         }
                     }
                 }
                 else
                 {
                     /* Inline name: decode it directly. */
-                    if( DNS_ReadNameField( &( xNameSet ), uxDestLen ) != 0U )
+                    xDoRead = pdTRUE;
+                }
+
+                if( ( xDoRead == pdTRUE ) && ( DNS_ReadNameField( &( xNameSet ), uxDestLen ) != 0U ) )
+                {
+                    /* Copy with an explicit length rather than letting strncpy()
+                     * pad or truncate: a bound tied to the destination size makes
+                     * the compiler warn that the terminator may not be copied. */
+                    size_t uxNameLen = strlen( xNameSet.pcName );
+
+                    if( uxNameLen >= uxDestLen )
                     {
-                        ( void ) strncpy( pcNameOut, xNameSet.pcName, uxDestLen );
-                        pcNameOut[ uxDestLen - 1U ] = '\0';
-                        xReturn = pdTRUE;
+                        uxNameLen = uxDestLen - 1U;
                     }
+
+                    ( void ) memcpy( pcNameOut, xNameSet.pcName, uxNameLen );
+                    pcNameOut[ uxNameLen ] = '\0';
+                    xReturn = pdTRUE;
                 }
             }
 
@@ -812,10 +819,10 @@
                     break;
                 }
 
-                uxResult = DNS_ReadNameField( pxSet,
-                                              sizeof( pxSet->pcName ) );
-
                 #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                    uxResult = DNS_ReadNameField( pxSet,
+                                                  sizeof( pxSet->pcName ) );
+
                     if( uxResult != 0U )
                     {
                         char pcDecodedAnswer[ ipconfigDNS_CACHE_NAME_LENGTH ];
@@ -836,6 +843,12 @@
                             uxResult = 0U;
                         }
                     }
+                #else /* if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) ) */
+                    /* Without a copy of the queried name there is nothing to
+                     * validate the answer's owner name against, so just skip
+                     * over it. */
+                    uxResult = DNS_SkipNameField( pxSet->pucByte,
+                                                  pxSet->uxSourceBytesRemaining );
                 #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
 
                 /* Check for a malformed response. */
@@ -998,7 +1011,10 @@
                                 xCallbackEvent = xNewEvent;
                             }
 
-                            FreeRTOS_debug_printf( ( "DNS_debug xCallbackResult = %p\n", ( void * ) xNewEvent ) );
+                            /* Note: a function pointer must not be printed with
+                             * '%p', ISO C forbids converting it to 'void *'. */
+                            FreeRTOS_debug_printf( ( "DNS_debug xCallbackResult = %s\n",
+                                                     ( xNewEvent != NULL ) ? "found" : "none" ) );
 
                             /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
                             if( xCallbackEvent != NULL )
