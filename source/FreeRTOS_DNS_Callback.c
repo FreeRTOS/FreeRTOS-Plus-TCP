@@ -55,7 +55,6 @@
     FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,
                                 void ** ppvSearchID )
     {
-        BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
         const ListItem_t * pxEnd = listGET_END_MARKER( &xCallbackList );
         TickType_t uxIdentifier = ( TickType_t ) pxSet->pxDNSMessageHeader->usIdentifier;
@@ -102,7 +101,6 @@
                         vIPSetDNSTimerEnableState( pdFALSE );
                     }
 
-                    xResult = pdTRUE;
                     break;
                 }
             }

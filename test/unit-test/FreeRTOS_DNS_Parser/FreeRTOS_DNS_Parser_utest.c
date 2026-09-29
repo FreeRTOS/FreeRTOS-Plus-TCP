@@ -3297,6 +3297,170 @@ void test_parseDNSAnswer_answer_name_compression_pointer_match( void )
 }
 
 /**
+ * @brief An answer record whose owner name is a compression pointer whose
+ *        offset lies outside the message buffer. prvReadAnswerName cannot
+ *        resolve it and returns pdFALSE, so the record is rejected as a
+ *        malformed response. Exercises the out-of-bounds-offset branch.
+ */
+void test_parseDNSAnswer_answer_name_compression_pointer_out_of_bounds( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 64 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    ( void ) strcpy( xSet.pcName, "aaa" );
+
+    /* Compression pointer to offset 200, which is >= the 64-byte buffer. */
+    pucByte[ 0 ] = 0xC0;
+    pucByte[ 1 ] = 200;
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.pucUDPPayloadBuffer = pucByte;
+    xSet.uxBufferLength = sizeof( pucByte );
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* Unresolvable compression pointer -> rejected as malformed. */
+    TEST_ASSERT_EQUAL( 0, ret );
+    TEST_ASSERT_EQUAL( 0, uxBytesRead );
+}
+
+/**
+ * @brief An answer record whose owner name is a compression pointer to an
+ *        offset holding a malformed name (a label longer than the bytes that
+ *        remain). DNS_ReadNameField fails on the target, prvReadAnswerName
+ *        returns pdFALSE, and the record is rejected. Exercises the
+ *        pointer-target-decode-failure branch.
+ */
+void test_parseDNSAnswer_answer_name_compression_pointer_bad_target( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 64 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    ( void ) strcpy( xSet.pcName, "aaa" );
+
+    /* At offset 62 (near the end of the 64-byte buffer), a label claiming 40
+     * bytes - far more than the 2 bytes that remain - so DNS_ReadNameField
+     * fails to decode it. */
+    pucByte[ 62 ] = 40;
+    pucByte[ 63 ] = 'a';
+
+    /* Compression pointer to offset 62. */
+    pucByte[ 0 ] = 0xC0;
+    pucByte[ 1 ] = 62;
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.pucUDPPayloadBuffer = pucByte;
+    xSet.uxBufferLength = sizeof( pucByte );
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* Malformed pointer target -> rejected. */
+    TEST_ASSERT_EQUAL( 0, ret );
+    TEST_ASSERT_EQUAL( 0, uxBytesRead );
+}
+
+/**
+ * @brief An answer record with an inline owner name that is malformed (a label
+ *        longer than the remaining bytes). prvReadAnswerName's inline decode
+ *        fails and the record is rejected. Exercises the inline-decode-failure
+ *        branch.
+ */
+void test_parseDNSAnswer_answer_name_inline_malformed( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 8 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    ( void ) strcpy( xSet.pcName, "aaa" );
+
+    /* Inline name claiming a 40-byte label with only a few bytes available. */
+    pucByte[ 0 ] = 40;
+    pucByte[ 1 ] = 'a';
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.pucUDPPayloadBuffer = pucByte;
+    xSet.uxBufferLength = sizeof( pucByte );
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* Malformed inline name -> rejected. */
+    TEST_ASSERT_EQUAL( 0, ret );
+    TEST_ASSERT_EQUAL( 0, uxBytesRead );
+}
+
+/**
+ * @brief A matching answer name is processed with a NULL uxBytesRead pointer;
+ *        the byte count is simply not accumulated. Exercises the
+ *        uxBytesRead == NULL branch.
+ */
+void test_parseDNSAnswer_matching_name_null_bytesread( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 64 ];
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    ( void ) strcpy( xSet.pcName, "bbb" );
+    pucByte[ 0 ] = 0x03;
+    pucByte[ 1 ] = 'b';
+    pucByte[ 2 ] = 'b';
+    pucByte[ 3 ] = 'b';
+    pucByte[ 4 ] = 0x00;
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.pucUDPPayloadBuffer = pucByte;
+    xSet.uxBufferLength = sizeof( pucByte );
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    /* Unrecognised type so no address is stored; NULL uxBytesRead pointer. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_ANY_HOST ); /* usType */
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, NULL );
+
+    /* Processed without storing; the NULL byte-count pointer is tolerated. */
+    TEST_ASSERT_EQUAL( 0, ret );
+}
+
+/**
  * @brief ensures that when the number of answers is zero no packet is sent over
  *        the network
  */
@@ -3989,6 +4153,55 @@ void test_parseDNSAnswer_two_records_stored_with_callback( void )
     /* Both records parsed; first stored address returned to the caller. */
     TEST_ASSERT_EQUAL_PTR( &xAddr1, pxAddressInfo );
     TEST_ASSERT_EQUAL_PTR( &xAddr2, xAddr1.ai_next );
+}
+
+/**
+ * @brief A matching record with an outstanding callback but a NULL
+ *        ppxAddressInfo out-parameter. The callback still fires after the
+ *        loop, with a NULL address-info argument. Exercises the
+ *        ppxAddressInfo == NULL side of the callback invocation.
+ */
+void test_parseDNSAnswer_callback_null_address_info( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 300;
+    size_t uxBytesRead = 0;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    uint32_t ip_address = 1234;
+    ParseSet_t xSet = { 0 };
+
+    memset( pucByte, 0x00, uxsourceBytesRemaining );
+
+    pucByte[ 0 ] = 38;
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    pxDNSMessageHeader.usAnswers = 1;
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
+    memcpy( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ), &ip_address, sizeof( ip_address ) );
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    /* ppxAddressInfo is NULL, so no address object is created, but an
+     * outstanding request matches so the callback is recorded and invoked. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    xDNSDoCallback_ExpectAnyArgsAndReturn( dns_callback );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
+
+    ret = parseDNSAnswer( &xSet, NULL, &uxBytesRead );
+
+    /* The record's IP is returned and the callback fired with NULL addr info. */
+    TEST_ASSERT_EQUAL( 1234, ret );
 }
 
 /**

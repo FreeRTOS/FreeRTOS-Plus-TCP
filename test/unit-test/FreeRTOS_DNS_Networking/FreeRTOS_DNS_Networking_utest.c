@@ -185,6 +185,50 @@ void test_SendRequest_fail( void )
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
+/**
+ * @brief Successful send to an IPv4 server. Exercises the FREERTOS_AF_INET4
+ *        branch of the SendRequest logging.
+ */
+void test_SendRequest_success_IPv4( void )
+{
+    Socket_t s = ( Socket_t ) 123;
+    uint32_t ret;
+    struct freertos_sockaddr xAddress;
+    struct xDNSBuffer pxDNSBuf;
+
+    ( void ) memset( &xAddress, 0, sizeof( xAddress ) );
+    xAddress.sin_family = FREERTOS_AF_INET4;
+    pxDNSBuf.uxPayloadLength = 1024;
+
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( pxDNSBuf.uxPayloadLength );
+
+    ret = DNS_SendRequest( s, &xAddress, &pxDNSBuf );
+
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
+}
+
+/**
+ * @brief Successful send to an IPv6 server. Exercises the FREERTOS_AF_INET6
+ *        branch of the SendRequest logging.
+ */
+void test_SendRequest_success_IPv6( void )
+{
+    Socket_t s = ( Socket_t ) 123;
+    uint32_t ret;
+    struct freertos_sockaddr xAddress;
+    struct xDNSBuffer pxDNSBuf;
+
+    ( void ) memset( &xAddress, 0, sizeof( xAddress ) );
+    xAddress.sin_family = FREERTOS_AF_INET6;
+    pxDNSBuf.uxPayloadLength = 1024;
+
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( pxDNSBuf.uxPayloadLength );
+
+    ret = DNS_SendRequest( s, &xAddress, &pxDNSBuf );
+
+    TEST_ASSERT_EQUAL( pdTRUE, ret );
+}
+
 /* Provided by FreeRTOS_DNS_Networking_stubs.c */
 extern struct freertos_sockaddr xStubFromAddress;
 extern int32_t FreeRTOS_recvfrom_ReturnFromAddress( const ConstSocket_t xSocket,
