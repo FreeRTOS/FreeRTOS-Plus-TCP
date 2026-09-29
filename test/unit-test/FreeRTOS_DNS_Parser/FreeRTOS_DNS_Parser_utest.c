@@ -1752,7 +1752,6 @@ void test_DNS_ParseDNSReply_answer_record_too_many_answers( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usClass */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usType */
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
                              uxBufferLength,
@@ -3231,11 +3230,69 @@ void test_parseDNSAnswer_answer_name_match_not_rejected_on_name( void )
     xSet.usNumARecordsStored = 0;
     xSet.usAnswers = 1;
 
+    /* Name matches, so the record is processed: the type field is read via
+     * usChar2u16. Return an unrecognised type so no address is stored. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_ANY_HOST ); /* usType */
+
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
     /* The name matched, so the record was processed (not rejected as a name
      * mismatch); with an unrecognised type no address is stored and bytes are
      * consumed past the name + record header. */
+    TEST_ASSERT_NOT_EQUAL( 0, uxBytesRead );
+}
+
+/**
+ * @brief An answer record whose owner name is a DNS compression pointer
+ *        (RFC 1035 s4.1.4) back to the queried name is resolved by
+ *        prvReadAnswerName and validated successfully. Exercises the
+ *        compression-pointer branch of prvReadAnswerName.
+ */
+void test_parseDNSAnswer_answer_name_compression_pointer_match( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 64 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    /* The device asked for "aaa". */
+    ( void ) strcpy( xSet.pcName, "aaa" );
+
+    /* At offset 20, store the inline name the pointer resolves to:
+     * 0x03 'a' 'a' 'a' 0x00 -> "aaa". */
+    pucByte[ 20 ] = 0x03;
+    pucByte[ 21 ] = 'a';
+    pucByte[ 22 ] = 'a';
+    pucByte[ 23 ] = 'a';
+    pucByte[ 24 ] = 0x00;
+
+    /* The answer record's owner name is a compression pointer to offset 20:
+     * high byte 0xC0 (dnsNAME_IS_OFFSET) with the 14-bit offset = 20. */
+    pucByte[ 0 ] = 0xC0;
+    pucByte[ 1 ] = 20;
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.pucUDPPayloadBuffer = pucByte;
+    xSet.uxBufferLength = sizeof( pucByte );
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    /* Name matches via the compression pointer, so the record is processed:
+     * the type field is read via usChar2u16. Return an unrecognised type so
+     * no address is stored. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_ANY_HOST ); /* usType */
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* The compressed name resolved to the queried name and validated, so the
+     * record was not rejected on name grounds and bytes were consumed. */
     TEST_ASSERT_NOT_EQUAL( 0, uxBytesRead );
 }
 
@@ -3300,13 +3357,14 @@ void test_parseDNSAnswer_null_bytes( void )
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
+    /* xSet.pcName is left empty, so the answer's owner name does not match the
+     * queried name and the record is rejected as a malformed response. */
+
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
     pxDNSMessageHeader.usAnswers = 1;
-
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, NULL );
     TEST_ASSERT_FALSE( ret );
@@ -3346,6 +3404,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3356,7 +3415,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
@@ -3397,6 +3456,7 @@ void test_parseDNSAnswer_recordstored_gt_count_diffUsType( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3486,6 +3546,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail1( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3532,6 +3593,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail2( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3580,6 +3642,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3588,7 +3651,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_AAAA_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddressInfo );
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
@@ -3633,6 +3696,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success2( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3640,7 +3704,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success2( void )
     pxDNSAnswerRecord->usType = ( dnsTYPE_AAAA_HOST );
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_AAAA_HOST ); /* usType */
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
@@ -3686,6 +3750,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success3( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3736,6 +3801,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail_nullLinkedListForDNSAns
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3745,7 +3811,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail_nullLinkedListForDNSAns
     memcpy( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ), &ulTestAddress, sizeof( ulTestAddress ) );
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
@@ -3767,7 +3833,7 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
     char pucByte[ 300 ];
     size_t uxsourceBytesRemaining = 300;
     size_t uxBytesRead = 0;
-    char * pcName = "FreeRTOS+TCP";
+    char * pcName = "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     DNSAnswerRecord_t * pxDNSAnswerRecord2;
@@ -3790,7 +3856,7 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
 
     pucByte[ index ] = 38;
     index += 1;
-    strcpy( pucByte + index, "FreeRTOSaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" );
+    strcpy( pucByte + index, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     index += 39; /* String + \0 */
     pxDNSAnswerRecord2 = ( DNSAnswerRecord_t * ) ( pucByte + index );
     index += sizeof( DNSAnswerRecord_t );
@@ -3821,13 +3887,13 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
 
@@ -3836,6 +3902,93 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
 
     TEST_ASSERT_EQUAL( 1234, ret );
     TEST_ASSERT_EQUAL( 80, uxBytesRead );
+}
+
+/**
+ * @brief Two A records are stored into the address list and an outstanding
+ *        asynchronous request matches (xDNSDoCallback returns a callback).
+ *        Exercises: appending a second address to the list, the callback being
+ *        recorded and later invoked, and xDoStore being forced true.
+ */
+void test_parseDNSAnswer_two_records_stored_with_callback( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 300;
+    size_t uxBytesRead = 0;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    DNSAnswerRecord_t * pxDNSAnswerRecord2;
+    uint32_t ip_address = 1234;
+    uint32_t ip_address2 = 2345;
+    int index = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo xAddr1 = { 0 }, xAddr2 = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, uxsourceBytesRemaining );
+
+    pucByte[ index ] = 38;
+    index += 1;
+    strcpy( pucByte + index, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    index += 39; /* String + \0 */
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + index );
+    index += sizeof( DNSAnswerRecord_t );
+    memcpy( pucByte + index, &ip_address, 4 );
+    index += 4;
+
+    pucByte[ index ] = 38;
+    index += 1;
+    strcpy( pucByte + index, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    index += 39; /* String + \0 */
+    pxDNSAnswerRecord2 = ( DNSAnswerRecord_t * ) ( pucByte + index );
+    index += sizeof( DNSAnswerRecord_t );
+    memcpy( pucByte + index, &ip_address2, 4 );
+    index += 4;
+    pucByte[ index ] = 0;
+
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
+    pxDNSAnswerRecord->ulTTL = 23;
+    pxDNSAnswerRecord->usClass = 45;
+
+    pxDNSAnswerRecord2->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord2->usType = ( dnsTYPE_A_HOST );
+    pxDNSAnswerRecord2->ulTTL = 67;
+    pxDNSAnswerRecord2->usClass = 89;
+
+    xSet.pucByte = pucByte;
+    xSet.usNumARecordsStored = 0;
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+    xSet.xDoStore = pdTRUE;
+
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    /* Record 1: stored as the first address; an outstanding request matches so
+     * xDNSDoCallback returns a (non-NULL) callback function. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddr1 );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( dns_callback );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
+
+    /* Record 2: appended after the first (exercises the second-address path);
+     * the callback is already recorded so a NULL here does not clear it. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddr2 );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* Both records parsed; first stored address returned to the caller. */
+    TEST_ASSERT_EQUAL_PTR( &xAddr1, pxAddressInfo );
+    TEST_ASSERT_EQUAL_PTR( &xAddr2, xAddr1.ai_next );
 }
 
 /**
@@ -3867,6 +4020,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3885,7 +4039,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddressInfo );
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
@@ -3919,6 +4073,7 @@ void test_parseDNSAnswer_do_store_false( void )
     memset( pcName, 0x00, 300 );
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     memset( &pxDNSMessageHeader, 0x00, sizeof( DNSMessage_t ) );
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
@@ -3933,7 +4088,7 @@ void test_parseDNSAnswer_do_store_false( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
-    xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
+    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
 
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
@@ -3969,6 +4124,7 @@ void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
     memset( pucByte, 0x00, uxsourceBytesRemaining );
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
@@ -4013,6 +4169,7 @@ void test_parseDNSAnswer_remaining_gt_datalength( void )
 
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
@@ -4055,6 +4212,7 @@ void test_parseDNSAnswer_remaining_lt_uint16( void )
     memset( pucByte, 0x00, 300 );
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
@@ -4096,6 +4254,7 @@ void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
     memset( pucByte, 0x00, 300 );
     pucByte[ 0 ] = 38;
     strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
 
     pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 

@@ -1234,6 +1234,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
  * @param[in] xFamily Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
  *                                 a call-back function, this value should be zero.
+ * @param[out] pxTargetAddress The IP-address of the DNS server that answered the request.
  * @returns ip address or zero on error
  */
     static uint32_t prvGetHostByNameOp( const char * pcHostName,
@@ -1263,10 +1264,10 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
          * Later the received packet will be checked against this IP-address.*/
         memset( pxTargetAddress, 0, sizeof( *pxTargetAddress ) );
         xFamily = xAddress.sin_family;
-        FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp: xFamily = %u\n", xFamily ) );
+        FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp: xFamily = %u\n", ( unsigned ) xFamily ) );
 
         /* Copy xAddress to pxTargetAddress */
-        if( xFamily == FREERTOS_AF_INET6 )
+        if( xFamily == FREERTOS_AF_INET6 ) /* LCOV_EXCL_BR_LINE - xFamily is set by prvFillSockAddress and is always AF_INET4 or AF_INET6. */
         {
             pxTargetAddress->xIs_IPv6 = pdTRUE;
             memcpy( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes,
@@ -1311,7 +1312,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                          &xAddress );
 
                 /* Logging for debugging only. */
-                switch( xAddress.sin_family )
+                switch( xAddress.sin_family ) /* LCOV_EXCL_BR_LINE - xAddress.sin_family is set by prvFillSockAddress; the default case is impossible to reach. */
                 {
                     case FREERTOS_AF_INET4:
                         FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp sendto = %xip\n", ( unsigned ) FreeRTOS_ntohl( xAddress.sin_address.ulIP_IPv4 ) ) );
@@ -1337,7 +1338,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
                 if( xBytes > 0 )
                 {
-                    switch( xRecvAddress.sin_family )
+                    switch( xRecvAddress.sin_family ) /* LCOV_EXCL_BR_LINE - xRecvAddress.sin_family is set by DNS_ReadReply; the default case is impossible to reach. */
                     {
                         case FREERTOS_AF_INET4:
                             FreeRTOS_debug_printf( ( "DNS_debug prvGetHostByNameOp recvfrom %d bytes from %xip\n", ( int ) xBytes, ( unsigned ) FreeRTOS_ntohl( xRecvAddress.sin_address.ulIP_IPv4 ) ) );
@@ -1415,6 +1416,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
  * @param[in] xFamily Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
  *                                 a call-back function, this value should be zero.
+ * @param[out] pxTargetAddress The IP-address of the DNS server that answered the request.
  * @returns ip address or zero on error
  *
  */

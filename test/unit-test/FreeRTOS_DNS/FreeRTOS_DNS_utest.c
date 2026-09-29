@@ -451,6 +451,130 @@ void test_FreeRTOS_gethostbyname_Success( void )
 }
 
 /**
+ * @brief Successful lookup where DNS_ReadReply reports the reply arrived from
+ *        an IPv4 source. Exercises the FREERTOS_AF_INET4 case of the
+ *        received-address logging switch in prvGetHostByNameOp.
+ */
+void test_FreeRTOS_gethostbyname_recv_family_IPv4( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xDNSBuffer xReceiveBuffer;
+    uint32_t ulNumber = 343;
+    NetworkEndPoint_t xEndPoint = { 0 };
+    struct xSOCKET xDNSSocket;
+    struct freertos_sockaddr xRecvAddress = { 0 };
+
+    uint8_t buffer[ 2280 + ipBUFFER_PADDING ];
+
+    xEndPoint.bits.bIPv6 = 0;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ucDNSIndex = 0;
+    xReceiveBuffer.pucPayloadBuffer = malloc( 300 );
+    xReceiveBuffer.uxPayloadLength = 300;
+    memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
+    DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
+
+    header->usIdentifier = 0;
+    xDNSSocket.usLocalPort = 0;
+
+    xNetworkBuffer.xDataLength = 2280;
+    xNetworkBuffer.pucEthernetBuffer = buffer;
+    xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
+    memset( xNetworkBuffer.pucEthernetBuffer, 0x00, 2280 );
+
+    /* The reply is reported to have arrived from an IPv4 address. */
+    xRecvAddress.sin_family = FREERTOS_AF_INET4;
+
+    DNS_BindSocket_IgnoreAndReturn( 0 );
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
+
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
+    DNS_ReadReply_ExpectAnyArgsAndReturn( 4 );
+    DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
+    DNS_ReadReply_ReturnThruPtr_pxAddress( &xRecvAddress );
+    DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 12345 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_ExpectAnyArgs();
+
+    DNS_CloseSocket_Ignore();
+
+    ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
+    TEST_ASSERT_EQUAL( 12345, ret );
+
+    xNetworkBuffer.pucEthernetBuffer -= ipBUFFER_PADDING;
+    free( xReceiveBuffer.pucPayloadBuffer );
+}
+
+/**
+ * @brief Successful lookup where DNS_ReadReply reports the reply arrived from
+ *        an IPv6 source. Exercises the FREERTOS_AF_INET6 case of the
+ *        received-address logging switch in prvGetHostByNameOp.
+ */
+void test_FreeRTOS_gethostbyname_recv_family_IPv6( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xDNSBuffer xReceiveBuffer;
+    uint32_t ulNumber = 343;
+    NetworkEndPoint_t xEndPoint = { 0 };
+    struct xSOCKET xDNSSocket;
+    struct freertos_sockaddr xRecvAddress = { 0 };
+
+    uint8_t buffer[ 2280 + ipBUFFER_PADDING ];
+
+    xEndPoint.bits.bIPv6 = 0;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ucDNSIndex = 0;
+    xReceiveBuffer.pucPayloadBuffer = malloc( 300 );
+    xReceiveBuffer.uxPayloadLength = 300;
+    memset( xReceiveBuffer.pucPayloadBuffer, 0x00, 300 );
+    DNSMessage_t * header = ( DNSMessage_t * ) xReceiveBuffer.pucPayloadBuffer;
+
+    header->usIdentifier = 0;
+    xDNSSocket.usLocalPort = 0;
+
+    xNetworkBuffer.xDataLength = 2280;
+    xNetworkBuffer.pucEthernetBuffer = buffer;
+    xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
+    memset( xNetworkBuffer.pucEthernetBuffer, 0x00, 2280 );
+
+    /* The reply is reported to have arrived from an IPv6 address. */
+    xRecvAddress.sin_family = FREERTOS_AF_INET6;
+
+    DNS_BindSocket_IgnoreAndReturn( 0 );
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
+
+    DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
+    DNS_ReadReply_ExpectAnyArgsAndReturn( 4 );
+    DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
+    DNS_ReadReply_ReturnThruPtr_pxAddress( &xRecvAddress );
+    DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 12345 );
+    FreeRTOS_ReleaseUDPPayloadBuffer_ExpectAnyArgs();
+
+    DNS_CloseSocket_Ignore();
+
+    ret = FreeRTOS_gethostbyname( GOOD_ADDRESS );
+    TEST_ASSERT_EQUAL( 12345, ret );
+
+    xNetworkBuffer.pucEthernetBuffer -= ipBUFFER_PADDING;
+    free( xReceiveBuffer.pucPayloadBuffer );
+}
+
+/**
  * @brief Ensures that DNS_ParseDNSReply is called, this function always returns
  *        pdFAIL
  * @warning Function not really tested besides code coverage
@@ -1586,7 +1710,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSSuccess( void )
     /* Back prvGetHostByNameOp */
     DNS_ReadReply_ExpectAnyArgsAndReturn( ipconfigNETWORK_MTU );
     DNS_ReadReply_ReturnThruPtr_pxReceiveBuffer( &xReceiveBuffer );
-    DNS_ReadReply_ReturnThruPtr_xAddress( pxExpectedSockAddress );
+    DNS_ReadReply_ReturnThruPtr_pxAddress( pxExpectedSockAddress );
     /* In prvDNSReply */
     DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 1 );
     DNS_ParseDNSReply_ReturnThruPtr_ppxAddressInfo( &pxExpectedAddress );

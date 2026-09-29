@@ -134,9 +134,9 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
  */
 void test_xDNSDoCallback_success_equal_identifier( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
+    void * pvSearchID = NULL;
     DNSMessage_t xDNSMessageHeader;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
@@ -159,9 +159,8 @@ void test_xDNSDoCallback_success_equal_identifier( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
-    TEST_ASSERT_EQUAL( 1, callback_called );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
+    TEST_ASSERT_EQUAL_PTR( dns_callback, ret );
 }
 
 /**
@@ -169,9 +168,9 @@ void test_xDNSDoCallback_success_equal_identifier( void )
  */
 void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
+    void * pvSearchID = NULL;
     DNSMessage_t xDNSMessageHeader;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
@@ -195,11 +194,10 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
 
     /* Validations */
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
-    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL_PTR( dns_callback, ret );
 }
 
 /**
@@ -207,9 +205,9 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
  */
 void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
+    void * pvSearchID = NULL;
     DNSMessage_t xDNSMessageHeader;
     char pc_name[] = "test";
     uint8_t dnsCallbackMemory[ sizeof( DNSCallback_t ) + ipconfigDNS_CACHE_NAME_LENGTH ];
@@ -235,11 +233,10 @@ void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
 
     /* Validations */
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
-    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL_PTR( dns_callback, ret );
 }
 
 /**
