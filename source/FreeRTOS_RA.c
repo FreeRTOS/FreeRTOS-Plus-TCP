@@ -394,7 +394,7 @@
         IPv6_Type_t eType = xIPv6_GetIPType( &( pxICMPPacket->xIPHeader.xSourceAddress ) );
 
         FreeRTOS_debug_printf( ( "vReceiveRA: Info: addr = %pip eType = %u HopLimit = %u\n",
-                                 &( pxICMPPacket->xIPHeader.xSourceAddress ),
+                                 ( void * ) pxICMPPacket->xIPHeader.xSourceAddress.ucBytes,
                                  eType,
                                  pxICMPPacket->xIPHeader.ucHopLimit ) );
 
