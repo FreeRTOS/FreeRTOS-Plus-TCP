@@ -3156,6 +3156,90 @@ void test_parseDNSAnswer_malformed_ancount_exceeds_buffer( void )
 }
 
 /**
+ * @brief A reply whose answer-record owner name does not match the queried
+ *        name is rejected as malformed.
+ */
+void test_parseDNSAnswer_answer_name_mismatch_rejected( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 64 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    /* The device asked for "aaa". */
+    ( void ) strcpy( xSet.pcName, "aaa" );
+
+    /* Craft an inline (uncompressed) answer name of a single label "bbb",
+     * terminated by a zero length octet: 0x03 'b' 'b' 'b' 0x00. This decodes
+     * to "bbb", which does not match the queried "aaa". */
+    pucByte[ 0 ] = 0x03;
+    pucByte[ 1 ] = 'b';
+    pucByte[ 2 ] = 'b';
+    pucByte[ 3 ] = 'b';
+    pucByte[ 4 ] = 0x00;
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.pucUDPPayloadBuffer = pucByte;
+    xSet.uxBufferLength = sizeof( pucByte );
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* Name mismatch -> treated as a malformed response. */
+    TEST_ASSERT_EQUAL( 0U, ret );
+}
+
+/**
+ * @brief A reply whose answer-record owner name matches the queried name
+ *        passes the answer-name validation (it is not rejected on name
+ *        grounds). The record type is left unset so no address is stored;
+ *        the point is that name validation does not reject a matching name.
+ */
+void test_parseDNSAnswer_answer_name_match_not_rejected_on_name( void )
+{
+    uint32_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    uint8_t pucByte[ 64 ];
+    size_t uxBytesRead = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, sizeof( pucByte ) );
+
+    /* The device asked for "bbb", and the answer names "bbb" too. */
+    ( void ) strcpy( xSet.pcName, "bbb" );
+    pucByte[ 0 ] = 0x03;
+    pucByte[ 1 ] = 'b';
+    pucByte[ 2 ] = 'b';
+    pucByte[ 3 ] = 'b';
+    pucByte[ 4 ] = 0x00;
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.pucUDPPayloadBuffer = pucByte;
+    xSet.uxBufferLength = sizeof( pucByte );
+    xSet.uxSourceBytesRemaining = sizeof( pucByte );
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.usAnswers = 1;
+
+    ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* The name matched, so the record was processed (not rejected as a name
+     * mismatch); with an unrecognised type no address is stored and bytes are
+     * consumed past the name + record header. */
+    TEST_ASSERT_NOT_EQUAL( 0, uxBytesRead );
+}
+
+/**
  * @brief ensures that when the number of answers is zero no packet is sent over
  *        the network
  */

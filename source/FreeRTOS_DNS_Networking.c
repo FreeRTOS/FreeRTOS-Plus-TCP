@@ -32,7 +32,6 @@
  */
 
 #include "FreeRTOS.h"
-
 #include "FreeRTOS_DNS_Networking.h"
 
 #if ( ipconfigUSE_DNS != 0 )
@@ -92,14 +91,14 @@
 /**
  * @brief perform a DNS network request
  * @param xDNSSocket Created socket
- * @param xAddress address structure (ip, port etc)
+ * @param pxAddress to store data of the sender (ip, port etc)
  * @param pxDNSBuf buffer to send
  * @return xReturn: true if the message could be sent
  *                  false otherwise
  *
  */
     BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
-                                const struct freertos_sockaddr * xAddress,
+                                const struct freertos_sockaddr * pxAddress,
                                 const struct xDNSBuffer * pxDNSBuf )
     {
         BaseType_t xReturn = pdFALSE;
@@ -112,12 +111,26 @@
                                  pxDNSBuf->pucPayloadBuffer,
                                  pxDNSBuf->uxPayloadLength,
                                  FREERTOS_ZERO_COPY,
-                                 xAddress,
-                                 ( socklen_t ) sizeof( *xAddress ) );
+                                 pxAddress,
+                                 ( socklen_t ) sizeof( *pxAddress ) );
 
         if( xSent == ( BaseType_t ) pxDNSBuf->uxPayloadLength )
         {
             xReturn = pdPASS;
+
+            /* Logging for debugging only */
+            if( pxAddress->sin_family == FREERTOS_AF_INET4 )
+            {
+                FreeRTOS_debug_printf( ( "DNS_debug SendRequest to server %xip\n", ( unsigned ) FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ) ) );
+            }
+            else if( pxAddress->sin_family == FREERTOS_AF_INET6 )
+            {
+                FreeRTOS_debug_printf( ( "DNS_debug SendRequest to server %pip\n", pxAddress->sin_address.xIP_IPv6.ucBytes ) );
+            }
+            else
+            {
+                FreeRTOS_debug_printf( ( "DNS_debug SendRequest to family %u\n", ( unsigned ) pxAddress->sin_family ) );
+            }
         }
         else
         {
@@ -131,30 +144,119 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief perform a DNS network read
- * @param xDNSSocket socket
- * @param xAddress address to read from
- * @param pxReceiveBuffer buffer to fill with received data
+ * @brief Read from the socket.
+ * @param[in] xDNSSocket: the socket that must be bound.
+ * @param[out] pxAddress: place to store the "from address".
+ * @param[out] pxReceiveBuffer: Place to store the received reply.
+ * @param[in] pxTargetAddress: The IP-address of the DNS used when sending.
+ * @return The result: number of bytes, zero, or negative when error.
  */
     BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
-                              struct freertos_sockaddr * xAddress,
-                              struct xDNSBuffer * pxReceiveBuffer )
+                              struct freertos_sockaddr * pxAddress,
+                              struct xDNSBuffer * pxReceiveBuffer,
+                              const IPv46_Address_t * pxTargetAddress )
     {
         BaseType_t xReturn;
         uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
+        struct freertos_sockaddr xFromAddress;
+
+        TickType_t xTimeoutTime = xIsCallingFromIPTask() ? 0u : pdMS_TO_TICKS( 500u );
+
+        FreeRTOS_setsockopt( xDNSSocket, 0, FREERTOS_SO_RCVTIMEO, &( xTimeoutTime ), sizeof xTimeoutTime );
 
         /* Wait for the reply. */
         xReturn = FreeRTOS_recvfrom( xDNSSocket,
                                      &pxReceiveBuffer->pucPayloadBuffer,
                                      0,
                                      FREERTOS_ZERO_COPY,
-                                     xAddress,
+                                     &xFromAddress,
                                      &ulAddressLength );
 
         if( xReturn <= 0 )
         {
             /* 'pdFREERTOS_ERRNO_EWOULDBLOCK' is returned in case of a timeout. */
             FreeRTOS_printf( ( "DNS_ReadReply returns %d\n", ( int ) xReturn ) );
+        }
+        else
+        {
+            /* Accept the reply by default. When ipconfigDNS_CHECK_REPLY_SOURCE_IP
+             * is enabled, the source-IP validation below may reject it. */
+            BaseType_t xMatch = pdTRUE;
+
+            #if ( ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 )
+            {
+                uint8_t sin_family = ( pxTargetAddress->xIs_IPv6 == pdTRUE ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4;
+
+                /* A reply of the wrong address family cannot have come from the
+                 * queried server. */
+                xMatch = pdFALSE;
+
+                if( xFromAddress.sin_family == sin_family )
+                {
+                    size_t uxLen = ( pxTargetAddress->xIs_IPv6 == pdTRUE ) ? ipSIZE_OF_IPv6_ADDRESS : ipSIZE_OF_IPv4_ADDRESS;
+
+                    /* Accept the reply only if it came from the server that was queried. */
+                    xMatch = ( memcmp( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes, xFromAddress.sin_address.xIP_IPv6.ucBytes, uxLen ) == 0 ) ? pdTRUE : pdFALSE;
+
+                    if( xMatch == pdFALSE )
+                    {
+                        /* The source IP did not match the queried server. Also accept the
+                         * reply if the query was sent to the mDNS multicast address, since
+                         * mDNS responses arrive from individual responders rather than the
+                         * multicast address itself. */
+                        if( pxTargetAddress->xIs_IPv6 == pdTRUE )
+                        {
+                            xMatch = ( memcmp( ipMDNS_IP_ADDR_IPv6.ucBytes, pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) ? pdTRUE : pdFALSE;
+                        }
+                        else
+                        {
+                            xMatch = ( pxTargetAddress->xIPAddress.ulIP_IPv4 == ipMDNS_IP_ADDRESS ) ? pdTRUE : pdFALSE;
+                        }
+                    }
+                }
+
+                if( pxTargetAddress->xIs_IPv6 == pdTRUE )
+                {
+                    FreeRTOS_debug_printf( ( "DNS_debug Expected answer from %pip match %d\n", pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes, ( int ) xMatch ) );
+                }
+                else
+                {
+                    FreeRTOS_debug_printf( ( "DNS_debug Expected answer from %xip match %d\n", ( unsigned ) FreeRTOS_ntohl( pxTargetAddress->xIPAddress.ulIP_IPv4 ), ( int ) xMatch ) );
+                }
+
+                if( xFromAddress.sin_family == FREERTOS_AF_INET4 )
+                {
+                    FreeRTOS_debug_printf( ( "DNS_debug ReadReply from server %xip\n", ( unsigned ) FreeRTOS_ntohl( xFromAddress.sin_address.ulIP_IPv4 ) ) );
+                }
+                else if( xFromAddress.sin_family == FREERTOS_AF_INET6 )
+                {
+                    FreeRTOS_debug_printf( ( "DNS_debug ReadReply from server %pip\n", xFromAddress.sin_address.xIP_IPv6.ucBytes ) );
+                }
+                else
+                {
+                    FreeRTOS_debug_printf( ( "DNS_debug ReadReply from family %u\n", ( unsigned ) xFromAddress.sin_family ) );
+                }
+            }
+            #else /* if ( ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 ) */
+            {
+                /* Source-IP validation is opt-in; preserve legacy behaviour of
+                 * accepting the reply regardless of its source address. */
+                ( void ) pxTargetAddress;
+            }
+            #endif /* ipconfigDNS_CHECK_REPLY_SOURCE_IP */
+
+            if( xMatch == pdFALSE )
+            {
+                FreeRTOS_debug_printf( ( "DNS_ReadReply: Source mismatch, discarding packet.\n" ) );
+
+                /* Return an error so the caller knows this packet is invalid */
+                xReturn = -pdFREERTOS_ERRNO_EINVAL;
+            }
+        }
+
+        if( xReturn > 0 )
+        {
+            memcpy( pxAddress, &xFromAddress, sizeof *pxAddress );
         }
 
         return xReturn;

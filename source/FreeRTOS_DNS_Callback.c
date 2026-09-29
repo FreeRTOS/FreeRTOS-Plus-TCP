@@ -49,12 +49,11 @@
  *        call the handler.
  *
  * @param[in,out] pxSet a set of variables that are shared among the helper functions.
- * @param[in] pxAddress Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.
- *
- * @return Returns pdTRUE if uxIdentifier was recognized.
+ * @param[out] pvSearchID The search ID of the callback function associated
+ * @return Returns not NULL if a matching callback function was found.
  */
-    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
-                               struct freertos_addrinfo * pxAddress )
+    FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,
+                                void ** ppvSearchID )
     {
         BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
@@ -110,12 +109,9 @@
         }
         ( void ) xTaskResumeAll();
 
-        if( pCallbackFunction != NULL )
-        {
-            pCallbackFunction( pxSet->pcName, pvSearchID, pxAddress );
-        }
+        *( ppvSearchID ) = pvSearchID;
 
-        return xResult;
+        return pCallbackFunction;
     }
 
 /**

@@ -43,6 +43,43 @@
 
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
+/* Definition required by the IPv6 mDNS carve-out in DNS_ReadReply; the real
+ * definition lives in FreeRTOS_DNS.c, which is not part of this test suite. */
+const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
+{
+    { 0xffU, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U,
+      0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0xfbU }
+};
+
+/* Source address that a stubbed FreeRTOS_recvfrom() will report back to the
+ * caller, and the number of test doubles configured. Tests set xStubFromAddress
+ * before calling DNS_ReadReply(). */
+struct freertos_sockaddr xStubFromAddress;
+
+int32_t FreeRTOS_recvfrom_ReturnFromAddress( const ConstSocket_t xSocket,
+                                             void * pvBuffer,
+                                             size_t uxBufferLength,
+                                             BaseType_t xFlags,
+                                             struct freertos_sockaddr * pxSourceAddress,
+                                             socklen_t * pxSourceAddressLength,
+                                             int cmock_num_calls )
+{
+    ( void ) xSocket;
+    ( void ) pvBuffer;
+    ( void ) uxBufferLength;
+    ( void ) xFlags;
+    ( void ) pxSourceAddressLength;
+    ( void ) cmock_num_calls;
+
+    if( pxSourceAddress != NULL )
+    {
+        ( void ) memcpy( pxSourceAddress, &xStubFromAddress, sizeof( *pxSourceAddress ) );
+    }
+
+    /* Non-zero payload length so DNS_ReadReply proceeds to the source check. */
+    return 300;
+}
+
 void vPortEnterCritical( void )
 {
 }
