@@ -786,7 +786,7 @@
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 181 ) uxPacketLength, uxBlockTimeTicks );
+                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPacketLength, uxBlockTimeTicks );
 
                 if( pxNetworkBuffer != NULL )
                 {
@@ -813,7 +813,7 @@
 
                     /* Fill in the basic header information. */
                     pxICMPHeader->ucTypeOfMessage = ipICMP_PING_REQUEST_IPv6;
-                    pxICMPHeader->ucTypeOfService = 0;
+                    pxICMPHeader->ucCode = 0;
                     pxICMPHeader->usIdentifier = FreeRTOS_htons( usSequenceNumber );
                     pxICMPHeader->usSequenceNumber = FreeRTOS_htons( usSequenceNumber );
 
@@ -1147,7 +1147,7 @@
                            if( xCompare == 0 )
                            {
                                pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
-                               pxICMPHeader_IPv6->ucTypeOfService = 0U;
+                               pxICMPHeader_IPv6->ucCode = 0U;
                                pxICMPHeader_IPv6->ulReserved = ndICMPv6_FLAG_SOLICITED | ndICMPv6_FLAG_UPDATE;
                                pxICMPHeader_IPv6->ulReserved = FreeRTOS_htonl( pxICMPHeader_IPv6->ulReserved );
 
@@ -1280,7 +1280,7 @@
 
             uxICMPSize = sizeof( ICMPHeader_IPv6_t );
             pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
-            pxICMPHeader_IPv6->ucTypeOfService = 0;
+            pxICMPHeader_IPv6->ucCode = 0;
             pxICMPHeader_IPv6->ulReserved = ndICMPv6_FLAG_SOLICITED | ndICMPv6_FLAG_UPDATE;
             pxICMPHeader_IPv6->ulReserved = FreeRTOS_htonl( pxICMPHeader_IPv6->ulReserved );
 

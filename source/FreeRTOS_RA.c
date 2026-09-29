@@ -389,21 +389,40 @@
         const ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
         const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize;
+        const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+
+        IPv6_Type_t eType = xIPv6_GetIPType( &( pxICMPPacket->xIPHeader.xSourceAddress ) );
+
+        FreeRTOS_debug_printf( ( "vReceiveRA: Info: addr = %pip eType = %u HopLimit = %u\n",
+                                 &( pxICMPPacket->xIPHeader.xSourceAddress ),
+                                 eType,
+                                 pxICMPPacket->xIPHeader.ucHopLimit ) );
 
         /* A Router Advertisement was received, handle it here. */
         if( uxNeededSize > pxNetworkBuffer->xDataLength )
         {
             FreeRTOS_printf( ( "vReceiveRA: The buffer provided is too small\n" ) );
         }
+        else if( pxICMPPacket->xIPHeader.ucHopLimit != 255u )
+        {
+            FreeRTOS_debug_printf( ( "vReceiveRA: Error: ucHopLimit equals %u\n", pxICMPPacket->xIPHeader.ucHopLimit ) );
+        }
+        else if( pxAdvertisement->ucCode != 0u )
+        {
+            FreeRTOS_debug_printf( ( "vReceiveRA: Error: ICMP Code = %u\n", pxAdvertisement->ucCode ) );
+        }
+        else if( eType != eIPv6_LinkLocal )
+        {
+            FreeRTOS_debug_printf( ( "vReceiveRA: The source address is not a link-local address\n" ) );
+        }
         else
         {
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
-            FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
+            FreeRTOS_printf( ( "RA: Type %02x Code %02x Checksum %04x Hops %d Flags %02x Life %d\n",
                                pxAdvertisement->ucTypeOfMessage,
-                               pxAdvertisement->ucTypeOfService,
+                               pxAdvertisement->ucCode,
                                FreeRTOS_ntohs( pxAdvertisement->usChecksum ),
                                pxAdvertisement->ucHopLimit,
                                pxAdvertisement->ucFlags,

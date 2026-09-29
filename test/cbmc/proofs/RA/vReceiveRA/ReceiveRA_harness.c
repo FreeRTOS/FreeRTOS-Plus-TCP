@@ -35,6 +35,7 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_ND.h"
+#include "FreeRTOS_IPv6.h"
 
 /* CBMC includes. */
 #include "cbmc.h"
@@ -50,6 +51,15 @@ ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadRepl
     }
 
     return pxPrefixOption;
+}
+
+/* Abstraction of xIsIPv6Loopback. It is reached through xIPv6_GetIPType() and is
+ * proved separately, so an indeterminate value is returned here. */
+BaseType_t xIsIPv6Loopback( const IPv6_Address_t * pxAddress )
+{
+    __CPROVER_assert( __CPROVER_r_ok( pxAddress, sizeof( IPv6_Address_t ) ), "pxAddress must be readable" );
+
+    return ( BaseType_t ) nondet_uint32();
 }
 
 /* Abstraction of pxGetNetworkBufferWithDescriptor. */
