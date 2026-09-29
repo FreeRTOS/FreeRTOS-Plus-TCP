@@ -744,8 +744,8 @@
                 if( ( xDoRead == pdTRUE ) && ( DNS_ReadNameField( &( xNameSet ), uxDestLen ) != 0U ) )
                 {
                     /* Copy with an explicit length rather than letting strncpy()
-                     * pad or truncate: a bound tied to the destination size makes
-                     * the compiler warn that the terminator may not be copied. */
+                    * pad or truncate: a bound tied to the destination size makes
+                    * the compiler warn that the terminator may not be copied. */
                     size_t uxNameLen = strlen( xNameSet.pcName );
 
                     if( uxNameLen >= uxDestLen )
@@ -844,6 +844,7 @@
                         }
                     }
                 #else /* if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) ) */
+
                     /* Without a copy of the queried name there is nothing to
                      * validate the answer's owner name against, so just skip
                      * over it. */
