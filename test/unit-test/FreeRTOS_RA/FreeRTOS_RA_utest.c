@@ -94,6 +94,27 @@ const IPv6_Address_t xDefaultIPAddress =
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70, 0x09
 };
 
+/**
+ * @brief Set the IPv6 payload length to match the buffer length, as a conforming
+ *        router would.
+ *
+ * RFC 4861 section 6.1.2 requires the ICMP length to be derived from the IP length,
+ * so vReceiveRA() bounds the option region using usPayloadLength rather than
+ * xDataLength. Tests that assemble a packet by hand must fill this field in,
+ * otherwise the RA is discarded before the check under test is reached.
+ */
+static void prvSetIPv6PayloadLength( NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    ICMPPacket_IPv6_t * pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    const size_t uxIPHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+    if( pxNetworkBuffer->xDataLength > uxIPHeaderBytes )
+    {
+        pxICMPPacket->xIPHeader.usPayloadLength =
+            FreeRTOS_htons( ( uint16_t ) ( pxNetworkBuffer->xDataLength - uxIPHeaderBytes ) );
+    }
+}
+
 /* =============================== Test Cases =============================== */
 
 /**
@@ -473,9 +494,49 @@ void test_vReceiveRA_IncorrectDataLength( void )
 
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief Build a Router Advertisement that would be accepted, so that a single
+ *        field can be corrupted by the caller to test one rejection path.
+ *
+ * The packet carries a valid Prefix Information option, which matters: it is what
+ * makes the discard tests below meaningful. Were the option region left zeroed, the
+ * accept path would bail out of vReceiveRA_ReadReply() with a NULL prefix and never
+ * reach FreeRTOS_FirstEndPoint() either, so a broken check would go unnoticed.
+ *
+ * Because a valid prefix is present, reaching the end-point iteration is the
+ * observable difference between accepting and discarding the message. The discard
+ * tests deliberately register no FreeRTOS_FirstEndPoint() expectation, so if the
+ * check under test were removed, CMock would fail the test on the unexpected call.
+ * See test_vReceiveRA_vRAProcess() for the accepting counterpart of this fixture.
+ */
+static void prvBuildAcceptableRA( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  EthernetPacketICMPv6RouterAdvertisementPrefixOption_t * pxICMPPacket,
+                                  NetworkInterface_t * pxInterface )
+{
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( pxICMPPacket, 0, sizeof( EthernetPacketICMPv6RouterAdvertisementPrefixOption_t ) );
+    memset( pxInterface, 0, sizeof( NetworkInterface_t ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxICMPPacket;
+    pxNetworkBuffer->pxInterface = pxInterface;
+    pxNetworkBuffer->xDataLength = raHeaderBytesRA + sizeof( ICMPPrefixOption_IPv6_t );
+
+    pxICMPPacket->xAdvertisement.usLifetime = pdTRUE_UNSIGNED;
+    pxICMPPacket->xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
+
+    pxPrefixOption = &( pxICMPPacket->xPrefixOption );
+    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    pxPrefixOption->ucLength = 4;
+    pxPrefixOption->ucPrefixLength = 64;
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 }
 
 /**
@@ -483,34 +544,36 @@ void test_vReceiveRA_IncorrectDataLength( void )
  *        hop limit other than 255 is discarded. A hop limit below
  *        255 means the message may have been forwarded by a router,
  *        so it cannot be trusted as coming from the local link.
- *
- * @note No end-point iteration is expected. Because CMock is configured
- *       with strict ordering, a call to FreeRTOS_FirstEndPoint() would
- *       fail this test, which is what proves the message was discarded.
  */
 void test_vReceiveRA_IncorrectHopLimit( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
     NetworkInterface_t xInterface;
-    ICMPPacket_IPv6_t xICMPPacket;
-
-    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
-    memset( &xICMPPacket, 0, sizeof( ICMPPacket_IPv6_t ) );
-    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
-    pxNetworkBuffer->pxInterface = &xInterface;
-    pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
-
-    pxAdvertisement = ( ( ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
-    pxAdvertisement->usLifetime = 1;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
 
     /* Any value other than 255 must be rejected. */
     xICMPPacket.xIPHeader.ucHopLimit = 64U;
 
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief A hop limit of 254 is the boundary case: it is the largest value that
+ *        still proves the message was forwarded, and must be discarded.
+ */
+void test_vReceiveRA_HopLimitOneBelowMaximum( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
+    NetworkInterface_t xInterface;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
+
+    xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT - 1U;
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -519,34 +582,18 @@ void test_vReceiveRA_IncorrectHopLimit( void )
  * @brief This function verify that a Router Advertisement carrying a
  *        non-zero ICMP code is discarded. RFC 4861 requires the code
  *        field of a Router Advertisement to be zero.
- *
- * @note No end-point iteration is expected, see
- *       test_vReceiveRA_IncorrectHopLimit().
  */
 void test_vReceiveRA_NonZeroICMPCode( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
     NetworkInterface_t xInterface;
-    ICMPPacket_IPv6_t xICMPPacket;
-
-    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
-    memset( &xICMPPacket, 0, sizeof( ICMPPacket_IPv6_t ) );
-    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
-    pxNetworkBuffer->pxInterface = &xInterface;
-    pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
 
-    pxAdvertisement = ( ( ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
-    pxAdvertisement->usLifetime = 1;
     /* Any code other than zero must be rejected. */
-    pxAdvertisement->ucCode = 1U;
-
-    xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
-
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    xICMPPacket.xAdvertisement.ucCode = 1U;
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -555,33 +602,20 @@ void test_vReceiveRA_NonZeroICMPCode( void )
  * @brief This function verify that a Router Advertisement whose source
  *        address is not a link-local address is discarded. RFC 4861
  *        requires the source of a Router Advertisement to be link-local.
- *
- * @note No end-point iteration is expected, see
- *       test_vReceiveRA_IncorrectHopLimit().
  */
 void test_vReceiveRA_SourceNotLinkLocal( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
     NetworkInterface_t xInterface;
-    ICMPPacket_IPv6_t xICMPPacket;
-
-    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
-    memset( &xICMPPacket, 0, sizeof( ICMPPacket_IPv6_t ) );
-    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
-    pxNetworkBuffer->pxInterface = &xInterface;
-    pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
 
-    pxAdvertisement = ( ( ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
-    pxAdvertisement->usLifetime = 1;
-
-    xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
-
-    /* Any address type other than link-local must be rejected. */
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Global );
+    /* Any address type other than link-local must be rejected. Expect the exact
+     * argument, so that classifying the destination address instead of the source
+     * address would fail this test. */
+    xIPv6_GetIPType_ExpectAndReturn( &( xICMPPacket.xIPHeader.xSourceAddress ), eIPv6_Global );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -609,6 +643,8 @@ void test_vReceiveRA_ZeroAdvertisementLifetime( void )
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -638,6 +674,8 @@ void test_vReceiveRA_NullpxInterface( void )
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
 
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
     catch_assert( vReceiveRA( pxNetworkBuffer ) );
 }
 
@@ -666,6 +704,8 @@ void test_vReceiveRA_NullICMPPrefix( void )
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -706,6 +746,8 @@ void test_vReceiveRA_NullICMPPrefix_ZeroOptionLength( void )
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -748,6 +790,8 @@ void test_vReceiveRA_NullICMPPrefix_NotEnoughBytes( void )
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
 
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
     vReceiveRA( pxNetworkBuffer );
 }
 
@@ -786,6 +830,8 @@ void test_vReceiveRA_ValidICMPPrefix_Option1( void )
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -826,6 +872,8 @@ void test_vReceiveRA_ValidICMPPrefix_Option2( void )
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -873,6 +921,8 @@ void test_vReceiveRA_ValidICMPPrefix_Option3( void )
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
     vReceiveRA( pxNetworkBuffer );
 }
 
@@ -912,6 +962,8 @@ void test_vReceiveRA_ValidICMPPrefix_Option4( void )
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -953,6 +1005,8 @@ void test_vReceiveRA_ValidICMPPrefix_Option5( void )
 
     ulChar2u32_ExpectAnyArgsAndReturn( 0x12345678 );
 
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
     vReceiveRA( pxNetworkBuffer );
 }
 
@@ -991,6 +1045,8 @@ void test_vReceiveRA_ValidICMPPrefix_Option6( void )
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -1032,6 +1088,8 @@ void test_vReceiveRA_ValidICMPPrefix_IncorrectOption( void )
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
     vReceiveRA( pxNetworkBuffer );
 }
 
@@ -1072,6 +1130,8 @@ void test_vReceiveRA_vRAProccess( void )
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -1119,6 +1179,8 @@ void test_vReceiveRA_vRAProcess( void )
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
     vDHCP_RATimerReload_ExpectAnyArgs();
 
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
     vReceiveRA( pxNetworkBuffer );
 
 
@@ -1128,6 +1190,105 @@ void test_vReceiveRA_vRAProcess( void )
     TEST_ASSERT_EQUAL( FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ), pxEndPoint->xRAData.ulPreferredLifeTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, pxEndPoint->xRAData.bits.bIPAddressInUse );
     TEST_ASSERT_EQUAL( eRAStateIPWait, pxEndPoint->xRAData.eRAState );
+}
+
+/**
+ * @brief A Router Advertisement carrying a valid Prefix Information option
+ *        followed by a zero-length option must be discarded in its entirety.
+ *
+ * RFC 4861 section 6.1.2 requires that all included options have a length
+ * greater than zero. Returning the already-parsed prefix would let an attacker
+ * append a single malformed option to an otherwise valid RA and still drive
+ * SLAAC, so the end-point must be left untouched.
+ */
+void test_vReceiveRA_PrefixFollowedByZeroLengthOption( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+
+    struct
+    {
+        EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xPacket;
+        uint8_t ucTrailingOption[ 8 ];
+    }
+    xFrame;
+    NetworkInterface_t xInterface;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xFrame, 0, sizeof( xFrame ) );
+    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xFrame;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = sizeof( xFrame );
+
+    xFrame.xPacket.xAdvertisement.usLifetime = pdTRUE_UNSIGNED;
+    xFrame.xPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
+
+    /* A perfectly valid prefix option ... */
+    pxPrefixOption = &xFrame.xPacket.xPrefixOption;
+    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    pxPrefixOption->ucLength = 4;
+    pxPrefixOption->ucPrefixLength = 64;
+
+    /* ... followed by an option whose length is zero. */
+    xFrame.ucTrailingOption[ 0 ] = ndICMP_MTU_OPTION;
+    xFrame.ucTrailingOption[ 1 ] = 0U;
+
+    xIPv6_GetIPType_ExpectAndReturn( &( xFrame.xPacket.xIPHeader.xSourceAddress ), eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
+    /* No FreeRTOS_FirstEndPoint() expectation is registered: were the prefix still
+     * returned, the unexpected call would fail this test. */
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief Options that lie beyond the IPv6 payload length must not be parsed.
+ *
+ * RFC 4861 section 6.1.2 requires the ICMP length to be derived from the IP
+ * length. Here usPayloadLength covers only the RA header, while the Ethernet
+ * frame carries a well-formed prefix option in the trailing padding - which the
+ * ICMP checksum does not cover. That option must be ignored.
+ */
+void test_vReceiveRA_OptionBeyondPayloadLengthIgnored( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
+    NetworkInterface_t xInterface;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
+
+    /* The IP length accounts for the RA header only: the prefix option built above
+     * sits in the padding and is therefore not part of the ICMP message. */
+    xICMPPacket.xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPRouterAdvertisement_IPv6_t ) );
+
+    xIPv6_GetIPType_ExpectAndReturn( &( xICMPPacket.xIPHeader.xSourceAddress ), eIPv6_LinkLocal );
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief RFC 4861 section 6.1.2 requires an ICMP length of at least 16 octets,
+ *        derived from the IP length. A shorter payload must be discarded even
+ *        when the Ethernet frame itself is long enough.
+ */
+void test_vReceiveRA_PayloadLengthTooSmall( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
+    NetworkInterface_t xInterface;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
+
+    /* One octet short of the 16 octet minimum. */
+    xICMPPacket.xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPRouterAdvertisement_IPv6_t ) - 1U );
+
+    vReceiveRA( pxNetworkBuffer );
 }
 
 /**

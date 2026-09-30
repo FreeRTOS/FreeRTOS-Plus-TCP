@@ -44,7 +44,8 @@
 * Signature of the function under test
 ****************************************************************/
 
-ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                                                   size_t uxPayloadLength );
 
 
 void harness()
@@ -66,5 +67,8 @@ void harness()
     pxNetworkBuffer->pxInterface = safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxInterface != NULL );
 
-    pxReturn = __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( pxNetworkBuffer );
+    /* The payload length is read from the packet by the caller, so it is entirely
+     * attacker controlled. Leave it unconstrained to prove that the option parsing
+     * stays inside the buffer for every possible value. */
+    pxReturn = __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( pxNetworkBuffer, nondet_sizet() );
 }

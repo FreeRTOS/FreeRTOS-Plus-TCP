@@ -74,7 +74,8 @@
                                             IPv6_Address_t * pxAddress );
 
 /* Read the reply received from the RA server. */
-    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                           size_t uxPayloadLength );
 
 /* Handle the states that are limited by a timer. See if any of the timers has expired. */
     static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_t * pxEndPoint,
@@ -263,20 +264,46 @@
  * @brief Read a received RA reply and return the prefix option from the packet.
  *
  * @param[in] pxNetworkBuffer The buffer that contains the message.
+ * @param[in] uxPayloadLength The IPv6 payload length, i.e. the number of bytes that
+ *                            follow the IPv6 header. RFC 4861 section 6.1.2 requires
+ *                            the ICMP length to be derived from the IP length, so the
+ *                            options are bounded by this value rather than by the
+ *                            length of the received Ethernet frame.
  *
  * @returns Returns the ICMP prefix option pointer, pointing to its location in the
- *          input RA reply message buffer.
+ *          input RA reply message buffer, or NULL when no prefix option was found
+ *          or when any option in the message was malformed.
  */
-    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+    static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                           size_t uxPayloadLength )
     {
         size_t uxIndex = 0U;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
         const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize;
-        /* uxLast points to the first byte after the buffer. */
-        const size_t uxLast = pxNetworkBuffer->xDataLength - uxNeededSize;
+        size_t uxLast = 0U;
         uint8_t * pucBytes = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
         ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
         BaseType_t xMalformed = pdFALSE;
+
+        if( pxNetworkBuffer->xDataLength > uxNeededSize )
+        {
+            const size_t uxReceived = pxNetworkBuffer->xDataLength - uxNeededSize;
+
+            if( uxPayloadLength > uxICMPSize )
+            {
+                uxLast = uxPayloadLength - uxICMPSize;
+            }
+
+            if( uxLast > uxReceived )
+            {
+                /* usPayloadLength claims more data than was actually received. Never
+                 * read beyond the buffer. */
+                FreeRTOS_printf( ( "RA: Payload length ( %u ) exceeds the buffer ( %u )\n",
+                                   ( unsigned ) uxLast,
+                                   ( unsigned ) uxReceived ) );
+                uxLast = uxReceived;
+            }
+        }
 
         while( ( uxIndex + 1U ) < uxLast )
         {
@@ -286,14 +313,16 @@
 
             if( uxPrefixLength == 0U )
             {
-                /* According to RFC 4861, length of the option value 0 is invalid. Hence returning from here */
-                FreeRTOS_printf( ( "RA: Invalid length of the option value as zero. " ) );
+                FreeRTOS_printf( ( "RA: Invalid length of the option value as zero.\n" ) );
+                xMalformed = pdTRUE;
                 break;
             }
 
             if( uxLast < ( uxIndex + uxLength ) )
             {
+                /* An option that runs past the end of the message makes it malformed. */
                 FreeRTOS_printf( ( "RA: Not enough bytes ( %u > %u )\n", ( unsigned ) ( uxIndex + uxLength ), ( unsigned ) uxLast ) );
+                xMalformed = pdTRUE;
                 break;
             }
 
@@ -368,6 +397,13 @@
             uxIndex = uxIndex + uxLength;
         } /* while( ( uxIndex + 1 ) < uxLast ) */
 
+        if( xMalformed != pdFALSE )
+        {
+            /* A single malformed option invalidates the entire Router Advertisement,
+             * including any prefix option that was successfully parsed before it. */
+            pxPrefixOption = NULL;
+        }
+
         return pxPrefixOption;
     }
 /*-----------------------------------------------------------*/
@@ -389,37 +425,45 @@
         const ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
         const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
-        IPv6_Type_t eType = xIPv6_GetIPType( &( pxICMPPacket->xIPHeader.xSourceAddress ) );
-
-        FreeRTOS_debug_printf( ( "vReceiveRA: Info: addr = %pip eType = %u HopLimit = %u\n",
-                                 ( void * ) pxICMPPacket->xIPHeader.xSourceAddress.ucBytes,
-                                 eType,
-                                 pxICMPPacket->xIPHeader.ucHopLimit ) );
+        /* Number of bytes following the IPv6 header. The ICMP length is derived from the IP length. */
+        const size_t uxPayloadLength = ( size_t ) FreeRTOS_ntohs( pxICMPPacket->xIPHeader.usPayloadLength );
 
         /* A Router Advertisement was received, handle it here. */
         if( uxNeededSize > pxNetworkBuffer->xDataLength )
         {
             FreeRTOS_printf( ( "vReceiveRA: The buffer provided is too small\n" ) );
         }
-        else if( pxICMPPacket->xIPHeader.ucHopLimit != 255u )
+        /* First verify it's validity. */
+        else if( uxPayloadLength < uxICMPSize )
+        {
+            FreeRTOS_debug_printf( ( "vReceiveRA: Error: ICMP length %u is less than %u\n",
+                                     ( unsigned ) uxPayloadLength,
+                                     ( unsigned ) uxICMPSize ) );
+        }
+        else if( pxICMPPacket->xIPHeader.ucHopLimit != raDEFAULT_HOP_LIMIT )
         {
             FreeRTOS_debug_printf( ( "vReceiveRA: Error: ucHopLimit equals %u\n", pxICMPPacket->xIPHeader.ucHopLimit ) );
         }
-        else if( pxAdvertisement->ucCode != 0u )
+        else if( pxAdvertisement->ucCode != 0U )
         {
             FreeRTOS_debug_printf( ( "vReceiveRA: Error: ICMP Code = %u\n", pxAdvertisement->ucCode ) );
         }
-        else if( eType != eIPv6_LinkLocal )
+
+        /* Classify the source address last, so that the cheaper header checks above
+         * run first and no field is read before the size check. */
+        else if( xIPv6_GetIPType( &( pxICMPPacket->xIPHeader.xSourceAddress ) ) != eIPv6_LinkLocal )
         {
-            FreeRTOS_debug_printf( ( "vReceiveRA: The source address is not a link-local address\n" ) );
+            FreeRTOS_debug_printf( ( "vReceiveRA: The source address %pip is not a link-local address\n",
+                                     ( void * ) pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
         }
         else
         {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
             FreeRTOS_printf( ( "RA: Type %02x Code %02x Checksum %04x Hops %d Flags %02x Life %d\n",
                                pxAdvertisement->ucTypeOfMessage,
                                pxAdvertisement->ucCode,
@@ -430,7 +474,7 @@
 
             if( pxAdvertisement->usLifetime != 0U )
             {
-                pxPrefixOption = vReceiveRA_ReadReply( pxNetworkBuffer );
+                pxPrefixOption = vReceiveRA_ReadReply( pxNetworkBuffer, uxPayloadLength );
 
                 configASSERT( pxNetworkBuffer->pxInterface != NULL );
 

@@ -41,7 +41,8 @@
 #include "cbmc.h"
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
-ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                                                   size_t uxPayloadLength )
 {
     ICMPPrefixOption_IPv6_t * pxPrefixOption = safeMalloc( sizeof( ICMPPrefixOption_IPv6_t ) );
 
@@ -124,8 +125,12 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
     pxNetworkEndPoints->pxNext = NULL;
 
-    /* Initialize network buffer. */
-    __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
+    /* Initialize network buffer. vReceiveRA() performs its own size check, so the
+     * only guarantee the caller makes is that the Ethernet and IPv6 headers plus the
+     * start of the ICMP header have been received. Assuming the full
+     * ICMPPacket_IPv6_t would leave the too-small branch, and the fields that are
+     * read before that check, unproven. */
+    __CPROVER_assume( ( ulLen >= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 4U ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
 
     pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ulLen, 0 );
 
