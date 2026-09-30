@@ -1,5 +1,9 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes to be included in an upcoming release:
+    + Fix child socket cleanup with ipconfigTCP_HANG_PROTECTION is disabled (#1342)
+	  We thank Ghaith Abdulreda for their suggestion.
+
 Changes between FreeRTOS-plus-TCP V4.4.1 and V4.4.0 released April 28, 2026:
 	+ Fix heap OOB read in prvProcessICMPEchoReply() (#1335).
 	+ Remove MAC-based loopback validation bypass (#1335).

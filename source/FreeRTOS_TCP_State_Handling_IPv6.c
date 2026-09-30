@@ -199,6 +199,15 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
                 /* Close the socket if it was newly created. */
                 if( xIsNewSocket == pdTRUE )
                 {
+                    /* The listening socket may hold a reference to this child,
+                     * which is about to be freed.  Drop that reference first, if
+                     * it actually refers to this child: the parent may still
+                     * be holding an earlier child that is waiting to be accepted. */
+                    if( pxSocket->u.xTCP.pxPeerSocket == pxReturn )
+                    {
+                        pxSocket->u.xTCP.pxPeerSocket = NULL;
+                    }
+
                     ( void ) vSocketClose( pxReturn );
                 }
 

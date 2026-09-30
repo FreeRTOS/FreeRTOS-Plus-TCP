@@ -491,6 +491,153 @@ void test_prvHandleListen_IPV6_CreateWindowFails( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
+/**
+ * @brief Create TCP window fails for a child that the listening socket refers
+ *        to.  The reference must be cleared before the child is freed, or
+ *        FreeRTOS_accept() / FreeRTOS_select() would dereference freed memory.
+ */
+void test_prvHandleListen_IPV6_CreateWindowFails_ClearsPeerSocket( void )
+{
+    FreeRTOS_Socket_t * pxReturn;
+    TCPPacket_IPv6_t * pxTCPPacket = NULL;
+    uint32_t ulRandomReturn = 0x12345678;
+    FreeRTOS_Socket_t xChildSocket, * pxChildSocket;
+    uint16_t usSrcPort = 0x1234;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    /* Set same IPv6 address to endpoint & buffer. */
+    pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
+    memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+
+    memset( &xChildSocket, 0, sizeof( xChildSocket ) );
+    pxChildSocket = &xChildSocket;
+
+    /* prvTCPSocketCopy() is mocked here, so emulate the parent-to-child
+     * reference that it would have stored. */
+    pxSocket->u.xTCP.pxPeerSocket = pxChildSocket;
+
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP, pxChildSocket );
+    prvTCPSocketCopy_ExpectAndReturn( pxChildSocket, pxSocket, pdTRUE );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdFAIL );
+    vSocketClose_ExpectAndReturn( pxChildSocket, NULL );
+
+    pxReturn = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+    TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxPeerSocket );
+}
+
+/**
+ * @brief Create TCP window fails, but the listening socket refers to a
+ *        different child that is still waiting to be accepted.  That reference
+ *        must survive: clearing it would lose a live connection.
+ */
+void test_prvHandleListen_IPV6_CreateWindowFails_KeepsOtherPeerSocket( void )
+{
+    FreeRTOS_Socket_t * pxReturn;
+    TCPPacket_IPv6_t * pxTCPPacket = NULL;
+    uint32_t ulRandomReturn = 0x12345678;
+    FreeRTOS_Socket_t xChildSocket, * pxChildSocket;
+    FreeRTOS_Socket_t xPendingChild;
+    uint16_t usSrcPort = 0x1234;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    /* Set same IPv6 address to endpoint & buffer. */
+    pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
+    memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+
+    memset( &xChildSocket, 0, sizeof( xChildSocket ) );
+    pxChildSocket = &xChildSocket;
+
+    /* An earlier child is already waiting to be accepted, so
+     * prvTCPSocketCopy() would not have overwritten the reference. */
+    memset( &xPendingChild, 0, sizeof( xPendingChild ) );
+    pxSocket->u.xTCP.pxPeerSocket = &xPendingChild;
+
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP, pxChildSocket );
+    prvTCPSocketCopy_ExpectAndReturn( pxChildSocket, pxSocket, pdTRUE );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdFAIL );
+    vSocketClose_ExpectAndReturn( pxChildSocket, NULL );
+
+    pxReturn = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+    TEST_ASSERT_EQUAL( &xPendingChild, pxSocket->u.xTCP.pxPeerSocket );
+}
+
+/**
+ * @brief Create TCP window fails with the reuse-socket flag set.  Nothing is
+ *        freed in that case, so the listening socket's self-reference must be
+ *        left alone.
+ */
+void test_prvHandleListen_IPV6_ReuseSocket_CreateWindowFails_KeepsPeerSocket( void )
+{
+    FreeRTOS_Socket_t * pxReturn;
+    TCPPacket_IPv6_t * pxTCPPacket = NULL;
+    uint32_t ulRandomReturn = 0x12345678;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    /* Set same IPv6 address to endpoint & buffer. */
+    pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
+
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdFAIL );
+
+    pxReturn = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+    TEST_ASSERT_EQUAL( pxSocket, pxSocket->u.xTCP.pxPeerSocket );
+}
 
 /**
  * @brief Happy path with valid data length.

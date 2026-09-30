@@ -1012,22 +1012,17 @@
         }
         #else
         {
-            /* A reference to the new socket may be stored and the socket is marked
-             * as 'passable'. */
-
             /* When bPassAccept is true, this socket may be returned in a call to
              * accept(). */
             pxNewSocket->u.xTCP.bits.bPassAccept = ipTRUE_BOOL;
-
-            if( pxSocket->u.xTCP.pxPeerSocket == NULL )
-            {
-                pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
-            }
         }
         #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
         pxSocket->u.xTCP.usChildCount++;
 
+        /* Store a reference to the child in the listening socket, so that
+         * accept() can find it.  Note: every path that frees the child must
+         * clear this reference. */
         if( pxSocket->u.xTCP.pxPeerSocket == NULL )
         {
             pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
