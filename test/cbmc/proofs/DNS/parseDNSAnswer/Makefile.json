@@ -2,11 +2,11 @@
   "ENTRY": "parseDNSAnswer",
 
 ################################################################
-# Modeled length of the attacker-controlled DNS payload remaining to be
-# parsed.  Kept small to bound the name-parse / answer-record loops, but the
-# buffer is allocated to EXACTLY this length with nondeterministic contents so
-# any over-read is a real defect.  32 bytes is enough to hold a full AAAA
-# answer record (name ref 2 + fixed header 10 + IPv6 address 16 = 28).
+# Modeled length of the attacker-controlled DNS message.  Kept small to bound
+# the name-parse / answer-record loops, but the buffer is allocated to EXACTLY
+# this length with nondeterministic contents so any over-read is a real defect.
+# 32 bytes is enough to hold a full AAAA answer record (name ref 2 + fixed
+# header 10 + IPv6 address 16 = 28).
   "NETWORK_BUFFER_SIZE": 32,
 
 ################################################################
@@ -18,18 +18,47 @@
   "ANSWERLOOP_UNWIND": "3",
 
 ################################################################
-# DNS_SkipNameField.0 : the name-walk while loop (linked in for real from the
-#   same translation unit).  Each iteration consumes >= 2 bytes, so
-#   (NETWORK_BUFFER_SIZE + 1) / 2 + 1 iterations soundly cover it.
-  "SKIPLOOP": "DNS_SkipNameField.0",
-  "SKIPLOOP_UNWIND": "17",
+# Size of ParseSet_t::pcName, and hence of every name buffer the answer-name
+# validation decodes into or copies around.  This is a proof parameter, not a
+# property of the code: the name-decode loops are all bounded by the
+# destination size, so keeping it small keeps the proof tractable while still
+# exercising every bound check against a NETWORK_BUFFER_SIZE-byte packet.
+  "DNS_CACHE_NAME_LENGTH": 8,
+
+################################################################
+# Every remaining loop walks a DNS name into (or out of) one of those
+# DNS_CACHE_NAME_LENGTH-byte buffers, and each iteration consumes at least one
+# byte of the destination, so DNS_CACHE_NAME_LENGTH + 1 iterations soundly
+# cover them all: the unwinding assertion needs one iteration more than the
+# loop can actually run.
+#
+# DNS_ReadNameField.1 : the outer "walk over the string" while loop.  Each
+#   iteration consumes a length byte plus at least one label byte.
+# DNS_ReadNameField.0 : the inner "while( uxCount-- != 0U )" label copy, only
+#   entered after the function has checked uxNameLen + uxCount < uxDestLen,
+#   so uxCount < DNS_CACHE_NAME_LENGTH.
+# strncpy / strlen / strcasecmp : operate on NUL-terminated names held in
+#   DNS_CACHE_NAME_LENGTH-byte buffers.  Both the plain and the fortified
+#   (__builtin___*_chk) spellings are bounded because which one is emitted is
+#   platform dependent: the CI Linux toolchain produces strncpy, macOS
+#   produces __builtin___strncpy_chk.
+#
+# DNS_SkipNameField is deliberately absent: with the name-validating
+# configuration below (ipconfigUSE_LLMNR / ipconfigUSE_MDNS set),
+# parseDNSAnswer decodes the answer's owner name with DNS_ReadNameField()
+# instead of skipping over it, so that loop is unreachable from this entry
+# point.
+  "NAMELOOP_UNWIND": "9",
 
 ################################################################
 
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset {ANSWERLOOP}:{ANSWERLOOP_UNWIND},{SKIPLOOP}:{SKIPLOOP_UNWIND}"
+    "--unwindset {ANSWERLOOP}:{ANSWERLOOP_UNWIND}",
+    "--unwindset DNS_ReadNameField.0:{NAMELOOP_UNWIND},DNS_ReadNameField.1:{NAMELOOP_UNWIND}",
+    "--unwindset strlen.0:{NAMELOOP_UNWIND},strcasecmp.0:{NAMELOOP_UNWIND}",
+    "--unwindset strncpy.0:{NAMELOOP_UNWIND},__builtin___strncpy_chk.0:{NAMELOOP_UNWIND}"
   ],
 
   "OBJS":
@@ -48,7 +77,7 @@
     "ipconfigUSE_IPv6=1",
     "ipconfigUSE_DNS_CACHE=0",
     "ipconfigDNS_USE_CALLBACKS=0",
-    "ipconfigDNS_CACHE_NAME_LENGTH=16",
+    "ipconfigDNS_CACHE_NAME_LENGTH={DNS_CACHE_NAME_LENGTH}",
     "ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY=4"
   ]
 }
