@@ -2316,16 +2316,23 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 pxOtherSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
 
                 if( ( pxOtherSocket->u.xTCP.eTCPState == eTCP_LISTEN ) &&
-                    ( pxOtherSocket->usLocalPort == usLocalPort ) &&
-                    ( pxOtherSocket->u.xTCP.usChildCount != 0U ) )
+                    ( pxOtherSocket->usLocalPort == usLocalPort ) )
                 {
-                    pxOtherSocket->u.xTCP.usChildCount--;
-                    FreeRTOS_debug_printf( ( "Lost: Socket %u now has %u / %u child%s\n",
-                                             pxOtherSocket->usLocalPort,
-                                             pxOtherSocket->u.xTCP.usChildCount,
-                                             pxOtherSocket->u.xTCP.usBacklog,
-                                             ( pxOtherSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
-                    break;
+                    if( pxOtherSocket->u.xTCP.pxPeerSocket == pxSocketToDelete )
+                    {
+                        pxOtherSocket->u.xTCP.pxPeerSocket = NULL;
+                    }
+
+                    if( pxOtherSocket->u.xTCP.usChildCount != 0U )
+                    {
+                        pxOtherSocket->u.xTCP.usChildCount--;
+                        FreeRTOS_debug_printf( ( "Lost: Socket %u now has %u / %u child%s\n",
+                                                 pxOtherSocket->usLocalPort,
+                                                 pxOtherSocket->u.xTCP.usChildCount,
+                                                 pxOtherSocket->u.xTCP.usBacklog,
+                                                 ( pxOtherSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
+                        break;
+                    }
                 }
             }
         }
