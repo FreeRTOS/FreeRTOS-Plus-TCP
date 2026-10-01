@@ -740,7 +740,8 @@
  */
     static BaseType_t prvIsOwnIPAddress( const IPv6_Address_t * pxIPAddress )
     {
-        const NetworkEndPoint_t * pxEndPoint;
+        /* Not const: FreeRTOS_NextEndPoint() takes a writable end-point. */
+        NetworkEndPoint_t * pxEndPoint;
         BaseType_t xReturn = pdFALSE;
 
         for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
