@@ -427,7 +427,15 @@
 
             if( ulDataLength != 0U )
             {
-                if( ulSequenceNumber < ( pxWindow->tx.ulCurrentSequenceNumber + ulDataLength ) )
+                if( pxSegment->u.bits.bOutstanding == pdFALSE_UNSIGNED )
+                {
+                    /* The segment holds data that has not been put on the wire
+                     * yet: 'bOutstanding' is cleared by lTCPWindowTxAdd() and is
+                     * only set by ulTCPWindowTxGet().  The peer cannot have
+                     * received these bytes */
+                    ulDataLength = 0U;
+                }
+                else if( ulSequenceNumber < ( pxWindow->tx.ulCurrentSequenceNumber + ulDataLength ) )
                 {
                     if( ipconfigTCP_MAY_LOG_PORT( pxWindow->usOurPortNumber ) != pdFALSE )
                     {

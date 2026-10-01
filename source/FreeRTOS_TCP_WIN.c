@@ -2012,6 +2012,13 @@
                     break;
                 }
 
+                /* Every segment beyond this one is unsent as well so stop here. */
+                if( pxSegment->u.bits.bOutstanding == ipFALSE_BOOL )
+                {
+                    /* coverity[break_stmt] : Break statement terminating the loop */
+                    break;
+                }
+
                 ulDataLength = ( uint32_t ) pxSegment->lDataLength;
 
                 if( pxSegment->u.bits.bAcked == ipFALSE_BOOL )
@@ -2072,6 +2079,11 @@
                     /* This function will return the number of bytes that the tail
                      * of txStream may be advanced. */
                     ulBytesConfirmed += ulDataLength;
+
+                    if( pxWindow->pxHeadSegment == pxSegment )
+                    {
+                        pxWindow->pxHeadSegment = NULL;
+                    }
 
                     /* All segments below tx.ulCurrentSequenceNumber may be freed. */
                     vTCPWindowFree( pxSegment );
@@ -2184,14 +2196,36 @@
                                    uint32_t ulSequenceNumber )
         {
             uint32_t ulFirstSequence;
+            uint32_t ulLastPossible;
             uint32_t ulReturn;
 
             /* Receive a normal ACK. */
-
             ulFirstSequence = pxWindow->tx.ulCurrentSequenceNumber;
+
+            /* 'tx.ulHighestSequenceNumber' is SND.NXT */
+            ulLastPossible = pxWindow->tx.ulHighestSequenceNumber;
+
+            if( pxWindow->tx.ulFINSequenceNumber == ulLastPossible )
+            {
+                /* A FIN was sent along with the last data segment.  The FIN
+                 * occupies a sequence number of its own, so the peer's
+                 * cumulative ACK is one beyond the last data byte. */
+                ulLastPossible++;
+            }
 
             if( xSequenceLessThanOrEqual( ulSequenceNumber, ulFirstSequence ) != pdFALSE )
             {
+                /* The ACK is at or below the left-hand side of the window: it
+                 * confirms nothing that is still outstanding. */
+                ulReturn = 0U;
+            }
+            else if( xSequenceGreaterThan( ulSequenceNumber, ulLastPossible ) != pdFALSE )
+            {
+                /* The peer acknowledges data that was never sent, which
+                 * RFC 9293 section 3.10.7.4 calls an unacceptable ACK.
+                 *
+                 * TODO: Drop the packet to furthe conform. This needs to live earlier
+                 * up the call chain. */
                 ulReturn = 0U;
             }
             else

@@ -468,6 +468,8 @@ void test_ulTCPWindowTxAck_datalen_neq( void )
     uint32_t ulSequenceNumber = 10;
 
     xWindow.xTxSegment.lDataLength = 20;
+    /* The segment has been transmitted, so it may be confirmed. */
+    xWindow.xTxSegment.u.bits.bOutstanding = pdTRUE_UNSIGNED;
     xWindow.tx.ulCurrentSequenceNumber = 10;
 
     ulDataLength = ulTCPWindowTxAck( &xWindow,
@@ -482,11 +484,43 @@ void test_ulTCPWindowTxAck_nothing_to_send( void )
     uint32_t ulSequenceNumber = 10;
 
     xWindow.xTxSegment.lDataLength = 20;
+    /* The segment has been transmitted, so it may be confirmed. */
+    xWindow.xTxSegment.u.bits.bOutstanding = pdTRUE_UNSIGNED;
     xWindow.tx.ulCurrentSequenceNumber = 10;
 
     ulDataLength = ulTCPWindowTxAck( &xWindow,
                                      ulSequenceNumber );
     TEST_ASSERT_EQUAL( 0, ulDataLength );
+}
+
+/**
+ * @brief Tiny TCP owns a single TX segment.  lTCPWindowTxAdd() fills it and
+ *        clears 'bOutstanding'; only ulTCPWindowTxGet() puts it on the wire and
+ *        sets that flag.  While the segment is waiting - for instance because
+ *        the peer's window is below MSS - an ACK covering it must confirm
+ *        nothing, otherwise the segment is freed and prvHandleEstablished()
+ *        advances the tail of txStream over data that was never sent.
+ */
+void test_ulTCPWindowTxAck_queued_but_unsent_not_confirmed( void )
+{
+    uint32_t ulDataLength;
+    TCPWindow_t xWindow = { 0 };
+    uint32_t ulSequenceNumber = 40;
+
+    /* 20 bytes are queued in the segment but have not been sent yet. */
+    xWindow.xTxSegment.lDataLength = 20;
+    xWindow.xTxSegment.u.bits.bOutstanding = pdFALSE_UNSIGNED;
+    xWindow.tx.ulCurrentSequenceNumber = 10;
+
+    ulDataLength = ulTCPWindowTxAck( &xWindow,
+                                     ulSequenceNumber );
+
+    /* Nothing is confirmed, ... */
+    TEST_ASSERT_EQUAL( 0, ulDataLength );
+    /* ... the segment still holds the data, ... */
+    TEST_ASSERT_EQUAL( 20, xWindow.xTxSegment.lDataLength );
+    /* ... and the window has not slid. */
+    TEST_ASSERT_EQUAL( 10, xWindow.tx.ulCurrentSequenceNumber );
 }
 
 void test_ulTCPWindowTxAck_seq_gt_current_plus_length( void )
@@ -496,6 +530,8 @@ void test_ulTCPWindowTxAck_seq_gt_current_plus_length( void )
     uint32_t ulSequenceNumber = 40;
 
     xWindow.xTxSegment.lDataLength = 20;
+    /* The segment has been transmitted, so it may be confirmed. */
+    xWindow.xTxSegment.u.bits.bOutstanding = pdTRUE_UNSIGNED;
     xWindow.tx.ulCurrentSequenceNumber = 10;
 
     ulDataLength = ulTCPWindowTxAck( &xWindow,
@@ -512,6 +548,8 @@ void test_ulTCPWindowTxAck_seq_gt_current_plus_length_w_logging( void )
     BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     xWindow.xTxSegment.lDataLength = 20;
+    /* The segment has been transmitted, so it may be confirmed. */
+    xWindow.xTxSegment.u.bits.bOutstanding = pdTRUE_UNSIGNED;
     xWindow.tx.ulCurrentSequenceNumber = 10;
 
     xTCPWindowLoggingLevel = 2;
