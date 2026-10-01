@@ -50,12 +50,12 @@
  */
     typedef enum
     {
-        eNA_DROP = 0,             /* Invalid packet or no action needed. */
-        eNA_CREATE_NEW,           /* Entry not found, create a new STALE one. */
+        eNA_DROP = 0,             /* Invalid packet, or an advertisement we never asked for. */
         eNA_UPDATE_REACHABLE,     /* Update MAC and set state to REACHABLE. */
         eNA_UPDATE_STALE,         /* Update MAC and set state to STALE. */
         eNA_CONFIRM_REACHABLE,    /* MAC matches or not provided, set to REACHABLE. */
         eNA_REJECT_MAC_SET_STALE, /* O=0 and MAC differs: Keep old MAC, set state STALE. */
+        eNA_REJECT_MAC_PROBE,     /* Unsolicited MAC change: Keep old MAC, verify it with NUD. */
         eNA_MAINTAIN              /* Keep current state. */
     } eNaAction_t;
 
@@ -70,6 +70,9 @@
         IPv6_Address_t xTargetIP;
         MACAddress_t xTargetMAC;
         BaseType_t xHasTargetLLA;
+        uint8_t ucTargetLLALength;          /* Length of the TLLA option, in units of 8 bytes. */
+        uint8_t ucCode;                     /* The ICMPv6 Code field, which must be zero. */
+        BaseType_t xDestinationIsMulticast; /* The packet was sent to a multicast address. */
     } NaPacket_t;
 
     typedef enum

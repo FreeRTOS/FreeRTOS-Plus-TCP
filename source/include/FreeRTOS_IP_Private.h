@@ -150,7 +150,7 @@ typedef struct xICMP_HEADER ICMPHeader_t;
 struct xICMPHeader_IPv6
 {
     uint8_t ucTypeOfMessage;     /**< The message type.     0 +  1 = 1 */
-    uint8_t ucCode;              /**< The code field.       1 +  1 = 2 */
+    uint8_t ucTypeOfService;     /**< Type of service.      1 +  1 = 2 */
     uint16_t usChecksum;         /**< Checksum.             2 +  2 = 4 */
     uint32_t ulReserved;         /**< Reserved.             4 +  4 = 8 */
     IPv6_Address_t xIPv6Address; /**< The IPv6 address.     8 + 16 = 24 */
