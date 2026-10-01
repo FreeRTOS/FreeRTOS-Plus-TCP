@@ -9,9 +9,9 @@ Changes to be included in the upcoming release:
 	  ICMPHeader_t, ICMPHeader_IPv6_t, ICMPEcho_IPv6_t,
 	  ICMPRouterSolicitation_IPv6_t and ICMPRouterAdvertisement_IPv6_t
 	  (#1369). RFC 792 and RFC 4443 both name this byte "Code"; an ICMP
-	  header has no Type-of-Service field. Note that this is a source
-	  compatibility break for application or port code that referenced
-	  .ucTypeOfService on any of these structs.
+	  header has no Type-of-Service field. The old name is aliased while
+	  ipconfigENABLE_BACKWARD_COMPATIBILITY is 1, its default, so existing
+	  application and port code keeps compiling.
 
 Changes between FreeRTOS-plus-TCP V4.4.1 and V4.4.0 released April 28, 2026:
 	+ Fix heap OOB read in prvProcessICMPEchoReply() (#1335).

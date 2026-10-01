@@ -1328,6 +1328,65 @@ void test_vReceiveRA_PrefixFollowedByOverrunOption( void )
 }
 
 /**
+ * @brief A Router Advertisement whose ICMP length ends one byte past the last
+ *        option must be discarded.
+ *
+ * Options are whole numbers of 8 octet units, so a single trailing byte cannot be
+ * one. It is too short to even hold an option header, so the parsing loop stops
+ * without inspecting it; without an explicit check the prefix parsed before it would
+ * still be applied, while a tail of 2 to 7 bytes would be rejected. Both are equally
+ * malformed, so both must be discarded.
+ */
+void test_vReceiveRA_PrefixFollowedByOneTrailingByte( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+
+    struct
+    {
+        EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xPacket;
+        uint8_t ucTrailingOption[ 8 ];
+    }
+    xFrame;
+    NetworkInterface_t xInterface;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xFrame, 0, sizeof( xFrame ) );
+    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xFrame;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = sizeof( xFrame );
+
+    xFrame.xPacket.xAdvertisement.usLifetime = pdTRUE_UNSIGNED;
+    xFrame.xPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
+
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 0 ] = 0xFEU;
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 1 ] = 0x80U;
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 15 ] = 0x01U;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 0 ] = 0xFFU;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 1 ] = 0x02U;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 15 ] = 0x01U;
+
+    /* A perfectly valid prefix option ... */
+    pxPrefixOption = &xFrame.xPacket.xPrefixOption;
+    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    pxPrefixOption->ucLength = 4;
+    pxPrefixOption->ucPrefixLength = 64;
+
+    /* ... and an ICMP length that covers it plus exactly one more byte. */
+    xFrame.xPacket.xIPHeader.usPayloadLength =
+        FreeRTOS_htons( ( uint16_t ) ( sizeof( ICMPRouterAdvertisement_IPv6_t ) + sizeof( ICMPPrefixOption_IPv6_t ) + 1U ) );
+
+    xIPv6_GetIPType_ExpectAndReturn( &( xFrame.xPacket.xIPHeader.xSourceAddress ), eIPv6_LinkLocal );
+
+    /* No FreeRTOS_FirstEndPoint() expectation is registered: were the prefix still
+     * returned, the unexpected call would fail this test. */
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
  * @brief Options that lie beyond the IPv6 payload length must not be parsed.
  *
  * RFC 4861 section 6.1.2 requires the ICMP length to be derived from the IP

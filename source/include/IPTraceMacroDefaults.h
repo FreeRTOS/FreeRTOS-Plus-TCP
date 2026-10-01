@@ -813,6 +813,19 @@
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * iptraceRA_DISCARDED
+ *
+ * Called when a received Router Advertisement is discarded, with a string naming
+ * the reason. Lets a port report why SLAAC is not completing on a network whose
+ * router does not conform to RFC 4861 section 6.1.2.
+ */
+#ifndef iptraceRA_DISCARDED
+    #define iptraceRA_DISCARDED( pcReason )
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 /*===========================================================================*/
 /*                      ROUTER ADVERTISEMENT TRACE MACROS                    */
 /*===========================================================================*/

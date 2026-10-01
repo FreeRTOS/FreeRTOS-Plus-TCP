@@ -384,11 +384,23 @@
             uxIndex = uxIndex + uxLength;
         } /* while( ( uxIndex + 1 ) < uxLast ) */
 
+        if( ( xMalformed == pdFALSE ) && ( uxIndex != uxLast ) )
+        {
+            /* Every option is a whole number of 8 octet units, so the options must
+             * end exactly on the ICMP length. A trailing byte that is too short to
+             * form an option header leaves the loop above without being inspected,
+             * and makes the message malformed just as a longer remnant would. */
+            FreeRTOS_printf( ( "RA: %u trailing byte( s ) after the last option\n",
+                               ( unsigned ) ( uxLast - uxIndex ) ) );
+            xMalformed = pdTRUE;
+        }
+
         if( xMalformed != pdFALSE )
         {
             /* A single malformed option invalidates the entire Router Advertisement,
              * including any prefix option that was successfully parsed before it. */
             pxPrefixOption = NULL;
+            iptraceRA_DISCARDED( "a malformed option" );
         }
 
         return pxPrefixOption;
@@ -434,29 +446,34 @@
             FreeRTOS_printf( ( "vReceiveRA: ICMP length %u exceeds the %u bytes received\n",
                                ( unsigned ) uxPayloadLength,
                                ( unsigned ) pxNetworkBuffer->xDataLength ) );
+            iptraceRA_DISCARDED( "ICMP length exceeds the frame" );
         }
         /* First verify it's validity. */
         else if( uxPayloadLength < uxICMPSize )
         {
-            FreeRTOS_debug_printf( ( "vReceiveRA: Error: ICMP length %u is less than %u\n",
-                                     ( unsigned ) uxPayloadLength,
-                                     ( unsigned ) uxICMPSize ) );
+            FreeRTOS_printf( ( "vReceiveRA: Error: ICMP length %u is less than %u\n",
+                               ( unsigned ) uxPayloadLength,
+                               ( unsigned ) uxICMPSize ) );
+            iptraceRA_DISCARDED( "ICMP length below the minimum" );
         }
         else if( pxICMPPacket->xIPHeader.ucHopLimit != raDEFAULT_HOP_LIMIT )
         {
-            FreeRTOS_debug_printf( ( "vReceiveRA: Error: ucHopLimit equals %u\n", pxICMPPacket->xIPHeader.ucHopLimit ) );
+            FreeRTOS_printf( ( "vReceiveRA: Error: ucHopLimit equals %u\n", ( unsigned ) pxICMPPacket->xIPHeader.ucHopLimit ) );
+            iptraceRA_DISCARDED( "hop limit is not 255" );
         }
         else if( pxAdvertisement->ucCode != 0U )
         {
-            FreeRTOS_debug_printf( ( "vReceiveRA: Error: ICMP Code = %u\n", pxAdvertisement->ucCode ) );
+            FreeRTOS_printf( ( "vReceiveRA: Error: ICMP Code = %u\n", ( unsigned ) pxAdvertisement->ucCode ) );
+            iptraceRA_DISCARDED( "ICMP code is not zero" );
         }
 
         /* Classify the source address last, so that the cheaper header checks above
          * run first and no field is read before the size check. */
         else if( xIPv6_GetIPType( &( pxICMPPacket->xIPHeader.xSourceAddress ) ) != eIPv6_LinkLocal )
         {
-            FreeRTOS_debug_printf( ( "vReceiveRA: The source address %pip is not a link-local address\n",
-                                     ( void * ) pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
+            FreeRTOS_printf( ( "vReceiveRA: The source address %pip is not a link-local address\n",
+                               ( void * ) pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
+            iptraceRA_DISCARDED( "source address is not link-local" );
         }
         else
         {
