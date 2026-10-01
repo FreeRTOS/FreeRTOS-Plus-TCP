@@ -1557,6 +1557,54 @@ void test_vNDSendNeighbourSolicitation_HappyPath( void )
 }
 
 /**
+ * @brief When the cache has no slot that may be reclaimed, the solicitation still
+ *        goes out but cannot be recorded. Nothing is learned from the advertisement
+ *        that answers it, which is the safe outcome: better to fail to resolve than
+ *        to accept a binding this stack cannot vouch for.
+ */
+void test_vNDSendNeighbourSolicitation_CacheFull_NoRecord( void )
+{
+    IPv6_Address_t xIPAddress;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    BaseType_t x;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    ( void ) memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    xEndPoint.bits.bIPv6 = 1;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xNetworkBuffer.xDataLength = xHeaderSize;
+    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    /* Every slot holds a router, the one kind of entry that is never reclaimed. */
+    for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
+    {
+        xNDCache[ x ].ucState = eND_REACHABLE;
+        xNDCache[ x ].ucAge = 200U;
+        xNDCache[ x ].ucFlags = 0x01U; /* ndpFLAG_IS_ROUTER */
+        ( void ) memcpy( xNDCache[ x ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        xNDCache[ x ].xIPAddress.ucBytes[ 15 ] = ( uint8_t ) ( 0x60 + x );
+    }
+
+    usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );
+    vReturnEthernetFrame_ExpectAnyArgs();
+
+    vNDSendNeighbourSolicitation( &xNetworkBuffer, &xIPAddress );
+
+    /* The cache is unchanged: no slot was taken for the solicited address. */
+    for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
+    {
+        TEST_ASSERT_EQUAL( xNDCache[ x ].ucState, eND_REACHABLE );
+        TEST_ASSERT_EQUAL( xNDCache[ x ].xIPAddress.ucBytes[ 15 ], ( uint8_t ) ( 0x60 + x ) );
+    }
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+}
+
+/**
  * @brief Re-transmitting a solicitation for an address that is already being
  *        resolved must restart its timeout rather than add a second entry, and a
  *        solicitation for an address that already has a MAC-address (a NUD probe)
@@ -3429,6 +3477,85 @@ void test_prvProcessNA_MalformedOptionZeroLength_Dropped( void )
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
     /* Malformed option: dropped, cache untouched. */
     TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_FREE );
+}
+
+/**
+ * @brief An NDP option that claims to be longer than the bytes the IPv6 payload
+ *        actually leaves is malformed: walking it would read past the packet, so
+ *        the advertisement is dropped.
+ */
+void test_prvProcessNA_OptionLengthPastEndOfPacket_Dropped( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    MACAddress_t xNewMAC = { { 0x02, 0x11, 0x22, 0x33, 0x44, 0x55 } };
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    prvSeedSolicitedEntry( 0, &xDefaultIPAddress );
+
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xDefaultIPAddress, &xNewMAC );
+
+    /* The payload leaves room for one 8-byte unit, but the option claims two. */
+    xICMPPacket.xICMPHeaderIPv6.ucOptionLength = 2U;
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* Dropped before the state machine: the outstanding resolution is untouched. */
+    TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_INCOMPLETE );
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+}
+
+/**
+ * @brief An NDP option of a type this stack does not care about must simply be
+ *        stepped over. With only such an option present nothing is learned, so an
+ *        outstanding resolution stays outstanding.
+ */
+void test_prvProcessNA_NonTllaOption_SkippedAndDropped( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    MACAddress_t xNewMAC = { { 0x02, 0x11, 0x22, 0x33, 0x44, 0x55 } };
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    prvSeedSolicitedEntry( 0, &xDefaultIPAddress );
+
+    prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED, &xDefaultIPAddress, &xNewMAC );
+
+    /* A Source Link-Layer Address option has no meaning in an advertisement. */
+    xICMPPacket.xICMPHeaderIPv6.ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+    pxNDWaitingNetworkBuffer = NULL;
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( NULL );
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    /* No target link-layer address was found, so nothing could be learned. */
+    TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_INCOMPLETE );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0, xNDCache[ 0 ].xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 }
 
 /**
