@@ -56,7 +56,7 @@
  * Receive a DNS reply.
  * The from address must have the same IP address as in pxTargetAddress.
  */
-    BaseType_t DNS_ReadReply( Socket_t xDNSSocket,
+    BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
                               struct freertos_sockaddr * pxAddress,
                               struct xDNSBuffer * pxReceiveBuffer,
                               const IPv46_Address_t * pxTargetAddress );

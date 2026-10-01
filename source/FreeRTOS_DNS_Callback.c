@@ -49,7 +49,10 @@
  *        call the handler.
  *
  * @param[in,out] pxSet a set of variables that are shared among the helper functions.
- * @param[out] ppvSearchID The search ID of the callback function associated
+ * @param[out] ppvSearchID The search ID that belongs to the matching request.
+ *             It is only written when a matching request was found, so that a
+ *             later call that does not match cannot overwrite the search ID
+ *             that an earlier call already reported.
  * @return Returns not NULL if a matching callback function was found.
  */
     FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,
@@ -107,7 +110,15 @@
         }
         ( void ) xTaskResumeAll();
 
-        *( ppvSearchID ) = pvSearchID;
+        if( pCallbackFunction != NULL )
+        {
+            /* Only report the search ID when a request was actually matched.
+             * This function is called once per address record, and the entry is
+             * removed on the first match, so writing unconditionally would
+             * clear the search ID again while handling the second record of a
+             * reply that holds more than one address. */
+            *( ppvSearchID ) = pvSearchID;
+        }
 
         return pCallbackFunction;
     }
