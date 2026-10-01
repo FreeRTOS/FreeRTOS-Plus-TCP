@@ -26,29 +26,36 @@
   "DNS_CACHE_NAME_LENGTH": 8,
 
 ################################################################
-# Every remaining loop walks a DNS name into (or out of) one of those
-# DNS_CACHE_NAME_LENGTH-byte buffers, and each iteration consumes at least one
-# byte of the destination, so DNS_CACHE_NAME_LENGTH + 1 iterations soundly
-# cover them all: the unwinding assertion needs one iteration more than the
-# loop can actually run.
-#
-# DNS_ReadNameField.1 : the outer "walk over the string" while loop.  Each
-#   iteration consumes a length byte plus at least one label byte.
-# DNS_ReadNameField.0 : the inner "while( uxCount-- != 0U )" label copy, only
-#   entered after the function has checked uxNameLen + uxCount < uxDestLen,
-#   so uxCount < DNS_CACHE_NAME_LENGTH.
-# strncpy / strlen / strcasecmp : operate on NUL-terminated names held in
-#   DNS_CACHE_NAME_LENGTH-byte buffers.  Both the plain and the fortified
-#   (__builtin___*_chk) spellings are bounded because which one is emitted is
-#   platform dependent: the CI Linux toolchain produces strncpy, macOS
-#   produces __builtin___strncpy_chk.
-#
-# DNS_SkipNameField is deliberately absent: with the name-validating
-# configuration below (ipconfigUSE_LLMNR / ipconfigUSE_MDNS set),
-# parseDNSAnswer decodes the answer's owner name with DNS_ReadNameField()
-# instead of skipping over it, so that loop is unreachable from this entry
-# point.
+# strncpy / strcasecmp operate on NUL-terminated names held in
+# DNS_CACHE_NAME_LENGTH-byte buffers, so DNS_CACHE_NAME_LENGTH + 1 iterations
+# soundly cover them: the unwinding assertion needs one iteration more than the
+# loop can actually run.  Both the plain and the fortified (__builtin___*_chk)
+# spellings are bounded because which one is emitted is platform dependent: the
+# CI Linux toolchain produces strncpy, macOS produces __builtin___strncpy_chk.
   "NAMELOOP_UNWIND": "9",
+
+################################################################
+# DNS_SkipNameField.0 : the "walk over the string" while loop that advances
+#   pucByte over an answer record's owner name.  Each iteration consumes a
+#   length octet plus at least one label byte, so half the message length plus
+#   one covers it -- the same bound the standalone SkipNameField proof uses.
+  "SKIPLOOP_UNWIND": "__eval ({NETWORK_BUFFER_SIZE} + 1) / 2",
+
+################################################################
+# Number of compression pointers the owner-name decoder is willing to follow.
+# Lowered from its default of 8 purely to keep this proof tractable: the bound
+# only has to be large enough to reach the "too many hops" branch, which two
+# pointers already do.
+  "MAX_COMPRESSION_HOPS": 2,
+
+################################################################
+# DNS_DecodeName.0 : the single loop of the owner-name decoder.  Every
+#   iteration either follows one compression pointer -- at most
+#   MAX_COMPRESSION_HOPS of those -- or consumes a length octet plus at least
+#   one label byte while appending that label to the DNS_CACHE_NAME_LENGTH-byte
+#   destination, so the smaller of half the message and the destination bounds
+#   the rest.
+  "DECODELOOP_UNWIND": "__eval {DNS_CACHE_NAME_LENGTH} + {MAX_COMPRESSION_HOPS} + 1",
 
 ################################################################
 
@@ -56,8 +63,9 @@
   [
     "--unwind 1",
     "--unwindset {ANSWERLOOP}:{ANSWERLOOP_UNWIND}",
-    "--unwindset DNS_ReadNameField.0:{NAMELOOP_UNWIND},DNS_ReadNameField.1:{NAMELOOP_UNWIND}",
-    "--unwindset strlen.0:{NAMELOOP_UNWIND},strcasecmp.0:{NAMELOOP_UNWIND}",
+    "--unwindset DNS_SkipNameField.0:{SKIPLOOP_UNWIND}",
+    "--unwindset DNS_DecodeName.0:{DECODELOOP_UNWIND}",
+    "--unwindset strcasecmp.0:{NAMELOOP_UNWIND}",
     "--unwindset strncpy.0:{NAMELOOP_UNWIND},__builtin___strncpy_chk.0:{NAMELOOP_UNWIND}"
   ],
 
@@ -78,6 +86,7 @@
     "ipconfigUSE_DNS_CACHE=0",
     "ipconfigDNS_USE_CALLBACKS=0",
     "ipconfigDNS_CACHE_NAME_LENGTH={DNS_CACHE_NAME_LENGTH}",
+    "dnsMAX_COMPRESSION_HOPS={MAX_COMPRESSION_HOPS}U",
     "ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY=4"
   ]
 }

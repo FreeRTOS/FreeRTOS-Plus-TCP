@@ -11,9 +11,9 @@
  * compression-pointer path of the answer-name validation reachable.
  *
  * The unparsed tail deliberately is NOT modeled as an object of its own: the
- * function resolves compression pointers backwards against the start of the
- * message, so every byte of the message -- not just the tail -- is legal for it
- * to read, exactly as it is for the real caller in DNS_ParseDNSReply().
+ * function resolves compression pointers against the start of the message, so
+ * every byte of the message -- not just the tail -- is legal for it to read,
+ * exactly as it is for the real caller in DNS_ParseDNSReply().
  */
 
 /* Standard includes. */
@@ -51,9 +51,9 @@ uint32_t parseDNSAnswer( ParseSet_t * pxSet,
 
 /****************************************************************
 * Stubs for callees that live OUTSIDE FreeRTOS_DNS_Parser.c.
-* DNS_SkipNameField lives in the same translation unit and is linked in
-* for real (it is what advances pucByte over the name field), so it is
-* NOT stubbed here.
+* DNS_SkipNameField (which advances pucByte over a name field) and the
+* owner-name decoder both live in the same translation unit and are linked
+* in for real, so they are NOT stubbed here.
 ****************************************************************/
 
 /* usChar2u16 reads two bytes from the packet in host order.  The exact value

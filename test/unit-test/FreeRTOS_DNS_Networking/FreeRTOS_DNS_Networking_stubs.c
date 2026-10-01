@@ -43,12 +43,20 @@
 
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
-/* Definition required by the IPv6 mDNS carve-out in DNS_ReadReply; the real
- * definition lives in FreeRTOS_DNS.c, which is not part of this test suite. */
+/* The IPv6 mDNS and LLMNR groups, used by the tests that check the multicast
+ * carve-out in DNS_ReadReply. The real definitions live in FreeRTOS_DNS.c,
+ * which is not part of this test suite. */
 const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
 {
     { 0xffU, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U,
       0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0xfbU }
+};
+
+/* ff02::1:3 */
+const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
+{
+    { 0xffU, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U,
+      0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x01U, 0x00U, 0x03U }
 };
 
 /* Source address that a stubbed FreeRTOS_recvfrom() will report back to the

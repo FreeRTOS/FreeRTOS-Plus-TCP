@@ -117,20 +117,6 @@
         if( xSent == ( BaseType_t ) pxDNSBuf->uxPayloadLength )
         {
             xReturn = pdPASS;
-
-            /* Logging for debugging only */
-            if( pxAddress->sin_family == FREERTOS_AF_INET4 )
-            {
-                FreeRTOS_debug_printf( ( "DNS_debug SendRequest to server %xip\n", ( unsigned ) FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ) ) );
-            }
-            else if( pxAddress->sin_family == FREERTOS_AF_INET6 )
-            {
-                FreeRTOS_debug_printf( ( "DNS_debug SendRequest to server %pip\n", pxAddress->sin_address.xIP_IPv6.ucBytes ) );
-            }
-            else
-            {
-                FreeRTOS_debug_printf( ( "DNS_debug SendRequest to family %u\n", ( unsigned ) pxAddress->sin_family ) );
-            }
         }
         else
         {
@@ -143,6 +129,43 @@
     }
 /*-----------------------------------------------------------*/
 
+    #if ( ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 )
+
+/**
+ * @brief Check whether a DNS query was addressed to a multicast group.
+ *
+ * Queries sent to a multicast group - mDNS and LLMNR - are answered by the
+ * individual responders, so their replies never carry the address that the
+ * query was sent to and must not be judged by it.
+ *
+ * @param[in] pxTargetAddress The address that the query was sent to.
+ * @return pdTRUE when the query was sent to a multicast group.
+ */
+        static BaseType_t prvIsMulticastTarget( const IPv46_Address_t * pxTargetAddress )
+        {
+            BaseType_t xReturn;
+
+            if( pxTargetAddress->xIs_IPv6 == pdTRUE )
+            {
+                /* Every IPv6 multicast address starts with 0xFF, which covers
+                 * both ipMDNS_IP_ADDR_IPv6 and ipLLMNR_IP_ADDR_IPv6. */
+                xReturn = ( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes[ 0 ] == 0xFFU ) ? pdTRUE : pdFALSE;
+            }
+            else
+            {
+                /* IPv4 multicast is 224.0.0.0/4, which covers both
+                 * ipMDNS_IP_ADDRESS and ipLLMNR_IP_ADDR. 'ulIP_IPv4' is stored
+                 * in network byte order. */
+                uint32_t ulIPAddress = FreeRTOS_ntohl( pxTargetAddress->xIPAddress.ulIP_IPv4 );
+
+                xReturn = ( ( ulIPAddress & 0xF0000000U ) == 0xE0000000U ) ? pdTRUE : pdFALSE;
+            }
+
+            return xReturn;
+        }
+    #endif /* ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 */
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Read from the socket.
  * @param[in] xDNSSocket: the socket that must be bound.
@@ -151,7 +174,7 @@
  * @param[in] pxTargetAddress: The IP-address of the DNS used when sending.
  * @return The result: number of bytes, zero, or negative when error.
  */
-    BaseType_t DNS_ReadReply( Socket_t xDNSSocket,
+    BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
                               struct freertos_sockaddr * pxAddress,
                               struct xDNSBuffer * pxReceiveBuffer,
                               const IPv46_Address_t * pxTargetAddress )
@@ -160,9 +183,10 @@
         uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
         struct freertos_sockaddr xFromAddress;
 
-        TickType_t xTimeoutTime = xIsCallingFromIPTask() ? 0u : pdMS_TO_TICKS( 500u );
-
-        FreeRTOS_setsockopt( xDNSSocket, 0, FREERTOS_SO_RCVTIMEO, &( xTimeoutTime ), sizeof xTimeoutTime );
+        /* Note that the receive time-out was configured when the socket was
+         * created, from 'ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS' for a blocking
+         * look-up and from zero for an asynchronous one. It must not be
+         * overruled here. */
 
         /* Wait for the reply. */
         xReturn = FreeRTOS_recvfrom( xDNSSocket,
@@ -185,56 +209,26 @@
 
             #if ( ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 )
             {
-                uint8_t sin_family = ( pxTargetAddress->xIs_IPv6 == pdTRUE ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4;
-
-                /* A reply of the wrong address family cannot have come from the
-                 * queried server. */
-                xMatch = pdFALSE;
-
-                if( xFromAddress.sin_family == sin_family )
+                if( prvIsMulticastTarget( pxTargetAddress ) == pdTRUE )
                 {
-                    size_t uxLen = ( pxTargetAddress->xIs_IPv6 == pdTRUE ) ? ipSIZE_OF_IPv6_ADDRESS : ipSIZE_OF_IPv4_ADDRESS;
+                    /* The query was multicast, so any responder may answer it. */
+                    xMatch = pdTRUE;
+                }
+                else
+                {
+                    uint8_t ucFamily = ( pxTargetAddress->xIs_IPv6 == pdTRUE ) ? ( uint8_t ) FREERTOS_AF_INET6 : ( uint8_t ) FREERTOS_AF_INET4;
 
-                    /* Accept the reply only if it came from the server that was queried. */
-                    xMatch = ( memcmp( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes, xFromAddress.sin_address.xIP_IPv6.ucBytes, uxLen ) == 0 ) ? pdTRUE : pdFALSE;
+                    /* A reply of the wrong address family cannot have come from
+                     * the queried server. */
+                    xMatch = pdFALSE;
 
-                    if( xMatch == pdFALSE )
+                    if( xFromAddress.sin_family == ucFamily )
                     {
-                        /* The source IP did not match the queried server. Also accept the
-                         * reply if the query was sent to the mDNS multicast address, since
-                         * mDNS responses arrive from individual responders rather than the
-                         * multicast address itself. */
-                        if( pxTargetAddress->xIs_IPv6 == pdTRUE )
-                        {
-                            xMatch = ( memcmp( ipMDNS_IP_ADDR_IPv6.ucBytes, pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) ? pdTRUE : pdFALSE;
-                        }
-                        else
-                        {
-                            xMatch = ( pxTargetAddress->xIPAddress.ulIP_IPv4 == ipMDNS_IP_ADDRESS ) ? pdTRUE : pdFALSE;
-                        }
+                        size_t uxLen = ( pxTargetAddress->xIs_IPv6 == pdTRUE ) ? ipSIZE_OF_IPv6_ADDRESS : ipSIZE_OF_IPv4_ADDRESS;
+
+                        /* Accept the reply only if it came from the server that was queried. */
+                        xMatch = ( memcmp( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes, xFromAddress.sin_address.xIP_IPv6.ucBytes, uxLen ) == 0 ) ? pdTRUE : pdFALSE;
                     }
-                }
-
-                if( pxTargetAddress->xIs_IPv6 == pdTRUE )
-                {
-                    FreeRTOS_debug_printf( ( "DNS_debug Expected answer from %pip match %d\n", pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes, ( int ) xMatch ) );
-                }
-                else
-                {
-                    FreeRTOS_debug_printf( ( "DNS_debug Expected answer from %xip match %d\n", ( unsigned ) FreeRTOS_ntohl( pxTargetAddress->xIPAddress.ulIP_IPv4 ), ( int ) xMatch ) );
-                }
-
-                if( xFromAddress.sin_family == FREERTOS_AF_INET4 )
-                {
-                    FreeRTOS_debug_printf( ( "DNS_debug ReadReply from server %xip\n", ( unsigned ) FreeRTOS_ntohl( xFromAddress.sin_address.ulIP_IPv4 ) ) );
-                }
-                else if( xFromAddress.sin_family == FREERTOS_AF_INET6 )
-                {
-                    FreeRTOS_debug_printf( ( "DNS_debug ReadReply from server %pip\n", xFromAddress.sin_address.xIP_IPv6.ucBytes ) );
-                }
-                else
-                {
-                    FreeRTOS_debug_printf( ( "DNS_debug ReadReply from family %u\n", ( unsigned ) xFromAddress.sin_family ) );
                 }
             }
             #else /* if ( ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 ) */
@@ -247,7 +241,7 @@
 
             if( xMatch == pdFALSE )
             {
-                FreeRTOS_debug_printf( ( "DNS_ReadReply: Source mismatch, discarding packet.\n" ) );
+                FreeRTOS_printf( ( "DNS_ReadReply: Source mismatch, discarding packet.\n" ) );
 
                 /* Return an error so the caller knows this packet is invalid */
                 xReturn = -pdFREERTOS_ERRNO_EINVAL;
@@ -256,7 +250,7 @@
 
         if( xReturn > 0 )
         {
-            memcpy( pxAddress, &xFromAddress, sizeof *pxAddress );
+            ( void ) memcpy( pxAddress, &( xFromAddress ), sizeof( *pxAddress ) );
         }
 
         return xReturn;
