@@ -270,6 +270,12 @@
  *                            options are bounded by this value rather than by the
  *                            length of the received Ethernet frame.
  *
+ * @note vReceiveRA() has already established that uxPayloadLength is at least
+ *       sizeof( ICMPRouterAdvertisement_IPv6_t ) and that the message it describes
+ *       fits inside the received frame. Both properties are relied upon here: the
+ *       subtraction below cannot underflow, and the resulting bound cannot reach
+ *       past the end of the Ethernet buffer.
+ *
  * @returns Returns the ICMP prefix option pointer, pointing to its location in the
  *          input RA reply message buffer, or NULL when no prefix option was found
  *          or when any option in the message was malformed.
@@ -280,30 +286,11 @@
         size_t uxIndex = 0U;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
         const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize;
-        size_t uxLast = 0U;
+        /* uxLast is the number of option bytes that the ICMP length accounts for. */
+        const size_t uxLast = uxPayloadLength - uxICMPSize;
         uint8_t * pucBytes = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
         ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
         BaseType_t xMalformed = pdFALSE;
-
-        if( pxNetworkBuffer->xDataLength > uxNeededSize )
-        {
-            const size_t uxReceived = pxNetworkBuffer->xDataLength - uxNeededSize;
-
-            if( uxPayloadLength > uxICMPSize )
-            {
-                uxLast = uxPayloadLength - uxICMPSize;
-            }
-
-            if( uxLast > uxReceived )
-            {
-                /* usPayloadLength claims more data than was actually received. Never
-                 * read beyond the buffer. */
-                FreeRTOS_printf( ( "RA: Payload length ( %u ) exceeds the buffer ( %u )\n",
-                                   ( unsigned ) uxLast,
-                                   ( unsigned ) uxReceived ) );
-                uxLast = uxReceived;
-            }
-        }
 
         while( ( uxIndex + 1U ) < uxLast )
         {
@@ -424,7 +411,7 @@
         const ICMPPacket_IPv6_t * pxICMPPacket = ( ( const ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         const ICMPPrefixOption_IPv6_t * pxPrefixOption = NULL;
         const size_t uxICMPSize = sizeof( ICMPRouterAdvertisement_IPv6_t );
-        const size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize;
+        const size_t uxIPHeaderBytes = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -434,10 +421,19 @@
         /* Number of bytes following the IPv6 header. The ICMP length is derived from the IP length. */
         const size_t uxPayloadLength = ( size_t ) FreeRTOS_ntohs( pxICMPPacket->xIPHeader.usPayloadLength );
 
-        /* A Router Advertisement was received, handle it here. */
-        if( uxNeededSize > pxNetworkBuffer->xDataLength )
+        /* A Router Advertisement was received, handle it here.
+         *
+         * The IPv6 ingress checks guarantee that at least the Ethernet and IPv6
+         * headers were received, which is what makes reading usPayloadLength above
+         * safe. Nothing past those headers is read until the two length checks below
+         * have both passed; together they establish that the ICMP message described
+         * by the IP header was received in full, and therefore that xDataLength is at
+         * least ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize. */
+        if( ( uxPayloadLength + uxIPHeaderBytes ) > pxNetworkBuffer->xDataLength )
         {
-            FreeRTOS_printf( ( "vReceiveRA: The buffer provided is too small\n" ) );
+            FreeRTOS_printf( ( "vReceiveRA: ICMP length %u exceeds the %u bytes received\n",
+                               ( unsigned ) uxPayloadLength,
+                               ( unsigned ) pxNetworkBuffer->xDataLength ) );
         }
         /* First verify it's validity. */
         else if( uxPayloadLength < uxICMPSize )

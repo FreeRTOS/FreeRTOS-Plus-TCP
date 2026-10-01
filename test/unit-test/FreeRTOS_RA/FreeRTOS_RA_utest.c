@@ -476,8 +476,8 @@ void test_vReceiveNA_bIPAddressInUse( void )
 }
 
 /**
- * @brief This function verify the handling
- *        of incorrect data length.
+ * @brief This function verify the handling of incorrect data length: a frame too
+ *        short to hold the Router Advertisement header must be discarded.
  */
 void test_vReceiveRA_IncorrectDataLength( void )
 {
@@ -494,7 +494,12 @@ void test_vReceiveRA_IncorrectDataLength( void )
 
     xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
-    prvSetIPv6PayloadLength( pxNetworkBuffer );
+    /* Claim a payload that is far larger than the frame, so that the length check
+     * is the only thing that can reject this message: every later check would pass.
+     * Deriving usPayloadLength from xDataLength instead would make the 16 octet
+     * minimum reject the packet first, and this test would then pass even if the
+     * check under test were removed. */
+    xICMPPacket.xIPHeader.usPayloadLength = FreeRTOS_htons( 0xFFFFU );
 
     vReceiveRA( pxNetworkBuffer );
 }
@@ -508,11 +513,15 @@ void test_vReceiveRA_IncorrectDataLength( void )
  * accept path would bail out of vReceiveRA_ReadReply() with a NULL prefix and never
  * reach FreeRTOS_FirstEndPoint() either, so a broken check would go unnoticed.
  *
- * Because a valid prefix is present, reaching the end-point iteration is the
- * observable difference between accepting and discarding the message. The discard
- * tests deliberately register no FreeRTOS_FirstEndPoint() expectation, so if the
- * check under test were removed, CMock would fail the test on the unexpected call.
- * See test_vReceiveRA_vRAProcess() for the accepting counterpart of this fixture.
+ * Each discard test registers only the mock calls that precede the check it covers,
+ * so removing that check makes the next unmocked call fail the test. For the length,
+ * hop limit and ICMP code tests that call is xIPv6_GetIPType(); for the source
+ * address test the message is otherwise acceptable, so it is FreeRTOS_FirstEndPoint().
+ *
+ * test_vReceiveRA_vRAProcess() builds its packet with this same fixture and asserts
+ * that the end-point is updated, which is what keeps the fixture honest: if a change
+ * here made the packet unacceptable, that test would fail rather than silently
+ * disarming every discard test below.
  */
 static void prvBuildAcceptableRA( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                   EthernetPacketICMPv6RouterAdvertisementPrefixOption_t * pxICMPPacket,
@@ -530,6 +539,18 @@ static void prvBuildAcceptableRA( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
     pxICMPPacket->xAdvertisement.usLifetime = pdTRUE_UNSIGNED;
     pxICMPPacket->xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
+
+    /* The source and destination addresses must differ, and must not be all zeroes.
+     * CMock compares the pointed-to bytes rather than the pointer, so an
+     * xIPv6_GetIPType_ExpectAndReturn() on the source address only pins down which
+     * of the two the code classifies when their contents are distinguishable.
+     * fe80::1 as the source, ff02::1 as the destination. */
+    pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 0 ] = 0xFEU;
+    pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 1 ] = 0x80U;
+    pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 15 ] = 0x01U;
+    pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes[ 0 ] = 0xFFU;
+    pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes[ 1 ] = 0x02U;
+    pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes[ 15 ] = 0x01U;
 
     pxPrefixOption = &( pxICMPPacket->xPrefixOption );
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
@@ -1138,6 +1159,12 @@ void test_vReceiveRA_vRAProccess( void )
 
 /**
  * @brief This function verify vReceiveRA success case.
+ *
+ * This is the accepting counterpart of prvBuildAcceptableRA(): it drives the exact
+ * packet that fixture produces all the way through to the end-point update. That
+ * makes it the guard for every discard test built on the same fixture - if a change
+ * to the fixture stopped the packet from being accepted, this test fails instead of
+ * those tests quietly ceasing to exercise their checks.
  */
 void test_vReceiveRA_vRAProcess( void )
 {
@@ -1146,40 +1173,24 @@ void test_vReceiveRA_vRAProcess( void )
     NetworkInterface_t xInterface;
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     ICMPPrefixOption_IPv6_t * pxPrefixOption;
-    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
 
-    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
-    memset( &xICMPPacket, 0, sizeof( xICMPPacket ) );
-    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
-    pxNetworkBuffer->pxInterface = &xInterface;
-    pxNetworkBuffer->xDataLength = raHeaderBytesRA + sizeof( ICMPPrefixOption_IPv6_t );
-    pxAdvertisement = &xICMPPacket.xAdvertisement;
-    pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
 
     pxPrefixOption = &xICMPPacket.xPrefixOption;
-    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
-    pxPrefixOption->ucLength = 4;
-    pxPrefixOption->ucPrefixLength = 64;
-
 
     pxEndPoint->bits.bWantRA = pdTRUE_UNSIGNED;
     pxEndPoint->xRAData.eRAState = eRAStateWait;
 
-    xICMPPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
-
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    xIPv6_GetIPType_ExpectAndReturn( &( xICMPPacket.xIPHeader.xSourceAddress ), eIPv6_LinkLocal );
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
     vDHCP_RATimerReload_ExpectAnyArgs();
-
-    prvSetIPv6PayloadLength( pxNetworkBuffer );
 
     vReceiveRA( pxNetworkBuffer );
 
@@ -1226,6 +1237,15 @@ void test_vReceiveRA_PrefixFollowedByZeroLengthOption( void )
     xFrame.xPacket.xAdvertisement.usLifetime = pdTRUE_UNSIGNED;
     xFrame.xPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
 
+    /* Distinguishable source and destination addresses, so that the expectation
+     * below pins down which of the two is classified. See prvBuildAcceptableRA(). */
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 0 ] = 0xFEU;
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 1 ] = 0x80U;
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 15 ] = 0x01U;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 0 ] = 0xFFU;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 1 ] = 0x02U;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 15 ] = 0x01U;
+
     /* A perfectly valid prefix option ... */
     pxPrefixOption = &xFrame.xPacket.xPrefixOption;
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
@@ -1235,6 +1255,68 @@ void test_vReceiveRA_PrefixFollowedByZeroLengthOption( void )
     /* ... followed by an option whose length is zero. */
     xFrame.ucTrailingOption[ 0 ] = ndICMP_MTU_OPTION;
     xFrame.ucTrailingOption[ 1 ] = 0U;
+
+    xIPv6_GetIPType_ExpectAndReturn( &( xFrame.xPacket.xIPHeader.xSourceAddress ), eIPv6_LinkLocal );
+
+    prvSetIPv6PayloadLength( pxNetworkBuffer );
+
+    /* No FreeRTOS_FirstEndPoint() expectation is registered: were the prefix still
+     * returned, the unexpected call would fail this test. */
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief A Router Advertisement carrying a valid Prefix Information option
+ *        followed by an option that runs past the end of the message must be
+ *        discarded in its entirety.
+ *
+ * This is the overrun counterpart of test_vReceiveRA_PrefixFollowedByZeroLengthOption().
+ * The trailing option declares a length of 2 - sixteen octets - while only eight
+ * octets of the message remain. Returning the prefix that parsed before it would let
+ * an attacker drive SLAAC with a truncated RA, so the end-point must be left
+ * untouched.
+ */
+void test_vReceiveRA_PrefixFollowedByOverrunOption( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+
+    struct
+    {
+        EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xPacket;
+        uint8_t ucTrailingOption[ 8 ];
+    }
+    xFrame;
+    NetworkInterface_t xInterface;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xFrame, 0, sizeof( xFrame ) );
+    memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xFrame;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = sizeof( xFrame );
+
+    xFrame.xPacket.xAdvertisement.usLifetime = pdTRUE_UNSIGNED;
+    xFrame.xPacket.xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
+
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 0 ] = 0xFEU;
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 1 ] = 0x80U;
+    xFrame.xPacket.xIPHeader.xSourceAddress.ucBytes[ 15 ] = 0x01U;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 0 ] = 0xFFU;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 1 ] = 0x02U;
+    xFrame.xPacket.xIPHeader.xDestinationAddress.ucBytes[ 15 ] = 0x01U;
+
+    /* A perfectly valid prefix option ... */
+    pxPrefixOption = &xFrame.xPacket.xPrefixOption;
+    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    pxPrefixOption->ucLength = 4;
+    pxPrefixOption->ucPrefixLength = 64;
+
+    /* ... followed by an option claiming 16 octets when only 8 remain. */
+    xFrame.ucTrailingOption[ 0 ] = ndICMP_MTU_OPTION;
+    xFrame.ucTrailingOption[ 1 ] = 2U;
 
     xIPv6_GetIPType_ExpectAndReturn( &( xFrame.xPacket.xIPHeader.xSourceAddress ), eIPv6_LinkLocal );
 
@@ -1287,6 +1369,31 @@ void test_vReceiveRA_PayloadLengthTooSmall( void )
 
     /* One octet short of the 16 octet minimum. */
     xICMPPacket.xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPRouterAdvertisement_IPv6_t ) - 1U );
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief An ICMP length that reaches beyond the received frame must be rejected
+ *        rather than trimmed to fit.
+ *
+ * The IPv6 ingress checks already drop such a packet before vReceiveRA() is reached,
+ * so this is a backstop. It is still worth driving: trimming the bound and then
+ * carrying on would accept an RA whose own IP header says it was truncated, which is
+ * exactly the inconsistency the length check exists to reject.
+ */
+void test_vReceiveRA_PayloadLengthExceedsFrame( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
+    NetworkInterface_t xInterface;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
+
+    /* Claim one octet more of payload than the frame actually carries. */
+    xICMPPacket.xIPHeader.usPayloadLength =
+        FreeRTOS_htons( ( uint16_t ) ( ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) ) + 1U ) );
 
     vReceiveRA( pxNetworkBuffer );
 }

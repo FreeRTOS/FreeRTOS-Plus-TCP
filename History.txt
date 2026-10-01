@@ -2,10 +2,9 @@ Documentation and download available at https://www.FreeRTOS.org/
 
 Changes to be included in the upcoming release:
 	+ Add Router Advertisement validations for RFC 4861 section 6.1.2
-	  conformance: the IP source address must be link-local, the IP hop
-	  limit must be 255, and the ICMP code must be 0 (#1369). We thank
-	  Causal Security (https://causalsecurity.com) for their help
-	  identifying this issue, and @htibosch for their collaboration.
+	  (#1369). A malformed option now discards the whole message, so an RA
+	  that previously drove SLAAC may now be rejected. Thanks to Causal
+	  Security (https://causalsecurity.com) and @htibosch for their help.
 	+ Rename the ICMP header field ucTypeOfService to ucCode in
 	  ICMPHeader_t, ICMPHeader_IPv6_t, ICMPEcho_IPv6_t,
 	  ICMPRouterSolicitation_IPv6_t and ICMPRouterAdvertisement_IPv6_t
