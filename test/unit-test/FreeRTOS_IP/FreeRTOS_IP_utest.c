@@ -1170,7 +1170,7 @@ void test_FreeRTOS_SendPingRequest_HappyPath( void )
 
     TEST_ASSERT_EQUAL( 1, xReturn );
     TEST_ASSERT_EQUAL( 8 /* ipICMP_ECHO_REQUEST */, pxICMPHeader->ucTypeOfMessage );
-    TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucCode );
+    TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucTypeOfService );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usIdentifier );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
     TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );
@@ -1221,7 +1221,7 @@ void test_FreeRTOS_SendPingRequest_SendingToIPTaskFails( void )
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
     TEST_ASSERT_EQUAL( 8 /* ipICMP_ECHO_REQUEST */, pxICMPHeader->ucTypeOfMessage );
-    TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucCode );
+    TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucTypeOfService );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usIdentifier );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
     TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );

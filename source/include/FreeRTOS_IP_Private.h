@@ -138,7 +138,7 @@ typedef struct xARP_HEADER ARPHeader_t;
 struct xICMP_HEADER
 {
     uint8_t ucTypeOfMessage;   /**< The ICMP type                     0 + 1 = 1 */
-    uint8_t ucCode;            /**< The ICMP code field               1 + 1 = 2 */
+    uint8_t ucTypeOfService;   /**< The ICMP subtype                  1 + 1 = 2 */
     uint16_t usChecksum;       /**< The checksum of whole ICMP packet 2 + 2 = 4 */
     uint16_t usIdentifier;     /**< Used in some types of ICMP        4 + 2 = 6 */
     uint16_t usSequenceNumber; /**< Used in some types of ICMP        6 + 2 = 8 */
@@ -150,7 +150,7 @@ typedef struct xICMP_HEADER ICMPHeader_t;
 struct xICMPHeader_IPv6
 {
     uint8_t ucTypeOfMessage;     /**< The message type.     0 +  1 = 1 */
-    uint8_t ucCode;              /**< The code field.       1 +  1 = 2 */
+    uint8_t ucTypeOfService;     /**< Type of service.      1 +  1 = 2 */
     uint16_t usChecksum;         /**< Checksum.             2 +  2 = 4 */
     uint32_t ulReserved;         /**< Reserved.             4 +  4 = 8 */
     IPv6_Address_t xIPv6Address; /**< The IPv6 address.     8 + 16 = 24 */

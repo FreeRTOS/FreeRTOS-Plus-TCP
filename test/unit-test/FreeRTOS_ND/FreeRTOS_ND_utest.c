@@ -1738,7 +1738,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitation( void )
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucTypeOfMessage, ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6 );
-    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucCode, 0U );
+    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucTypeOfService, 0U );
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionType, ndICMP_TARGET_LINK_LAYER_ADDRESS );
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionLength, 1U );
     TEST_ASSERT_EQUAL_MEMORY( pxICMPHeader_IPv6->ucOptionBytes, xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );

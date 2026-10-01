@@ -614,7 +614,7 @@ void test_vReceiveRA_NonZeroICMPCode( void )
     prvBuildAcceptableRA( pxNetworkBuffer, &xICMPPacket, &xInterface );
 
     /* Any code other than zero must be rejected. */
-    xICMPPacket.xAdvertisement.ucCode = 1U;
+    xICMPPacket.xAdvertisement.ucTypeOfService = 1U;
 
     vReceiveRA( pxNetworkBuffer );
 }

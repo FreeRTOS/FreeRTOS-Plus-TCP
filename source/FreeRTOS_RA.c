@@ -461,9 +461,9 @@
             FreeRTOS_printf( ( "vReceiveRA: Error: ucHopLimit equals %u\n", ( unsigned ) pxICMPPacket->xIPHeader.ucHopLimit ) );
             iptraceRA_DISCARDED( "hop limit is not 255" );
         }
-        else if( pxAdvertisement->ucCode != 0U )
+        else if( pxAdvertisement->ucTypeOfService != 0U )
         {
-            FreeRTOS_printf( ( "vReceiveRA: Error: ICMP Code = %u\n", ( unsigned ) pxAdvertisement->ucCode ) );
+            FreeRTOS_printf( ( "vReceiveRA: Error: ICMP Code = %u\n", ( unsigned ) pxAdvertisement->ucTypeOfService ) );
             iptraceRA_DISCARDED( "ICMP code is not zero" );
         }
 
@@ -479,7 +479,7 @@
         {
             FreeRTOS_printf( ( "RA: Type %02x Code %02x Checksum %04x Hops %d Flags %02x Life %d\n",
                                pxAdvertisement->ucTypeOfMessage,
-                               pxAdvertisement->ucCode,
+                               pxAdvertisement->ucTypeOfService,
                                FreeRTOS_ntohs( pxAdvertisement->usChecksum ),
                                pxAdvertisement->ucHopLimit,
                                pxAdvertisement->ucFlags,

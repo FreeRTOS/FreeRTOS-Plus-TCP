@@ -1360,7 +1360,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 
                 /* Fill in the basic header information. */
                 pxICMPHeader->ucTypeOfMessage = ipICMP_ECHO_REQUEST;
-                pxICMPHeader->ucCode = 0;
+                pxICMPHeader->ucTypeOfService = 0;
                 pxICMPHeader->usIdentifier = usSequenceNumber;
                 pxICMPHeader->usSequenceNumber = usSequenceNumber;
 

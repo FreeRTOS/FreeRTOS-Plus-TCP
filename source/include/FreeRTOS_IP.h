@@ -480,11 +480,6 @@ extern NetworkBufferDescriptor_t * pxNDWaitingNetworkBuffer;
 
     #define FOnUdpSent                    FOnUDPSent_t
     #define FOnTcpSent                    FOnTCPSent_t
-
-/* The ICMP header field holding the Code byte was named ucTypeOfService until
- * October 2026. ICMP has no Type-of-Service field, so it is now ucCode, matching
- * RFC 792 and RFC 4443. No other struct has a ucTypeOfService member, so aliasing
- * the old name keeps application and port code compiling. */
     #define ucTypeOfService               ucCode
 #endif /* ipconfigENABLE_BACKWARD_COMPATIBILITY */
 
