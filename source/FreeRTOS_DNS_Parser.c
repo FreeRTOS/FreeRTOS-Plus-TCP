@@ -356,16 +356,17 @@
 
                             /* There is no question to take the name from, so
                              * take it from the first answer instead. The answer
-                             * records are validated against it below, so it has
-                             * to be filled in under the same conditions as that
-                             * check is compiled under. The parse position is
+                             * records are validated against it, so it has to be
+                             * filled in under the same conditions that the
+                             * validation is compiled under. Nothing precedes
+                             * these records but the header, so the name cannot
+                             * usefully be a compression pointer; should it be
+                             * one anyway, the name stays empty and every record
+                             * fails the validation. The parse position is
                              * deliberately not advanced. */
-                            ( void ) DNS_DecodeName( xSet.pucUDPPayloadBuffer,
-                                                     xSet.uxBufferLength,
-                                                     xSet.pucByte,
-                                                     xSet.uxSourceBytesRemaining,
-                                                     xSet.pcName,
-                                                     sizeof( xSet.pcName ) );
+                            uxResult = DNS_ReadNameField( &xSet,
+                                                          sizeof( xSet.pcName ) );
+                            ( void ) uxResult;
                         #endif
                     }
                 }
