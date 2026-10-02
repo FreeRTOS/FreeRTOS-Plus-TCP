@@ -270,6 +270,131 @@ void test_prvHandleListen_IPV4_NewSocket_CreateWindowFailed( void )
 }
 
 /**
+ * @brief Create TCP window fails for a child that the listening socket refers
+ *        to.  The reference must be cleared before the child is freed, or
+ *        FreeRTOS_accept() / FreeRTOS_select() would dereference freed memory.
+ */
+void test_prvHandleListen_IPV4_NewSocket_CreateWindowFailed_ClearsPeerSocket( void )
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    FreeRTOS_Socket_t MockReturnSocket;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+
+    /* prvTCPSocketCopy() is mocked here, so emulate the parent-to-child
+     * reference that it would have stored. */
+    pxSocket->u.xTCP.pxPeerSocket = &MockReturnSocket;
+
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
+    prvTCPSocketCopy_ExpectAndReturn( &MockReturnSocket, pxSocket, pdTRUE );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdFAIL );
+    vSocketClose_ExpectAndReturn( &MockReturnSocket, NULL );
+
+    pxReturn = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+    TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxPeerSocket );
+}
+
+/**
+ * @brief Create TCP window fails, but the listening socket refers to a
+ *        different child that is still waiting to be accepted.  That reference
+ *        must survive: clearing it would lose a live connection.
+ */
+void test_prvHandleListen_IPV4_NewSocket_CreateWindowFailed_KeepsOtherPeerSocket( void )
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    FreeRTOS_Socket_t MockReturnSocket;
+    FreeRTOS_Socket_t xPendingChild;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+
+    /* An earlier child is already waiting to be accepted, so
+     * prvTCPSocketCopy() would not have overwritten the reference. */
+    memset( &xPendingChild, 0, sizeof( xPendingChild ) );
+    pxSocket->u.xTCP.pxPeerSocket = &xPendingChild;
+
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
+    prvTCPSocketCopy_ExpectAndReturn( &MockReturnSocket, pxSocket, pdTRUE );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdFAIL );
+    vSocketClose_ExpectAndReturn( &MockReturnSocket, NULL );
+
+    pxReturn = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+    TEST_ASSERT_EQUAL( &xPendingChild, pxSocket->u.xTCP.pxPeerSocket );
+}
+
+/**
+ * @brief Create TCP window fails with the reuse-socket flag set.  Nothing is
+ *        freed in that case, so the listening socket's self-reference must be
+ *        left alone.
+ */
+void test_prvHandleListen_IPV4_ReuseSocket_CreateWindowFailed_KeepsPeerSocket( void )
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
+
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdFAIL );
+    vTCPStateChange_Ignore();
+
+    pxReturn = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+    TEST_ASSERT_EQUAL( pxSocket, pxSocket->u.xTCP.pxPeerSocket );
+}
+
+/**
  * @brief Happy path with valid data length.
  */
 void test_prvHandleListen_IPV4_NewSocketGoodValidDataLength( void )
