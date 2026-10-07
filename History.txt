@@ -1,5 +1,18 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes to be included in the upcoming release:
+	+ Add Router Advertisement validations for RFC 4861 section 6.1.2
+	  (#1369). A malformed option now discards the whole message, so an RA
+	  that previously drove SLAAC may now be rejected. Thanks to Causal
+	  Security (https://causalsecurity.com) and @htibosch for their help.
+	+ Rename the ICMP header field ucTypeOfService to ucCode in
+	  ICMPHeader_t, ICMPHeader_IPv6_t, ICMPEcho_IPv6_t,
+	  ICMPRouterSolicitation_IPv6_t and ICMPRouterAdvertisement_IPv6_t
+	  (#1369). RFC 792 and RFC 4443 both name this byte "Code"; an ICMP
+	  header has no Type-of-Service field. The old name is aliased while
+	  ipconfigENABLE_BACKWARD_COMPATIBILITY is 1, its default, so existing
+	  application and port code keeps compiling.
+
 Changes between FreeRTOS-plus-TCP V4.4.1 and V4.4.0 released April 28, 2026:
 	+ Fix heap OOB read in prvProcessICMPEchoReply() (#1335).
 	+ Remove MAC-based loopback validation bypass (#1335).

@@ -5,6 +5,7 @@
     "--unwind 2",
     "--unwindset FreeRTOS_NextEndPoint.0:1",
     "--unwindset FreeRTOS_CreateIPv6Address.0:5",
+    "--unwindset xIPv6_GetIPType.0:7",
     "--nondet-static"
   ],
   "OPT":

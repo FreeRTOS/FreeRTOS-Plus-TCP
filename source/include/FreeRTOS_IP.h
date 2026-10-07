@@ -480,6 +480,7 @@ extern NetworkBufferDescriptor_t * pxNDWaitingNetworkBuffer;
 
     #define FOnUdpSent                    FOnUDPSent_t
     #define FOnTcpSent                    FOnTCPSent_t
+    #define ucTypeOfService               ucCode
 #endif /* ipconfigENABLE_BACKWARD_COMPATIBILITY */
 
 #if ( ipconfigHAS_PRINTF != 0 )

@@ -44,7 +44,8 @@
 * Signature of the function under test
 ****************************************************************/
 
-ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                                                   size_t uxPayloadLength );
 
 
 void harness()
@@ -53,6 +54,7 @@ void harness()
     uint8_t * pucBytes;
     size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterAdvertisement_IPv6_t );
     size_t uxDataLen = 8;
+    size_t uxPayloadLength;
     ICMPPrefixOption_IPv6_t * pxReturn;
 
     /* The code does not expect pxNetworkBuffer to be NULL. */
@@ -66,5 +68,17 @@ void harness()
     pxNetworkBuffer->pxInterface = safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxInterface != NULL );
 
-    pxReturn = __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( pxNetworkBuffer );
+    /* The payload length originates in the received packet, so it is attacker
+     * controlled, but vReceiveRA() rejects the message before calling this function
+     * unless the ICMP length covers at least the Router Advertisement header and the
+     * message it describes was received in full. Those are the two properties this
+     * function relies on to keep the option walk inside the buffer, so assume them
+     * here and leave the value otherwise unconstrained. Expressing the bound with the
+     * local sizes rather than by reading pxNetworkBuffer->xDataLength back keeps the
+     * assumption effective. */
+    uxPayloadLength = nondet_sizet();
+    __CPROVER_assume( uxPayloadLength >= sizeof( ICMPRouterAdvertisement_IPv6_t ) );
+    __CPROVER_assume( uxPayloadLength <= ( sizeof( ICMPRouterAdvertisement_IPv6_t ) + uxDataLen ) );
+
+    pxReturn = __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( pxNetworkBuffer, uxPayloadLength );
 }
