@@ -161,6 +161,9 @@ struct xICMPHeader_IPv6
 #include "pack_struct_end.h"
 typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
 
+/** @brief The header size of an ICMPv6 header, without the first option. */
+#define ndICMPv6_HEADER_SIZE    ( 24U )
+
 #include "pack_struct_start.h"
 struct xUDP_HEADER
 {

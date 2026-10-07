@@ -130,6 +130,35 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     return uxResult;
 }
 
+/* Checking a Neighbour Advertisement against the addresses this device owns walks
+ * the end-point list. A real list is finite, so model it as a chain of at most
+ * ndHARNESS_ENDPOINT_COUNT end-points whose contents stay nondeterministic. */
+#define ndHARNESS_ENDPOINT_COUNT    2
+
+static NetworkEndPoint_t xHarnessEndPoints[ ndHARNESS_ENDPOINT_COUNT ];
+
+NetworkEndPoint_t * FreeRTOS_FirstEndPoint( const NetworkInterface_t * pxInterface )
+{
+    size_t uxIndex;
+
+    for( uxIndex = 0; uxIndex < ndHARNESS_ENDPOINT_COUNT; uxIndex++ )
+    {
+        xHarnessEndPoints[ uxIndex ].pxNext =
+            ( ( uxIndex + 1U ) < ndHARNESS_ENDPOINT_COUNT ) ? &( xHarnessEndPoints[ uxIndex + 1U ] ) : NULL;
+    }
+
+    /* The list may also be empty. */
+    return nondet_bool() ? &( xHarnessEndPoints[ 0 ] ) : NULL;
+}
+
+NetworkEndPoint_t * FreeRTOS_NextEndPoint( const NetworkInterface_t * pxInterface,
+                                           NetworkEndPoint_t * pxEndPoint )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "The end-point cannot be NULL." );
+
+    return pxEndPoint->pxNext;
+}
+
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
