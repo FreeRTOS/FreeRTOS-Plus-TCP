@@ -1453,7 +1453,7 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
  *
  * Type: size_t
  * Unit: bytes
- * Minimum: 536 ( tcpMINIMUM_SEGMENT_LENGTH )
+ * Minimum when ipconfigUSE_TCP is enabled: 536 ( tcpMINIMUM_SEGMENT_LENGTH )
  *
  * Sets the MSS value (in bytes) for all TCP packets.
  *
@@ -1474,13 +1474,15 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
     #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - 40U )
 #endif
 
-#if ( ipconfigTCP_MSS < 536 )
-    #error ipconfigTCP_MSS must be at least 536 ( tcpMINIMUM_SEGMENT_LENGTH )
-#endif
+#if ( ipconfigUSE_TCP == ipconfigENABLE )
+    #if ( ipconfigTCP_MSS < 536 )
+        #error ipconfigTCP_MSS must be at least 536 ( tcpMINIMUM_SEGMENT_LENGTH )
+    #endif
 
-#if ( ipconfigTCP_MSS > SIZE_MAX )
-    #error ipconfigTCP_MSS overflows a size_t
-#endif
+    #if ( ipconfigTCP_MSS > SIZE_MAX )
+        #error ipconfigTCP_MSS overflows a size_t
+    #endif
+#endif /* if ( ipconfigUSE_TCP == ipconfigENABLE ) */
 
 /*---------------------------------------------------------------------------*/
 
