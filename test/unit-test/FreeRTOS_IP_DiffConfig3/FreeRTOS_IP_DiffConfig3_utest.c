@@ -48,8 +48,11 @@
 #include "mock_FreeRTOS_DHCPv6.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_IPv4.h"
+#include "mock_FreeRTOS_IPv6.h"
 
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 
 /*#include "FreeRTOS_IP_stubs.c" */
 #include "catch_assert.h"
@@ -82,6 +85,67 @@ void setUp( void )
 /*! called after each test case */
 void tearDown( void )
 {
+}
+
+static void prvPrepareIPv4Packet( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  NetworkEndPoint_t * pxEndPoint,
+                                  IPPacket_t * pxIPPacket )
+{
+    ( void ) memset( pxNetworkBuffer, 0, sizeof( *pxNetworkBuffer ) );
+    ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+    ( void ) memset( pxIPPacket, 0, sizeof( *pxIPPacket ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxIPPacket;
+    pxNetworkBuffer->xDataLength = sizeof( *pxIPPacket );
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0x01020304U;
+    pxEndPoint->ipv4_settings.ulBroadcastAddress = 0x010203FFU;
+    ( void ) memset( pxEndPoint->xMACAddress.ucBytes, 0x11, sizeof( MACAddress_t ) );
+
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    ( void ) memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                     pxEndPoint->xMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    ( void ) memset( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MIN;
+    pxIPPacket->xIPHeader.ulDestinationIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+    pxIPPacket->xIPHeader.ulSourceIPAddress = 0x05060708U;
+}
+
+static void prvExpectValidIPv4Source( const IPPacket_t * pxIPPacket )
+{
+    xBadIPv4Loopback_ExpectAndReturn( &( pxIPPacket->xIPHeader ), pdFALSE );
+    xIsIPv4Multicast_ExpectAndReturn( pxIPPacket->xIPHeader.ulSourceIPAddress, pdFALSE );
+}
+
+static void prvPrepareIPv6Packet( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  NetworkEndPoint_t * pxEndPoint,
+                                  IPPacket_IPv6_t * pxIPPacket )
+{
+    ( void ) memset( pxNetworkBuffer, 0, sizeof( *pxNetworkBuffer ) );
+    ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+    ( void ) memset( pxIPPacket, 0, sizeof( *pxIPPacket ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxIPPacket;
+    pxNetworkBuffer->xDataLength = sizeof( *pxIPPacket );
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    pxEndPoint->bits.bIPv6 = pdTRUE_UNSIGNED;
+    pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
+    pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ ipSIZE_OF_IPv6_ADDRESS - 1U ] = 2U;
+
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+    pxIPPacket->xIPHeader.xDestinationAddress = pxEndPoint->ipv6_settings.xIPAddress;
+    pxIPPacket->xIPHeader.xSourceAddress.ucBytes[ ipSIZE_OF_IPv6_ADDRESS - 1U ] = 1U;
+}
+
+static void prvExpectNoIPv6Loopback( const IPPacket_IPv6_t * pxIPPacket )
+{
+    xIsIPv6Loopback_ExpectAndReturn( &( pxIPPacket->xIPHeader.xSourceAddress ), pdFALSE );
+    xIsIPv6Loopback_ExpectAndReturn( &( pxIPPacket->xIPHeader.xDestinationAddress ), pdFALSE );
 }
 
 /* ======================== Stub Callback Functions ========================= */
@@ -245,4 +309,323 @@ void test_prvProcessEthernetPacket_IPv4FrameType_CheckFrameFail( void )
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+/**
+ * @brief Invalid descriptors and truncated Ethernet headers must be rejected.
+ */
+void test_eConsiderPacketForProcessing_InvalidDescriptor( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    uint8_t ucEthernetBuffer[ sizeof( EthernetHeader_t ) ] = { 0 };
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( NULL ) );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    xNetworkBuffer.xDataLength = sizeof( ucEthernetBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xNetworkBuffer.xDataLength--;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief ARP and enabled custom Ethernet frames pass the common packet filter.
+ */
+void test_eConsiderPacketForProcessing_ARPAndCustomFrames( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    EthernetHeader_t xEthernetHeader = { 0 };
+
+    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) &xEthernetHeader;
+    xNetworkBuffer.xDataLength = sizeof( xEthernetHeader );
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+
+    xEthernetHeader.usFrameType = ipARP_FRAME_TYPE;
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    xEthernetHeader.usFrameType = 0xFFFFU;
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief IPv4 packets require an IPv4 endpoint and a complete, valid header.
+ */
+void test_eConsiderPacketForProcessing_IPv4HeaderValidation( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xNetworkBuffer.xDataLength = sizeof( xIPPacket ) - 1U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MIN - 1U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MAX + 1U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MAX;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief Fragmented IPv4 packets are not supported.
+ */
+void test_eConsiderPacketForProcessing_IPv4Fragments( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.usFragmentOffset = 1U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.usFragmentOffset = ipFRAGMENT_FLAGS_MORE_FRAGMENTS;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief Invalid IPv4 loopback, Ethernet source, and multicast source addresses are rejected.
+ */
+void test_eConsiderPacketForProcessing_IPv4SourceValidation( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xBadIPv4Loopback_ExpectAndReturn( &( xIPPacket.xIPHeader ), pdTRUE );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    ( void ) memcpy( xIPPacket.xEthernetHeader.xSourceAddress.ucBytes,
+                     xBroadcastMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    xBadIPv4Loopback_ExpectAndReturn( &( xIPPacket.xIPHeader ), pdFALSE );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xBadIPv4Loopback_ExpectAndReturn( &( xIPPacket.xIPHeader ), pdFALSE );
+    xIsIPv4Multicast_ExpectAndReturn( xIPPacket.xIPHeader.ulSourceIPAddress, pdTRUE );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief An up IPv4 endpoint accepts local, broadcast, and multicast destinations.
+ */
+void test_eConsiderPacketForProcessing_IPv4EndpointUpAcceptsValidDestinations( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ulDestinationIPAddress = xEndPoint.ipv4_settings.ulBroadcastAddress;
+    ( void ) memcpy( xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes,
+                     xBroadcastMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ulDestinationIPAddress = FREERTOS_INADDR_BROADCAST;
+    ( void ) memcpy( xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes,
+                     xBroadcastMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ulDestinationIPAddress = 0xE0000001U;
+    xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv4_0;
+    xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv4_1;
+    xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes[ 2 ] = ipMULTICAST_MAC_ADDRESS_IPv4_2;
+    prvExpectValidIPv4Source( &xIPPacket );
+    xIsIPv4Multicast_ExpectAndReturn( xIPPacket.xIPHeader.ulDestinationIPAddress, pdTRUE );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief An up IPv4 endpoint rejects invalid destination and broadcast combinations.
+ */
+void test_eConsiderPacketForProcessing_IPv4EndpointUpRejectsInvalidAddresses( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ulDestinationIPAddress = 0x090A0B0CU;
+    prvExpectValidIPv4Source( &xIPPacket );
+    xIsIPv4Multicast_ExpectAndReturn( xIPPacket.xIPHeader.ulDestinationIPAddress, pdFALSE );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ulSourceIPAddress = xEndPoint.ipv4_settings.ulBroadcastAddress;
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ulSourceIPAddress = FREERTOS_INADDR_BROADCAST;
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    ( void ) memcpy( xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes,
+                     xBroadcastMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief A down IPv4 endpoint accepts only broadcast IP or matching unicast MAC traffic.
+ */
+void test_eConsiderPacketForProcessing_IPv4EndpointDown( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bEndPointUp = pdFALSE_UNSIGNED;
+    ( void ) memcpy( xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes,
+                     xBroadcastMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bEndPointUp = pdFALSE_UNSIGNED;
+    xIPPacket.xIPHeader.ulDestinationIPAddress = FREERTOS_INADDR_BROADCAST;
+    ( void ) memcpy( xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes,
+                     xBroadcastMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bEndPointUp = pdFALSE_UNSIGNED;
+    ( void ) memset( xIPPacket.xEthernetHeader.xDestinationAddress.ucBytes, 0x33, sizeof( MACAddress_t ) );
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bEndPointUp = pdFALSE_UNSIGNED;
+    prvExpectValidIPv4Source( &xIPPacket );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief IPv6 packets require an IPv6 endpoint and a complete, version-six header.
+ */
+void test_eConsiderPacketForProcessing_IPv6HeaderValidation( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_IPv6_t xIPPacket;
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xNetworkBuffer.xDataLength = sizeof( xIPPacket ) - 1U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ucVersionTrafficClass = 0x50U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief Unspecified IPv6 source and destination addresses are rejected.
+ */
+void test_eConsiderPacketForProcessing_IPv6UnspecifiedAddress( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_IPv6_t xIPPacket;
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    ( void ) memset( &xIPPacket.xIPHeader.xDestinationAddress, 0, sizeof( IPv6_Address_t ) );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    ( void ) memset( &xIPPacket.xIPHeader.xSourceAddress, 0, sizeof( IPv6_Address_t ) );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief IPv6 loopback addresses are not valid on an Ethernet interface.
+ */
+void test_eConsiderPacketForProcessing_IPv6LoopbackAddress( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_IPv6_t xIPPacket;
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIsIPv6Loopback_ExpectAndReturn( &( xIPPacket.xIPHeader.xSourceAddress ), pdTRUE );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIsIPv6Loopback_ExpectAndReturn( &( xIPPacket.xIPHeader.xSourceAddress ), pdFALSE );
+    xIsIPv6Loopback_ExpectAndReturn( &( xIPPacket.xIPHeader.xDestinationAddress ), pdTRUE );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief IPv6 accepts local, allowed multicast, and pre-configuration traffic.
+ */
+void test_eConsiderPacketForProcessing_IPv6Destinations( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_IPv6_t xIPPacket;
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    prvExpectNoIPv6Loopback( &xIPPacket );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.xDestinationAddress.ucBytes[ ipSIZE_OF_IPv6_ADDRESS - 1U ] = 3U;
+    prvExpectNoIPv6Loopback( &xIPPacket );
+    xIsIPv6AllowedMulticast_ExpectAndReturn( &( xIPPacket.xIPHeader.xDestinationAddress ), pdTRUE );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.xDestinationAddress.ucBytes[ ipSIZE_OF_IPv6_ADDRESS - 1U ] = 3U;
+    xEndPoint.bits.bEndPointUp = pdFALSE_UNSIGNED;
+    pxNetworkEndPoints = &xEndPoint;
+    prvExpectNoIPv6Loopback( &xIPPacket );
+    xIsIPv6AllowedMulticast_ExpectAndReturn( &( xIPPacket.xIPHeader.xDestinationAddress ), pdFALSE );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.xDestinationAddress.ucBytes[ ipSIZE_OF_IPv6_ADDRESS - 1U ] = 3U;
+    pxNetworkEndPoints = &xEndPoint;
+    prvExpectNoIPv6Loopback( &xIPPacket );
+    xIsIPv6AllowedMulticast_ExpectAndReturn( &( xIPPacket.xIPHeader.xDestinationAddress ), pdFALSE );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
 }

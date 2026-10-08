@@ -24,7 +24,6 @@
     extern "C" {
     #endif
 
-
 /* Includes ------------------------------------------------------------------*/
     #include "stm32f4xx_hal_def.h"
 
@@ -102,7 +101,7 @@
 
             uint32_t * PacketAddress[ ETH_TX_DESC_CNT ]; /*<! Ethernet packet addresses array */
 
-            uint32_t * CurrentPacketAddress;             /*<! Current transmit NX_PACKET addresses */
+            uint32_t * CurrentPacketAddress;             /*<! Current transmit packet addresses */
 
             uint32_t BuffersInUse;                       /*<! Buffers in Use */
 
@@ -237,7 +236,7 @@
                 ChecksumOffload;                         /*!< Enables or Disable the checksum checking for received packet payloads TCP, UDP or ICMP headers */
 
             uint32_t InterPacketGapVal;                  /*!< Sets the minimum IPG between Packet during transmission.
-                                                         *    This parameter can be a value of @ref ETH_Inter_Packet_Gap */
+                                                          *    This parameter can be a value of @ref ETH_Inter_Packet_Gap */
 
             FunctionalState GiantPacketSizeLimitControl; /*!< Enables or disables the Giant Packet Size Limit Control. */
 
@@ -290,9 +289,9 @@
 
             uint32_t
                 GiantPacketSizeLimit;               /*!< Specifies the packet size that the MAC will declare it as Giant, If it's size is
-                                                     *                   greater than the value programmed in this field in units of bytes
-                                                     *                   This parameter must be a number between
-                                                     *                   Min_Data = 0x618 (1518 byte) and Max_Data = 0x3FFF (32 Kbyte). */
+                                                    *                   greater than the value programmed in this field in units of bytes
+                                                    *                   This parameter must be a number between
+                                                    *                   Min_Data = 0x618 (1518 byte) and Max_Data = 0x3FFF (32 Kbyte). */
 
             FunctionalState ExtendedInterPacketGap; /*!< Enable or disables the extended inter packet gap. */
 
@@ -305,9 +304,9 @@
                                                      *      This parameter can be a value of @ref ETH_Watchdog_Timeout */
 
             uint32_t
-                PauseTime;     /*!< This field holds the value to be used in the Pause Time field in the transmit control packet.
-                                *                  This parameter must be a number between
-                                *                  Min_Data = 0x0 and Max_Data = 0xFFFF.*/
+                PauseTime; /*!< This field holds the value to be used in the Pause Time field in the transmit control packet.
+                            *                  This parameter must be a number between
+                            *                  Min_Data = 0x0 and Max_Data = 0xFFFF.*/
 
             FunctionalState
                 ZeroQuantaPause; /*!< Enable or disables the automatic generation of Zero Quanta Pause Control packets.*/
@@ -444,7 +443,7 @@
             ETH_MediaInterfaceTypeDef MediaInterface; /*!< Selects the MII interface or the RMII interface. */
 
             ETH_DMADescTypeDef
-            * TxDesc;        /*!< Provides the address of the first DMA Tx descriptor in the list */
+            * TxDesc; /*!< Provides the address of the first DMA Tx descriptor in the list */
 
             ETH_DMADescTypeDef
             * RxDesc;           /*!< Provides the address of the first DMA Rx descriptor in the list */
@@ -463,23 +462,23 @@
  */
             typedef struct
             {
-                uint32_t Timestamp;                         /*!< Enable Timestamp */
-                uint32_t TimestampUpdateMode;               /*!< Fine or Coarse Timestamp Update */
-                uint32_t TimestampInitialize;               /*!< Initialize Timestamp */
-                uint32_t TimestampUpdate;                   /*!< Timestamp Update */
-                uint32_t TimestampAddendUpdate;             /*!< Timestamp Addend Update */
-                uint32_t TimestampAll;                      /*!< Enable Timestamp for All Packets */
-                uint32_t TimestampRolloverMode;             /*!< Timestamp Digital or Binary Rollover Control */
-                uint32_t TimestampV2;                       /*!< Enable PTP Packet Processing for Version 2 Format */
-                uint32_t TimestampEthernet;                 /*!< Enable Processing of PTP over Ethernet Packets */
-                uint32_t TimestampIPv6;                     /*!< Enable Processing of PTP Packets Sent over IPv6-UDP */
-                uint32_t TimestampIPv4;                     /*!< Enable Processing of PTP Packets Sent over IPv4-UDP */
-                uint32_t TimestampEvent;                    /*!< Enable Timestamp Snapshot for Event Messages */
-                uint32_t TimestampMaster;                   /*!< Enable Timestamp Snapshot for Event Messages */
-                uint32_t TimestampFilter;                   /*!< Enable MAC Address for PTP Packet Filtering */
-                uint32_t TimestampClockType;                /*!< Time stamp clock node type */
-                uint32_t TimestampAddend;                   /*!< Timestamp addend value */
-                uint32_t TimestampSubsecondInc;             /*!< Subsecond Increment */
+                uint32_t Timestamp;             /*!< Enable Timestamp */
+                uint32_t TimestampUpdateMode;   /*!< Fine or Coarse Timestamp Update */
+                uint32_t TimestampInitialize;   /*!< Initialize Timestamp */
+                uint32_t TimestampUpdate;       /*!< Timestamp Update */
+                uint32_t TimestampAddendUpdate; /*!< Timestamp Addend Update */
+                uint32_t TimestampAll;          /*!< Enable Timestamp for All Packets */
+                uint32_t TimestampRolloverMode; /*!< Timestamp Digital or Binary Rollover Control */
+                uint32_t TimestampV2;           /*!< Enable PTP Packet Processing for Version 2 Format */
+                uint32_t TimestampEthernet;     /*!< Enable Processing of PTP over Ethernet Packets */
+                uint32_t TimestampIPv6;         /*!< Enable Processing of PTP Packets Sent over IPv6-UDP */
+                uint32_t TimestampIPv4;         /*!< Enable Processing of PTP Packets Sent over IPv4-UDP */
+                uint32_t TimestampEvent;        /*!< Enable Timestamp Snapshot for Event Messages */
+                uint32_t TimestampMaster;       /*!< Enable Timestamp Snapshot for Event Messages */
+                uint32_t TimestampFilter;       /*!< Enable MAC Address for PTP Packet Filtering */
+                uint32_t TimestampClockType;    /*!< Time stamp clock node type */
+                uint32_t TimestampAddend;       /*!< Timestamp addend value */
+                uint32_t TimestampSubsecondInc; /*!< Subsecond Increment */
             } ETH_PTP_ConfigTypeDef;
 
 /**
@@ -499,7 +498,7 @@
 /**
  * @brief  HAL ETH Rx Get Buffer Function definition
  */
-        typedef  void (* pETH_rxAllocateCallbackTypeDef)( uint8_t ** buffer );/*!< pointer to an ETH Rx Get Buffer Function */
+        typedef  void (* pETH_rxAllocateCallbackTypeDef)( uint8_t ** buffer ); /*!< pointer to an ETH Rx Get Buffer Function */
 
 /**
  *
@@ -520,7 +519,7 @@
 /**
  * @brief  HAL ETH Tx Free Function definition
  */
-        typedef  void (* pETH_txFreeCallbackTypeDef)( uint32_t * buffer );/*!< pointer to an ETH Tx Free function */
+        typedef  void (* pETH_txFreeCallbackTypeDef)( uint32_t * buffer ); /*!< pointer to an ETH Tx Free function */
 
 /**
  *
@@ -545,26 +544,26 @@
             typedef struct
         #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
             {
-                ETH_TypeDef * Instance;                 /*!< Register base address       */
+                ETH_TypeDef * Instance;           /*!< Register base address       */
 
-                ETH_InitTypeDef Init;                   /*!< Ethernet Init Configuration */
+                ETH_InitTypeDef Init;             /*!< Ethernet Init Configuration */
 
-                ETH_TxDescListTypeDef TxDescList;       /*!< Tx descriptor wrapper: holds all Tx descriptors list
-                                                         *  addresses and current descriptor index  */
+                ETH_TxDescListTypeDef TxDescList; /*!< Tx descriptor wrapper: holds all Tx descriptors list
+                                                   *  addresses and current descriptor index  */
 
-                ETH_RxDescListTypeDef RxDescList;       /*!< Rx descriptor wrapper: holds all Rx descriptors list
-                                                         *  addresses and current descriptor index  */
+                ETH_RxDescListTypeDef RxDescList; /*!< Rx descriptor wrapper: holds all Rx descriptors list
+                                                   *  addresses and current descriptor index  */
 
                 #ifdef HAL_ETH_USE_PTP
-                    ETH_TimeStampTypeDef TxTimestamp;   /*!< Tx Timestamp */
+                    ETH_TimeStampTypeDef TxTimestamp; /*!< Tx Timestamp */
                 #endif /* HAL_ETH_USE_PTP */
 
-                __IO HAL_ETH_StateTypeDef gState;      /*!< ETH state information related to global Handle management
-                                                        *     and also related to Tx operations. This parameter can
-                                                        *     be a value of @ref ETH_State_Codes */
+                __IO HAL_ETH_StateTypeDef gState; /*!< ETH state information related to global Handle management
+                                                   *     and also related to Tx operations. This parameter can
+                                                   *     be a value of @ref ETH_State_Codes */
 
-                __IO uint32_t ErrorCode;               /*!< Holds the global Error code of the ETH HAL status machine
-                                                        *   This parameter can be a value of @ref ETH_Error_Code.*/
+                __IO uint32_t ErrorCode;          /*!< Holds the global Error code of the ETH HAL status machine
+                                                   *   This parameter can be a value of @ref ETH_Error_Code.*/
 
                 __IO uint32_t
                     DMAErrorCode; /*!< Holds the DMA Rx Tx Error code when a DMA AIS interrupt occurs
@@ -627,7 +626,7 @@
 /**
  * @brief  HAL ETH Callback pointer definition
  */
-                typedef  void (* pETH_CallbackTypeDef)( ETH_HandleTypeDef * heth );/*!< pointer to an ETH callback function */
+                typedef  void (* pETH_CallbackTypeDef)( ETH_HandleTypeDef * heth ); /*!< pointer to an ETH callback function */
 
         #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
@@ -774,7 +773,6 @@
  * @}
  */
 
-
 /** @defgroup ETH_DMA_Rx_Descriptor_Bit_Definition ETH DMA Rx Descriptor Bit Definition
  * @{
  */
@@ -855,7 +853,7 @@
         #define ETH_DMAPTPRXDESC_PTPMT_DELAYREQ                     0x00000300U /* DelayReq message
                                                                                  *           (all clock types) */
         #define ETH_DMAPTPRXDESC_PTPMT_DELAYRESP                    0x00000400U /* DelayResp message
-                                                                                *            (all clock types) */
+                                                                                 *            (all clock types) */
         #define ETH_DMAPTPRXDESC_PTPMT_PDELAYREQ_ANNOUNCE           0x00000500U /* PdelayReq message
                                                                                  *           (peer-to-peer transparent clock)
                                                                                  *            or Announce message (Ordinary
@@ -875,9 +873,9 @@
         #define ETH_DMAPTPRXDESC_IPHE                               0x00000008U /* IP Header Error */
         #define ETH_DMAPTPRXDESC_IPPT                               0x00000007U /* IP Payload Type */
         #define ETH_DMAPTPRXDESC_IPPT_UDP                           0x00000001U /* UDP payload encapsulated in
-                                                                                 *           the IP datagram */
+                                                                                *           the IP datagram */
         #define ETH_DMAPTPRXDESC_IPPT_TCP                           0x00000002U /* TCP payload encapsulated in
-                                                                                 *           the IP datagram */
+                                                                                *           the IP datagram */
         #define ETH_DMAPTPRXDESC_IPPT_ICMP                          0x00000003U /* ICMP payload encapsulated in
                                                                                  *             the IP datagram */
 
@@ -1238,8 +1236,8 @@
  */
         #define HAL_ETH_STATE_RESET      0x00000000U /*!< Peripheral not yet Initialized or disabled */
         #define HAL_ETH_STATE_READY      0x00000010U /*!< Peripheral Communication started           */
-        #define HAL_ETH_STATE_BUSY       0x00000023U /*!< an internal process is ongoing             */
-        #define HAL_ETH_STATE_STARTED    0x00000023U /*!< an internal process is started             */
+        #define HAL_ETH_STATE_BUSY       0x00000020U /*!< an internal process is ongoing             */
+        #define HAL_ETH_STATE_STARTED    0x00000040U /*!< an internal process is started             */
         #define HAL_ETH_STATE_ERROR      0x000000E0U /*!< Error State                                */
 
 /**
@@ -1782,8 +1780,8 @@
 /** @defgroup ETH_PTP_Config_Status ETH PTP Config Status
  * @{
  */
-        #define HAL_ETH_PTP_NOT_CONFIGURATED    0x00000000U /*!< ETH PTP Configuration not done */
-        #define HAL_ETH_PTP_CONFIGURATED        0x00000001U /*!< ETH PTP Configuration done     */
+        #define HAL_ETH_PTP_NOT_CONFIGURED    0x00000000U /*!< ETH PTP Configuration not done */
+        #define HAL_ETH_PTP_CONFIGURED        0x00000001U /*!< ETH PTP Configuration done     */
 
 /**
  * @}
@@ -1886,7 +1884,6 @@
         #define __HAL_ETH_DMA_CLEAR_FLAG( __HANDLE__, __FLAG__ )    ( ( __HANDLE__ )->Instance->DMASR = ( __FLAG__ ) )
 
 
-
 /**
  * @brief  Checks whether the specified ETHERNET MAC flag is set or not.
  * @param  __HANDLE__: ETH Handle
@@ -1923,7 +1920,6 @@
  * @retval None.
  */
         #define __HAL_ETH_WAKEUP_EXTI_CLEAR_FLAG( __EXTI_LINE__ )    ( EXTI->PR = ( __EXTI_LINE__ ) )
-
 
 /**
  * @brief  enable rising edge interrupt on selected EXTI line.
@@ -2019,7 +2015,7 @@
         HAL_StatusTypeDef HAL_ETH_RegisterRxLinkCallback( ETH_HandleTypeDef * heth,
                                                           pETH_rxLinkCallbackTypeDef rxLinkCallback );
         HAL_StatusTypeDef HAL_ETH_UnRegisterRxLinkCallback( ETH_HandleTypeDef * heth );
-        HAL_StatusTypeDef HAL_ETH_GetRxDataErrorCode( ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETH_GetRxDataErrorCode( const ETH_HandleTypeDef * heth,
                                                       uint32_t * pErrorCode );
         HAL_StatusTypeDef HAL_ETH_RegisterTxFreeCallback( ETH_HandleTypeDef * heth,
                                                           pETH_txFreeCallbackTypeDef txFreeCallback );
@@ -2087,9 +2083,9 @@
  */
 /* Peripheral Control functions  **********************************************/
 /* MAC & DMA Configuration APIs  **********************************************/
-        HAL_StatusTypeDef HAL_ETH_GetMACConfig( ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETH_GetMACConfig( const ETH_HandleTypeDef * heth,
                                                 ETH_MACConfigTypeDef * macconf );
-        HAL_StatusTypeDef HAL_ETH_GetDMAConfig( ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETH_GetDMAConfig( const ETH_HandleTypeDef * heth,
                                                 ETH_DMAConfigTypeDef * dmaconf );
         HAL_StatusTypeDef HAL_ETH_SetMACConfig( ETH_HandleTypeDef * heth,
                                                 ETH_MACConfigTypeDef * macconf );
@@ -2103,7 +2099,7 @@
                                           uint32_t VLANIdentifier );
 
 /* MAC L2 Packet Filtering APIs  **********************************************/
-        HAL_StatusTypeDef HAL_ETH_GetMACFilterConfig( ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETH_GetMACFilterConfig( const ETH_HandleTypeDef * heth,
                                                       ETH_MACFilterConfigTypeDef * pFilterConfig );
         HAL_StatusTypeDef HAL_ETH_SetMACFilterConfig( ETH_HandleTypeDef * heth,
                                                       const ETH_MACFilterConfigTypeDef * pFilterConfig );
@@ -2134,6 +2130,7 @@
         uint32_t HAL_ETH_GetDMAError( const ETH_HandleTypeDef * heth );
         uint32_t HAL_ETH_GetMACError( const ETH_HandleTypeDef * heth );
         uint32_t HAL_ETH_GetMACWakeUpSource( const ETH_HandleTypeDef * heth );
+        uint32_t HAL_ETH_GetTxBuffersNumber( const ETH_HandleTypeDef * heth );
 
 /**
  * @}

@@ -138,6 +138,98 @@ jobs:
           path: ./
           exclude-dirs: source/portable/NetworkInterface/STM32
 
+  stm32-network-interface:
+    name: STM32 network interface (${{ matrix.family }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - family: F1
+            hal_repository: STMicroelectronics/stm32f1xx-hal-driver
+            hal_ref: baeff0a8dcb23c72012170a0978254a238f1f980
+            device_repository: STMicroelectronics/cmsis-device-f1
+            device_ref: c8e9a4a4f16b6d2cb2a2083cbe5161025280fb22
+          - family: F2
+            hal_repository: STMicroelectronics/stm32f2xx-hal-driver
+            hal_ref: fa5e64dfa47ee5d8a745b21c5d1b35d7733bba89
+            device_repository: STMicroelectronics/cmsis-device-f2
+            device_ref: 49321f1e4d2bd3e65687b37f2652a28ea7983674
+          - family: F4
+            hal_repository: STMicroelectronics/stm32f4xx-hal-driver
+            hal_ref: 1f6451c3e07728b4c830744de380e56bf5bc0026
+            device_repository: STMicroelectronics/cmsis-device-f4
+            device_ref: a833f4af71410f25b01468f976560d7ff63a2fc9
+          - family: F7
+            hal_repository: STMicroelectronics/stm32f7xx-hal-driver
+            hal_ref: d498f556e81a153f94fda12ebd225d76242e95ab
+            device_repository: STMicroelectronics/cmsis-device-f7
+            device_ref: b86ea04c943a44a03111f6ddf2e76d06074f6942
+          - family: H5
+            hal_repository: STMicroelectronics/stm32h5xx-hal-driver
+            hal_ref: 3e1bd3242484750bc0520af11d89d39d4c8567fb
+            device_repository: STMicroelectronics/cmsis-device-h5
+            device_ref: 4bfdfb21a4844415b39954aa3171aea2590dab19
+          - family: H7
+            hal_repository: STMicroelectronics/stm32h7xx-hal-driver
+            hal_ref: 33ca46547d40b281a98b5ca497efc89dc628a4a7
+            device_repository: STMicroelectronics/cmsis-device-h7
+            device_ref: 05ea8164ca19102bb5c9eebf0c45f7ac2cd1e35c
+          - family: H7RS
+            hal_repository: STMicroelectronics/stm32h7rsxx-hal-driver
+            hal_ref: c75fd5310f04cc7852883dc27c3613dad5c37447
+            device_repository: STMicroelectronics/cmsis-device-h7rs
+            device_ref: 3e3ff476ed406b88228e495370eba63e6b0e00f9
+          - family: N6
+            hal_repository: STMicroelectronics/stm32n6xx-hal-driver
+            hal_ref: c9dd12ee8e6cb7184e7df9f797c4f1aff934e9fa
+            device_repository: STMicroelectronics/cmsis-device-n6
+            device_ref: 1dc528e573828683ce770a2b16ee2878e889b9a1
+    steps:
+      - name: Clone This Repo
+        uses: actions/checkout@v4
+
+      - name: Clone FreeRTOS Kernel
+        uses: actions/checkout@v4
+        with:
+          repository: FreeRTOS/FreeRTOS-Kernel
+          ref: dbf70559b27d39c1fdb68dfb9a32140b6a6777a0
+          path: test/FreeRTOS-Kernel
+
+      - name: Clone CMSIS Core
+        uses: actions/checkout@v4
+        with:
+          repository: ARM-software/CMSIS_5
+          ref: 2b7495b8535bdcb306dac29b9ded4cfb679d7e5c
+          path: .stm32-ci/cmsis-core
+
+      - name: Clone STM32 CMSIS Device
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.device_repository }}
+          ref: ${{ matrix.device_ref }}
+          path: .stm32-ci/cmsis-device
+
+      - name: Clone STM32 HAL
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.hal_repository }}
+          ref: ${{ matrix.hal_ref }}
+          path: .stm32-ci/hal
+
+      - name: Install Arm GNU Toolchain
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gcc-arm-none-eabi
+
+      - name: Compile STM32 network interface and Ethernet HAL
+        run: |
+          test/network-interface/stm32/compile.sh \
+            "${{ matrix.family }}" \
+            "$GITHUB_WORKSPACE/.stm32-ci/cmsis-core/CMSIS/Core/Include" \
+            "$GITHUB_WORKSPACE/.stm32-ci/cmsis-device/Include" \
+            "$GITHUB_WORKSPACE/.stm32-ci/hal/Inc"
+
   doxygen:
     runs-on: ubuntu-latest
     steps:

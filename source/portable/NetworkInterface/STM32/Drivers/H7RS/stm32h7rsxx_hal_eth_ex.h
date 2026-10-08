@@ -1,12 +1,12 @@
 /**
  ******************************************************************************
- * @file    stm32h7xx_hal_eth_ex.h
+ * @file    stm32h7rsxx_hal_eth_ex.h
  * @author  MCD Application Team
  * @brief   Header file of ETH HAL Extended module.
  ******************************************************************************
  * @attention
  *
- * Copyright (c) 2017 STMicroelectronics.
+ * Copyright (c) 2022 STMicroelectronics.
  * All rights reserved.
  *
  * This software is licensed under terms that can be found in the LICENSE file
@@ -17,8 +17,8 @@
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef STM32H7xx_HAL_ETH_EX_H
-    #define STM32H7xx_HAL_ETH_EX_H
+#ifndef STM32H7RSxx_HAL_ETH_EX_H
+    #define STM32H7RSxx_HAL_ETH_EX_H
 
     #ifdef __cplusplus
     extern "C" {
@@ -27,9 +27,9 @@
     #if defined( ETH )
 
 /* Includes ------------------------------------------------------------------*/
-        #include "stm32h7xx_hal_def.h"
+        #include "stm32h7rsxx_hal_def.h"
 
-/** @addtogroup STM32H7xx_HAL_Driver
+/** @addtogroup STM32H7RSxx_HAL_Driver
  * @{
  */
 
@@ -328,51 +328,51 @@
  * @{
  */
 /* MAC ARP Offloading APIs  ***************************************************/
-        void HAL_ETHEx_EnableARPOffload( const ETH_HandleTypeDef * heth );
-        void HAL_ETHEx_DisableARPOffload( const ETH_HandleTypeDef * heth );
-        void HAL_ETHEx_SetARPAddressMatch( const ETH_HandleTypeDef * heth,
+        void HAL_ETHEx_EnableARPOffload( ETH_HandleTypeDef * heth );
+        void HAL_ETHEx_DisableARPOffload( ETH_HandleTypeDef * heth );
+        void HAL_ETHEx_SetARPAddressMatch( ETH_HandleTypeDef * heth,
                                            uint32_t IpAddress );
 
 /* MAC L3 L4 Filtering APIs ***************************************************/
-        void HAL_ETHEx_EnableL3L4Filtering( const ETH_HandleTypeDef * heth );
-        void HAL_ETHEx_DisableL3L4Filtering( const ETH_HandleTypeDef * heth );
+        void HAL_ETHEx_EnableL3L4Filtering( ETH_HandleTypeDef * heth );
+        void HAL_ETHEx_DisableL3L4Filtering( ETH_HandleTypeDef * heth );
         HAL_StatusTypeDef HAL_ETHEx_GetL3FilterConfig( const ETH_HandleTypeDef * heth,
                                                        uint32_t Filter,
                                                        ETH_L3FilterConfigTypeDef * pL3FilterConfig );
         HAL_StatusTypeDef HAL_ETHEx_GetL4FilterConfig( const ETH_HandleTypeDef * heth,
                                                        uint32_t Filter,
                                                        ETH_L4FilterConfigTypeDef * pL4FilterConfig );
-        HAL_StatusTypeDef HAL_ETHEx_SetL3FilterConfig( const ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETHEx_SetL3FilterConfig( ETH_HandleTypeDef * heth,
                                                        uint32_t Filter,
                                                        const ETH_L3FilterConfigTypeDef * pL3FilterConfig );
-        HAL_StatusTypeDef HAL_ETHEx_SetL4FilterConfig( const ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETHEx_SetL4FilterConfig( ETH_HandleTypeDef * heth,
                                                        uint32_t Filter,
                                                        const ETH_L4FilterConfigTypeDef * pL4FilterConfig );
 
 /* MAC VLAN Processing APIs    ************************************************/
-        void HAL_ETHEx_EnableVLANProcessing( const ETH_HandleTypeDef * heth );
-        void HAL_ETHEx_DisableVLANProcessing( const ETH_HandleTypeDef * heth );
+        void HAL_ETHEx_EnableVLANProcessing( ETH_HandleTypeDef * heth );
+        void HAL_ETHEx_DisableVLANProcessing( ETH_HandleTypeDef * heth );
         HAL_StatusTypeDef HAL_ETHEx_GetRxVLANConfig( const ETH_HandleTypeDef * heth,
                                                      ETH_RxVLANConfigTypeDef * pVlanConfig );
-        HAL_StatusTypeDef HAL_ETHEx_SetRxVLANConfig( const ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETHEx_SetRxVLANConfig( ETH_HandleTypeDef * heth,
                                                      const ETH_RxVLANConfigTypeDef * pVlanConfig );
-        void HAL_ETHEx_SetVLANHashTable( const ETH_HandleTypeDef * heth,
+        void HAL_ETHEx_SetVLANHashTable( ETH_HandleTypeDef * heth,
                                          uint32_t VLANHashTable );
         HAL_StatusTypeDef HAL_ETHEx_GetTxVLANConfig( const ETH_HandleTypeDef * heth,
                                                      uint32_t VLANTag,
                                                      ETH_TxVLANConfigTypeDef * pVlanConfig );
-        HAL_StatusTypeDef HAL_ETHEx_SetTxVLANConfig( const ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETHEx_SetTxVLANConfig( ETH_HandleTypeDef * heth,
                                                      uint32_t VLANTag,
                                                      const ETH_TxVLANConfigTypeDef * pVlanConfig );
-        void HAL_ETHEx_SetTxVLANIdentifier( const ETH_HandleTypeDef * heth,
+        void HAL_ETHEx_SetTxVLANIdentifier( ETH_HandleTypeDef * heth,
                                             uint32_t VLANTag,
                                             uint32_t VLANIdentifier );
 
 /* Energy Efficient Ethernet APIs *********************************************/
-        void HAL_ETHEx_EnterLPIMode( const ETH_HandleTypeDef * heth,
+        void HAL_ETHEx_EnterLPIMode( ETH_HandleTypeDef * heth,
                                      FunctionalState TxAutomate,
                                      FunctionalState TxClockStop );
-        void HAL_ETHEx_ExitLPIMode( const ETH_HandleTypeDef * heth );
+        void HAL_ETHEx_ExitLPIMode( ETH_HandleTypeDef * heth );
         uint32_t HAL_ETHEx_GetMACLPIEvent( const ETH_HandleTypeDef * heth );
 
 /**
@@ -394,7 +394,7 @@
     #endif /* ETH */
 
     #ifdef __cplusplus
-}
+    }
     #endif
 
-#endif /* STM32H7xx_HAL_ETH_EX_H */
+#endif /* STM32H7RSxx_HAL_ETH_EX_H */

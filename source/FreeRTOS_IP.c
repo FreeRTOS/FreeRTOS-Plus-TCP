@@ -1671,6 +1671,267 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 }
 /*-----------------------------------------------------------*/
 
+#if ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
+
+/**
+ * @brief Decide whether a packet should be processed based on its IP header
+ *        and the endpoint selected by the network driver.
+ *
+ * @param[in] pxNetworkBuffer The network buffer containing the packet. Its
+ *                            pxEndPoint member must already be assigned.
+ *
+ * @return eProcessBuffer when the packet passes the checks, or
+ *         eReleaseBuffer when it should be discarded.
+ */
+    eFrameProcessingResult_t eConsiderPacketForProcessing( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    {
+        eFrameProcessingResult_t eReturn = eReleaseBuffer;
+
+        do
+        {
+            const EthernetHeader_t * pxEthernetHeader;
+            const NetworkEndPoint_t * pxEndPoint;
+
+            if( pxNetworkBuffer == NULL )
+            {
+                break;
+            }
+
+            if( pxNetworkBuffer->pucEthernetBuffer == NULL )
+            {
+                break;
+            }
+
+            if( pxNetworkBuffer->pxEndPoint == NULL )
+            {
+                break;
+            }
+
+            if( pxNetworkBuffer->xDataLength < sizeof( EthernetHeader_t ) )
+            {
+                break;
+            }
+
+            /* MISRA Ref 11.3.1 [Misaligned access]
+             * More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxEthernetHeader = ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+            pxEndPoint = pxNetworkBuffer->pxEndPoint;
+
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                if( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE )
+                {
+                    eReturn = eProcessBuffer;
+                    break;
+                }
+
+                if( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE )
+                {
+                    const IPPacket_t * pxIPPacket;
+                    const IPHeader_t * pxIPHeader;
+                    uint32_t ulDestinationIPAddress;
+                    uint32_t ulSourceIPAddress;
+                    size_t uxHeaderLength;
+
+                    /* pxEndPoint was validated above, so inspect its address
+                     * family directly rather than repeating the NULL check in
+                     * ENDPOINT_IS_IPv4(). */
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    {
+                        break;
+                    }
+
+                    if( pxNetworkBuffer->xDataLength < sizeof( IPPacket_t ) )
+                    {
+                        break;
+                    }
+
+                    /* MISRA Ref 11.3.1 [Misaligned access]
+                     * More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
+                    pxIPPacket = ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                    pxIPHeader = &( pxIPPacket->xIPHeader );
+                    ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+                    ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
+
+                    if( pxIPHeader->ucVersionHeaderLength < ipIPV4_VERSION_HEADER_LENGTH_MIN )
+                    {
+                        break;
+                    }
+
+                    if( pxIPHeader->ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX )
+                    {
+                        break;
+                    }
+
+                    uxHeaderLength = ( size_t ) ( ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2 );
+
+                    if( uxHeaderLength > ( pxNetworkBuffer->xDataLength - ipSIZE_OF_ETH_HEADER ) )
+                    {
+                        break;
+                    }
+
+                    if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
+                    {
+                        break;
+                    }
+
+                    if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U )
+                    {
+                        break;
+                    }
+
+                    if( xBadIPv4Loopback( pxIPHeader ) == pdTRUE )
+                    {
+                        break;
+                    }
+
+                    if( memcmp( xBroadcastMACAddress.ucBytes,
+                                pxEthernetHeader->xSourceAddress.ucBytes,
+                                sizeof( MACAddress_t ) ) == 0 )
+                    {
+                        break;
+                    }
+
+                    if( xIsIPv4Multicast( ulSourceIPAddress ) == pdTRUE )
+                    {
+                        break;
+                    }
+
+                    if( FreeRTOS_IsEndPointUp( pxEndPoint ) != pdFALSE )
+                    {
+                        if( ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulIPAddress ) &&
+                            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) &&
+                            ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) &&
+                            ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) )
+                        {
+                            break;
+                        }
+
+                        if( ( ulSourceIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ||
+                            ( ulSourceIPAddress == FREERTOS_INADDR_BROADCAST ) )
+                        {
+                            break;
+                        }
+
+                        if( ( memcmp( xBroadcastMACAddress.ucBytes,
+                                      pxEthernetHeader->xDestinationAddress.ucBytes,
+                                      sizeof( MACAddress_t ) ) == 0 ) &&
+                            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) &&
+                            ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) )
+                        {
+                            break;
+                        }
+                    }
+                    else if( memcmp( xBroadcastMACAddress.ucBytes,
+                                     pxEthernetHeader->xDestinationAddress.ucBytes,
+                                     sizeof( MACAddress_t ) ) == 0 )
+                    {
+                        if( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST )
+                        {
+                            break;
+                        }
+                    }
+                    else if( memcmp( pxEndPoint->xMACAddress.ucBytes,
+                                     pxEthernetHeader->xDestinationAddress.ucBytes,
+                                     sizeof( MACAddress_t ) ) != 0 )
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        /* The endpoint is down, but the destination MAC address
+                         * matches it, so accept pre-configuration traffic. */
+                    }
+
+                    eReturn = eProcessBuffer;
+                    break;
+                }
+            #endif /* ipconfigUSE_IPv4 */
+
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+                {
+                    const IPPacket_IPv6_t * pxIPv6Packet;
+                    const IPHeader_IPv6_t * pxIPv6Header;
+                    const IPv6_Address_t * pxDestinationIPAddress;
+                    const IPv6_Address_t * pxSourceIPAddress;
+
+                    /* pxEndPoint was validated above, so inspect its address
+                     * family directly rather than repeating the NULL check in
+                     * ENDPOINT_IS_IPv6(). */
+                    if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
+                    {
+                        break;
+                    }
+
+                    if( pxNetworkBuffer->xDataLength < sizeof( IPPacket_IPv6_t ) )
+                    {
+                        break;
+                    }
+
+                    /* MISRA Ref 11.3.1 [Misaligned access]
+                     * More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
+                    pxIPv6Packet = ( const IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                    pxIPv6Header = &( pxIPv6Packet->xIPHeader );
+                    pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
+                    pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
+
+                    if( ( ( pxIPv6Header->ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
+                    {
+                        break;
+                    }
+
+                    if( memcmp( pxDestinationIPAddress->ucBytes,
+                                FreeRTOS_in6addr_any.ucBytes,
+                                sizeof( IPv6_Address_t ) ) == 0 )
+                    {
+                        break;
+                    }
+
+                    if( memcmp( pxSourceIPAddress->ucBytes,
+                                FreeRTOS_in6addr_any.ucBytes,
+                                sizeof( IPv6_Address_t ) ) == 0 )
+                    {
+                        break;
+                    }
+
+                    if( xIsIPv6Loopback( pxSourceIPAddress ) == pdTRUE )
+                    {
+                        break;
+                    }
+
+                    if( xIsIPv6Loopback( pxDestinationIPAddress ) == pdTRUE )
+                    {
+                        break;
+                    }
+
+                    if( ( memcmp( pxDestinationIPAddress->ucBytes,
+                                  pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                  sizeof( IPv6_Address_t ) ) != 0 ) &&
+                        ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) == pdFALSE ) &&
+                        ( FreeRTOS_IsNetworkUp() != 0 ) )
+                    {
+                        break;
+                    }
+
+                    eReturn = eProcessBuffer;
+                    break;
+                }
+            #endif /* ipconfigUSE_IPv6 */
+
+            #if ipconfigIS_ENABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
+                eReturn = eProcessBuffer;
+            #endif
+        } while( ipFALSE_BOOL );
+
+        return eReturn;
+    }
+
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Process the Ethernet packet.
  *

@@ -1,13 +1,13 @@
 /**
  ******************************************************************************
- * @file    stm32h5xx_hal_eth_ex.c
+ * @file    stm32h7rsxx_hal_eth_ex.c
  * @author  MCD Application Team
  * @brief   ETH HAL Extended module driver.
  *
  ******************************************************************************
  * @attention
  *
- * Copyright (c) 2023 STMicroelectronics.
+ * Copyright (c) 2022 STMicroelectronics.
  * All rights reserved.
  *
  * This software is licensed under terms that can be found in the LICENSE file
@@ -18,9 +18,9 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32h5xx_hal.h"
+#include "stm32h7rsxx_hal.h"
 
-/** @addtogroup STM32H5xx_HAL_Driver
+/** @addtogroup STM32H7RSxx_HAL_Driver
  * @{
  */
 
@@ -306,16 +306,16 @@
                     /* Set Bits[63:32] of 128-bit IP addr */
                     WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip6Addr[ 1 ] );
                     /* update Bits[95:64] of 128-bit IP addr */
-                    WRITE_REG( heth->Instance->MACL3A2R1R, pL3FilterConfig->Ip6Addr[ 2 ] );
+                    WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip6Addr[ 2 ] );
                     /* update Bits[127:96] of 128-bit IP addr */
-                    WRITE_REG( heth->Instance->MACL3A3R1R, pL3FilterConfig->Ip6Addr[ 3 ] );
+                    WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip6Addr[ 3 ] );
                 }
                 else /* IPv4 protocol is selected */
                 {
                     /* Set the IPv4 source address match */
                     WRITE_REG( heth->Instance->MACL3A0R1R, pL3FilterConfig->Ip4SrcAddr );
                     /* Set the IPv4 destination address match */
-                    WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip4DestAddr );
+                    WRITE_REG( heth->Instance->MACL3A0R1R, pL3FilterConfig->Ip4DestAddr );
                 }
             }
 

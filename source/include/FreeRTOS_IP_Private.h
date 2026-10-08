@@ -427,6 +427,16 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
  */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer );
 
+#if ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
+
+/*
+ * Inspect the IP addresses and other packet header fields that a filtering
+ * network driver is required to validate.  pxEndPoint must already contain
+ * the endpoint selected for the packet.
+ */
+    eFrameProcessingResult_t eConsiderPacketForProcessing( const NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#endif
+
 /*
  * Return the checksum generated over xDataLengthBytes from pucNextData.
  */

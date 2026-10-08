@@ -76,7 +76,9 @@
         BaseType_t xPortCount;
         uint32_t ulBCRValue;
         uint32_t ulACRValue;
+        uint32_t ulGCRValue;
         uint32_t ulLinkStatusMask;
+        uint8_t ucMaxSpeed;
         PhyProperties_t xPhyPreferences;
         PhyProperties_t xPhyProperties;
     } EthernetPhy_t;
@@ -88,6 +90,7 @@
     #define PHY_SPEED_10           1
     #define PHY_SPEED_100          2
     #define PHY_SPEED_AUTO         3
+    #define PHY_SPEED_1000         4
 
 /* Values for PhyProperties_t::ucMDI_X : */
     #define PHY_MDIX_DIRECT        1
@@ -121,10 +124,16 @@
 
     #define PHY_ID_ADIN1200        0x0283BC20
 
+    #define PHY_ID_RTL8211         0x001CC910
+
 /* Initialise the struct and assign a PHY-read and -write function. */
     void vPhyInitialise( EthernetPhy_t * pxPhyObject,
                          xApplicationPhyReadHook_t fnPhyRead,
                          xApplicationPhyWriteHook_t fnPhyWrite );
+
+/* Set the maximum link speed supported by the MAC-to-PHY interface. */
+    void vPhySetMaxSpeed( EthernetPhy_t * pxPhyObject,
+                          uint8_t ucMaxSpeed );
 
 /* Discover all PHY's connected by polling 32 indexes ( zero-based ) */
     BaseType_t xPhyDiscover( EthernetPhy_t * pxPhyObject );
@@ -146,6 +155,10 @@
  * last call to this function. */
     BaseType_t xPhyCheckLinkStatus( EthernetPhy_t * pxPhyObject,
                                     BaseType_t xHadReception );
+
+/* Return pdTRUE while at least one PHY link is up. */
+    #define xPhyIsLinkUp( pxPhyObject )    \
+    ( ( ( pxPhyObject )->ulLinkStatusMask != 0U ) ? pdTRUE : pdFALSE )
 
 /* Get the bitmask of a given 'EthernetPhy_t'. */
     #define xPhyGetMask( pxPhyObject ) \

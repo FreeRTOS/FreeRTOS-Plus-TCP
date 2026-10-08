@@ -76,10 +76,13 @@
 #define phyREG_02_PHYSID1          0x02U    /* PHYS ID 1 */
 #define phyREG_03_PHYSID2          0x03U    /* PHYS ID 2 */
 #define phyREG_04_ADVERTISE        0x04U    /* Advertisement control reg */
+#define phyREG_09_GBCR             0x09U    /* 1000BASE-T control register. */
 
 /* Naming and numbering of extended PHY registers. */
 #define PHYREG_10_PHYSTS           0x10U    /* 16 PHY status register Offset */
+#define phyREG_1A_PHYSR            0x1AU    /* PHY-specific status register. */
 #define phyREG_19_PHYCR            0x19U    /* 25 RW PHY Control Register */
+#define phyREG_1B_SCSIR            0x1BU    /* 27 RW Special Control/Status Indication Register. */
 #define phyREG_1F_PHYSPCS          0x1FU    /* 31 RW PHY Special Control Status */
 
 /* Bit fields for 'phyREG_00_BMCR', the 'Basic Mode Control Register'. */
@@ -88,11 +91,28 @@
 #define phyBMCR_ISOLATE            0x0400U  /* 1 = Isolates 0 = Normal operation. */
 #define phyBMCR_AN_ENABLE          0x1000U  /* Enable auto negotiation. */
 #define phyBMCR_SPEED_100          0x2000U  /* Select 100Mbps. */
+#define phyBMCR_SPEED_1000         0x0040U  /* Select 1000Mbps. */
 #define phyBMCR_RESET              0x8000U  /* Reset the PHY. */
+
+/* Bit fields for 'phyREG_09_GBCR', the 1000BASE-T control register. */
+#define phyGBCR_ADVERTISE_1000HALF     0x0100U
+#define phyGBCR_ADVERTISE_1000FULL     0x0200U
+#define phyGBCR_ADVERTISE_MASK         ( phyGBCR_ADVERTISE_1000HALF | phyGBCR_ADVERTISE_1000FULL )
+
+/* RTL8211 bit fields for 'phyREG_1A_PHYSR'. */
+#define phyRTL8211_PHYSR_DUPLEX        0x0008U
+#define phyRTL8211_PHYSR_SPEED_MASK    0x0030U
+#define phyRTL8211_PHYSR_SPEED_100     0x0010U
+#define phyRTL8211_PHYSR_SPEED_1000    0x0020U
 
 /* Bit fields for 'phyREG_19_PHYCR', the 'PHY Control Register'. */
 #define PHYCR_MDIX_EN              0x8000U  /* Enable Auto MDIX. */
 #define PHYCR_MDIX_FORCE           0x4000U  /* Force MDIX crossed. */
+
+/* LAN8742A bit fields for 'phyREG_1B_SCSIR'. */
+#define phySCSIR_MDIX_OVERRIDE     0x8000U
+#define phySCSIR_MDIX_AUTO         0x4000U
+#define phySCSIR_MDIX_STATE        0x2000U
 
 #define phyBMSR_AN_COMPLETE        0x0020U  /* Auto-Negotiation process completed */
 
@@ -131,6 +151,30 @@
 /* Send a reset command to a set of PHY-ports. */
 static uint32_t xPhyReset( EthernetPhy_t * pxPhyObject,
                            uint32_t ulPhyMask );
+
+static BaseType_t xPhySupportsGigabit( uint32_t ulPhyID )
+{
+    return ( ulPhyID == PHY_ID_RTL8211 ) ? pdTRUE : pdFALSE;
+}
+/*-----------------------------------------------------------*/
+
+static BaseType_t prvWriteGigabitAdvertisement( EthernetPhy_t * pxPhyObject,
+                                               BaseType_t xPhyAddress,
+                                               uint32_t ulAdvertisement )
+{
+    uint32_t ulGigabitControl;
+
+    if( pxPhyObject->fnPhyRead( xPhyAddress, phyREG_09_GBCR, &ulGigabitControl ) != 0 )
+    {
+        return -1;
+    }
+
+    ulGigabitControl &= ~phyGBCR_ADVERTISE_MASK;
+    ulGigabitControl |= ulAdvertisement;
+
+    return pxPhyObject->fnPhyWrite( xPhyAddress, phyREG_09_GBCR, ulGigabitControl );
+}
+/*-----------------------------------------------------------*/
 
 static BaseType_t xHas_1F_PHYSPCS( uint32_t ulPhyID )
 {
@@ -173,7 +217,6 @@ static BaseType_t xHas_19_PHYCR( uint32_t ulPhyID )
 
     switch( ulPhyID )
     {
-        case PHY_ID_LAN8742A:
         case PHY_ID_DP83848I:
         case PHY_ID_DP83822HF:
         case PHY_ID_TM4C129X:
@@ -190,6 +233,58 @@ static BaseType_t xHas_19_PHYCR( uint32_t ulPhyID )
 }
 /*-----------------------------------------------------------*/
 
+static void prvConfigureMDIX( EthernetPhy_t * pxPhyObject,
+                              BaseType_t xPhyAddress,
+                              uint32_t ulPhyID,
+                              uint8_t ucMDIX )
+{
+    BaseType_t xRegister;
+    uint32_t ulControlMask;
+    uint32_t ulAutoMask;
+    uint32_t ulForceMask;
+    uint32_t ulOverrideMask = 0U;
+    uint32_t ulPhyControl = 0U;
+
+    if( ulPhyID == PHY_ID_LAN8742A )
+    {
+        xRegister = phyREG_1B_SCSIR;
+        ulControlMask = phySCSIR_MDIX_OVERRIDE | phySCSIR_MDIX_AUTO | phySCSIR_MDIX_STATE;
+        ulAutoMask = phySCSIR_MDIX_AUTO;
+        ulForceMask = phySCSIR_MDIX_STATE;
+        ulOverrideMask = phySCSIR_MDIX_OVERRIDE;
+    }
+    else if( xHas_19_PHYCR( ulPhyID ) != pdFALSE )
+    {
+        xRegister = phyREG_19_PHYCR;
+        ulControlMask = PHYCR_MDIX_EN | PHYCR_MDIX_FORCE;
+        ulAutoMask = PHYCR_MDIX_EN;
+        ulForceMask = PHYCR_MDIX_FORCE;
+    }
+    else
+    {
+        return;
+    }
+
+    if( pxPhyObject->fnPhyRead( xPhyAddress, xRegister, &ulPhyControl ) == 0 )
+    {
+        ulPhyControl &= ~ulControlMask;
+        ulPhyControl |= ulOverrideMask;
+
+        if( ucMDIX == PHY_MDIX_AUTO )
+        {
+            ulPhyControl |= ulAutoMask;
+        }
+        else if( ucMDIX != PHY_MDIX_CROSSED )
+        {
+            /* Force crossed PHY pairs when using a direct RJ45 cable. */
+            ulPhyControl |= ulForceMask;
+        }
+
+        pxPhyObject->fnPhyWrite( xPhyAddress, xRegister, ulPhyControl );
+    }
+}
+/*-----------------------------------------------------------*/
+
 /* Initialise the struct and assign a PHY-read and -write function. */
 void vPhyInitialise( EthernetPhy_t * pxPhyObject,
                      xApplicationPhyReadHook_t fnPhyRead,
@@ -199,6 +294,18 @@ void vPhyInitialise( EthernetPhy_t * pxPhyObject,
 
     pxPhyObject->fnPhyRead = fnPhyRead;
     pxPhyObject->fnPhyWrite = fnPhyWrite;
+    pxPhyObject->ucMaxSpeed = PHY_SPEED_100;
+}
+/*-----------------------------------------------------------*/
+
+void vPhySetMaxSpeed( EthernetPhy_t * pxPhyObject,
+                      uint8_t ucMaxSpeed )
+{
+    configASSERT( pxPhyObject != NULL );
+    configASSERT( ( ucMaxSpeed == PHY_SPEED_100 ) ||
+                  ( ucMaxSpeed == PHY_SPEED_1000 ) );
+
+    pxPhyObject->ucMaxSpeed = ucMaxSpeed;
 }
 /*-----------------------------------------------------------*/
 
@@ -324,13 +431,44 @@ static uint32_t xPhyReset( EthernetPhy_t * pxPhyObject,
 BaseType_t xPhyConfigure( EthernetPhy_t * pxPhyObject,
                           const PhyProperties_t * pxPhyProperties )
 {
-    uint32_t ulConfig, ulAdvertise;
+    uint32_t ulConfig, ulAdvertise, ulGigabitAdvertise = 0U;
     BaseType_t xPhyIndex;
 
     if( pxPhyObject->xPortCount < 1 )
     {
         FreeRTOS_printf( ( "xPhyConfigure: No PHY's detected.\n" ) );
         return -1;
+    }
+
+    if( pxPhyProperties->ucSpeed == ( uint8_t ) PHY_SPEED_1000 )
+    {
+        if( ( pxPhyObject->ucMaxSpeed != ( uint8_t ) PHY_SPEED_1000 ) ||
+            ( pxPhyProperties->ucDuplex == ( uint8_t ) PHY_DUPLEX_HALF ) )
+        {
+            FreeRTOS_printf( ( "xPhyConfigure: 1000BASE-T requires a gigabit interface and full-duplex auto-negotiation.\n" ) );
+            return -1;
+        }
+    }
+
+    if( pxPhyObject->ucMaxSpeed == ( uint8_t ) PHY_SPEED_1000 )
+    {
+        for( xPhyIndex = 0; xPhyIndex < pxPhyObject->xPortCount; xPhyIndex++ )
+        {
+            if( xPhySupportsGigabit( pxPhyObject->ulPhyIDs[ xPhyIndex ] ) == pdFALSE )
+            {
+                FreeRTOS_printf( ( "xPhyConfigure: PHY %08X is not a supported gigabit PHY.\n",
+                                   ( unsigned int ) pxPhyObject->ulPhyIDs[ xPhyIndex ] ) );
+                return -1;
+            }
+        }
+    }
+
+    if( ( pxPhyObject->ucMaxSpeed == ( uint8_t ) PHY_SPEED_1000 ) &&
+        ( pxPhyProperties->ucSpeed != ( uint8_t ) PHY_SPEED_10 ) &&
+        ( pxPhyProperties->ucSpeed != ( uint8_t ) PHY_SPEED_100 ) &&
+        ( pxPhyProperties->ucDuplex != ( uint8_t ) PHY_DUPLEX_HALF ) )
+    {
+        ulGigabitAdvertise = phyGBCR_ADVERTISE_1000FULL;
     }
 
     /* The expected ID for the 'LAN8742A'  is 0x0007c130. */
@@ -365,7 +503,7 @@ BaseType_t xPhyConfigure( EthernetPhy_t * pxPhyObject,
             {
                 ulAdvertise |= phyADVERTISE_10FULL | phyADVERTISE_10HALF;
             }
-            else
+            else if( pxPhyProperties->ucSpeed == ( uint8_t ) PHY_SPEED_100 )
             {
                 ulAdvertise |= phyADVERTISE_100FULL | phyADVERTISE_100HALF;
             }
@@ -381,7 +519,7 @@ BaseType_t xPhyConfigure( EthernetPhy_t * pxPhyObject,
                 ulAdvertise |= phyADVERTISE_100HALF;
             }
         }
-        else
+        else if( pxPhyProperties->ucSpeed == ( uint8_t ) PHY_SPEED_10 )
         {
             if( pxPhyProperties->ucDuplex == ( uint8_t ) PHY_DUPLEX_FULL )
             {
@@ -405,6 +543,14 @@ BaseType_t xPhyConfigure( EthernetPhy_t * pxPhyObject,
         /* Write advertise register. */
         pxPhyObject->fnPhyWrite( xPhyAddress, phyREG_04_ADVERTISE, ulAdvertise );
 
+        if( xPhySupportsGigabit( ulPhyID ) != pdFALSE )
+        {
+            if( prvWriteGigabitAdvertisement( pxPhyObject, xPhyAddress, ulGigabitAdvertise ) != 0 )
+            {
+                return -1;
+            }
+        }
+
         /*
          *      AN_EN        AN1         AN0       Forced Mode
          *        0           0           0        10BASE-T, Half-Duplex
@@ -423,13 +569,17 @@ BaseType_t xPhyConfigure( EthernetPhy_t * pxPhyObject,
         /* Read Control register. */
         pxPhyObject->fnPhyRead( xPhyAddress, phyREG_00_BMCR, &ulConfig );
 
-        ulConfig &= ~( phyBMCR_SPEED_100 | phyBMCR_FULL_DUPLEX );
+        ulConfig &= ~( phyBMCR_SPEED_100 | phyBMCR_SPEED_1000 | phyBMCR_FULL_DUPLEX );
 
         ulConfig |= phyBMCR_AN_ENABLE;
 
         if( ( pxPhyProperties->ucSpeed == ( uint8_t ) PHY_SPEED_100 ) || ( pxPhyProperties->ucSpeed == ( uint8_t ) PHY_SPEED_AUTO ) )
         {
             ulConfig |= phyBMCR_SPEED_100;
+        }
+        else if( pxPhyProperties->ucSpeed == ( uint8_t ) PHY_SPEED_1000 )
+        {
+            ulConfig |= phyBMCR_SPEED_1000;
         }
         else if( pxPhyProperties->ucSpeed == ( uint8_t ) PHY_SPEED_10 )
         {
@@ -445,33 +595,7 @@ BaseType_t xPhyConfigure( EthernetPhy_t * pxPhyObject,
             ulConfig &= ~phyBMCR_FULL_DUPLEX;
         }
 
-        if( xHas_19_PHYCR( ulPhyID ) )
-        {
-            uint32_t ulPhyControl;
-            /* Read PHY Control register. */
-            pxPhyObject->fnPhyRead( xPhyAddress, phyREG_19_PHYCR, &ulPhyControl );
-
-            /* Clear bits which might get set: */
-            ulPhyControl &= ~( PHYCR_MDIX_EN | PHYCR_MDIX_FORCE );
-
-            if( pxPhyProperties->ucMDI_X == PHY_MDIX_AUTO )
-            {
-                ulPhyControl |= PHYCR_MDIX_EN;
-            }
-            else if( pxPhyProperties->ucMDI_X == PHY_MDIX_CROSSED )
-            {
-                /* Force direct link = Use crossed RJ45 cable. */
-                ulPhyControl &= ~PHYCR_MDIX_FORCE;
-            }
-            else
-            {
-                /* Force crossed link = Use direct RJ45 cable. */
-                ulPhyControl |= PHYCR_MDIX_FORCE;
-            }
-
-            /* update PHY Control Register. */
-            pxPhyObject->fnPhyWrite( xPhyAddress, phyREG_19_PHYCR, ulPhyControl );
-        }
+        prvConfigureMDIX( pxPhyObject, xPhyAddress, ulPhyID, pxPhyProperties->ucMDI_X );
 
         FreeRTOS_printf( ( "+TCP: advertise: %04X config %04X\n", ( unsigned int ) ulAdvertise, ( unsigned int ) ulConfig ) );
     }
@@ -479,6 +603,7 @@ BaseType_t xPhyConfigure( EthernetPhy_t * pxPhyObject,
     /* Keep these values for later use. */
     pxPhyObject->ulBCRValue = ulConfig & ~phyBMCR_ISOLATE;
     pxPhyObject->ulACRValue = ulAdvertise;
+    pxPhyObject->ulGCRValue = ulGigabitAdvertise;
 
     return 0;
 }
@@ -495,6 +620,12 @@ BaseType_t xPhyFixedValue( EthernetPhy_t * pxPhyObject,
     uint32_t ulValue, ulBitMask = ( uint32_t ) 1U;
 
     ulValue = ( uint32_t ) 0U;
+
+    if( pxPhyObject->xPhyPreferences.ucSpeed == PHY_SPEED_1000 )
+    {
+        FreeRTOS_printf( ( "xPhyFixedValue: 1000BASE-T requires auto-negotiation.\n" ) );
+        return -1;
+    }
 
     if( pxPhyObject->xPhyPreferences.ucDuplex == PHY_DUPLEX_FULL )
     {
@@ -537,11 +668,25 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
         return 0;
     }
 
+    /* A new negotiation invalidates the selected ports' cached link state.
+     * Keep them down on failure so callers retry rather than using stale mode
+     * information. Publish link-up only after reading the resolved mode. */
+    pxPhyObject->ulLinkStatusMask &= ~ulPhyMask;
+
     for( xPhyIndex = 0; xPhyIndex < ( uint32_t ) pxPhyObject->xPortCount; xPhyIndex++ )
     {
         if( ( ulPhyMask & ( 1lu << xPhyIndex ) ) != 0lu )
         {
             BaseType_t xPhyAddress = pxPhyObject->ucPhyIndexes[ xPhyIndex ];
+            uint32_t ulPhyID = pxPhyObject->ulPhyIDs[ xPhyIndex ];
+
+            if( xPhySupportsGigabit( ulPhyID ) != pdFALSE )
+            {
+                if( prvWriteGigabitAdvertisement( pxPhyObject, xPhyAddress, pxPhyObject->ulGCRValue ) != 0 )
+                {
+                    return -1;
+                }
+            }
 
             /* Enable Auto-Negotiation. */
             pxPhyObject->fnPhyWrite( xPhyAddress, phyREG_04_ADVERTISE, pxPhyObject->ulACRValue );
@@ -593,12 +738,13 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
     if( ulDoneMask != ( uint32_t ) 0U )
     {
         ulBitMask = ( uint32_t ) 1U;
-        pxPhyObject->ulLinkStatusMask &= ~( ulDoneMask );
 
         for( xPhyIndex = 0; xPhyIndex < ( uint32_t ) pxPhyObject->xPortCount; xPhyIndex++, ulBitMask <<= 1 )
         {
             BaseType_t xPhyAddress = pxPhyObject->ucPhyIndexes[ xPhyIndex ];
             uint32_t ulPhyID = pxPhyObject->ulPhyIDs[ xPhyIndex ];
+            uint32_t ulSpeedMbps = 0U;
+            uint32_t ulLinkStatus;
 
             if( ( ulDoneMask & ulBitMask ) == ( uint32_t ) 0U )
             {
@@ -610,10 +756,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
 
             pxPhyObject->fnPhyRead( xPhyAddress, phyREG_01_BMSR, &ulRegValue );
 
-            if( ( ulRegValue & phyBMSR_LINK_STATUS ) != 0U )
-            {
-                pxPhyObject->ulLinkStatusMask |= ulBitMask;
-            }
+            ulLinkStatus = ulRegValue & phyBMSR_LINK_STATUS;
 
             if( ulPhyID == PHY_ID_KSZ8081MNXIA )
             {
@@ -708,6 +851,37 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                     ulRegValue |= phyPHYSTS_DUPLEX_STATUS;
                 }
             }
+            else if( ulPhyID == PHY_ID_RTL8211 )
+            {
+                uint32_t ulControlStatus = 0U;
+
+                if( pxPhyObject->fnPhyRead( xPhyAddress, phyREG_1A_PHYSR, &ulControlStatus ) != 0 )
+                {
+                    return -1;
+                }
+
+                ulRegValue = 0U;
+
+                if( ( ulControlStatus & phyRTL8211_PHYSR_DUPLEX ) != 0U )
+                {
+                    ulRegValue |= phyPHYSTS_DUPLEX_STATUS;
+                }
+
+                switch( ulControlStatus & phyRTL8211_PHYSR_SPEED_MASK )
+                {
+                    case phyRTL8211_PHYSR_SPEED_1000:
+                        ulSpeedMbps = 1000U;
+                        break;
+
+                    case phyRTL8211_PHYSR_SPEED_100:
+                        ulSpeedMbps = 100U;
+                        break;
+
+                    default:
+                        ulSpeedMbps = 10U;
+                        break;
+                }
+            }
             else if( xHas_1F_PHYSPCS( ulPhyID ) )
             {
                 /* 31 RW PHY Special Control Status */
@@ -732,10 +906,20 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                 pxPhyObject->fnPhyRead( xPhyAddress, PHYREG_10_PHYSTS, &ulRegValue );
             }
 
+            if( ulSpeedMbps == 0U )
+            {
+                ulSpeedMbps = ( ( ulRegValue & phyPHYSTS_SPEED_STATUS ) != 0U ) ? 10U : 100U;
+            }
+
+            if( ulLinkStatus != 0U )
+            {
+                pxPhyObject->ulLinkStatusMask |= ulBitMask;
+            }
+
             FreeRTOS_printf( ( "Autonego ready: %08x: %s duplex %u mbit %s status\n",
                                ( unsigned int ) ulRegValue,
                                ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) ? "full" : "half",
-                               ( ulRegValue & phyPHYSTS_SPEED_STATUS ) ? 10 : 100,
+                               ( unsigned int ) ulSpeedMbps,
                                ( ( pxPhyObject->ulLinkStatusMask & ulBitMask ) != 0U ) ? "high" : "low" ) );
 
             if( ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) != ( uint32_t ) 0U )
@@ -747,7 +931,11 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                 pxPhyObject->xPhyProperties.ucDuplex = PHY_DUPLEX_HALF;
             }
 
-            if( ( ulRegValue & phyPHYSTS_SPEED_STATUS ) != 0 )
+            if( ulSpeedMbps == 1000U )
+            {
+                pxPhyObject->xPhyProperties.ucSpeed = PHY_SPEED_1000;
+            }
+            else if( ulSpeedMbps == 10U )
             {
                 pxPhyObject->xPhyProperties.ucSpeed = PHY_SPEED_10;
             }
@@ -797,6 +985,17 @@ BaseType_t xPhyCheckLinkStatus( EthernetPhy_t * pxPhyObject,
 
             if( pxPhyObject->fnPhyRead( xPhyAddress, phyREG_01_BMSR, &ulStatus ) == 0 )
             {
+                /* Preserve a latched link loss while previously up: a brief
+                 * disconnect may have renegotiated a different speed/duplex.
+                 * Only clear stale latch-low status when already down. */
+                if( ( pxPhyObject->ulLinkStatusMask & ulBitMask ) == 0U )
+                {
+                    if( pxPhyObject->fnPhyRead( xPhyAddress, phyREG_01_BMSR, &ulStatus ) != 0 )
+                    {
+                        continue;
+                    }
+                }
+
                 if( !!( pxPhyObject->ulLinkStatusMask & ulBitMask ) != !!( ulStatus & phyBMSR_LINK_STATUS ) )
                 {
                     if( ( ulStatus & phyBMSR_LINK_STATUS ) != 0 )

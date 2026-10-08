@@ -1,35 +1,40 @@
 /**
  ******************************************************************************
- * @file    stm32f7xx_hal_eth.h
+ * @file    stm32f1xx_hal_eth.h
  * @author  MCD Application Team
  * @brief   Header file of ETH HAL module.
  ******************************************************************************
  * @attention
  *
- * Copyright (c) 2017 STMicroelectronics.
+ * Copyright (c) 2016 STMicroelectronics.
  * All rights reserved.
  *
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
  * If no LICENSE file comes with this software, it is provided AS-IS.
  *
+ * This STM32F1xx variant is adapted from ST's reworked STM32F4xx ETH HAL
+ * driver.  STM32F1xx uses AFIO for media-interface selection, does not
+ * implement CRC stripping for type packets or mixed DMA bursts, and supports
+ * HCLK frequencies up to 72 MHz.
+ *
  ******************************************************************************
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef STM32F7xx_HAL_ETH_H
-    #define STM32F7xx_HAL_ETH_H
+#ifndef STM32F1xx_HAL_ETH_H
+    #define STM32F1xx_HAL_ETH_H
 
     #ifdef __cplusplus
     extern "C" {
     #endif
 
 /* Includes ------------------------------------------------------------------*/
-    #include "stm32f7xx_hal_def.h"
+    #include "stm32f1xx_hal_def.h"
 
     #if defined( ETH )
 
-/** @addtogroup STM32F7xx_HAL_Driver
+/** @addtogroup STM32F1xx_HAL_Driver
  * @{
  */
 
@@ -242,7 +247,7 @@
 
             FunctionalState Support2KPacket;             /*!< Enables or disables the IEEE 802.3as Support for 2K length Packets */
 
-            FunctionalState CRCStripTypePacket;          /*!< Enables or disables the CRC stripping for Type packets.*/
+            FunctionalState CRCStripTypePacket;          /*!< Reserved for API compatibility. STM32F1xx always reports this as disabled. */
 
             FunctionalState AutomaticPadCRCStrip;        /*!< Enables or disables  the Automatic MAC Pad/CRC Stripping.*/
 
@@ -409,7 +414,7 @@
         typedef enum
         {
             HAL_ETH_MII_MODE = 0x00U,                   /*!<  Media Independent Interface               */
-            HAL_ETH_RMII_MODE = SYSCFG_PMC_MII_RMII_SEL /*!<   Reduced Media Independent Interface       */
+            HAL_ETH_RMII_MODE = AFIO_MAPR_MII_RMII_SEL  /*!<   Reduced Media Independent Interface       */
         } ETH_MediaInterfaceTypeDef;
 
 /**
@@ -587,11 +592,11 @@
                                                 *   @ref ETH_PTP_Config_Status */
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    void ( * TxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Tx Complete Callback      */
+                    void ( * TxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Tx Complete Callback */
                     void ( * RxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Rx  Complete Callback     */
-                    void ( * ErrorCallback )( struct __ETH_HandleTypeDef * heth );     /*!< ETH Error Callback            */
-                    void ( * PMTCallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH Power Management Callback */
-                    void ( * WakeUpCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Wake UP Callback          */
+                    void ( * ErrorCallback )( struct __ETH_HandleTypeDef * heth );     /*!< ETH Error Callback   */
+                    void ( * PMTCallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH Power Management Callback            */
+                    void ( * WakeUpCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Wake UP Callback   */
 
                     void ( * MspInitCallback )( struct __ETH_HandleTypeDef * heth );   /*!< ETH Msp Init callback              */
                     void ( * MspDeInitCallback )( struct __ETH_HandleTypeDef * heth ); /*!< ETH Msp DeInit callback            */
@@ -1011,7 +1016,6 @@
  * @{
  */
         #define ETH_BURSTLENGTH_FIXED          ETH_DMABMR_FB
-        #define ETH_BURSTLENGTH_MIXED          ETH_DMABMR_MB
         #define ETH_BURSTLENGTH_UNSPECIFIED    0x00000000U
 
 /**
@@ -1278,7 +1282,7 @@
  * @{
  */
         #define ETH_MEDIA_INTERFACE_MII     0x00000000U
-        #define ETH_MEDIA_INTERFACE_RMII    ( SYSCFG_PMC_MII_RMII_SEL )
+        #define ETH_MEDIA_INTERFACE_RMII    ( AFIO_MAPR_MII_RMII_SEL )
 
 /**
  * @}
@@ -2024,20 +2028,20 @@
 
         #ifdef HAL_ETH_USE_PTP
             HAL_StatusTypeDef HAL_ETH_PTP_SetConfig( ETH_HandleTypeDef * heth,
-                                                     const ETH_PTP_ConfigTypeDef * ptpconfig );
-            HAL_StatusTypeDef HAL_ETH_PTP_GetConfig( const ETH_HandleTypeDef * heth,
                                                      ETH_PTP_ConfigTypeDef * ptpconfig );
-            HAL_StatusTypeDef HAL_ETH_PTP_SetTime( const ETH_HandleTypeDef * heth,
-                                                   const ETH_TimeTypeDef * time );
-            HAL_StatusTypeDef HAL_ETH_PTP_GetTime( const ETH_HandleTypeDef * heth,
+            HAL_StatusTypeDef HAL_ETH_PTP_GetConfig( ETH_HandleTypeDef * heth,
+                                                     ETH_PTP_ConfigTypeDef * ptpconfig );
+            HAL_StatusTypeDef HAL_ETH_PTP_SetTime( ETH_HandleTypeDef * heth,
                                                    ETH_TimeTypeDef * time );
-            HAL_StatusTypeDef HAL_ETH_PTP_AddTimeOffset( const ETH_HandleTypeDef * heth,
+            HAL_StatusTypeDef HAL_ETH_PTP_GetTime( ETH_HandleTypeDef * heth,
+                                                   ETH_TimeTypeDef * time );
+            HAL_StatusTypeDef HAL_ETH_PTP_AddTimeOffset( ETH_HandleTypeDef * heth,
                                                          ETH_PtpUpdateTypeDef ptpoffsettype,
-                                                         const ETH_TimeTypeDef * timeoffset );
-            HAL_StatusTypeDef HAL_ETH_PTP_InsertTxTimestamp( const ETH_HandleTypeDef * heth );
-            HAL_StatusTypeDef HAL_ETH_PTP_GetTxTimestamp( const ETH_HandleTypeDef * heth,
+                                                         ETH_TimeTypeDef * timeoffset );
+            HAL_StatusTypeDef HAL_ETH_PTP_InsertTxTimestamp( ETH_HandleTypeDef * heth );
+            HAL_StatusTypeDef HAL_ETH_PTP_GetTxTimestamp( ETH_HandleTypeDef * heth,
                                                           ETH_TimeStampTypeDef * timestamp );
-            HAL_StatusTypeDef HAL_ETH_PTP_GetRxTimestamp( const ETH_HandleTypeDef * heth,
+            HAL_StatusTypeDef HAL_ETH_PTP_GetRxTimestamp( ETH_HandleTypeDef * heth,
                                                           ETH_TimeStampTypeDef * timestamp );
             HAL_StatusTypeDef HAL_ETH_RegisterTxPtpCallback( ETH_HandleTypeDef * heth,
                                                              pETH_txPtpCallbackTypeDef txPtpCallback );
@@ -2045,16 +2049,16 @@
         #endif /* HAL_ETH_USE_PTP */
 
         HAL_StatusTypeDef HAL_ETH_Transmit( ETH_HandleTypeDef * heth,
-                                            const ETH_TxPacketConfigTypeDef * pTxConfig,
+                                            ETH_TxPacketConfigTypeDef * pTxConfig,
                                             uint32_t Timeout );
         HAL_StatusTypeDef HAL_ETH_Transmit_IT( ETH_HandleTypeDef * heth,
-                                               const ETH_TxPacketConfigTypeDef * pTxConfig );
+                                               ETH_TxPacketConfigTypeDef * pTxConfig );
 
         HAL_StatusTypeDef HAL_ETH_WritePHYRegister( const ETH_HandleTypeDef * heth,
                                                     uint32_t PHYAddr,
                                                     uint32_t PHYReg,
                                                     uint32_t RegValue );
-        HAL_StatusTypeDef HAL_ETH_ReadPHYRegister( const ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETH_ReadPHYRegister( ETH_HandleTypeDef * heth,
                                                    uint32_t PHYAddr,
                                                    uint32_t PHYReg,
                                                    uint32_t * pRegValue );
@@ -2087,34 +2091,34 @@
                                                 ETH_MACConfigTypeDef * macconf );
         HAL_StatusTypeDef HAL_ETH_GetDMAConfig( const ETH_HandleTypeDef * heth,
                                                 ETH_DMAConfigTypeDef * dmaconf );
-        HAL_StatusTypeDef HAL_ETH_SetMACConfig( const ETH_HandleTypeDef * heth,
-                                                const ETH_MACConfigTypeDef * macconf );
-        HAL_StatusTypeDef HAL_ETH_SetDMAConfig( const ETH_HandleTypeDef * heth,
-                                                const ETH_DMAConfigTypeDef * dmaconf );
-        void HAL_ETH_SetMDIOClockRange( const ETH_HandleTypeDef * heth );
+        HAL_StatusTypeDef HAL_ETH_SetMACConfig( ETH_HandleTypeDef * heth,
+                                                ETH_MACConfigTypeDef * macconf );
+        HAL_StatusTypeDef HAL_ETH_SetDMAConfig( ETH_HandleTypeDef * heth,
+                                                ETH_DMAConfigTypeDef * dmaconf );
+        void HAL_ETH_SetMDIOClockRange( ETH_HandleTypeDef * heth );
 
 /* MAC VLAN Processing APIs    ************************************************/
-        void HAL_ETH_SetRxVLANIdentifier( const ETH_HandleTypeDef * heth,
+        void HAL_ETH_SetRxVLANIdentifier( ETH_HandleTypeDef * heth,
                                           uint32_t ComparisonBits,
                                           uint32_t VLANIdentifier );
 
 /* MAC L2 Packet Filtering APIs  **********************************************/
         HAL_StatusTypeDef HAL_ETH_GetMACFilterConfig( const ETH_HandleTypeDef * heth,
                                                       ETH_MACFilterConfigTypeDef * pFilterConfig );
-        HAL_StatusTypeDef HAL_ETH_SetMACFilterConfig( const ETH_HandleTypeDef * heth,
+        HAL_StatusTypeDef HAL_ETH_SetMACFilterConfig( ETH_HandleTypeDef * heth,
                                                       const ETH_MACFilterConfigTypeDef * pFilterConfig );
-        HAL_StatusTypeDef HAL_ETH_SetHashTable( const ETH_HandleTypeDef * heth,
-                                                const uint32_t * pHashTable );
+        HAL_StatusTypeDef HAL_ETH_SetHashTable( ETH_HandleTypeDef * heth,
+                                                uint32_t * pHashTable );
         HAL_StatusTypeDef HAL_ETH_SetSourceMACAddrMatch( const ETH_HandleTypeDef * heth,
                                                          uint32_t AddrNbr,
                                                          const uint8_t * pMACAddr );
 
 /* MAC Power Down APIs    *****************************************************/
-        void HAL_ETH_EnterPowerDownMode( const ETH_HandleTypeDef * heth,
+        void HAL_ETH_EnterPowerDownMode( ETH_HandleTypeDef * heth,
                                          const ETH_PowerDownConfigTypeDef * pPowerDownConfig );
-        void HAL_ETH_ExitPowerDownMode( const ETH_HandleTypeDef * heth );
-        HAL_StatusTypeDef HAL_ETH_SetWakeUpFilter( const ETH_HandleTypeDef * heth,
-                                                   const uint32_t * pFilter,
+        void HAL_ETH_ExitPowerDownMode( ETH_HandleTypeDef * heth );
+        HAL_StatusTypeDef HAL_ETH_SetWakeUpFilter( ETH_HandleTypeDef * heth,
+                                                   uint32_t * pFilter,
                                                    uint32_t Count );
 
 /**
@@ -2154,4 +2158,4 @@
 }
     #endif
 
-#endif /* STM32F7xx_HAL_ETH_H */
+#endif /* STM32F1xx_HAL_ETH_H */

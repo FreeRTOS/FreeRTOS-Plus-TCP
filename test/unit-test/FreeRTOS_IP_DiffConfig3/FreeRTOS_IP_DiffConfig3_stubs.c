@@ -58,6 +58,8 @@ const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } }
 
 const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
 
+const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
+
 void vPortEnterCritical( void )
 {
 }
