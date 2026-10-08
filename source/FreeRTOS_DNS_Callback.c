@@ -49,14 +49,15 @@
  *        call the handler.
  *
  * @param[in,out] pxSet a set of variables that are shared among the helper functions.
- * @param[in] pxAddress Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.
- *
- * @return Returns pdTRUE if uxIdentifier was recognized.
+ * @param[out] ppvSearchID The search ID that belongs to the matching request.
+ *             It is only written when a matching request was found, so that a
+ *             later call that does not match cannot overwrite the search ID
+ *             that an earlier call already reported.
+ * @return Returns not NULL if a matching callback function was found.
  */
-    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
-                               struct freertos_addrinfo * pxAddress )
+    FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,
+                                void ** ppvSearchID )
     {
-        BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
         const ListItem_t * pxEnd = listGET_END_MARKER( &xCallbackList );
         TickType_t uxIdentifier = ( TickType_t ) pxSet->pxDNSMessageHeader->usIdentifier;
@@ -103,7 +104,6 @@
                         vIPSetDNSTimerEnableState( pdFALSE );
                     }
 
-                    xResult = pdTRUE;
                     break;
                 }
             }
@@ -112,10 +112,15 @@
 
         if( pCallbackFunction != NULL )
         {
-            pCallbackFunction( pxSet->pcName, pvSearchID, pxAddress );
+            /* Only report the search ID when a request was actually matched.
+             * This function is called once per address record, and the entry is
+             * removed on the first match, so writing unconditionally would
+             * clear the search ID again while handling the second record of a
+             * reply that holds more than one address. */
+            *( ppvSearchID ) = pvSearchID;
         }
 
-        return xResult;
+        return pCallbackFunction;
     }
 
 /**

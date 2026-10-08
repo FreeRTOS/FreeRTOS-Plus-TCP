@@ -50,10 +50,13 @@
 /** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
  * type. */
 
-    #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
+/* Declared under the same condition that the definition in
+ * FreeRTOS_DNS_Parser.c is compiled under, and that ParseSet_t::pcName exists
+ * under. */
+    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
         size_t DNS_ReadNameField( ParseSet_t * pxSet,
                                   size_t uxDestLen );
-    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
+    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
 
 /*
  * Simple routine that jumps over the NAME field of a resource record.
@@ -61,6 +64,21 @@
  */
     size_t DNS_SkipNameField( const uint8_t * pucByte,
                               size_t uxLength );
+
+    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+
+/*
+ * Decode the name at 'pucName' into 'pcNameOut', resolving any compression
+ * pointer against the start of the DNS message. It does not advance the parse
+ * cursor. It returns pdTRUE when a complete name was decoded.
+ */
+        BaseType_t DNS_DecodeName( const uint8_t * pucMessage,
+                                   size_t uxMessageLength,
+                                   const uint8_t * pucName,
+                                   size_t uxNameBytesRemaining,
+                                   char * pcNameOut,
+                                   size_t uxDestLen );
+    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
 
 /*
  * Process a response packet from a DNS server.

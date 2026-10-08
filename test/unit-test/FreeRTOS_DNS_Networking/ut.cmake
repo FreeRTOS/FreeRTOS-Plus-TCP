@@ -36,6 +36,10 @@ list(APPEND mock_define_list
 # ================= Create the library under test here (edit) ==================
 
 add_compile_options(-Wno-pedantic -ggdb3)
+
+# Compile the unit under test with the opt-in source-IP reply check enabled so
+# this suite exercises the hardened (opted-in) DNS_ReadReply behaviour.
+add_definitions(-DipconfigDNS_CHECK_REPLY_SOURCE_IP=1)
 # list the files you would like to test here
 set(real_source_files ""
         )

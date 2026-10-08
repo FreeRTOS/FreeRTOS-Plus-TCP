@@ -2,11 +2,11 @@
   "ENTRY": "parseDNSAnswer",
 
 ################################################################
-# Modeled length of the attacker-controlled DNS payload remaining to be
-# parsed.  Kept small to bound the name-parse / answer-record loops, but the
-# buffer is allocated to EXACTLY this length with nondeterministic contents so
-# any over-read is a real defect.  32 bytes is enough to hold a full AAAA
-# answer record (name ref 2 + fixed header 10 + IPv6 address 16 = 28).
+# Modeled length of the attacker-controlled DNS message.  Kept small to bound
+# the name-parse / answer-record loops, but the buffer is allocated to EXACTLY
+# this length with nondeterministic contents so any over-read is a real defect.
+# 32 bytes is enough to hold a full AAAA answer record (name ref 2 + fixed
+# header 10 + IPv6 address 16 = 28).
   "NETWORK_BUFFER_SIZE": 32,
 
 ################################################################
@@ -18,18 +18,55 @@
   "ANSWERLOOP_UNWIND": "3",
 
 ################################################################
-# DNS_SkipNameField.0 : the name-walk while loop (linked in for real from the
-#   same translation unit).  Each iteration consumes >= 2 bytes, so
-#   (NETWORK_BUFFER_SIZE + 1) / 2 + 1 iterations soundly cover it.
-  "SKIPLOOP": "DNS_SkipNameField.0",
-  "SKIPLOOP_UNWIND": "17",
+# Size of ParseSet_t::pcName, and hence of every name buffer the answer-name
+# validation decodes into or copies around.  This is a proof parameter, not a
+# property of the code: the name-decode loops are all bounded by the
+# destination size, so keeping it small keeps the proof tractable while still
+# exercising every bound check against a NETWORK_BUFFER_SIZE-byte packet.
+  "DNS_CACHE_NAME_LENGTH": 8,
+
+################################################################
+# strncpy / strcasecmp operate on NUL-terminated names held in
+# DNS_CACHE_NAME_LENGTH-byte buffers, so DNS_CACHE_NAME_LENGTH + 1 iterations
+# soundly cover them: the unwinding assertion needs one iteration more than the
+# loop can actually run.  Both the plain and the fortified (__builtin___*_chk)
+# spellings are bounded because which one is emitted is platform dependent: the
+# CI Linux toolchain produces strncpy, macOS produces __builtin___strncpy_chk.
+  "NAMELOOP_UNWIND": "9",
+
+################################################################
+# DNS_SkipNameField.0 : the "walk over the string" while loop that advances
+#   pucByte over an answer record's owner name.  Each iteration consumes a
+#   length octet plus at least one label byte, so half the message length plus
+#   one covers it -- the same bound the standalone SkipNameField proof uses.
+  "SKIPLOOP_UNWIND": "__eval ({NETWORK_BUFFER_SIZE} + 1) / 2",
+
+################################################################
+# Number of compression pointers the owner-name decoder is willing to follow.
+# Lowered from its default of 8 purely to keep this proof tractable: the bound
+# only has to be large enough to reach the "too many hops" branch, which two
+# pointers already do.
+  "MAX_COMPRESSION_HOPS": 2,
+
+################################################################
+# DNS_DecodeName.0 : the single loop of the owner-name decoder.  Every
+#   iteration either follows one compression pointer -- at most
+#   MAX_COMPRESSION_HOPS of those -- or consumes a length octet plus at least
+#   one label byte while appending that label to the DNS_CACHE_NAME_LENGTH-byte
+#   destination, so the smaller of half the message and the destination bounds
+#   the rest.
+  "DECODELOOP_UNWIND": "__eval {DNS_CACHE_NAME_LENGTH} + {MAX_COMPRESSION_HOPS} + 1",
 
 ################################################################
 
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset {ANSWERLOOP}:{ANSWERLOOP_UNWIND},{SKIPLOOP}:{SKIPLOOP_UNWIND}"
+    "--unwindset {ANSWERLOOP}:{ANSWERLOOP_UNWIND}",
+    "--unwindset DNS_SkipNameField.0:{SKIPLOOP_UNWIND}",
+    "--unwindset DNS_DecodeName.0:{DECODELOOP_UNWIND}",
+    "--unwindset strcasecmp.0:{NAMELOOP_UNWIND}",
+    "--unwindset strncpy.0:{NAMELOOP_UNWIND},__builtin___strncpy_chk.0:{NAMELOOP_UNWIND}"
   ],
 
   "OBJS":
@@ -48,7 +85,8 @@
     "ipconfigUSE_IPv6=1",
     "ipconfigUSE_DNS_CACHE=0",
     "ipconfigDNS_USE_CALLBACKS=0",
-    "ipconfigDNS_CACHE_NAME_LENGTH=16",
+    "ipconfigDNS_CACHE_NAME_LENGTH={DNS_CACHE_NAME_LENGTH}",
+    "dnsMAX_COMPRESSION_HOPS={MAX_COMPRESSION_HOPS}U",
     "ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY=4"
   ]
 }
