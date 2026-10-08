@@ -161,6 +161,14 @@ void vTCPTimerReload( TickType_t xTime );
     void vDNSTimerReload( uint32_t ulCheckTime );
 #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+/**
+ * Reload the IP Multicast Reports timer.
+ */
+    void vIPMulticastReportsTimerReload( TickType_t xPeriodTicks );
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
 /**
  * Reload the Network timer.
  */

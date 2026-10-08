@@ -64,7 +64,7 @@ extern const MACAddress_t xMDNS_MacAddressIPv6;
 #define xMDNS_MACAddressIPv6    xMDNS_MacAddressIPv6
 
 #if ( ( ipconfigUSE_MDNS != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
-/* The MDNS IPv6 address is ff02::1:3 */
+/* The MDNS IPv6 address is ff02::fb */
     extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
 #endif /* ( ( ipconfigUSE_MDNS != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
