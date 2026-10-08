@@ -48,8 +48,11 @@
 #include "mock_FreeRTOS_DHCPv6.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_IPv4_Private.h"
+#include "mock_FreeRTOS_IPv6.h"
 
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 
 /*#include "FreeRTOS_IP_stubs.c" */
 #include "catch_assert.h"
@@ -82,6 +85,55 @@ void setUp( void )
 /*! called after each test case */
 void tearDown( void )
 {
+}
+
+static void prvPrepareIPv4Packet( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  NetworkEndPoint_t * pxEndPoint,
+                                  IPPacket_t * pxIPPacket )
+{
+    ( void ) memset( pxNetworkBuffer, 0, sizeof( *pxNetworkBuffer ) );
+    ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+    ( void ) memset( pxIPPacket, 0, sizeof( *pxIPPacket ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxIPPacket;
+    pxNetworkBuffer->xDataLength = sizeof( *pxIPPacket );
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0x01020304U;
+    pxEndPoint->ipv4_settings.ulBroadcastAddress = 0x010203FFU;
+    ( void ) memset( pxEndPoint->xMACAddress.ucBytes, 0x11, sizeof( MACAddress_t ) );
+
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    ( void ) memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                     pxEndPoint->xMACAddress.ucBytes,
+                     sizeof( MACAddress_t ) );
+    ( void ) memset( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MIN;
+    pxIPPacket->xIPHeader.ulDestinationIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+    pxIPPacket->xIPHeader.ulSourceIPAddress = 0x05060708U;
+}
+
+static void prvPrepareIPv6Packet( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  NetworkEndPoint_t * pxEndPoint,
+                                  IPPacket_IPv6_t * pxIPPacket )
+{
+    ( void ) memset( pxNetworkBuffer, 0, sizeof( *pxNetworkBuffer ) );
+    ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+    ( void ) memset( pxIPPacket, 0, sizeof( *pxIPPacket ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxIPPacket;
+    pxNetworkBuffer->xDataLength = sizeof( *pxIPPacket );
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    pxEndPoint->bits.bIPv6 = pdTRUE_UNSIGNED;
+    pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
+    pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ ipSIZE_OF_IPv6_ADDRESS - 1U ] = 2U;
+
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+    pxIPPacket->xIPHeader.xDestinationAddress = pxEndPoint->ipv6_settings.xIPAddress;
+    pxIPPacket->xIPHeader.xSourceAddress.ucBytes[ ipSIZE_OF_IPv6_ADDRESS - 1U ] = 1U;
 }
 
 /* ======================== Stub Callback Functions ========================= */
@@ -245,4 +297,119 @@ void test_prvProcessEthernetPacket_IPv4FrameType_CheckFrameFail( void )
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+/**
+ * @brief Invalid descriptors and truncated Ethernet headers must be rejected.
+ */
+void test_eConsiderPacketForProcessing_InvalidDescriptor( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    uint8_t ucEthernetBuffer[ sizeof( EthernetHeader_t ) ] = { 0 };
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( NULL ) );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    xNetworkBuffer.xDataLength = sizeof( ucEthernetBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xNetworkBuffer.xDataLength--;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief ARP and enabled custom Ethernet frames pass the common packet filter.
+ */
+void test_eConsiderPacketForProcessing_ARPAndCustomFrames( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    EthernetHeader_t xEthernetHeader = { 0 };
+
+    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) &xEthernetHeader;
+    xNetworkBuffer.xDataLength = sizeof( xEthernetHeader );
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+
+    xEthernetHeader.usFrameType = ipARP_FRAME_TYPE;
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    xEthernetHeader.usFrameType = 0xFFFFU;
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief Validate framing before dispatching IPv4 admission policy.
+ */
+void test_eConsiderPacketForProcessing_IPv4HeaderValidation( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xNetworkBuffer.xDataLength = sizeof( xIPPacket ) - 1U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xIPPacket.xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MAX;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief Delegate IPv4 policy and return its decision without host exceptions.
+ */
+void test_eConsiderPacketForProcessing_IPv4Admission( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_t xIPPacket;
+
+    prvPrepareIPv4Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    eConsiderIPv4PacketForProcessing_ExpectAndReturn( &xIPPacket, &xEndPoint, pdFALSE, eProcessBuffer );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    eConsiderIPv4PacketForProcessing_ExpectAndReturn( &xIPPacket, &xEndPoint, pdFALSE, eReleaseBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief Validate framing before dispatching IPv6 admission policy.
+ */
+void test_eConsiderPacketForProcessing_IPv6HeaderValidation( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_IPv6_t xIPPacket;
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    xNetworkBuffer.xDataLength = sizeof( xIPPacket ) - 1U;
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+}
+
+/**
+ * @brief Delegate IPv6 policy and return its decision without host exceptions.
+ */
+void test_eConsiderPacketForProcessing_IPv6Admission( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPPacket_IPv6_t xIPPacket;
+
+    prvPrepareIPv6Packet( &xNetworkBuffer, &xEndPoint, &xIPPacket );
+    eConsiderIPv6PacketForProcessing_ExpectAndReturn( &xIPPacket.xIPHeader, &xEndPoint, pdFALSE, eProcessBuffer );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
+
+    eConsiderIPv6PacketForProcessing_ExpectAndReturn( &xIPPacket.xIPHeader, &xEndPoint, pdFALSE, eReleaseBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xNetworkBuffer ) );
 }

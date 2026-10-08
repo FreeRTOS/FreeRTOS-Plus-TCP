@@ -1672,6 +1672,131 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Decide whether a packet should be processed based on its IP header
+ *        and the endpoint selected by the network driver.
+ *
+ * @param[in] pxNetworkBuffer The network buffer containing the packet. Its
+ *                            pxEndPoint member must already be assigned.
+ *
+ * @return eProcessBuffer when the packet passes the checks, or
+ *         eReleaseBuffer when it should be discarded.
+ */
+eFrameProcessingResult_t eConsiderPacketForProcessing( const NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    eFrameProcessingResult_t eReturn = eReleaseBuffer;
+
+    do
+    {
+        const EthernetHeader_t * pxEthernetHeader;
+        const NetworkEndPoint_t * pxEndPoint;
+
+        if( pxNetworkBuffer == NULL )
+        {
+            break;
+        }
+
+        if( pxNetworkBuffer->pucEthernetBuffer == NULL )
+        {
+            break;
+        }
+
+        if( pxNetworkBuffer->pxEndPoint == NULL )
+        {
+            break;
+        }
+
+        if( pxNetworkBuffer->xDataLength < sizeof( EthernetHeader_t ) )
+        {
+            break;
+        }
+
+        /* MISRA Ref 11.3.1 [Misaligned access]
+         * More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxEthernetHeader = ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+        pxEndPoint = pxNetworkBuffer->pxEndPoint;
+
+        #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+            if( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE )
+            {
+                eReturn = eProcessBuffer;
+                break;
+            }
+
+            if( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE )
+            {
+                const IPPacket_t * pxIPPacket;
+                const IPHeader_t * pxIPHeader;
+                size_t uxHeaderLength;
+
+                /* pxEndPoint was validated above, so inspect its address
+                 * family directly rather than repeating the NULL check in
+                 * ENDPOINT_IS_IPv4(). */
+                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    break;
+                }
+
+                if( pxNetworkBuffer->xDataLength < sizeof( IPPacket_t ) )
+                {
+                    break;
+                }
+
+                /* MISRA Ref 11.3.1 [Misaligned access]
+                 * More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
+                pxIPPacket = ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                pxIPHeader = &( pxIPPacket->xIPHeader );
+
+                uxHeaderLength = ( size_t ) ( ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2 );
+
+                if( uxHeaderLength > ( pxNetworkBuffer->xDataLength - ipSIZE_OF_ETH_HEADER ) )
+                {
+                    break;
+                }
+
+                eReturn = eConsiderIPv4PacketForProcessing( pxIPPacket, pxEndPoint, pdFALSE );
+                break;
+            }
+        #endif /* ipconfigUSE_IPv4 */
+
+        #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+            if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+            {
+                const IPPacket_IPv6_t * pxIPv6Packet;
+
+                /* pxEndPoint was validated above, so inspect its address
+                 * family directly rather than repeating the NULL check in
+                 * ENDPOINT_IS_IPv6(). */
+                if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
+                {
+                    break;
+                }
+
+                if( pxNetworkBuffer->xDataLength < sizeof( IPPacket_IPv6_t ) )
+                {
+                    break;
+                }
+
+                /* MISRA Ref 11.3.1 [Misaligned access]
+                 * More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
+                pxIPv6Packet = ( const IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                eReturn = eConsiderIPv6PacketForProcessing( &( pxIPv6Packet->xIPHeader ), pxEndPoint, pdFALSE );
+                break;
+            }
+        #endif /* ipconfigUSE_IPv6 */
+
+        #if ipconfigIS_ENABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
+            eReturn = eProcessBuffer;
+        #endif
+    } while( ipFALSE_BOOL );
+
+    return eReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Process the Ethernet packet.
  *
  * @param[in,out] pxNetworkBuffer the network buffer containing the ethernet packet. If the

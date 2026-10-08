@@ -4457,3 +4457,33 @@ void test_prvIPNetworkUpCalls_Multicast()
 
     prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
 }
+
+void test_eConsiderPacketForProcessing_AvailableWithDriverFilteringDisabled( void )
+{
+    NetworkBufferDescriptor_t xBuffer = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    IPPacket_t xIPv4Packet = { 0 };
+    IPPacket_IPv6_t xIPv6Packet = { 0 };
+
+    TEST_ASSERT_EQUAL( ipconfigDISABLE, ipconfigETHERNET_DRIVER_FILTERS_PACKETS );
+    xBuffer.pxEndPoint = &xEndPoint;
+    xBuffer.pucEthernetBuffer = ( uint8_t * ) &xIPv4Packet;
+    xBuffer.xDataLength = sizeof( xIPv4Packet );
+    xIPv4Packet.xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    xIPv4Packet.xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MIN;
+
+    eConsiderIPv4PacketForProcessing_ExpectAndReturn( &xIPv4Packet, &xEndPoint, pdFALSE, eProcessBuffer );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xBuffer ) );
+    eConsiderIPv4PacketForProcessing_ExpectAndReturn( &xIPv4Packet, &xEndPoint, pdFALSE, eReleaseBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xBuffer ) );
+
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xBuffer.pucEthernetBuffer = ( uint8_t * ) &xIPv6Packet;
+    xBuffer.xDataLength = sizeof( xIPv6Packet );
+    xIPv6Packet.xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+
+    eConsiderIPv6PacketForProcessing_ExpectAndReturn( &xIPv6Packet.xIPHeader, &xEndPoint, pdFALSE, eProcessBuffer );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eConsiderPacketForProcessing( &xBuffer ) );
+    eConsiderIPv6PacketForProcessing_ExpectAndReturn( &xIPv6Packet.xIPHeader, &xEndPoint, pdFALSE, eReleaseBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eConsiderPacketForProcessing( &xBuffer ) );
+}

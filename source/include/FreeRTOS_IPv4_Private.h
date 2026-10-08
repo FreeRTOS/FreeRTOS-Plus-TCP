@@ -126,6 +126,11 @@ struct xTCP_PACKET
 typedef struct xTCP_PACKET TCPPacket_t;
 
 
+/* Shared header admission policy. See implementation for caller preconditions. */
+eFrameProcessingResult_t eConsiderIPv4PacketForProcessing( const IPPacket_t * const pxIPPacket,
+                                                           const struct xNetworkEndPoint * const pxEndPoint,
+                                                           BaseType_t xAllowHostLoopback );
+
 /* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
 enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
                                                   const struct xNETWORK_BUFFER * const pxNetworkBuffer,

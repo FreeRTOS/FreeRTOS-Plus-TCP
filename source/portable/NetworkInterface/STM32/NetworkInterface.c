@@ -49,9 +49,6 @@
     #include "FreeRTOS_ND.h"
 #endif
 #include "FreeRTOS_Routing.h"
-#if ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
-    #include "FreeRTOS_Sockets.h"
-#endif
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "phyHandling.h"
@@ -161,12 +158,9 @@
         #warning "Consider enabling ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES for NetworkInterface"
     #endif
 
-/* TODO: There should be a universal check for use in network interfaces, similar to eConsiderFrameForProcessing.
- * So, don't use this macro, and filter anyways in the mean time. */
-
-/* #if ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
- #warning "Consider enabling ipconfigETHERNET_DRIVER_FILTERS_PACKETS for NetworkInterface"
- #endif */
+    #if ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
+        #warning "Consider enabling ipconfigETHERNET_DRIVER_FILTERS_PACKETS for NetworkInterface"
+    #endif
 
     #if ipconfigIS_DISABLED( ipconfigUSE_LINKED_RX_MESSAGES )
         #warning "Consider enabling ipconfigUSE_LINKED_RX_MESSAGES for NetworkInterface"
@@ -218,31 +212,10 @@
     #undef ETH_CTRLPACKETS_BLOCK_ALL
     #define ETH_CTRLPACKETS_BLOCK_ALL    ETH_MACFFR_PCF_BlockAll
 
-    #undef ETH_IP_HEADER_IPV4
-    #define ETH_IP_HEADER_IPV4           ETH_DMAPTPRXDESC_IPV4PR
-
-    #undef ETH_IP_HEADER_IPV6
-    #define ETH_IP_HEADER_IPV6           ETH_DMAPTPRXDESC_IPV6PR
-
-    #undef ETH_IP_PAYLOAD_UNKNOWN
-    #define ETH_IP_PAYLOAD_UNKNOWN       0x0U
-
-    #undef ETH_IP_PAYLOAD_UDP
-    #define ETH_IP_PAYLOAD_UDP           ETH_DMAPTPRXDESC_IPPT_UDP
-
-    #undef ETH_IP_PAYLOAD_TCP
-    #define ETH_IP_PAYLOAD_TCP           ETH_DMAPTPRXDESC_IPPT_TCP
-
-    #undef ETH_IP_PAYLOAD_ICMPN
-    #define ETH_IP_PAYLOAD_ICMPN         ETH_DMAPTPRXDESC_IPPT_ICMP
-
 #elif defined( niEMAC_STM32HX )
 
     #undef ETH_DMA_TX_BUFFER_UNAVAILABLE_FLAG
     #define ETH_DMA_TX_BUFFER_UNAVAILABLE_FLAG    ETH_DMACSR_TBU
-
-    #undef ETH_IP_PAYLOAD_IGMP
-    #define ETH_IP_PAYLOAD_IGMP                   0x4U
 
 #endif /* if defined( niEMAC_STM32FX ) */
 
@@ -778,6 +751,18 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle,
 
             pxCurDescriptor->pxInterface = pxInterface;
             pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxCurDescriptor->pxInterface, pxCurDescriptor->pucEthernetBuffer );
+
+            #if ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
+                /* The completed descriptor now has its actual frame length and
+                 * matching endpoint, as required by the common packet filter. */
+                if( eConsiderPacketForProcessing( pxCurDescriptor ) != eProcessBuffer )
+                {
+                    iptraceETHERNET_RX_EVENT_LOST();
+                    prvReleaseNetworkBufferDescriptor( pxCurDescriptor );
+                    continue;
+                }
+            #endif
+
             #if ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES )
                 if( pxStartDescriptor == NULL )
                 {
@@ -798,7 +783,10 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle,
     if( uxCount > 0 )
     {
         #if ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES )
-            prvSendRxEvent( pxStartDescriptor );
+            if( pxStartDescriptor != NULL )
+            {
+                prvSendRxEvent( pxStartDescriptor );
+            }
         #endif
         xResult = pdTRUE;
     }
@@ -1681,6 +1669,33 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
             break;
         }
 
+        if( ( pxDescriptor->pucEthernetBuffer == NULL ) || ( usLength < sizeof( EthernetHeader_t ) ) )
+        {
+            iptraceETHERNET_RX_EVENT_LOST();
+            break;
+        }
+
+        /* Endpoint matching reads protocol addresses before the common packet
+         * filter runs, so require each protocol's fixed header first. */
+        const EthernetHeader_t * const pxEthernetHeader = ( const EthernetHeader_t * ) pxDescriptor->pucEthernetBuffer;
+
+        #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+            if( ( ( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE ) && ( usLength < sizeof( IPPacket_t ) ) ) ||
+                ( ( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE ) && ( usLength < sizeof( ARPPacket_t ) ) ) )
+            {
+                iptraceETHERNET_RX_EVENT_LOST();
+                break;
+            }
+        #endif
+
+        #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+            if( ( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE ) && ( usLength < sizeof( IPPacket_IPv6_t ) ) )
+            {
+                iptraceETHERNET_RX_EVENT_LOST();
+                break;
+            }
+        #endif
+
         ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
         uint32_t ulErrorCode = 0;
         ( void ) HAL_ETH_GetRxDataErrorCode( pxEthHandle, &ulErrorCode );
@@ -1700,76 +1715,6 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
                 break;
             }
         #endif
-
-        #if ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
-        {
-            const ETH_DMADescTypeDef * const pxRxDesc = ( const ETH_DMADescTypeDef * const ) pxEthHandle->RxDescList.RxDesc[ pxEthHandle->RxDescList.RxDescIdx ];
-            uint32_t ulRxDesc;
-            #ifdef niEMAC_STM32HX
-                ulRxDesc = pxRxDesc->DESC1;
-            #elif defined( niEMAC_STM32FX )
-                ulRxDesc = pxRxDesc->DESC4;
-            #endif
-
-            if( ( ulRxDesc & ETH_IP_HEADER_IPV4 ) != 0 )
-            {
-                /* Should be impossible if hardware filtering is implemented correctly */
-                configASSERT( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) );
-                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                    /* prvAllowIPPacketIPv4(); */
-                #endif
-            }
-            else if( ( ulRxDesc & ETH_IP_HEADER_IPV6 ) != 0 )
-            {
-                /* Should be impossible if hardware filtering is implemented correctly */
-                configASSERT( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) );
-                #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-                    /* prvAllowIPPacketIPv6(); */
-                #endif
-            }
-
-            if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_UNKNOWN )
-            {
-                iptraceETHERNET_RX_EVENT_LOST();
-                break;
-            }
-            else if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_UDP )
-            {
-                /* prvProcessUDPPacket(); */
-            }
-            else if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_TCP )
-            {
-                /* Should be impossible if hardware filtering is implemented correctly */
-                configASSERT( ipconfigIS_ENABLED( ipconfigUSE_TCP ) );
-                #if ipconfigIS_ENABLED( ipconfigUSE_TCP )
-                    /* xProcessReceivedTCPPacket() */
-                #endif
-            }
-            else if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_ICMPN )
-            {
-                #if ipconfigIS_DISABLED( ipconfigREPLY_TO_INCOMING_PINGS ) && ipconfigIS_DISABLED( ipconfigSUPPORT_OUTGOING_PINGS )
-                    iptraceETHERNET_RX_EVENT_LOST();
-                    break;
-                #else
-                    /* ProcessICMPPacket(); */
-                #endif
-            }
-
-            #ifdef niEMAC_STM32HX
-                else if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_IGMP )
-                {
-                }
-            #endif
-
-            /* TODO: Create a eConsiderPacketForProcessing */
-            if( eConsiderPacketForProcessing( pxDescriptor->pucEthernetBuffer ) != eProcessBuffer )
-            {
-                iptraceETHERNET_RX_EVENT_LOST();
-                FreeRTOS_debug_printf( ( "prvAcceptPacket: Packet discarded\n" ) );
-                break;
-            }
-        }
-        #endif /* if ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS ) */
 
         xResult = pdTRUE;
     } while( pdFALSE );

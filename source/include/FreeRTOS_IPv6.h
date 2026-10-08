@@ -83,20 +83,23 @@ extern const struct xIPv6_Address FreeRTOS_in6addr_loopback;
 struct xNetworkEndPoint;
 struct xNetworkInterface;
 
+/* Shared header admission policy. See implementation for caller preconditions. */
+eFrameProcessingResult_t eConsiderIPv6PacketForProcessing( const IPHeader_IPv6_t * const pxIPv6Header,
+                                                           const struct xNetworkEndPoint * const pxEndPoint,
+                                                           BaseType_t xAllowHostLoopback );
+
 /* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
 eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                UBaseType_t uxHeaderLength );
-
-#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
 
 /*
  * Return pdTRUE if either source or destination is a loopback address.
  * A loopback IP-address may only communicate internally with another
  * loopback IP-address.
  */
-    BaseType_t xBadIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
-#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
+BaseType_t xBadIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
+
 
 /*
  * Check if the address is a loopback IP-address.
