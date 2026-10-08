@@ -1813,7 +1813,11 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         #if ( ipconfigUSE_IPv6 != 0 )
             if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
             {
-                ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+                if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                {
+                    ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+                    pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxAddress->sin_address.xIP_IPv6 ) );
+                }
             }
             else
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -1831,7 +1835,7 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         }
 
         #if ( ipconfigUSE_IPv4 != 0 )
-            if( pxSocket->pxEndPoint != NULL )
+            if( ( pxSocket->pxEndPoint != NULL ) && ( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET4 ) )
             {
                 pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress );
             }
