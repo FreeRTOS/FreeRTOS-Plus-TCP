@@ -40,7 +40,6 @@ add_compile_options(-Wno-pedantic -ggdb3)
 set(real_source_files ""
         )
 list(APPEND real_source_files
-            ${project_name}/${project_name}_stubs.c
             ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS_Networking.c
 	)
 # list the directories the module under test includes

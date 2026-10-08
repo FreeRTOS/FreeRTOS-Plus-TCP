@@ -98,63 +98,6 @@ NetworkAddressingParameters_t xDefaultAddressing =
     0xC0C0C0FF
 };
 
-size_t xPortGetMinimumEverFreeHeapSize( void )
-{
-    return 0;
-}
-
-
-BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                           const char * pcName )
-{
-}
-
-StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
-                                     StackType_t * pxEndOfStack,
-                                     TaskFunction_t pxCode,
-                                     void * pvParameters )
-{
-}
-
-uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
-                                             uint16_t usSourcePort,
-                                             uint32_t ulDestinationAddress,
-                                             uint16_t usDestinationPort )
-{
-}
-BaseType_t xNetworkInterfaceInitialise( void )
-{
-}
-void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
-                                           struct xNetworkEndPoint * pxEndPoint )
-{
-}
-void vApplicationDaemonTaskStartupHook( void )
-{
-}
-void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
-                                     StackType_t ** ppxTimerTaskStackBuffer,
-                                     configSTACK_DEPTH_TYPE * puxTimerTaskStackSize )
-{
-}
-void vPortDeleteThread( void * pvTaskToDelete )
-{
-}
-void vApplicationIdleHook( void )
-{
-}
-void vApplicationTickHook( void )
-{
-}
-unsigned long ulGetRunTimeCounterValue( void )
-{
-}
-void vPortEndScheduler( void )
-{
-}
-BaseType_t xPortStartScheduler( void )
-{
-}
 void vPortEnterCritical( void )
 {
 }

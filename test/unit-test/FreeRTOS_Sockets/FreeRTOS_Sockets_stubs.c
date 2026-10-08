@@ -30,8 +30,7 @@
 #include <unity.h>
 
 /* Include standard libraries */
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 #include <stdint.h>
 #include "FreeRTOS.h"
 #include "task.h"
@@ -66,6 +65,7 @@ EventBits_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
                                         int CallbackCount )
 {
     xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
+    return 0;
 }
 
 void vStub_vTaskSetTimeOutState_socketError( TimeOut_t * const pxTimeOut,
