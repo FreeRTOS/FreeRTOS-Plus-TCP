@@ -1,4 +1,8 @@
-if (NOT ( (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "STM32") ) )
+if ( (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "STM32FXX") OR
+     (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "STM32HXX") )
+    add_subdirectory(Legacy)
+    return()
+elseif (NOT (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "STM32") )
     return()
 endif()
 
@@ -34,13 +38,4 @@ target_include_directories( freertos_plus_tcp_network_if
       Drivers/H5>
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_STM32_IF_DRIVER},H7>:
       Drivers/H7>
-)
-
-target_link_libraries( freertos_plus_tcp_network_if
-  PUBLIC
-    freertos_plus_tcp_port
-    freertos_plus_tcp_network_if_common
-  PRIVATE
-    freertos_kernel
-    freertos_plus_tcp
 )

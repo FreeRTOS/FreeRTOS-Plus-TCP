@@ -18,12 +18,3 @@ target_include_directories( freertos_plus_tcp_network_if
   PRIVATE
     ether_lan9118
 )
-
-target_link_libraries( freertos_plus_tcp_network_if
-  PUBLIC
-    freertos_plus_tcp_port
-    freertos_plus_tcp_network_if_common
-  PRIVATE
-    freertos_kernel
-    freertos_plus_tcp
-)

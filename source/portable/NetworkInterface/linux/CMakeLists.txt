@@ -28,12 +28,7 @@ target_compile_options( freertos_plus_tcp_network_if
 )
 
 target_link_libraries( freertos_plus_tcp_network_if
-  PUBLIC
-    freertos_plus_tcp_port
-    freertos_plus_tcp_network_if_common
   PRIVATE
-    freertos_kernel
-    freertos_plus_tcp
     ${PCAP_LIBRARY}
     Threads::Threads
 )
