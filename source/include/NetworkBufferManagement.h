@@ -80,6 +80,10 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     BaseType_t prvIsFreeBuffer( const NetworkBufferDescriptor_t * pxDescr );
 #endif
 
+#if ipconfigBUFFER_AND_DESCRIPTOR_RELEASE_HOOK
+    void vReleaseNetworkBufferAndDescriptorHook( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#endif
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
