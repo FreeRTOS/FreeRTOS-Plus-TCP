@@ -132,11 +132,8 @@
     #if ( ipconfigDNS_CHECK_REPLY_SOURCE_IP == 1 )
 
 /**
- * @brief Check whether a DNS query was addressed to a multicast group.
- *
- * Queries sent to a multicast group - mDNS and LLMNR - are answered by the
- * individual responders, so their replies never carry the address that the
- * query was sent to and must not be judged by it.
+ * @brief Check whether a DNS query was addressed to a multicast group, whose
+ *        replies come from the individual responders rather than the group.
  *
  * @param[in] pxTargetAddress The address that the query was sent to.
  * @return pdTRUE when the query was sent to a multicast group.
@@ -147,15 +144,11 @@
 
             if( pxTargetAddress->xIs_IPv6 == pdTRUE )
             {
-                /* Every IPv6 multicast address starts with 0xFF, which covers
-                 * both ipMDNS_IP_ADDR_IPv6 and ipLLMNR_IP_ADDR_IPv6. */
                 xReturn = ( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes[ 0 ] == 0xFFU ) ? pdTRUE : pdFALSE;
             }
             else
             {
-                /* IPv4 multicast is 224.0.0.0/4, which covers both
-                 * ipMDNS_IP_ADDRESS and ipLLMNR_IP_ADDR. 'ulIP_IPv4' is stored
-                 * in network byte order. */
+                /* IPv4 multicast is 224.0.0.0/4. */
                 uint32_t ulIPAddress = FreeRTOS_ntohl( pxTargetAddress->xIPAddress.ulIP_IPv4 );
 
                 xReturn = ( ( ulIPAddress & 0xF0000000U ) == 0xE0000000U ) ? pdTRUE : pdFALSE;
@@ -183,10 +176,8 @@
         uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
         struct freertos_sockaddr xFromAddress;
 
-        /* Note that the receive time-out was configured when the socket was
-         * created, from 'ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS' for a blocking
-         * look-up and from zero for an asynchronous one. It must not be
-         * overruled here. */
+        /* The receive time-out belongs to the socket and was set when it was
+         * created; it must not be overruled here. */
 
         /* Wait for the reply. */
         xReturn = FreeRTOS_recvfrom( xDNSSocket,

@@ -324,7 +324,6 @@ void test_ReadReply_mdns_target_accepts_any_source( void )
     xTarget.xIs_IPv6 = pdFALSE;
     xTarget.xIPAddress.ulIP_IPv4 = ipMDNS_IP_ADDRESS;
 
-    /* Responder answers from an arbitrary subnet address. */
     xReturn = prvRunReadReply( &xTarget, TEST_WRONG_IPv4 );
 
     TEST_ASSERT_EQUAL( 300, xReturn );
@@ -463,9 +462,8 @@ void test_ReadReply_IPv6_source_mismatch( void )
 }
 
 /**
- * @brief LLMNR: the query is addressed to the LLMNR multicast address and the
- *        responder replies from its own unicast address, just as with mDNS.
- *        The reply must be accepted even with the source-IP check enabled.
+ * @brief An LLMNR reply, which arrives from the responder rather than from the
+ *        multicast address it was sent to, is accepted.
  */
 void test_ReadReply_llmnr_target_accepts_any_source( void )
 {
@@ -476,7 +474,6 @@ void test_ReadReply_llmnr_target_accepts_any_source( void )
     xTarget.xIs_IPv6 = pdFALSE;
     xTarget.xIPAddress.ulIP_IPv4 = ipLLMNR_IP_ADDR;
 
-    /* Responder answers from an arbitrary subnet address. */
     xReturn = prvRunReadReply( &xTarget, TEST_WRONG_IPv4 );
 
     TEST_ASSERT_EQUAL( 300, xReturn );
@@ -511,11 +508,8 @@ void test_ReadReply_IPv6_llmnr_target_accepts_any_source( void )
 }
 
 /**
- * @brief DNS_ReadReply must not reconfigure the socket's receive time-out: that
- *        was set when the socket was created, from
- *        ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS for a blocking look-up and from
- *        zero for an asynchronous one. No FreeRTOS_setsockopt() expectation is
- *        registered here, so CMock fails the test if one is called.
+ * @brief DNS_ReadReply must not reconfigure the socket's receive time-out. No
+ *        setsockopt expectation is registered, so CMock fails if one is called.
  */
 void test_ReadReply_does_not_change_receive_timeout( void )
 {

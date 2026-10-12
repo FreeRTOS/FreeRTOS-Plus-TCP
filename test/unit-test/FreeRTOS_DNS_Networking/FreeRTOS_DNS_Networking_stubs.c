@@ -43,9 +43,7 @@
 
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
-/* The IPv6 mDNS and LLMNR groups, used by the tests that check the multicast
- * carve-out in DNS_ReadReply. The real definitions live in FreeRTOS_DNS.c,
- * which is not part of this test suite. */
+/* The real definitions live in FreeRTOS_DNS.c, which is not in this suite. */
 const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
 {
     { 0xffU, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U,

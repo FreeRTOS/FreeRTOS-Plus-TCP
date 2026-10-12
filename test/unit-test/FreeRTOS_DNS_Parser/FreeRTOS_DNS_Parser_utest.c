@@ -480,9 +480,8 @@ void test_DNS_SkipNameField_small_buffer( void )
 }
 
 /**
- * @brief A name made of a label followed by a compression pointer - the
- *        partial-compression form of RFC 1035 section 4.1.4 - is stepped over.
- *        The pointer terminates the name, so there is no trailing zero octet.
+ * @brief A label followed by a compression pointer is stepped over. The pointer
+ *        terminates the name, so there is no trailing zero octet.
  */
 void test_DNS_SkipNameField_label_then_offset( void )
 {
@@ -497,7 +496,6 @@ void test_DNS_SkipNameField_label_then_offset( void )
 
     ret = DNS_SkipNameField( pucByte, 300 );
 
-    /* 1 length octet + 3 label bytes + 2 pointer bytes. */
     TEST_ASSERT_EQUAL( 6, ret );
 }
 
@@ -516,8 +514,6 @@ void test_DNS_SkipNameField_label_then_truncated_offset( void )
     pucByte[ 2 ] = dnsNAME_IS_OFFSET;
     pucByte[ 3 ] = 12;
 
-    /* Only two bytes are left when the pointer is reached, and a pointer needs
-     * two bytes plus room to be inside the message. */
     ret = DNS_SkipNameField( pucByte, 4 );
 
     TEST_ASSERT_EQUAL( 0, ret );
@@ -557,7 +553,6 @@ void test_DNS_DecodeName_offset_resolved( void )
     char pcName[ 32 ];
     BaseType_t xReturn;
 
-    /* The name at offset 0 is a pointer to offset 16, where "org" lives. */
     pucMessage[ 0 ] = dnsNAME_IS_OFFSET;
     pucMessage[ 1 ] = 16;
     pucMessage[ 16 ] = 3;
@@ -643,8 +638,7 @@ void test_DNS_DecodeName_truncated_offset( void )
 }
 
 /**
- * @brief Without the start of the message there is nothing to resolve a
- *        compression pointer against.
+ * @brief A compression pointer with no message to resolve it against is rejected.
  */
 void test_DNS_DecodeName_offset_without_message( void )
 {
@@ -664,8 +658,7 @@ void test_DNS_DecodeName_offset_without_message( void )
 }
 
 /**
- * @brief A compression pointer that targets a byte outside the message is
- *        rejected.
+ * @brief A compression pointer targeting a byte outside the message is rejected.
  */
 void test_DNS_DecodeName_offset_out_of_bounds( void )
 {
@@ -685,8 +678,7 @@ void test_DNS_DecodeName_offset_out_of_bounds( void )
 }
 
 /**
- * @brief A chain of compression pointers longer than the hop limit is rejected
- *        rather than followed, so a self-referential message cannot loop.
+ * @brief A chain of compression pointers longer than the hop limit is rejected.
  */
 void test_DNS_DecodeName_offset_hop_limit( void )
 {
@@ -695,8 +687,7 @@ void test_DNS_DecodeName_offset_hop_limit( void )
     BaseType_t xReturn;
     size_t uxIndex;
 
-    /* A chain of pointers, each one hopping two bytes forward: more hops than
-     * the decoder is willing to follow. */
+    /* More hops than the decoder is willing to follow. */
     for( uxIndex = 0U; uxIndex < 30U; uxIndex += 2U )
     {
         pucMessage[ uxIndex ] = dnsNAME_IS_OFFSET;
@@ -720,7 +711,6 @@ void test_DNS_DecodeName_label_past_end_of_message( void )
     char pcName[ 16 ];
     BaseType_t xReturn;
 
-    /* A label of 10 bytes, with only 7 bytes left after the length octet. */
     pucMessage[ 0 ] = 10;
 
     xReturn = DNS_DecodeName( pucMessage, sizeof( pucMessage ),
@@ -732,8 +722,7 @@ void test_DNS_DecodeName_label_past_end_of_message( void )
 }
 
 /**
- * @brief A name that does not fit in the destination is rejected rather than
- *        silently truncated.
+ * @brief A name that does not fit the destination is rejected, not truncated.
  */
 void test_DNS_DecodeName_does_not_fit_destination( void )
 {
@@ -2034,9 +2023,8 @@ void test_DNS_ParseDNSReply_answer_record_too_many_answers( void )
     strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    /* The answer records are owned by a name other than the one in the question,
-     * so they are skipped rather than stored. Ignore the type/class reads: the
-     * number of records reached is not what this test is about. */
+    /* The records are owned by another name, so they are skipped. The number
+     * of records reached is not what this test is about. */
     usChar2u16_IgnoreAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
@@ -2050,10 +2038,8 @@ void test_DNS_ParseDNSReply_answer_record_too_many_answers( void )
 }
 
 /**
- * @brief A reply that is about a name other than the one this device asked for
- *        is rejected, even when its transaction ID matched. Only two
- *        usChar2u16() calls are registered - the question's type and class - so
- *        the test fails if the answer records are reached at all.
+ * @brief A reply about another name is rejected despite a matching identifier.
+ *        Only two usChar2u16() calls are registered, so reaching the answers fails.
  */
 void test_DNS_ParseDNSReply_requested_name_mismatch_rejected( void )
 {
@@ -2073,8 +2059,7 @@ void test_DNS_ParseDNSReply_requested_name_mismatch_rejected( void )
     dns_header->usQuestions = FreeRTOS_htons( 1 );
     dns_header->usAnswers = FreeRTOS_htons( 1 );
 
-    /* The reply is self-consistent about "aaa": question and answer owner name
-     * both say "aaa". Nothing in it refers to the name that was asked for. */
+    /* Self-consistent about "aaa"; nothing refers to the requested name. */
     pucUDPPayloadBuffer[ beg++ ] = 3;
     memcpy( &( pucUDPPayloadBuffer[ beg ] ), "aaa", 3 );
     beg += 3;
@@ -2104,9 +2089,8 @@ void test_DNS_ParseDNSReply_requested_name_mismatch_rejected( void )
 }
 
 /**
- * @brief The same reply is parsed when it is about the name that was asked for.
- *        A third usChar2u16() call is registered for the answer record's type,
- *        so the test fails if the name check wrongly rejects the reply.
+ * @brief The same reply is parsed when it is about the requested name. A third
+ *        usChar2u16() call is registered, so a wrong rejection fails the test.
  */
 void test_DNS_ParseDNSReply_requested_name_match_accepted( void )
 {
@@ -2143,8 +2127,7 @@ void test_DNS_ParseDNSReply_requested_name_match_accepted( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* question usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* question usClass */
 
-    /* The answer is not an address record, so it is skipped and nothing is
-     * stored. Reaching this read is the point of the test. */
+    /* Not an address record, so it is skipped. Reaching this read is the point. */
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_CNAME_HOST ); /* answer usType */
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
@@ -3567,10 +3550,8 @@ void test_parseDNSAnswer_malformed_ancount_exceeds_buffer( void )
 }
 
 /**
- * @brief An A record owned by a name other than the one that was queried is
- *        skipped: its address is neither reported nor cached. The rest of the
- *        response is still parsed, because a response may legally carry records
- *        for names that were not asked for.
+ * @brief An A record owned by another name is skipped, not reported or cached,
+ *        and the rest of the response is still parsed.
  */
 void test_parseDNSAnswer_answer_name_mismatch_record_skipped( void )
 {
@@ -3585,7 +3566,6 @@ void test_parseDNSAnswer_answer_name_mismatch_record_skipped( void )
 
     memset( pucByte, 0x00, sizeof( pucByte ) );
 
-    /* The device asked for "aaa". */
     ( void ) strcpy( xSet.pcName, "aaa" );
 
     /* Craft an inline (uncompressed) answer name of a single label "bbb",
@@ -3597,8 +3577,6 @@ void test_parseDNSAnswer_answer_name_mismatch_record_skipped( void )
     pucByte[ 3 ] = 'b';
     pucByte[ 4 ] = 0x00;
 
-    /* A complete A record follows the name, carrying an address that must not
-     * be accepted for "aaa". */
     pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 5 );
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     memcpy( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ),
@@ -3616,19 +3594,16 @@ void test_parseDNSAnswer_answer_name_mismatch_record_skipped( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
 
-    /* No pxNew_AddrInfo()/FreeRTOS_dns_update() expectations are registered, so
-     * CMock fails the test if the record is stored or reported. */
+    /* No storage expectations are registered, so CMock fails if it is stored. */
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
-    /* No address was accepted for the queried name. */
     TEST_ASSERT_EQUAL( 0U, ret );
     TEST_ASSERT_NULL( pxAddressInfo );
 }
 
 /**
- * @brief A CNAME-chained reply resolves: the A record following the CNAME is
- *        owned by the alias target rather than by the queried name, and must
- *        still be accepted.
+ * @brief A CNAME-chained reply resolves: the A record after the CNAME is owned
+ *        by the alias target, not the queried name, and is still accepted.
  */
 void test_parseDNSAnswer_cname_chain_accepted( void )
 {
@@ -3648,7 +3623,6 @@ void test_parseDNSAnswer_cname_chain_accepted( void )
 
     memset( pucByte, 0x00, sizeof( pucByte ) );
 
-    /* The device asked for "aaa". */
     ( void ) strcpy( xSet.pcName, "aaa" );
 
     /* Record 1: "aaa" CNAME "bbb". */
@@ -3662,7 +3636,6 @@ void test_parseDNSAnswer_cname_chain_accepted( void )
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( 5 );
     uxIndex += sizeof( DNSAnswerRecord_t );
 
-    /* The CNAME's RDATA is the alias target, "bbb". */
     pucByte[ uxIndex++ ] = 0x03;
     pucByte[ uxIndex++ ] = 'b';
     pucByte[ uxIndex++ ] = 'b';
@@ -3702,14 +3675,12 @@ void test_parseDNSAnswer_cname_chain_accepted( void )
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
-    /* The address behind the alias was accepted. */
     TEST_ASSERT_EQUAL( ulTestAddress, ret );
 }
 
 /**
- * @brief A forged answer name that is a compression pointer to another
- *        compression pointer decodes to nothing and must not be treated as
- *        matching the queried name.
+ * @brief An answer name that points at another compression pointer decodes to
+ *        nothing, and must not be treated as matching the queried name.
  */
 void test_parseDNSAnswer_answer_name_pointer_to_pointer_skipped( void )
 {
@@ -3724,11 +3695,9 @@ void test_parseDNSAnswer_answer_name_pointer_to_pointer_skipped( void )
 
     memset( pucByte, 0x00, sizeof( pucByte ) );
 
-    /* The device asked for "aaa". */
     ( void ) strcpy( xSet.pcName, "aaa" );
 
-    /* The answer name is a pointer to offset 32, where another pointer sits.
-     * Nothing decodes, so there is no name that can match "aaa". */
+    /* A pointer to offset 32, where another pointer sits. */
     pucByte[ 0 ] = dnsNAME_IS_OFFSET;
     pucByte[ 1 ] = 32;
     pucByte[ 32 ] = dnsNAME_IS_OFFSET;
@@ -3749,8 +3718,7 @@ void test_parseDNSAnswer_answer_name_pointer_to_pointer_skipped( void )
     xSet.usNumARecordsStored = 0;
     xSet.usAnswers = 1;
 
-    /* An undecodable owner name is a malformed response, so no type is read and
-     * no address is stored. */
+    /* An undecodable owner name is malformed, so no type is read. */
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
     TEST_ASSERT_EQUAL( 0U, ret );
@@ -3758,9 +3726,8 @@ void test_parseDNSAnswer_answer_name_pointer_to_pointer_skipped( void )
 }
 
 /**
- * @brief An owner name encoded as a label followed by a compression pointer -
- *        the partial-compression form that real servers emit - is decoded and
- *        accepted.
+ * @brief An owner name encoded as a label followed by a compression pointer is
+ *        decoded and accepted.
  */
 void test_parseDNSAnswer_answer_name_label_then_pointer_match( void )
 {
@@ -3779,11 +3746,9 @@ void test_parseDNSAnswer_answer_name_label_then_pointer_match( void )
 
     memset( pucByte, 0x00, sizeof( pucByte ) );
 
-    /* The device asked for "www.aaa". */
     ( void ) strcpy( xSet.pcName, "www.aaa" );
 
-    /* The answer name is the label "www" followed by a pointer to offset 40,
-     * where "aaa" is stored. Together they decode to "www.aaa". */
+    /* Label "www" plus a pointer to "aaa" at offset 40 decodes to "www.aaa". */
     pucByte[ 0 ] = 0x03;
     pucByte[ 1 ] = 'w';
     pucByte[ 2 ] = 'w';
@@ -3888,7 +3853,6 @@ void test_parseDNSAnswer_answer_name_compression_pointer_match( void )
 
     memset( pucByte, 0x00, sizeof( pucByte ) );
 
-    /* The device asked for "aaa". */
     ( void ) strcpy( xSet.pcName, "aaa" );
 
     /* At offset 20, store the inline name the pointer resolves to:

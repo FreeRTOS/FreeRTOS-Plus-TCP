@@ -206,10 +206,8 @@
             {
                 if( ( pucByte[ uxIndex ] & dnsNAME_IS_OFFSET ) == dnsNAME_IS_OFFSET )
                 {
-                    /* RFC 1035 section 4.1.4 allows a sequence of labels to end
-                     * in a compression pointer, which takes two bytes and
-                     * terminates the name. Servers commonly use this form for
-                     * the owner name of the records behind a CNAME. */
+                    /* RFC 1035 section 4.1.4: a pointer may terminate a
+                     * sequence of labels, and takes two bytes. */
                     if( uxSourceLenCpy > sizeof( uint16_t ) )
                     {
                         uxIndex += sizeof( uint16_t );
@@ -239,8 +237,8 @@
                 }
             }
 
-            /* Confirm that a fully formed name was found. A name that ended in
-             * a compression pointer has no terminating zero length octet. */
+            /* A name that ended in a compression pointer has no terminating
+             * zero length octet. */
             if( ( uxIndex > 0U ) && ( xEndsWithOffset == pdFALSE ) )
             {
                 if( pucByte[ uxIndex ] == 0U )
@@ -268,10 +266,8 @@
  *                       was expected, and thus if the DNS cache may be
  *                       updated with the reply.
  * @param[in] usPort The server port number in order to identify the protocol.
- * @param[in] pcRequestedName The name that this device asked for, or NULL when
- *                       the caller does not know it. A response is only
- *                       accepted when it is about that name, because every name
- *                       in a response is supplied by whoever sent it.
+ * @param[in] pcRequestedName The name this device asked for, or NULL when the
+ *                       caller does not know it. Only a response about that name is accepted.
  *
  *
  * @return The IP address in the DNS response if present and if xExpected is set to pdTRUE.
@@ -297,9 +293,7 @@
         xSet.ppxLastAddress = &( xSet.pxLastAddress );
 
         #if ( ( ipconfigUSE_DNS_CACHE == 0 ) && ( ipconfigDNS_USE_CALLBACKS == 0 ) && ( ipconfigUSE_MDNS == 0 ) && ( ipconfigUSE_LLMNR == 0 ) )
-
-            /* Without 'ParseSet_t::pcName' the reply's name is never decoded,
-             * so there is nothing to compare the requested name against. */
+            /* Without ParseSet_t::pcName there is no reply name to compare. */
             ( void ) pcRequestedName;
         #endif
 
@@ -366,16 +360,8 @@
 
                         #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
 
-                            /* There is no question to take the name from, so
-                             * take it from the first answer instead. The answer
-                             * records are validated against it, so it has to be
-                             * filled in under the same conditions that the
-                             * validation is compiled under. Nothing precedes
-                             * these records but the header, so the name cannot
-                             * usefully be a compression pointer; should it be
-                             * one anyway, the name stays empty and every record
-                             * fails the validation. The parse position is
-                             * deliberately not advanced. */
+                            /* No question to take the name from: use the first
+                             * answer, without advancing the parse position. */
                             uxResult = DNS_ReadNameField( &xSet,
                                                           sizeof( xSet.pcName ) );
                             ( void ) uxResult;
@@ -472,13 +458,8 @@
                     #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
                         if( pcRequestedName != NULL )
                         {
-                            /* The caller knows which name it asked for. Every
-                             * name in this reply comes from the reply itself, so
-                             * without this check a reply that is self-consistent
-                             * about some other name would be accepted on the
-                             * strength of its transaction ID alone, and its
-                             * addresses would be returned and cached under that
-                             * other name. */
+                            /* Every name in a reply is supplied by whoever sent
+                             * it, so the identifier alone proves nothing. */
                             if( strcasecmp( xSet.pcName, pcRequestedName ) != 0 )
                             {
                                 FreeRTOS_printf( ( "DNS: Reply is about '%s' but '%s' was asked for\n",
@@ -748,31 +729,16 @@
     #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
 
 /**
- * @brief The maximum number of compression pointers that will be followed while
- *        decoding a single name. RFC 1035 allows a pointer to target another
- *        pointer, so a crafted message could otherwise be made to loop.
- *
- * It can be overridden to keep the CBMC proof of the decode loop tractable, and
- * is not meant to be configured.
+ * @brief Pointers followed while decoding one name, bounded because a pointer
+ *        may target another. Overridable only to keep the CBMC proof tractable.
  */
         #ifndef dnsMAX_COMPRESSION_HOPS
             #define dnsMAX_COMPRESSION_HOPS    ( 8U )
         #endif
 
 /**
- * @brief Decode the DNS name at @p pucName into @p pcNameOut.
- *
- * Resource records almost always encode their NAME as a compression pointer
- * (RFC 1035 s4.1.4) rather than repeating the name inline, and may use a
- * sequence of labels followed by a pointer. This decoder handles inline names,
- * pointers, and label-then-pointer forms, following at most
- * dnsMAX_COMPRESSION_HOPS pointers so that a self-referential message cannot
- * make it loop.
- *
- * Unlike DNS_ReadNameField(), it reads only from the message and never from
- * caller state, so a name that cannot be decoded yields an empty string rather
- * than whatever the destination happened to hold. It does not advance the
- * parse cursor; advancement is driven by DNS_SkipNameField() in the caller.
+ * @brief Decode the DNS name at @p pucName into @p pcNameOut, reading only from
+ *        the message and never from @p pcNameOut. Does not advance the cursor.
  *
  * @param[in] pucMessage The first byte of the DNS message, against which any
  *            compression pointer is resolved.
@@ -799,9 +765,8 @@
 
             if( uxDestLen > 0U )
             {
-                /* Start from an empty name: the output must never be seeded
-                 * with caller state, or a name that decodes to nothing would
-                 * compare equal to whatever the caller was expecting. */
+                /* Never seed the output from caller state: a name that
+                 * decodes to nothing must not compare equal to anything. */
                 pcNameOut[ 0 ] = '\0';
 
                 for( ; ; )
@@ -810,7 +775,6 @@
 
                     if( uxRemaining == 0U )
                     {
-                        /* Ran off the end of the message. */
                         break;
                     }
 
@@ -820,8 +784,7 @@
                     {
                         size_t uxTarget;
 
-                        /* A compression pointer: the low 14 bits hold an offset
-                         * from the start of the DNS message. */
+                        /* The low 14 bits hold an offset into the message. */
                         if( ( uxRemaining < sizeof( uint16_t ) ) ||
                             ( pucMessage == NULL ) ||
                             ( uxHops >= dnsMAX_COMPRESSION_HOPS ) )
@@ -845,8 +808,7 @@
 
                     if( uxCount == 0U )
                     {
-                        /* The root label terminates the name. A name with no
-                         * labels at all is not a usable owner name. */
+                        /* A name of no labels is not a usable owner name. */
                         if( uxNameLen > 0U )
                         {
                             xReturn = pdTRUE;
@@ -855,9 +817,8 @@
                         break;
                     }
 
-                    /* The label must lie within the message, and must fit in
-                     * the destination along with a separator and the
-                     * terminator. */
+                    /* The label must fit the message, and the destination
+                     * along with a separator and the terminator. */
                     if( ( uxRemaining < ( uxCount + 1U ) ) ||
                         ( ( uxNameLen + uxCount + 1U ) >= uxDestLen ) )
                     {
@@ -882,8 +843,7 @@
 
                 if( xReturn == pdFALSE )
                 {
-                    /* Do not leave a partially decoded name behind for the
-                     * caller to compare against. */
+                    /* Leave no partial name for the caller to compare. */
                     pcNameOut[ 0 ] = '\0';
                 }
             }
@@ -949,12 +909,8 @@
             #endif
             #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
 
-                /* The name that an answer record must be the owner of in order
-                 * to be accepted. It starts out as the name that was asked for
-                 * and follows any CNAME records in the response, because the
-                 * address records of a CNAME-chained name are owned by the
-                 * target of the chain rather than by the queried name.
-                 * Please check if enough stack memory is available. */
+                /* The name an answer record must own to be accepted. Starts as
+                 * the queried name and follows any CNAME in the response. */
                 char pcExpectedName[ ipconfigDNS_CACHE_NAME_LENGTH ];
                 ( void ) strncpy( pcExpectedName, pxSet->pcName, sizeof pcExpectedName );
                 pcExpectedName[ ipconfigDNS_CACHE_NAME_LENGTH - 1 ] = 0;
@@ -965,7 +921,6 @@
                 BaseType_t xDoAccept = pdFALSE;
                 struct freertos_addrinfo * pxNewAddress = NULL;
                 #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
-                    /* Whether this record is owned by the name being resolved. */
                     BaseType_t xNameMatch = pdTRUE;
                 #endif
 
@@ -975,10 +930,8 @@
                     break;
                 }
 
-                /* Jump over the owner name. 'pxSet->pcName' deliberately keeps
-                 * holding the name that was asked for, so that the cache and
-                 * the call-backs are keyed on the queried name and not on the
-                 * owner name of whichever record is being looked at. */
+                /* Skipping, not reading, keeps 'pxSet->pcName' on the queried
+                 * name so the cache and call-backs stay keyed on it. */
                 uxResult = DNS_SkipNameField( pxSet->pucByte,
                                               pxSet->uxSourceBytesRemaining );
 
@@ -987,23 +940,18 @@
                     {
                         char pcDecodedAnswer[ ipconfigDNS_CACHE_NAME_LENGTH ];
 
-                        /* Decode the owner name so that it can be compared with
-                         * the name being resolved. The name is nearly always a
-                         * compression pointer, which DNS_SkipNameField() steps
-                         * over without decoding. */
+                        /* DNS_SkipNameField() steps over the name without
+                         * decoding it, so decode it here to compare. */
                         if( prvReadCurrentName( pxSet, pcDecodedAnswer, sizeof pcDecodedAnswer ) == pdFALSE )
                         {
-                            /* The owner name could not be decoded at all: treat
-                             * the response as malformed. */
                             FreeRTOS_printf( ( "DNS: could not decode the name of answer %u\n",
                                                ( unsigned ) x ) );
                             uxResult = 0U;
                         }
                         else if( strcasecmp( pcDecodedAnswer, pcExpectedName ) != 0 )
                         {
-                            /* This record is about some other name. Ignore the
-                             * record, but keep parsing: a response may legally
-                             * carry records for names that were not asked for. */
+                            /* Keep parsing: a response may legally carry
+                             * records for names that were not asked for. */
                             FreeRTOS_printf( ( "DNS: ignoring answer for '%s', expected '%s'\n",
                                                pcDecodedAnswer,
                                                pcExpectedName ) );
@@ -1011,7 +959,7 @@
                         }
                         else
                         {
-                            /* The record is owned by the name being resolved. */
+                            /* The record is owned by the queried name. */
                         }
                     }
                 #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
@@ -1087,9 +1035,7 @@
                 #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
                     if( xNameMatch == pdFALSE )
                     {
-                        /* An address record for a name that was not asked for
-                         * must not be stored or reported. Fall through to the
-                         * code below, which skips over the record. */
+                        /* Falls through to the branch that skips the record. */
                         xDoAccept = pdFALSE;
                     }
                 #endif
@@ -1278,12 +1224,8 @@
                         if( ( xNameMatch != pdFALSE ) &&
                             ( pxSet->usType == ( uint16_t ) dnsTYPE_CNAME_HOST ) )
                         {
-                            /* The name being resolved is an alias. The address
-                             * records that follow are owned by the target of
-                             * the alias, so continue the look-up against that
-                             * name. A CNAME whose target cannot be decoded
-                             * empties the expected name, which makes every
-                             * remaining record fail the owner check. */
+                            /* Follow the alias. A target that cannot be decoded
+                            * empties the name, rejecting every later record. */
                             ( void ) prvReadCurrentName( pxSet,
                                                          pcExpectedName,
                                                          sizeof pcExpectedName );

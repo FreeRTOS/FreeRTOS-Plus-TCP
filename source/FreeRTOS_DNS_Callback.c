@@ -49,10 +49,8 @@
  *        call the handler.
  *
  * @param[in,out] pxSet a set of variables that are shared among the helper functions.
- * @param[out] ppvSearchID The search ID that belongs to the matching request.
- *             It is only written when a matching request was found, so that a
- *             later call that does not match cannot overwrite the search ID
- *             that an earlier call already reported.
+ * @param[out] ppvSearchID The search ID of the matching request. Only written
+ *             when a matching request was found.
  * @return Returns not NULL if a matching callback function was found.
  */
     FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,
@@ -88,12 +86,8 @@
                     else
                 #endif /* if ( ipconfigUSE_MDNS == 1 ) */
                 {
-                    /* A reply has to carry both the identifier of the request
-                     * and the name that was asked for. The identifier alone is
-                     * not enough: every name in a reply is supplied by whoever
-                     * sent it, so a reply that is self-consistent about some
-                     * other name would otherwise be handed to this request's
-                     * call-back. */
+                    /* The identifier alone is not enough: every name in a
+                     * reply is supplied by whoever sent it. */
                     xMatching = ( ( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier ) &&
                                   ( strcasecmp( pxCallback->pcName, pxSet->pcName ) == 0 ) ) ? pdTRUE : pdFALSE;
                 }
@@ -119,11 +113,8 @@
 
         if( pCallbackFunction != NULL )
         {
-            /* Only report the search ID when a request was actually matched.
-             * This function is called once per address record, and the entry is
-             * removed on the first match, so writing unconditionally would
-             * clear the search ID again while handling the second record of a
-             * reply that holds more than one address. */
+            /* Called once per address record, and the entry is removed on the
+            * first match, so writing unconditionally would clear it again. */
             *( ppvSearchID ) = pvSearchID;
         }
 

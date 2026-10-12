@@ -1261,15 +1261,10 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 
-        /* pxTargetAddress remembers the IP-address of the DNS server, so that
-         * the received packet can later be checked against it. Note that this
-         * is the address family of the server, which is independent of
-         * 'xFamily': that is the type of record being asked for, and it must
-         * not be overwritten here. An AAAA record may well be requested from a
-         * DNS server that is reached over IPv4. */
+        /* 'xFamily' is the record type being asked for, not the address family
+         * of the server, so it must not be overwritten here. */
         ( void ) memset( pxTargetAddress, 0, sizeof( *pxTargetAddress ) );
 
-        /* Copy xAddress to pxTargetAddress */
         if( xAddress.sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
         {
             pxTargetAddress->xIs_IPv6 = pdTRUE;
@@ -1449,7 +1444,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
         uint32_t ulIPAddress = 0U;
 
         /* The IP-address of the DNS server will be stored in
-         * 'xTargetAddress' by prvGetHostByNameOp(). */
+         * 'xTargetAddress'. */
         IPv46_Address_t xTargetAddress;
 
         ( void ) memset( &( xTargetAddress ), 0, sizeof( xTargetAddress ) );
@@ -1628,11 +1623,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                 struct freertos_addrinfo * pxAddressInfo = NULL;
                 pucPayLoadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPPacketSize ] );
 
-                /* The parameter pdFALSE indicates that the reply was not
-                 * expected. NULL is passed for the requested name: the IP task
-                 * does not know which name this reply belongs to. Asynchronous
-                 * look-ups are bound to their name by xDNSDoCallback(), which
-                 * holds the name that was asked for. */
+                /* NULL: the IP task does not know which look-up a reply
+                 * belongs to, so xDNSDoCallback() binds it by name instead. */
                 ( void ) DNS_ParseDNSReply( pucPayLoadBuffer,
                                             uxPayloadSize,
                                             &( pxAddressInfo ),

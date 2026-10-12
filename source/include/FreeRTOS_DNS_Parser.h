@@ -50,9 +50,7 @@
 /** @brief Flag DNS parsing errors in situations where an IPv4 address is the return
  * type. */
 
-/* Declared under the same condition that the definition in
- * FreeRTOS_DNS_Parser.c is compiled under, and that ParseSet_t::pcName exists
- * under. */
+/* Declared under the same condition as its definition and ParseSet_t::pcName. */
     #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
         size_t DNS_ReadNameField( ParseSet_t * pxSet,
                                   size_t uxDestLen );
@@ -68,9 +66,7 @@
     #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
 
 /*
- * Decode the name at 'pucName' into 'pcNameOut', resolving any compression
- * pointer against the start of the DNS message. It does not advance the parse
- * cursor. It returns pdTRUE when a complete name was decoded.
+ * Decode the name at 'pucName' into 'pcNameOut'. Does not advance the cursor.
  */
         BaseType_t DNS_DecodeName( const uint8_t * pucMessage,
                                    size_t uxMessageLength,
@@ -84,9 +80,8 @@
  * Process a response packet from a DNS server.
  * The parameter 'xExpected' indicates whether the identifier in the reply
  * was expected, and thus if the DNS cache may be updated with the reply.
- * The parameter 'pcRequestedName' is the name that this device asked for, or
- * NULL when the caller does not know it. A response is only accepted when it
- * is about that name.
+ * 'pcRequestedName' is the name this device asked for, or NULL when unknown;
+ * only a response about that name is accepted.
  */
     uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                 size_t uxBufferLength,

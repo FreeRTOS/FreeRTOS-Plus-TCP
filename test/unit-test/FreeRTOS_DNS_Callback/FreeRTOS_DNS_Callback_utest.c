@@ -109,10 +109,7 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
     ParseSet_t pxSet;
     DNSMessage_t xDNSMessageHeader;
 
-    /* A search ID reported by an earlier, matching call. parseDNSAnswer() calls
-     * xDNSDoCallback() once per address record and keeps the first callback it
-     * is given, so a later call that matches nothing must leave the search ID
-     * alone instead of clearing it. */
+    /* A search ID reported by an earlier, matching call. */
     void * pvSearchID = ( void * ) 456;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
@@ -136,10 +133,8 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
 }
 
 /**
- * @brief A reply that carries the identifier of an outstanding request but is
- *        about a different name must not be handed to that request's call-back.
- *        Every name in a reply comes from whoever sent it, so the identifier on
- *        its own does not say which look-up a reply belongs to.
+ * @brief A reply carrying the identifier of an outstanding request but a
+ *        different name is not handed to that request's call-back.
  */
 void test_xDNSDoCallback_equal_identifier_not_equal_name( void )
 {
@@ -151,7 +146,6 @@ void test_xDNSDoCallback_equal_identifier_not_equal_name( void )
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
     pxSet.pxDNSMessageHeader->usIdentifier = 123;
     pxSet.usPortNumber = dnsDNS_PORT;
-    /* The device asked for "happy.com"; the reply is about "unhappy.com". */
     strcpy( pxSet.pcName, "unhappy.com" );
 
     dnsCallback->pCallbackFunction = dns_callback;
@@ -170,8 +164,6 @@ void test_xDNSDoCallback_equal_identifier_not_equal_name( void )
 
     ret = xDNSDoCallback( &pxSet, &pvSearchID );
 
-    /* No call-back was found, the request stays outstanding, and the search ID
-     * of the non-matching entry is not reported. */
     TEST_ASSERT_NULL( ret );
     TEST_ASSERT_NULL( pvSearchID );
     TEST_ASSERT_EQUAL( 0, callback_called );
@@ -195,8 +187,6 @@ void test_xDNSDoCallback_success_equal_identifier( void )
     dnsCallback->pCallbackFunction = dns_callback;
     dnsCallback->pvSearchID = ( void * ) 456;
 
-    /* A reply has to carry the name that was asked for, not just the
-     * identifier of the request. */
     strcpy( dnsCallback->pcName, pc_name );
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
@@ -214,7 +204,6 @@ void test_xDNSDoCallback_success_equal_identifier( void )
 
     ret = xDNSDoCallback( &pxSet, &pvSearchID );
     TEST_ASSERT_EQUAL_PTR( dns_callback, ret );
-    /* The matching request's search ID is reported to the caller. */
     TEST_ASSERT_EQUAL_PTR( ( void * ) 456, pvSearchID );
 }
 

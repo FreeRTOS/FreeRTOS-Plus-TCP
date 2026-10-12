@@ -2665,25 +2665,13 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
  *
  * When enabled, a received DNS reply is accepted only if its source IP address
  * matches the DNS server that was queried. Queries sent to a multicast group,
- * which is how mDNS and LLMNR work, are exempt: they are answered by the
- * individual responders, so their replies never carry the address that the
- * query was sent to. This hardens the resolver against off-path/on-path
- * cache-poisoning that relies on matching the transaction ID alone.
+ * which is how mDNS and LLMNR work, are exempt.
  *
- * Disabled by default because it changes on-the-wire acceptance behaviour:
- * network setups where DNS queries are transparently intercepted and answered
- * from an address other than the configured server (some corporate/ISP proxies
- * and captive portals) will see those replies rejected. Enable it only when the
- * resolver talks directly to its configured DNS servers, or to a proxy that
- * preserves the server's source address.
+ * Disabled by default because it rejects replies from a transparent DNS proxy
+ * that answers from an address other than the configured server.
  *
- * Note that the check only covers replies that are read from the DNS socket,
- * which is the blocking look-up performed by FreeRTOS_gethostbyname() and
- * FreeRTOS_getaddrinfo(). A reply that arrives after the socket has been closed
- * - the normal case for the asynchronous FreeRTOS_gethostbyname_a() and
- * FreeRTOS_getaddrinfo_a() - is handled by the IP task instead, which does not
- * know which server was queried and therefore cannot check the source address.
- * Enabling this option does not harden the asynchronous look-up path.
+ * Only replies read from the DNS socket are covered, so enabling this does not
+ * harden the asynchronous FreeRTOS_gethostbyname_a() / getaddrinfo_a() path.
  */
 
 #ifndef ipconfigDNS_CHECK_REPLY_SOURCE_IP

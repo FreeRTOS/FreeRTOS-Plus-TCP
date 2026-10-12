@@ -26,35 +26,23 @@
   "DNS_CACHE_NAME_LENGTH": 8,
 
 ################################################################
-# strncpy / strcasecmp operate on NUL-terminated names held in
-# DNS_CACHE_NAME_LENGTH-byte buffers, so DNS_CACHE_NAME_LENGTH + 1 iterations
-# soundly cover them: the unwinding assertion needs one iteration more than the
-# loop can actually run.  Both the plain and the fortified (__builtin___*_chk)
-# spellings are bounded because which one is emitted is platform dependent: the
-# CI Linux toolchain produces strncpy, macOS produces __builtin___strncpy_chk.
+# strncpy / strcasecmp walk a DNS_CACHE_NAME_LENGTH-byte buffer; the fortified
+# spelling is bounded too because Linux and macOS emit different ones.
   "NAMELOOP_UNWIND": "9",
 
 ################################################################
-# DNS_SkipNameField.0 : the "walk over the string" while loop that advances
-#   pucByte over an answer record's owner name.  Each iteration consumes a
-#   length octet plus at least one label byte, so half the message length plus
-#   one covers it -- the same bound the standalone SkipNameField proof uses.
+# DNS_SkipNameField.0 consumes a length octet plus at least one label byte per
+# iteration, so half the message length bounds it.
   "SKIPLOOP_UNWIND": "__eval ({NETWORK_BUFFER_SIZE} + 1) / 2",
 
 ################################################################
-# Number of compression pointers the owner-name decoder is willing to follow.
-# Lowered from its default of 8 purely to keep this proof tractable: the bound
-# only has to be large enough to reach the "too many hops" branch, which two
-# pointers already do.
+# Lowered from its default of 8 only to keep this proof tractable; two pointers
+# already reach the "too many hops" branch.
   "MAX_COMPRESSION_HOPS": 2,
 
 ################################################################
-# DNS_DecodeName.0 : the single loop of the owner-name decoder.  Every
-#   iteration either follows one compression pointer -- at most
-#   MAX_COMPRESSION_HOPS of those -- or consumes a length octet plus at least
-#   one label byte while appending that label to the DNS_CACHE_NAME_LENGTH-byte
-#   destination, so the smaller of half the message and the destination bounds
-#   the rest.
+# DNS_DecodeName.0 either follows one pointer per iteration or appends a label
+# to the destination, so the hop limit plus the destination size bounds it.
   "DECODELOOP_UNWIND": "__eval {DNS_CACHE_NAME_LENGTH} + {MAX_COMPRESSION_HOPS} + 1",
 
 ################################################################
