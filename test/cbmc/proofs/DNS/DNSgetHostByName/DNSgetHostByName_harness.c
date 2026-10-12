@@ -33,7 +33,8 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                             size_t uxBufferLength,
                             struct freertos_addrinfo ** ppxAddressInfo,
                             BaseType_t xExpected,
-                            uint16_t usPort );
+                            uint16_t usPort,
+                            const char * pcRequestedName );
 size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
                                                                 const char * pcHostName,
                                                                 TickType_t uxIdentifier,
@@ -120,7 +121,8 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                             size_t uxBufferLength,
                             struct freertos_addrinfo ** ppxAddressInfo,
                             BaseType_t xExpected,
-                            uint16_t usPort )
+                            uint16_t usPort,
+                            const char * pcRequestedName )
 {
     uint32_t size;
 

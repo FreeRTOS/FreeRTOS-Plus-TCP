@@ -84,12 +84,16 @@
  * Process a response packet from a DNS server.
  * The parameter 'xExpected' indicates whether the identifier in the reply
  * was expected, and thus if the DNS cache may be updated with the reply.
+ * The parameter 'pcRequestedName' is the name that this device asked for, or
+ * NULL when the caller does not know it. A response is only accepted when it
+ * is about that name.
  */
     uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                 size_t uxBufferLength,
                                 struct freertos_addrinfo ** ppxAddressInfo,
                                 BaseType_t xExpected,
-                                uint16_t usPort );
+                                uint16_t usPort,
+                                const char * pcRequestedName );
 
 /*
  * The NBNS and the LLMNR protocol share this reply function.

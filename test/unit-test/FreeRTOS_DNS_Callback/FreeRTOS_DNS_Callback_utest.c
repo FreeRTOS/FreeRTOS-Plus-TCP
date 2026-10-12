@@ -136,6 +136,48 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
 }
 
 /**
+ * @brief A reply that carries the identifier of an outstanding request but is
+ *        about a different name must not be handed to that request's call-back.
+ *        Every name in a reply comes from whoever sent it, so the identifier on
+ *        its own does not say which look-up a reply belongs to.
+ */
+void test_xDNSDoCallback_equal_identifier_not_equal_name( void )
+{
+    FOnDNSEvent ret;
+    ParseSet_t pxSet;
+    void * pvSearchID = NULL;
+    DNSMessage_t xDNSMessageHeader;
+
+    pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
+    pxSet.pxDNSMessageHeader->usIdentifier = 123;
+    pxSet.usPortNumber = dnsDNS_PORT;
+    /* The device asked for "happy.com"; the reply is about "unhappy.com". */
+    strcpy( pxSet.pcName, "unhappy.com" );
+
+    dnsCallback->pCallbackFunction = dns_callback;
+    dnsCallback->pvSearchID = ( void * ) 456;
+    strcpy( dnsCallback->pcName, "happy.com" );
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+    vTaskSuspendAll_Expect();
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
+    listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
+
+    /* No call-back was found, the request stays outstanding, and the search ID
+     * of the non-matching entry is not reported. */
+    TEST_ASSERT_NULL( ret );
+    TEST_ASSERT_NULL( pvSearchID );
+    TEST_ASSERT_EQUAL( 0, callback_called );
+}
+
+/**
  * @brief Happy Path!
  */
 void test_xDNSDoCallback_success_equal_identifier( void )
@@ -152,6 +194,10 @@ void test_xDNSDoCallback_success_equal_identifier( void )
 
     dnsCallback->pCallbackFunction = dns_callback;
     dnsCallback->pvSearchID = ( void * ) 456;
+
+    /* A reply has to carry the name that was asked for, not just the
+     * identifier of the request. */
+    strcpy( dnsCallback->pcName, pc_name );
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
 
@@ -187,6 +233,7 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
     char pc_name[] = "test";
     strcpy( pxSet.pcName, pc_name );
     dnsCallback->pCallbackFunction = dns_callback;
+    strcpy( dnsCallback->pcName, pc_name );
 
     /* Expectations */
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );

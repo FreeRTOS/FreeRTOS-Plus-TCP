@@ -15,7 +15,8 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                             size_t uxBufferLength,
                             struct freertos_addrinfo ** ppxAddressInfo,
                             BaseType_t xExpected,
-                            uint16_t usPort )
+                            uint16_t usPort,
+                            const char * pcRequestedName )
 {
     __CPROVER_assert( pucUDPPayloadBuffer != NULL, "pucUDPPayloadBuffer cannot be NULL" );
     return nondet_uint32();

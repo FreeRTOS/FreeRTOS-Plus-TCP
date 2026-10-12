@@ -88,7 +88,14 @@
                     else
                 #endif /* if ( ipconfigUSE_MDNS == 1 ) */
                 {
-                    xMatching = ( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier ) ? pdTRUE : pdFALSE;
+                    /* A reply has to carry both the identifier of the request
+                     * and the name that was asked for. The identifier alone is
+                     * not enough: every name in a reply is supplied by whoever
+                     * sent it, so a reply that is self-consistent about some
+                     * other name would otherwise be handed to this request's
+                     * call-back. */
+                    xMatching = ( ( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier ) &&
+                                  ( strcasecmp( pxCallback->pcName, pxSet->pcName ) == 0 ) ) ? pdTRUE : pdFALSE;
                 }
 
                 if( xMatching == pdTRUE )

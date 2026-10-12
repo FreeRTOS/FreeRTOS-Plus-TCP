@@ -1562,7 +1562,8 @@ void test_DNS_ParseDNSReply_fail_small_buffer( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1582,7 +1583,8 @@ void test_DNS_ParseDNSReply_fail_no_namefield( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1610,7 +1612,8 @@ void test_DNS_ParseDNSReply_fail( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1640,7 +1643,8 @@ void test_DNS_ParseDNSReply_fail_empty_namefield( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1698,7 +1702,8 @@ void test_DNS_ParseDNSReply_fail_not_enough_space_lt_32( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1735,7 +1740,8 @@ void test_DNS_ParseDNSReply_answer_record_no_answers( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1773,7 +1779,8 @@ void test_DNS_ParseDNSReply_answer_record_no_answers2( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1819,7 +1826,8 @@ void test_DNS_ParseDNSReply_answer_record_no_questions( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1895,7 +1903,8 @@ void test_DNS_ParseDNSReply_InvalidEndpointIP( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -1977,7 +1986,8 @@ void test_DNS_ParseDNSReply_InvalidEndpointType( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -2033,10 +2043,120 @@ void test_DNS_ParseDNSReply_answer_record_too_many_answers( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
+
+/**
+ * @brief A reply that is about a name other than the one this device asked for
+ *        is rejected, even when its transaction ID matched. Only two
+ *        usChar2u16() calls are registered - the question's type and class - so
+ *        the test fails if the answer records are reached at all.
+ */
+void test_DNS_ParseDNSReply_requested_name_mismatch_rejected( void )
+{
+    uint32_t ret;
+    uint8_t pucUDPPayloadBuffer[ 250 ];
+    size_t uxBufferLength = 250;
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+    uint16_t usPort = 80;
+    DNSMessage_t * dns_header;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    size_t beg = sizeof( DNSMessage_t );
+
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
+
+    dns_header = ( DNSMessage_t * ) pucUDPPayloadBuffer;
+    dns_header->usFlags = dnsEXPECTED_RX_FLAGS;
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 1 );
+
+    /* The reply is self-consistent about "aaa": question and answer owner name
+     * both say "aaa". Nothing in it refers to the name that was asked for. */
+    pucUDPPayloadBuffer[ beg++ ] = 3;
+    memcpy( &( pucUDPPayloadBuffer[ beg ] ), "aaa", 3 );
+    beg += 3;
+    pucUDPPayloadBuffer[ beg++ ] = 0;
+    beg += sizeof( uint32_t ); /* The question's type and class. */
+
+    pucUDPPayloadBuffer[ beg++ ] = 3;
+    memcpy( &( pucUDPPayloadBuffer[ beg ] ), "aaa", 3 );
+    beg += 3;
+    pucUDPPayloadBuffer[ beg++ ] = 0;
+
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) &( pucUDPPayloadBuffer[ beg ] );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( 0 );
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* question usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* question usClass */
+
+    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
+                             uxBufferLength,
+                             &pxAddressInfo,
+                             pdTRUE,
+                             usPort,
+                             "bbb" );
+
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    TEST_ASSERT_NULL( pxAddressInfo );
+}
+
+/**
+ * @brief The same reply is parsed when it is about the name that was asked for.
+ *        A third usChar2u16() call is registered for the answer record's type,
+ *        so the test fails if the name check wrongly rejects the reply.
+ */
+void test_DNS_ParseDNSReply_requested_name_match_accepted( void )
+{
+    uint32_t ret;
+    uint8_t pucUDPPayloadBuffer[ 250 ];
+    size_t uxBufferLength = 250;
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+    uint16_t usPort = 80;
+    DNSMessage_t * dns_header;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    size_t beg = sizeof( DNSMessage_t );
+
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
+
+    dns_header = ( DNSMessage_t * ) pucUDPPayloadBuffer;
+    dns_header->usFlags = dnsEXPECTED_RX_FLAGS;
+    dns_header->usQuestions = FreeRTOS_htons( 1 );
+    dns_header->usAnswers = FreeRTOS_htons( 1 );
+
+    pucUDPPayloadBuffer[ beg++ ] = 3;
+    memcpy( &( pucUDPPayloadBuffer[ beg ] ), "aaa", 3 );
+    beg += 3;
+    pucUDPPayloadBuffer[ beg++ ] = 0;
+    beg += sizeof( uint32_t ); /* The question's type and class. */
+
+    pucUDPPayloadBuffer[ beg++ ] = 3;
+    memcpy( &( pucUDPPayloadBuffer[ beg ] ), "aaa", 3 );
+    beg += 3;
+    pucUDPPayloadBuffer[ beg++ ] = 0;
+
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) &( pucUDPPayloadBuffer[ beg ] );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( 0 );
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* question usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* question usClass */
+
+    /* The answer is not an address record, so it is skipped and nothing is
+     * stored. Reaching this read is the point of the test. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_CNAME_HOST ); /* answer usType */
+
+    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
+                             uxBufferLength,
+                             &pxAddressInfo,
+                             pdTRUE,
+                             usPort,
+                             "aaa" );
+
+    TEST_ASSERT_EQUAL( 0U, ret );
+}
+
 
 /**
  * @brief ensures that the ip set in Setup is passed to the network with
@@ -2110,7 +2230,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_xBufferAllocFixedsize( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
 
     TEST_ASSERT_EQUAL( dnsPARSE_ERROR, ret );
@@ -2183,7 +2304,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_NOT_CALLED();
@@ -2256,7 +2378,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply2( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_NOT_CALLED();
@@ -2329,7 +2452,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply3( void )
                                            uxBufferLength,
                                            &pxAddressInfo,
                                            xExpected,
-                                           usPort ) );
+                                           usPort,
+                                           NULL ) );
 
     /* ret is not reassigned, because the function asserts. */
     TEST_ASSERT_EQUAL( 0xDEADC0DE, ret );
@@ -2407,7 +2531,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_diffUsType( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_NOT_CALLED();
@@ -2484,7 +2609,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_NullNetworkBuffer( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_NOT_CALLED();
@@ -2556,7 +2682,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply4( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
@@ -2627,7 +2754,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply5( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
@@ -2699,7 +2827,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_query_hook_false( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -2773,7 +2902,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -2847,7 +2977,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer2( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -2939,7 +3070,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -3031,7 +3163,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer2( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -3122,7 +3255,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer3( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -3211,7 +3345,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_fixed_buffer( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -3391,7 +3526,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_fixed_buffer_full_content( void )
                              uxBufferLength,
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();
@@ -5067,7 +5203,8 @@ void test_DNS_ParseDNSReply_mdns_request( void )
                              beg, /* uxBufferLength, */
                              &pxAddressInfo,
                              xExpected,
-                             usPort );
+                             usPort,
+                             NULL );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
     ASSERT_DNS_QUERY_HOOK_CALLED();

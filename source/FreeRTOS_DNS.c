@@ -1071,7 +1071,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
     static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  struct freertos_addrinfo ** ppxAddressInfo,
                                  TickType_t uxIdentifier,
-                                 uint16_t usPort )
+                                 uint16_t usPort,
+                                 const char * pcHostName )
     {
         uint32_t ulIPAddress = 0U;
         BaseType_t xExpected = pdFALSE;
@@ -1113,7 +1114,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                              pxReceiveBuffer->uxPayloadLength,
                                              ppxAddressInfo,
                                              xExpected,
-                                             usPort );
+                                             usPort,
+                                             pcHostName );
         }
 
         return ulIPAddress;
@@ -1358,7 +1360,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                         /* MISRA Ref 4.14.2 [The validity of values received from external sources]. */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-414. */
                         /* coverity[misra_c_2012_directive_4_14_violation] */
-                        ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
+                        ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port, pcHostName );
                     }
 
                     /* Finished with the buffer.  The zero copy interface
@@ -1626,12 +1628,17 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                 struct freertos_addrinfo * pxAddressInfo = NULL;
                 pucPayLoadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPPacketSize ] );
 
-                /* The parameter pdFALSE indicates that the reply was not expected. */
+                /* The parameter pdFALSE indicates that the reply was not
+                 * expected. NULL is passed for the requested name: the IP task
+                 * does not know which name this reply belongs to. Asynchronous
+                 * look-ups are bound to their name by xDNSDoCallback(), which
+                 * holds the name that was asked for. */
                 ( void ) DNS_ParseDNSReply( pucPayLoadBuffer,
                                             uxPayloadSize,
                                             &( pxAddressInfo ),
                                             pdFALSE,
-                                            FreeRTOS_ntohs( pxNetworkBuffer->usPort ) );
+                                            FreeRTOS_ntohs( pxNetworkBuffer->usPort ),
+                                            NULL );
 
                 if( pxAddressInfo != NULL )
                 {

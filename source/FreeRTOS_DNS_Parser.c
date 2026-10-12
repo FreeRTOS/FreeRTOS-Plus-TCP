@@ -268,6 +268,10 @@
  *                       was expected, and thus if the DNS cache may be
  *                       updated with the reply.
  * @param[in] usPort The server port number in order to identify the protocol.
+ * @param[in] pcRequestedName The name that this device asked for, or NULL when
+ *                       the caller does not know it. A response is only
+ *                       accepted when it is about that name, because every name
+ *                       in a response is supplied by whoever sent it.
  *
  *
  * @return The IP address in the DNS response if present and if xExpected is set to pdTRUE.
@@ -278,7 +282,8 @@
                                 size_t uxBufferLength,
                                 struct freertos_addrinfo ** ppxAddressInfo,
                                 BaseType_t xExpected,
-                                uint16_t usPort )
+                                uint16_t usPort,
+                                const char * pcRequestedName )
     {
         ParseSet_t xSet;
         uint16_t x;
@@ -290,6 +295,13 @@
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
         xSet.usPortNumber = usPort;
         xSet.ppxLastAddress = &( xSet.pxLastAddress );
+
+        #if ( ( ipconfigUSE_DNS_CACHE == 0 ) && ( ipconfigDNS_USE_CALLBACKS == 0 ) && ( ipconfigUSE_MDNS == 0 ) && ( ipconfigUSE_LLMNR == 0 ) )
+
+            /* Without 'ParseSet_t::pcName' the reply's name is never decoded,
+             * so there is nothing to compare the requested name against. */
+            ( void ) pcRequestedName;
+        #endif
 
         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
             xSet.xDoStore = xExpected;
@@ -457,6 +469,27 @@
 
                 if( xIsResponse == pdTRUE )
                 {
+                    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) || ( ipconfigDNS_USE_CALLBACKS != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_LLMNR != 0 ) )
+                        if( pcRequestedName != NULL )
+                        {
+                            /* The caller knows which name it asked for. Every
+                             * name in this reply comes from the reply itself, so
+                             * without this check a reply that is self-consistent
+                             * about some other name would be accepted on the
+                             * strength of its transaction ID alone, and its
+                             * addresses would be returned and cached under that
+                             * other name. */
+                            if( strcasecmp( xSet.pcName, pcRequestedName ) != 0 )
+                            {
+                                FreeRTOS_printf( ( "DNS: Reply is about '%s' but '%s' was asked for\n",
+                                                   xSet.pcName,
+                                                   pcRequestedName ) );
+                                xReturn = pdFALSE;
+                                break;
+                            }
+                        }
+                    #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS || ipconfigUSE_MDNS || ipconfigUSE_LLMNR */
+
                     /* Search through the answer records. */
                     ulIPAddress = parseDNSAnswer( &( xSet ), ppxAddressInfo, &uxBytesRead );
                 }
