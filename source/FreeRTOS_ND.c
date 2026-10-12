@@ -80,6 +80,12 @@
 /** @brief ucFlags bit indicating the neighbour is a router. */
     #define ndpFLAG_IS_ROUTER                    ( 0x01U )
 
+/** @brief Neighbour Discovery packets are sent and must arrive with this hop
+ * limit.  Any router on the path would have decremented it, so a lower value on
+ * a received packet means it did not come from this link ( RFC 4861 ).
+ */
+    #define ndHOP_LIMIT                          ( 255U )
+
 /** @brief Default lifetime (in age ticks) assigned to a fresh ND cache entry. */
     #ifndef ipconfigMAX_ND_AGE
         #define ipconfigMAX_ND_AGE    ( 150U )
@@ -135,6 +141,9 @@
 
 /** @brief See if an IPv6 address is one of the addresses of this device. */
     static BaseType_t prvIsOwnIPAddress( const IPv6_Address_t * pxIPAddress );
+
+/** @brief See if an IPv6 address sits on a network this device is attached to. */
+    static BaseType_t prvIsAddressOnLink( const IPv6_Address_t * pxIPAddress );
 
 /** @brief Remember that a Neighbour Solicitation was sent for an address. */
     static void prvNDCacheRecordSolicitation( const IPv6_Address_t * pxIPAddress,
@@ -396,24 +405,62 @@
                         /* We are waiting for a resolution (NS sent, no NA received yet). */
                         if( xNDCache[ x ].ucAge == 0U )
                         {
-                            /* Resolution failed. Check if a buffer was 'parked' waiting for this IP. */
-                            if( pxNDWaitingNetworkBuffer != NULL )
+                            if( xNDCache[ x ].ucNumProbes < ( uint8_t ) ipconfigMAX_ND_RE_LOOKUP_ATTEMPTS )
                             {
-                                const ICMPPacket_IPv6_t * pxIPPacket = ( const ICMPPacket_IPv6_t * ) pxNDWaitingNetworkBuffer->pucEthernetBuffer;
+                                /* RFC 4861 section 7.2.2: the solicitation is retransmitted
+                                 * a few times before the address is declared unreachable,
+                                 * so that a single lost packet does not lose the
+                                 * resolution. */
+                                uint8_t ucAttempt = xNDCache[ x ].ucNumProbes + 1U;
+                                size_t uxNeededSize;
+                                NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-                                /* A packet is parked because its SOURCE address had to be
-                                 * resolved before it could be processed, so that is the
-                                 * field to compare against. */
-                                if( memcmp( pxIPPacket->xIPHeader.xSourceAddress.ucBytes, xNDCache[ x ].xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+                                FreeRTOS_debug_printf( ( "NDP: vNDAgeCache: solicitation retry %u for %pip\n",
+                                                         ucAttempt,
+                                                         xNDCache[ x ].xIPAddress.ucBytes ) );
+
+                                uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
+                                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, 0U );
+
+                                if( pxNetworkBuffer != NULL )
                                 {
-                                    FreeRTOS_debug_printf( ( "NDP: vNDAgeCache: Resolution timeout. Dropping parked packet.\n" ) );
-                                    vReleaseNetworkBufferAndDescriptor( pxNDWaitingNetworkBuffer );
-                                    pxNDWaitingNetworkBuffer = NULL;
+                                    pxNetworkBuffer->pxEndPoint = xNDCache[ x ].pxEndPoint;
+                                    vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
                                 }
-                            }
 
-                            /* Clear the entry. */
-                            xNDCache[ x ].ucState = ( uint8_t ) eND_FREE;
+                                /* Count the attempt even when no buffer was available, so a
+                                 * starved pool cannot keep the entry alive for ever.  Note
+                                 * that sending re-recorded the solicitation, which reset
+                                 * ucAge, so set the retry interval afterwards. */
+                                xNDCache[ x ].ucNumProbes = ucAttempt;
+                                xNDCache[ x ].ucAge = ( uint8_t ) 1U;
+                            }
+                            else
+                            {
+                                /* Out of attempts: the address cannot be resolved.  Drop a
+                                 * packet that was parked for it. */
+                                if( pxNDWaitingNetworkBuffer != NULL )
+                                {
+                                    const ICMPPacket_IPv6_t * pxIPPacket = ( const ICMPPacket_IPv6_t * ) pxNDWaitingNetworkBuffer->pucEthernetBuffer;
+
+                                    /* A packet is parked because its SOURCE address had to be
+                                     * resolved before it could be processed, so that is the
+                                     * field to compare against. */
+                                    if( memcmp( pxIPPacket->xIPHeader.xSourceAddress.ucBytes, xNDCache[ x ].xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+                                    {
+                                        FreeRTOS_debug_printf( ( "NDP: vNDAgeCache: Resolution timeout. Dropping parked packet.\n" ) );
+                                        vReleaseNetworkBufferAndDescriptor( pxNDWaitingNetworkBuffer );
+                                        pxNDWaitingNetworkBuffer = NULL;
+
+                                        /* Nothing is parked any more, so the resolution
+                                         * timer has nothing left to expire. */
+                                        vIPSetNDResolutionTimerEnableState( pdFALSE );
+                                    }
+                                }
+
+                                /* Clear the entry. */
+                                xNDCache[ x ].ucState = ( uint8_t ) eND_FREE;
+                            }
                         }
 
                         break;
@@ -425,7 +472,15 @@
                         {
                             /* Reachability 'timer' has expired. Move to STALE.
                              * Traffic can still be sent, but NUD will be triggered on next use. */
+                            iptraceND_TABLE_ENTRY_WILL_EXPIRE( xNDCache[ x ].xIPAddress );
                             xNDCache[ x ].ucState = ( uint8_t ) eND_STALE;
+
+                            /* Give the entry a STALE lifetime of its own.  Carrying the
+                             * nearly-exhausted REACHABLE countdown over would free the
+                             * entry within a few periods, before any traffic could move
+                             * it to DELAY, so the neighbour would never be probed at
+                             * all. */
+                            xNDCache[ x ].ucAge = ( uint8_t ) ipconfigMAX_ND_AGE;
                         }
 
                         break;
@@ -496,6 +551,7 @@
                 /* 3. Final Cleanup: If the state was moved to FREE, wipe the IP. */
                 if( xNDCache[ x ].ucState == ( uint8_t ) eND_FREE )
                 {
+                    iptraceND_TABLE_ENTRY_EXPIRED( xNDCache[ x ].xIPAddress );
                     ( void ) memset( xNDCache[ x ].xIPAddress.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
                 }
             }
@@ -606,7 +662,6 @@
             pxEntry->ucState = ( uint8_t ) eState;
             pxEntry->ucAge = ( uint8_t ) ipconfigMAX_ND_AGE;
             pxEntry->ucNumProbes = 0;
-            pxEntry->ulLastMatchingNA = ( uint32_t ) xTaskGetTickCount();
 
             if( pxEndPoint != NULL ) /* LCOV_EXCL_BR_LINE - defensive NULL check */
             {
@@ -667,7 +722,6 @@
             pxEntry->ucState = ( uint8_t ) eState;
             pxEntry->ucAge = ( uint8_t ) ipconfigMAX_ND_AGE;
             pxEntry->ucNumProbes = 0;
-            pxEntry->ulLastMatchingNA = ( uint32_t ) xTaskGetTickCount();
             pxEntry->pxEndPoint = pxEndPoint;
             pxEntry->ucFlags = 0;
 
@@ -750,6 +804,44 @@
         {
             if( ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) &&
                 ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) )
+            {
+                xReturn = pdTRUE;
+                break;
+            }
+        }
+
+        return xReturn;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief See if an IPv6 address sits on a network this device is attached to.
+ *
+ * @param[in] pxIPAddress The address to test.
+ *
+ * @return pdTRUE when the address falls inside the prefix of an end-point.
+ *
+ * @note The end-point prefixes are compared directly rather than going through
+ *       FreeRTOS_FindEndPointOnNetMask_IPv6(), which answers "yes" for every
+ *       address when ipconfigCOMPATIBLE_WITH_SINGLE is enabled.  An end-point
+ *       whose prefix length is zero is skipped for the same reason: it would
+ *       match the whole address space and make every remote host look on-link.
+ */
+    static BaseType_t prvIsAddressOnLink( const IPv6_Address_t * pxIPAddress )
+    {
+        /* Not const: FreeRTOS_NextEndPoint() takes a writable end-point. */
+        NetworkEndPoint_t * pxEndPoint;
+        BaseType_t xReturn = pdFALSE;
+
+        for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+        {
+            if( ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) &&
+                ( pxEndPoint->ipv6_settings.uxPrefixLength > 0U ) &&
+                ( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xPrefix ),
+                                        pxIPAddress,
+                                        pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 ) )
             {
                 xReturn = pdTRUE;
                 break;
@@ -913,6 +1005,17 @@
 
 /**
  * @brief Main function to process incoming Neighbor Advertisement.
+ *
+ * @param[in] pxDescriptor The buffer holding the advertisement.
+ * @param[in] pxEndPoint The end-point the advertisement arrived on.
+ *
+ * @return The action that was carried out on the cache.
+ *
+ * @pre The IPv6 payload length of the packet fits inside the buffer, that is
+ *      ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + usPayloadLength is at most
+ *      pxDescriptor->xDataLength.  xCheckIPv6SizeFields() and the checksum path
+ *      both enforce this before an ICMPv6 packet gets here, and the option walk
+ *      below relies on it.
  */
     static eNaAction_t prvProcessNA( const NetworkBufferDescriptor_t * pxDescriptor,
                                      NetworkEndPoint_t * pxEndPoint )
@@ -964,20 +1067,21 @@
             /* ICMPv6 options start after the 16-byte Target Address in the NA packet. */
             pucOptions = &( pxICMPHeader_IPv6->ucOptionType );
 
-            /* The length of the NA message body minus the Target Address (16 bytes) */
-            /* ulReserved is at the start, ucTypeOfMessage, etc. */
+            /* The options are bounded by the IPv6 payload length, which the caller
+             * has already checked against the length of the buffer (see the @pre
+             * above), so walking them cannot read past the end of the packet. */
             usICMPSize = FreeRTOS_ntohs( pxICMPPacket->xIPHeader.usPayloadLength );
             uxICMPSize = ( size_t ) usICMPSize;
 
-            if( uxICMPSize < ndICMPv6_HEADER_SIZE )
+            configASSERT( ( ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize ) <= pxDescriptor->xDataLength );
+
+            if( uxICMPSize < ipSIZE_OF_ICMPv6_HEADER )
             {
                 /* Not even enough bytes for an IPv6 ICMP header. */
                 break;
             }
 
-            /* Simplified: Just walk the remaining buffer space */
-            uxRemaining = uxICMPSize - ndICMPv6_HEADER_SIZE;
-            /* Note: You'll need to ensure uxICMPSize includes the options in your caller */
+            uxRemaining = uxICMPSize - ipSIZE_OF_ICMPv6_HEADER;
 
             while( uxRemaining >= 8U ) /* Each option is at least 8 bytes */
             {
@@ -998,13 +1102,9 @@
                     ( void ) memcpy( xNaPacket.xTargetMAC.ucBytes, &pucOptions[ 2 ], ipMAC_ADDRESS_LENGTH_BYTES );
                 }
 
-                /* Move to next option */
-                if( uxRemaining < ( ( size_t ) ucLen * 8U ) )
-                {
-                    xFoundError = pdTRUE;
-                    break;
-                }
-
+                /* Move to next option.  The length was already checked against
+                 * uxRemaining above, and neither value has changed since, so this
+                 * step cannot run past the end of the options. */
                 pucOptions = &pucOptions[ ucLen * 8U ];
                 uxRemaining -= ( ( size_t ) ucLen * 8U );
             }
@@ -1207,22 +1307,20 @@
             }
         }
         /* Case F: the advertised MAC-address differs, Override is set. */
-        else if( pxNa->xSolicited != pdFALSE )
-        {
-            /* This answers a solicitation of ours, so the new MAC-address is the
-             * legitimate way for a neighbour to announce that it changed. */
-            eNaAction = eNA_UPDATE_REACHABLE;
-        }
         else
         {
-            /* Override is set but the advertisement was not solicited.  RFC 4861
-             * would adopt the new MAC-address here, which is the classic neighbour
-             * cache poisoning vector of RFC 3756 section 4.1.1: a single spoofed
-             * packet redirects all traffic for this neighbour, and it can be
-             * repeated at will.  Keep the binding that is in the cache and let NUD
-             * settle it instead.  If the old neighbour really is gone the probes go
-             * unanswered and the entry is dropped, after which the address is
-             * resolved again through a solicitation of our own. */
+            /* RFC 4861 would adopt the new MAC-address here, which is the classic
+             * neighbour cache poisoning vector of RFC 3756 section 4.1.1: a single
+             * spoofed packet redirects all traffic for this neighbour, and it can be
+             * repeated at will.
+             *
+             * The Solicited flag cannot be used to tell the two apart, because the
+             * sender chooses it and this entry has no solicitation of ours
+             * outstanding - an entry that does is INCOMPLETE and was handled by case
+             * B above.  So keep the binding that is in the cache and let NUD settle
+             * it instead, whatever the flag says.  If the old neighbour really is
+             * gone the probes go unanswered, the entry is dropped, and the address is
+             * then resolved again through a solicitation of our own. */
             eNaAction = eNA_REJECT_MAC_PROBE;
         }
 
@@ -1560,7 +1658,7 @@
                 pxICMPPacket->xIPHeader.usFlowLabel = 0U;
                 pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ulPayloadLength );
                 pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
-                pxICMPPacket->xIPHeader.ucHopLimit = 255U;
+                pxICMPPacket->xIPHeader.ucHopLimit = ndHOP_LIMIT;
 
                 /* Source address */
                 ( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -2037,7 +2135,7 @@
                                /* Length of option in units of 8 bytes. */
                                pxICMPHeader_IPv6->ucOptionLength = 1U;
                                ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxTargetedEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-                               pxICMPPacket->xIPHeader.ucHopLimit = 255U;
+                               pxICMPPacket->xIPHeader.ucHopLimit = ndHOP_LIMIT;
                                ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxTargetedEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
                                prvReturnICMP_IPv6( pxNetworkBuffer, uxICMPSize );
                            }
@@ -2059,10 +2157,10 @@
                                break;
                            }
 
-                           if( pxICMPPacket->xIPHeader.ucHopLimit != 255 )
+                           if( pxICMPPacket->xIPHeader.ucHopLimit != ndHOP_LIMIT )
                            {
-                               FreeRTOS_printf( ( "prvProcessICMPMessage_IPv6: ucHopLimit %u\n",
-                                                  pxICMPPacket->xIPHeader.ucHopLimit ) );
+                               FreeRTOS_debug_printf( ( "prvProcessICMPMessage_IPv6: ucHopLimit %u\n",
+                                                        ( unsigned ) pxICMPPacket->xIPHeader.ucHopLimit ) );
                                break;
                            }
 
@@ -2160,7 +2258,7 @@
 
             pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPHeader_IPv6_t ) );
             pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
-            pxICMPPacket->xIPHeader.ucHopLimit = 255;
+            pxICMPPacket->xIPHeader.ucHopLimit = ndHOP_LIMIT;
             ( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pcLOCAL_ALL_NODES_MULTICAST_IP, ipSIZE_OF_IPv6_ADDRESS );
 
@@ -2175,7 +2273,7 @@
             /* Length of option in units of 8 bytes. */
             pxICMPHeader_IPv6->ucOptionLength = 1;
             ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-            pxICMPPacket->xIPHeader.ucHopLimit = 255;
+            pxICMPPacket->xIPHeader.ucHopLimit = ndHOP_LIMIT;
             ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
 
             /* Important: tell NIC driver how many bytes must be sent */
@@ -2335,14 +2433,17 @@
              * with Neighbour Discovery.  A link-local source is on-link by
              * definition, while a global source has to fall inside the prefix of one
              * of the end-points.  Anything else is reached through a router, whose
-             * own binding is resolved separately.
+             * own binding is resolved separately: soliciting an off-link host would
+             * send a Neighbour Solicitation that nobody on the link can answer, and
+             * the packet that triggered it would be dropped when the resolution
+             * timer expires.
              *
              * A global on-link peer has to be covered here: because a received
              * packet never creates a cache entry any more, resolving it is the only
              * way its MAC-address is learned, and without it the first reply to such
              * a peer would be dropped. */
             if( ( eType == eIPv6_LinkLocal ) ||
-                ( ( eType == eIPv6_Global ) && ( FreeRTOS_FindEndPointOnNetMask_IPv6( pxIPAddress ) != NULL ) ) )
+                ( ( eType == eIPv6_Global ) && ( prvIsAddressOnLink( pxIPAddress ) != pdFALSE ) ) )
             {
                 MACAddress_t xMACAddress;
                 NetworkEndPoint_t * pxEndPoint;

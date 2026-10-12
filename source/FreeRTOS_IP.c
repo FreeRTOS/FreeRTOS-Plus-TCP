@@ -405,11 +405,11 @@ static void prvProcessIPEventsAndTimers( void )
              * and update the socket field xSocketBits. */
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
             #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                {
-                    SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
-                    vSocketSelect( pxMessage->pxSocketSet );
-                    ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                }
+               {
+                   SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
+                   vSocketSelect( pxMessage->pxSocketSet );
+                   ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+               }
             #else
                 {
                     vSocketSelect( ( ( SocketSelect_t * ) xReceivedEvent.pvData ) );
@@ -463,13 +463,13 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eSocketSetDeleteEvent:
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-            {
-                SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+           {
+               SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
 
-                iptraceMEM_STATS_DELETE( pxSocketSet );
-                vEventGroupDelete( pxSocketSet->xSelectGroup );
-                vPortFree( ( void * ) pxSocketSet );
-            }
+               iptraceMEM_STATS_DELETE( pxSocketSet );
+               vEventGroupDelete( pxSocketSet->xSelectGroup );
+               vPortFree( ( void * ) pxSocketSet );
+           }
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
             break;
 
@@ -1823,16 +1823,12 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                     if( pxNDWaitingNetworkBuffer == NULL )
                     {
-                        const IPPacket_IPv6_t * pxIPPacket = ( const IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-                        memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
-                                pxIPPacket->xIPHeader.xSourceAddress.ucBytes,
-                                ipSIZE_OF_IPv6_ADDRESS );
-
-                        FreeRTOS_debug_printf( ( "pxNDWaitingNetworkBuffer: Storing packet from %pip\n",
-                                                 pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes ) );
+                        /* The address this packet is waiting for is its own IPv6
+                         * source address, which vNDCheckWaitingPacket() and
+                         * vNDAgeCache() read back out of the packet, so there is
+                         * nothing to copy out of it here. */
                         pxNDWaitingNetworkBuffer = pxNetworkBuffer;
                         vIPTimerStartNDResolution( ipND_RESOLUTION_MAX_DELAY );
-                        FreeRTOS_debug_printf( ( "NDBuffer: = %pip\n", pxNDWaitingNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes ) );
                         iptraceDELAYED_ND_REQUEST_STARTED();
                     }
                     else

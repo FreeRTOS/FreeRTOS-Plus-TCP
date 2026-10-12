@@ -91,8 +91,6 @@
         MACAddress_t xMACAddress;             /**< The MAC address of an ND cache entry. */
         struct xNetworkEndPoint * pxEndPoint; /**< The end-point on which the remote device responded. */
 
-        uint32_t ulLastMatchingNA;            /**< Timestamp of last received NA for this entry. */
-
         uint8_t ucState;                      /**< The state of this entry (eNDState_t). Replaces ucValid. */
         uint8_t ucAge;                        /**< Countdown timer for state transitions / expiry. */
         uint8_t ucNumProbes;                  /**< Number of NS probes sent without response. */
