@@ -1065,6 +1065,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
  *                will be stored.
  * @param [in] uxIdentifier matches sent and received packets
  * @param [in] usPort Port from which DNS reply was read
+ * @param [in] pcHostName the name that was asked for
  * @returns ip address or zero on error
  *
  */
