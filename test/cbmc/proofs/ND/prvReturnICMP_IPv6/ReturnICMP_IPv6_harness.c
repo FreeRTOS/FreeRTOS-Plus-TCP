@@ -133,9 +133,7 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     return uxResult;
 }
 
-/* Checking a Neighbour Advertisement against the addresses this device owns walks
- * the end-point list. A real list is finite, so model it as a chain of at most
- * ndHARNESS_ENDPOINT_COUNT end-points whose contents stay nondeterministic. */
+/* Model the end-point list walked by the own-address check as a finite chain. */
 #define ndHARNESS_ENDPOINT_COUNT    2
 
 /* The largest number of 8-byte NDP option units the modelled packet may carry. */
@@ -153,7 +151,6 @@ NetworkEndPoint_t * FreeRTOS_FirstEndPoint( const NetworkInterface_t * pxInterfa
             ( ( uxIndex + 1U ) < ndHARNESS_ENDPOINT_COUNT ) ? &( xHarnessEndPoints[ uxIndex + 1U ] ) : NULL;
     }
 
-    /* The list may also be empty. */
     return nondet_bool() ? &( xHarnessEndPoints[ 0 ] ) : NULL;
 }
 
@@ -172,10 +169,7 @@ void harness()
     NetworkBufferDescriptor_t * pxLocalARPWaitingNetworkBuffer;
     uint16_t usEthernetBufferSize;
 
-    /* Bound the buffer to a header plus a handful of NDP options.  The option walk
-     * in prvProcessNA() is driven by the payload length, so an unbounded buffer
-     * makes the walk unbounded too; a packet carrying more options than this adds
-     * no new behaviour to verify. */
+    /* Bound the buffer, else the payload-driven option walk is unbounded too. */
     __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) &&
                       ( ulLen <= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
                                    ipSIZE_OF_ICMPv6_HEADER + ( ndHARNESS_MAX_OPTIONS * 8U ) ) ) );
@@ -190,11 +184,8 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
     __CPROVER_havoc_slice( pxNetworkBuffer->pucEthernetBuffer, ulLen );
 
-    /* The option walk in prvProcessNA() is bounded by the IPv6 payload length, so
-     * the caller's guarantee that the payload fits inside the buffer has to be
-     * stated here as well.  xCheckIPv6SizeFields() (FreeRTOS_IPv6.c) and
-     * prvChecksumIPv6Checks() (FreeRTOS_IPv6_Utils.c) both enforce it before an
-     * ICMPv6 packet reaches this entry point. */
+    /* State the caller's guarantee that the payload fits inside the buffer, which
+     * xCheckIPv6SizeFields() and the checksum path enforce. */
     {
         const IPPacket_IPv6_t * pxIPPacket = ( const IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 

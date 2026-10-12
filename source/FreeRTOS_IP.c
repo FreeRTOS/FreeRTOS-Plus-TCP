@@ -1823,10 +1823,8 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                     if( pxNDWaitingNetworkBuffer == NULL )
                     {
-                        /* The address this packet is waiting for is its own IPv6
-                         * source address, which vNDCheckWaitingPacket() and
-                         * vNDAgeCache() read back out of the packet, so there is
-                         * nothing to copy out of it here. */
+                        /* Nothing to copy out: the ND code reads the source address
+                         * back out of the packet itself. */
                         pxNDWaitingNetworkBuffer = pxNetworkBuffer;
                         vIPTimerStartNDResolution( ipND_RESOLUTION_MAX_DELAY );
                         iptraceDELAYED_ND_REQUEST_STARTED();
