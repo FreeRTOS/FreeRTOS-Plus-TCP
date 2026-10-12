@@ -1605,7 +1605,6 @@ void test_vNDSendNeighbourSolicitation_RecordsOnceAndLeavesKnownEntries( void )
     ICMPPacket_IPv6_t xICMPPacket;
     NetworkEndPoint_t xEndPoint;
     BaseType_t x;
-    uint8_t ucSeededAge;
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
@@ -1627,7 +1626,6 @@ void test_vNDSendNeighbourSolicitation_RecordsOnceAndLeavesKnownEntries( void )
 
     TEST_ASSERT_EQUAL( xNDCache[ 3 ].ucState, eND_INCOMPLETE );
     TEST_ASSERT_TRUE( xNDCache[ 3 ].ucAge > 1U );
-    ucSeededAge = xNDCache[ 3 ].ucAge;
 
     for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
     {
@@ -1648,7 +1646,6 @@ void test_vNDSendNeighbourSolicitation_RecordsOnceAndLeavesKnownEntries( void )
     TEST_ASSERT_EQUAL( xNDCache[ 3 ].ucState, eND_PROBE );
     TEST_ASSERT_EQUAL( xNDCache[ 3 ].ucAge, 1U );
     TEST_ASSERT_EQUAL( xNDCache[ 3 ].ucNumProbes, 2U );
-    ( void ) ucSeededAge;
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 }
