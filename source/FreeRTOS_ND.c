@@ -551,7 +551,7 @@
         }
 
         /* Second pass: evict by rank - STALE, then other bound states, then
-         * INCOMPLETE as a last resort - and never a router. */
+         * INCOMPLETE, then a router, each only as a last resort. */
         if( pxReturn == NULL )
         {
             /* Rank 0 is most attractive; -1 means nothing chosen yet. */
@@ -560,38 +560,39 @@
 
             for( x = 0; x < ( BaseType_t ) ipconfigND_CACHE_ENTRIES; x++ )
             {
-                if( ( xNDCache[ x ].ucFlags & ndpFLAG_IS_ROUTER ) == 0U )
+                BaseType_t xRank;
+                uint16_t usAge = ( uint16_t ) xNDCache[ x ].ucAge;
+
+                if( ( xNDCache[ x ].ucFlags & ndpFLAG_IS_ROUTER ) != 0U )
                 {
-                    BaseType_t xRank;
-                    uint16_t usAge = ( uint16_t ) xNDCache[ x ].ucAge;
+                    xRank = 3;
+                }
+                else if( xNDCache[ x ].ucState == ( uint8_t ) eND_STALE )
+                {
+                    xRank = 0;
+                }
+                else if( xNDCache[ x ].ucState == ( uint8_t ) eND_INCOMPLETE )
+                {
+                    xRank = 2;
+                }
+                else
+                {
+                    xRank = 1;
+                }
 
-                    if( xNDCache[ x ].ucState == ( uint8_t ) eND_STALE )
-                    {
-                        xRank = 0;
-                    }
-                    else if( xNDCache[ x ].ucState == ( uint8_t ) eND_INCOMPLETE )
-                    {
-                        xRank = 2;
-                    }
-                    else
-                    {
-                        xRank = 1;
-                    }
-
-                    if( ( xBestRank < 0 ) ||
-                        ( xRank < xBestRank ) ||
-                        ( ( xRank == xBestRank ) && ( usAge < usBestAge ) ) )
-                    {
-                        xBestRank = xRank;
-                        usBestAge = usAge;
-                        pxReturn = &( xNDCache[ x ] );
-                    }
+                if( ( xBestRank < 0 ) ||
+                    ( xRank < xBestRank ) ||
+                    ( ( xRank == xBestRank ) && ( usAge < usBestAge ) ) )
+                {
+                    xBestRank = xRank;
+                    usBestAge = usAge;
+                    pxReturn = &( xNDCache[ x ] );
                 }
             }
         }
 
         /* Clean up the entry before returning it. */
-        if( pxReturn != NULL )
+        if( pxReturn != NULL ) /* LCOV_EXCL_BR_LINE - defensive, a full cache always yields a victim */
         {
             ( void ) memset( pxReturn, 0, sizeof( NDCacheRow_t ) );
             pxReturn->ucState = ( uint8_t ) eND_FREE;
@@ -669,7 +670,7 @@
         /* prvGetFreeNDPCacheEntry handles the 'eviction' of old STALE entries if full. */
         NDCacheRow_t * pxEntry = prvGetFreeNDPCacheEntry();
 
-        if( pxEntry != NULL )
+        if( pxEntry != NULL ) /* LCOV_EXCL_BR_LINE - defensive, a full cache always yields a victim */
         {
             ( void ) memcpy( pxEntry->xIPAddress.ucBytes, pxTargetIP->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             ( void ) memcpy( pxEntry->xMACAddress.ucBytes, pxTargetMAC->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
@@ -703,6 +704,8 @@
 
         if( pxEntry != NULL ) /* LCOV_EXCL_BR_LINE - defensive NULL check, entry always present here */
         {
+            const uint8_t ucWasVerifying = ( ( pxEntry->ucState == ( uint8_t ) eND_DELAY ) || ( pxEntry->ucState == ( uint8_t ) eND_PROBE ) ) ? 1U : 0U;
+
             pxEntry->ucState = ( uint8_t ) eState;
 
             switch( eState )
@@ -714,10 +717,14 @@
 
                 case eND_PROBE:
 
-                    /* The binding that is being kept must be verified, so let
-                     * vNDAgeCache() send the first unicast NS straight away. */
-                    pxEntry->ucAge = ( uint8_t ) 1U;
-                    pxEntry->ucNumProbes = 0;
+                    /* Restarting a verification already under way would stop the
+                     * probes ever running out, so the entry could never be freed. */
+                    if( ucWasVerifying == 0U )
+                    {
+                        pxEntry->ucAge = ( uint8_t ) 1U;
+                        pxEntry->ucNumProbes = 0;
+                    }
+
                     break;
 
                 case eND_STALE:
@@ -885,7 +892,7 @@
         {
             pxEntry = prvGetFreeNDPCacheEntry();
 
-            if( pxEntry != NULL )
+            if( pxEntry != NULL ) /* LCOV_EXCL_BR_LINE - defensive, a full cache always yields a victim */
             {
                 ( void ) memcpy( pxEntry->xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 pxEntry->ucState = ( uint8_t ) eND_INCOMPLETE;
@@ -2135,7 +2142,8 @@
             uxICMPSize = sizeof( ICMPHeader_IPv6_t );
             pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
             pxICMPHeader_IPv6->ucTypeOfService = 0;
-            pxICMPHeader_IPv6->ulReserved = ndICMPv6_FLAG_SOLICITED | ndICMPv6_FLAG_OVERRIDE;
+            /* RFC 4861 section 7.2.6: an unsolicited advertisement must have S=0. */
+            pxICMPHeader_IPv6->ulReserved = ndICMPv6_FLAG_OVERRIDE;
             pxICMPHeader_IPv6->ulReserved = FreeRTOS_htonl( pxICMPHeader_IPv6->ulReserved );
 
             /* Type of option. */

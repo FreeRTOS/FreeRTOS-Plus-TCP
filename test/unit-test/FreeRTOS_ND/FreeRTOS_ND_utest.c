@@ -691,7 +691,8 @@ void test_vNDRefreshCacheEntry_NoMatchingEntryCacheFull( void )
     ( void ) memset( xIPAddress.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 
-    /* Routers are never evicted, so the new entry has nowhere to go. */
+    /* A router flag comes from the R bit of a received advertisement, so a cache
+    * full of them must still yield a victim or no address could ever resolve. */
     for( i = 0; i < ipconfigND_CACHE_ENTRIES; i++ )
     {
         ( void ) memcpy( xNDCache[ i ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -701,13 +702,13 @@ void test_vNDRefreshCacheEntry_NoMatchingEntryCacheFull( void )
         xNDCache[ i ].ucFlags = 0x01U; /* ndpFLAG_IS_ROUTER */
     }
 
-    /* Pass a NULL IP address which will not match.*/
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    FreeRTOS_EUI48_ntop_Ignore();
+
     vNDRefreshCacheEntry( &xMACAddress, &xIPAddress, &xEndPoint );
 
-    for( i = 0; i < ipconfigND_CACHE_ENTRIES; i++ )
-    {
-        TEST_ASSERT_EQUAL( xNDCache[ i ].xIPAddress.ucBytes[ 15 ], ( uint8_t ) ( 0x40 + i ) );
-    }
+    TEST_ASSERT_EQUAL_MEMORY( xNDCache[ 0 ].xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_REACHABLE );
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 }
@@ -1557,7 +1558,7 @@ void test_vNDSendNeighbourSolicitation_HappyPath( void )
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 }
 
-void test_vNDSendNeighbourSolicitation_CacheFull_NoRecord( void )
+void test_vNDSendNeighbourSolicitation_CacheFullOfRouters_StillRecords( void )
 {
     IPv6_Address_t xIPAddress;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -1574,7 +1575,6 @@ void test_vNDSendNeighbourSolicitation_CacheFull_NoRecord( void )
     xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
-    /* Every slot holds a router, the one kind of entry that is never reclaimed. */
     for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
     {
         xNDCache[ x ].ucState = eND_REACHABLE;
@@ -1589,11 +1589,10 @@ void test_vNDSendNeighbourSolicitation_CacheFull_NoRecord( void )
 
     vNDSendNeighbourSolicitation( &xNetworkBuffer, &xIPAddress );
 
-    for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
-    {
-        TEST_ASSERT_EQUAL( xNDCache[ x ].ucState, eND_REACHABLE );
-        TEST_ASSERT_EQUAL( xNDCache[ x ].xIPAddress.ucBytes[ 15 ], ( uint8_t ) ( 0x60 + x ) );
-    }
+    /* A router was reclaimed, so the solicitation was still recorded and the
+     * address stays resolvable. */
+    TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_INCOMPLETE );
+    TEST_ASSERT_EQUAL_MEMORY( xNDCache[ 0 ].xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 }
@@ -3652,6 +3651,54 @@ void test_prvProcessNA_SolicitedEntry_RouterFlag_SetsRouterBit( void )
     TEST_ASSERT_EQUAL( pxEntry->ucState, eND_REACHABLE );
     /* ucFlags bit 0x01 is ndpFLAG_IS_ROUTER (private to FreeRTOS_ND.c). */
     TEST_ASSERT_TRUE( ( pxEntry->ucFlags & 0x01U ) != 0U );
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+}
+
+void test_prvProcessNA_ProbingEntry_RepeatedOverride_StillExpires( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    MACAddress_t xNewMAC = { { 0x02, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E } };
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    const uint8_t ucStates[] = { ( uint8_t ) eND_PROBE, ( uint8_t ) eND_DELAY };
+    size_t uxIndex;
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( NULL );
+
+    for( uxIndex = 0; uxIndex < sizeof( ucStates ) / sizeof( ucStates[ 0 ] ); uxIndex++ )
+    {
+        /* An entry already part way through a verification. */
+        ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+        ( void ) memcpy( xNDCache[ 0 ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        ( void ) memcpy( xNDCache[ 0 ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+        xNDCache[ 0 ].ucState = ucStates[ uxIndex ];
+        xNDCache[ 0 ].ucAge = 1U;
+        xNDCache[ 0 ].ucNumProbes = 2U;
+
+        prvBuildNaPacket( &xICMPPacket, ndTEST_FLAG_SOLICITED | ndTEST_FLAG_OVERRIDE, &xDefaultIPAddress, &xNewMAC );
+
+        pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+        pxNetworkBuffer->pxEndPoint = &xEndPoint;
+        pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_IPv6_t );
+        pxNDWaitingNetworkBuffer = NULL;
+
+        eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+        TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+
+        /* The probe budget was not refilled, so the verification still runs out and
+         * the entry can be freed and the address resolved again. */
+        TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucState, eND_PROBE );
+        TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucNumProbes, 2U );
+        TEST_ASSERT_EQUAL( xNDCache[ 0 ].ucAge, 1U );
+    }
 
     ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
 }
