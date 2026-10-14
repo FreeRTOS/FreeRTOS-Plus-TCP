@@ -67,6 +67,7 @@ typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
 
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
+static void * pvCallbackSearchID = NULL;
 static BaseType_t hook_return = pdFALSE;
 static BaseType_t hook_called = pdFALSE;
 
@@ -78,6 +79,17 @@ static void dns_callback( const char * pcName,
                           struct freertos_addrinfo * pxAddressInfo )
 {
     callback_called = 1;
+    pvCallbackSearchID = pvSearchID;
+}
+
+/* Hands out a different search ID on each call, as xDNSDoCallback() does when
+ * it matches a different pending request. */
+static FOnDNSEvent xStubDNSDoCallback( ParseSet_t * pxSet,
+                                       void ** ppvSearchID,
+                                       int cmock_num_calls )
+{
+    *ppvSearchID = ( cmock_num_calls == 0 ) ? ( void * ) 0x1111 : ( void * ) 0x2222;
+    return dns_callback;
 }
 
 /* ===========================  EXTERN VARIABLES  =========================== */
@@ -96,6 +108,7 @@ void setUp( void )
 {
     xBufferAllocFixedSize = pdFALSE;
     callback_called = 0;
+    pvCallbackSearchID = NULL;
 }
 
 /**
@@ -3718,7 +3731,9 @@ void test_parseDNSAnswer_answer_name_pointer_to_pointer_skipped( void )
     xSet.usNumARecordsStored = 0;
     xSet.usAnswers = 1;
 
-    /* An undecodable owner name is malformed, so no type is read. */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+
+    /* No storage expectations are registered, so CMock fails if it is stored. */
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
     TEST_ASSERT_EQUAL( 0U, ret );
@@ -3890,10 +3905,8 @@ void test_parseDNSAnswer_answer_name_compression_pointer_match( void )
 }
 
 /**
- * @brief An answer record whose owner name is a compression pointer whose
- *        offset lies outside the message buffer. prvReadAnswerName cannot
- *        resolve it and returns pdFALSE, so the record is rejected as a
- *        malformed response. Exercises the out-of-bounds-offset branch.
+ * @brief An answer record whose owner name is a compression pointer to an
+ *        offset outside the message cannot be decoded, so the record is skipped.
  */
 void test_parseDNSAnswer_answer_name_compression_pointer_out_of_bounds( void )
 {
@@ -3921,19 +3934,18 @@ void test_parseDNSAnswer_answer_name_compression_pointer_out_of_bounds( void )
     xSet.usNumARecordsStored = 0;
     xSet.usAnswers = 1;
 
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
-    /* Unresolvable compression pointer -> rejected as malformed. */
+    /* No address was accepted, but the rest of the reply was still parsed. */
     TEST_ASSERT_EQUAL( 0, ret );
-    TEST_ASSERT_EQUAL( 0, uxBytesRead );
+    TEST_ASSERT_NULL( pxAddressInfo );
 }
 
 /**
- * @brief An answer record whose owner name is a compression pointer to an
- *        offset holding a malformed name (a label longer than the bytes that
- *        remain). DNS_ReadNameField fails on the target, prvReadAnswerName
- *        returns pdFALSE, and the record is rejected. Exercises the
- *        pointer-target-decode-failure branch.
+ * @brief An answer record whose owner name points at a malformed name - a label
+ *        longer than the bytes that remain - cannot be decoded, so it is skipped.
  */
 void test_parseDNSAnswer_answer_name_compression_pointer_bad_target( void )
 {
@@ -3967,11 +3979,13 @@ void test_parseDNSAnswer_answer_name_compression_pointer_bad_target( void )
     xSet.usNumARecordsStored = 0;
     xSet.usAnswers = 1;
 
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
+
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
-    /* Malformed pointer target -> rejected. */
+    /* No address was accepted, but the rest of the reply was still parsed. */
     TEST_ASSERT_EQUAL( 0, ret );
-    TEST_ASSERT_EQUAL( 0, uxBytesRead );
+    TEST_ASSERT_NULL( pxAddressInfo );
 }
 
 /**
@@ -4734,11 +4748,10 @@ void test_parseDNSAnswer_two_records_stored_with_callback( void )
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
 
-    /* Record 2: appended after the first (exercises the second-address path);
-     * the callback is already recorded so a NULL here does not clear it. */
+    /* Record 2: appended after the first. No second xDNSDoCallback()
+    * expectation, so CMock fails if the request is claimed twice. */
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddr2 );
-    xDNSDoCallback_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
 
@@ -4747,6 +4760,83 @@ void test_parseDNSAnswer_two_records_stored_with_callback( void )
     /* Both records parsed; first stored address returned to the caller. */
     TEST_ASSERT_EQUAL_PTR( &xAddr1, pxAddressInfo );
     TEST_ASSERT_EQUAL_PTR( &xAddr2, xAddr1.ai_next );
+}
+
+/**
+ * @brief A reply holding two addresses must claim one pending request, not one
+ *        per record: a second claim frees another request and reports its
+ *        search ID to this call-back.
+ */
+void test_parseDNSAnswer_two_records_claim_one_request( void )
+{
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 300;
+    size_t uxBytesRead = 0;
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    DNSAnswerRecord_t * pxDNSAnswerRecord2;
+    uint32_t ip_address = 1234;
+    uint32_t ip_address2 = 2345;
+    int index = 0;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo xAddr1 = { 0 }, xAddr2 = { 0 };
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+
+    memset( pucByte, 0x00, uxsourceBytesRemaining );
+
+    pucByte[ index ] = 38;
+    index += 1;
+    strcpy( pucByte + index, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    index += 39; /* String + \0 */
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + index );
+    index += sizeof( DNSAnswerRecord_t );
+    memcpy( pucByte + index, &ip_address, 4 );
+    index += 4;
+
+    pucByte[ index ] = 38;
+    index += 1;
+    strcpy( pucByte + index, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    index += 39; /* String + \0 */
+    pxDNSAnswerRecord2 = ( DNSAnswerRecord_t * ) ( pucByte + index );
+    index += sizeof( DNSAnswerRecord_t );
+    memcpy( pucByte + index, &ip_address2, 4 );
+    index += 4;
+    pucByte[ index ] = 0;
+
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
+    pxDNSAnswerRecord2->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
+    pxDNSAnswerRecord2->usType = ( dnsTYPE_A_HOST );
+
+    xSet.pucByte = pucByte;
+    xSet.usNumARecordsStored = 0;
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+    xSet.xDoStore = pdTRUE;
+
+    strcpy( xSet.pcName, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    /* The stub hands out 0x1111 on its first call and 0x2222 on any later one,
+     * standing in for two pending requests for the same name. */
+    xDNSDoCallback_Stub( xStubDNSDoCallback );
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* record 1 usType */
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddr1 );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* record 2 usType */
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddr2 );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( const char * ) &( xSet.ulIPAddress ) );
+
+    ( void ) parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
+
+    /* The call-back ran once, with the search ID of the request that was
+     * claimed, not one belonging to a second request. */
+    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL_PTR( ( void * ) 0x1111, pvCallbackSearchID );
 }
 
 /**

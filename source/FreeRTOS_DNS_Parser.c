@@ -946,7 +946,7 @@
                         {
                             FreeRTOS_printf( ( "DNS: could not decode the name of answer %u\n",
                                                ( unsigned ) x ) );
-                            uxResult = 0U;
+                            xNameMatch = pdFALSE;
                         }
                         else if( strcasecmp( pcDecodedAnswer, pcExpectedName ) != 0 )
                         {
@@ -1123,21 +1123,17 @@
 
                         #if ( ipconfigDNS_USE_CALLBACKS == 1 )
                         {
-                            FOnDNSEvent xNewEvent = xDNSDoCallback( pxSet, &( pvSearchID ) );
-
                             if( xCallbackEvent == NULL )
                             {
-                                /* After the loop, xCallbackEvent will be called
-                                 * as a function. */
-                                xCallbackEvent = xNewEvent;
-                            }
+                                xCallbackEvent = xDNSDoCallback( pxSet, &( pvSearchID ) );
 
-                            /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
-                            if( xCallbackEvent != NULL )
-                            {
-                                /* This device has requested this DNS look-up.
-                                 * The result may be stored in the DNS cache. */
-                                pxSet->xDoStore = pdTRUE;
+                                /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
+                                if( xCallbackEvent != NULL )
+                                {
+                                    /* This device has requested this DNS look-up.
+                                     * The result may be stored in the DNS cache. */
+                                    pxSet->xDoStore = pdTRUE;
+                                }
                             }
                         }
                         #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
