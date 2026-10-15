@@ -3,9 +3,7 @@
   "CBMCFLAGS":
   [
     "--unwind 2",
-    "--unwindset FreeRTOS_NextEndPoint.0:1",
-    "--unwindset FreeRTOS_CreateIPv6Address.0:5",
-    "--unwindset xIPv6_GetIPType.0:7",
+    "--unwindset FreeRTOS_NextEndPoint.0:1,FreeRTOS_CreateIPv6Address.0:5,xIPv6_GetIPType.0:7,pxNDPCacheLookup.0:25,__CPROVER_file_local_FreeRTOS_ND_c_prvGetFreeNDPCacheEntry.0:25,__CPROVER_file_local_FreeRTOS_ND_c_prvGetFreeNDPCacheEntry.1:25,memcmp.0:17",
     "--nondet-static"
   ],
   "OPT":

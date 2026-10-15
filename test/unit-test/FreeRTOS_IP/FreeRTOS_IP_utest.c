@@ -3443,7 +3443,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
     xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     xProcessReceivedTCPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
     eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
@@ -3540,7 +3540,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_ICMP_IPv6, 0U, 0 );
     xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-    vNDRefreshCacheEntry_Ignore();
+    vNDRefreshCacheEntryAge_Ignore();
     prvProcessICMPMessage_IPv6_ExpectAnyArgsAndReturn( eReleaseBuffer );
 
     eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );

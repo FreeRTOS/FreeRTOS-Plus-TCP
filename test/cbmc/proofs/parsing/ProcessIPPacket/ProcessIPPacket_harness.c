@@ -58,13 +58,11 @@ void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
 }
 
-void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                           const IPv6_Address_t * pxIPAddress,
-                           NetworkEndPoint_t * pxEndPoint )
+void vNDRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                              const IPv6_Address_t * pxIPAddress )
 {
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
     __CPROVER_assert( pxIPAddress != NULL, "pxIPAddress cannot be NULL" );
-    __CPROVER_assert( pxEndPoint != NULL, "pxEndPoint cannot be NULL" );
 }
 
 NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress )

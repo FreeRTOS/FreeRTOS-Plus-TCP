@@ -810,6 +810,7 @@ NCARR
 NCFGR
 NCONFIG
 NCPDT
+neighbours
 Netif
 Nett
 netto
@@ -1360,6 +1361,7 @@ THALT
 THRES
 tiarmclang
 TIDM
+TLLA
 tmout
 TMXBFR
 totalappdescnbr

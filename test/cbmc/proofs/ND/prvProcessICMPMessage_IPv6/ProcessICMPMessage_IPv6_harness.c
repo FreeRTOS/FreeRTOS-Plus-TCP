@@ -130,6 +130,35 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     return uxResult;
 }
 
+/* Model the end-point list walked by the own-address check as a finite chain. */
+#define ndHARNESS_ENDPOINT_COUNT    2
+
+/* The largest number of 8-byte NDP option units the modelled packet may carry. */
+#define ndHARNESS_MAX_OPTIONS       4
+
+static NetworkEndPoint_t xHarnessEndPoints[ ndHARNESS_ENDPOINT_COUNT ];
+
+NetworkEndPoint_t * FreeRTOS_FirstEndPoint( const NetworkInterface_t * pxInterface )
+{
+    size_t uxIndex;
+
+    for( uxIndex = 0; uxIndex < ndHARNESS_ENDPOINT_COUNT; uxIndex++ )
+    {
+        xHarnessEndPoints[ uxIndex ].pxNext =
+            ( ( uxIndex + 1U ) < ndHARNESS_ENDPOINT_COUNT ) ? &( xHarnessEndPoints[ uxIndex + 1U ] ) : NULL;
+    }
+
+    return nondet_bool() ? &( xHarnessEndPoints[ 0 ] ) : NULL;
+}
+
+NetworkEndPoint_t * FreeRTOS_NextEndPoint( const NetworkInterface_t * pxInterface,
+                                           NetworkEndPoint_t * pxEndPoint )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "The end-point cannot be NULL." );
+
+    return pxEndPoint->pxNext;
+}
+
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -141,6 +170,13 @@ void harness()
      * beyond CBMC_MAX_OBJECT_SIZE */
     __CPROVER_assume( ulLen < ( CBMC_MAX_OBJECT_SIZE - ipBUFFER_PADDING ) );
 
+    /* The packet was already parsed as IPv6, so both headers are present. */
+    __CPROVER_assume( ulLen >= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) );
+
+    /* Bound the buffer, else the payload-driven option walk is unbounded too. */
+    __CPROVER_assume( ulLen <= ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                                 ipSIZE_OF_ICMPv6_HEADER + ( ndHARNESS_MAX_OPTIONS * 8U ) ) );
+
     pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ulLen, 0 );
 
     /* The code does not expect pxNetworkBuffer to be NULL. */
@@ -149,6 +185,15 @@ void harness()
     __CPROVER_havoc_slice( pxNetworkBuffer->pucEthernetBuffer, ulLen );
 
     pxNetworkBuffer->xDataLength = ulLen;
+
+    /* State the caller's guarantee that the payload fits inside the buffer, which
+     * xCheckIPv6SizeFields() and the checksum path enforce. */
+    {
+        const IPPacket_IPv6_t * pxIPPacket = ( const IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+        __CPROVER_assume( ( ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            FreeRTOS_ntohs( pxIPPacket->xIPHeader.usPayloadLength ) ) <= ulLen );
+    }
 
     /* Add an end point to the network buffer present. Its assumed that the
      * network interface layer correctly assigns the end point to the generated buffer. */

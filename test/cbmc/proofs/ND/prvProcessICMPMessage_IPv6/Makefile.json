@@ -2,7 +2,7 @@
   "ENTRY": "ProcessICMPMessage_IPv6",
   "CBMCFLAGS":
   [
-    "--unwindset vNDRefreshCacheEntry.0:25",
+    "--unwindset prvProcessNA.0:5,pxNDPCacheLookup.0:25,prvGetFreeNDPCacheEntry.0:25,prvGetFreeNDPCacheEntry.1:25,memcmp.0:17,prvIsOwnIPAddress.0:4,prvIsAddressOnLink.0:4,FreeRTOS_FirstEndPoint.0:3",
     "--nondet-static"
   ],
   "OBJS":

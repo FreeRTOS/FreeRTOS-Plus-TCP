@@ -53,10 +53,9 @@ BaseType_t xCheckRequiresNDResolution( const NetworkBufferDescriptor_t * pxNetwo
     return xReturn;
 }
 
-/* Abstraction of vNDRefreshCacheEntry */
-void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                           const IPv6_Address_t * pxIPAddress,
-                           NetworkEndPoint_t * pxEndPoint )
+/* Abstraction of vNDRefreshCacheEntryAge */
+void vNDRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                              const IPv6_Address_t * pxIPAddress )
 {
 }
 

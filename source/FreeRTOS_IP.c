@@ -1823,9 +1823,10 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
                     if( pxNDWaitingNetworkBuffer == NULL )
                     {
+                        /* Nothing to copy out: the ND code reads the source address
+                         * back out of the packet itself. */
                         pxNDWaitingNetworkBuffer = pxNetworkBuffer;
                         vIPTimerStartNDResolution( ipND_RESOLUTION_MAX_DELAY );
-
                         iptraceDELAYED_ND_REQUEST_STARTED();
                     }
                     else
@@ -1833,7 +1834,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 {
                     /* We are already waiting on one resolution. This frame will be dropped. */
                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-
+                    FreeRTOS_debug_printf( ( "NDBuffer: = full/release\n" ) );
                     iptraceDELAYED_ND_BUFFER_FULL();
                 }
 
@@ -2131,7 +2132,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
                             case ipIPv6_FRAME_TYPE:
-                                vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
+                                vNDRefreshCacheEntryAge( &( pxIPPacket->xEthernetHeader.xSourceAddress ),
+                                                         &( pxIPHeader_IPv6->xSourceAddress ) );
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -2163,9 +2165,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                              * went wrong because it will not be able to validate what it
                              * receives. */
                             #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            {
                                 eReturn = ProcessICMPPacket( pxNetworkBuffer );
-                            }
                             #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
