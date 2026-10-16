@@ -1,10 +1,40 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
-Changes to be included in the upcoming release:
+Changes between FreeRTOS-plus-TCP V4.4.2 and V4.4.1 released October 16, 2026:
 	+ Add Router Advertisement validations for RFC 4861 section 6.1.2
-	  (#1369). A malformed option now discards the whole message, so an RA
-	  that previously drove SLAAC may now be rejected. Thanks to Causal
-	  Security (https://causalsecurity.com) and @htibosch for their help.
+	  (#1369). An RA is now accepted only when it arrives from a link-local
+	  source with a hop limit of 255 and an ICMPv6 code of zero, and a
+	  malformed option discards the whole message, so an RA that previously
+	  drove SLAAC may now be rejected. The new iptraceRA_DISCARDED( pcReason )
+	  trace macro reports why a message was dropped. We thank Causal Security
+	  (https://causalsecurity.com) for reporting this issue and @htibosch for
+	  collaborating on the fix.
+	+ Add Neighbor Discovery cache validations (#1368). Unsolicited neighbor
+	  advertisements can no longer create or overwrite a cache binding, and
+	  received IPv6 packets now only refresh the age of an existing, already
+	  validated entry instead of seeding the cache from an unknown source.
+	  Neighbor Unreachability Detection states from RFC 4861 section 7.3.2
+	  (INCOMPLETE, REACHABLE, STALE, DELAY, PROBE) replace the previous
+	  binary valid/invalid entry, so NDCacheRow_t::ucValid is now
+	  NDCacheRow_t::ucState and code that inspects the ND cache directly
+	  must be updated. We thank Causal Security
+	  (https://causalsecurity.com) for reporting this issue and @htibosch for
+	  collaborating on the fix.
+	+ Increase DNS response validations (#1370). A reply is now accepted only
+	  when the name it answers matches the name that was queried, callbacks
+	  registered with FreeRTOS_gethostbyname_a() and getaddrinfo_a() are
+	  matched on name as well as transaction identifier, and compressed names
+	  are decoded with a bounded number of compression hops. The new
+	  ipconfigDNS_CHECK_REPLY_SOURCE_IP option, disabled by default, also
+	  requires a reply to come from the server that was queried; it is off by
+	  default because it rejects replies from a transparent DNS proxy that
+	  answers from a different address. We thank Causal Security
+	  (https://causalsecurity.com) for reporting this issue and @htibosch for
+	  collaborating on the fix.
+	+ Reject ACKs outside of the possible window (#1367). An ACK that
+	  acknowledges data never sent is no longer applied to the transmit
+	  window, as required by RFC 9293 section 3.10.7.4. We thank Causal
+	  Security (https://causalsecurity.com) for reporting this issue.
 	+ Rename the ICMP header field ucTypeOfService to ucCode in
 	  ICMPHeader_t, ICMPHeader_IPv6_t, ICMPEcho_IPv6_t,
 	  ICMPRouterSolicitation_IPv6_t and ICMPRouterAdvertisement_IPv6_t
@@ -12,6 +42,41 @@ Changes to be included in the upcoming release:
 	  header has no Type-of-Service field. The old name is aliased while
 	  ipconfigENABLE_BACKWARD_COMPATIBILITY is 1, its default, so existing
 	  application and port code keeps compiling.
+	+ Support IPv6 Unique Local Addresses. ULAs in fc00::/7 are now
+	  identified as eIPv6_UniqueLocal, so they can be assigned to an endpoint
+	  and matched against received packets. The new value is inserted into
+	  IPv6_Type_t, which shifts the numeric values of eIPv6_Multicast,
+	  eIPv6_Loopback and eIPv6_Unknown. We thank @MarcusBetter for their
+	  contribution.
+	+ Fix IPv6 address printing bounds checks (#1357). FreeRTOS_inet_ntop6()
+	  no longer writes the NUL terminator one byte past the end of a
+	  destination buffer that exactly fits the address text.
+	+ Remove the risk of underflow when configuration macros size the DHCP
+	  option fields (#1345), and add coverage tests for the DNS, ICMP and ND
+	  parsers.
+	+ Fix PIC32 MAC initialization call (#1350). The pic32mzef network
+	  interface now passes the NetworkInterface_t pointer to StartInitMac()
+	  and compiles again. We thank @Old-Ding for their contribution.
+	+ Fix MSP432 DNS query hook match check. The middleware treated a
+	  non-zero strcmp() result as a name match, so LLMNR and NBNS replies
+	  were generated for unrelated names and not for the device's own name.
+	  We thank @Old-Ding for their contribution.
+	+ Add support for PHY ID_DP83822HF in PHY handling (#1304). We thank
+	  @kzorer for their contribution.
+	+ Remove the unused xuartps.h include from the Xilinx UltraScale and
+	  Zynq network interfaces (#1343). We thank @ismailemrecanitez for their
+	  contribution.
+	+ Fix the buffer allocation model named in a NetworkBufferManagement.h
+	  comment: the FromISR functions live in BufferAllocation_1.c, not
+	  BufferAllocation_2.c. We thank @fbrack for their contribution.
+	+ Add CBMC memory-safety proofs for further receive-path parsers (#1360):
+	  the BitConfig readers, parseDNSAnswer(), the TCP header option and SACK
+	  parsers, the DHCPv6 option handlers, prvAllowIPPacketIPv4() and
+	  prvProcessICMPEchoReply().
+	+ Fix the empty navigation tree in the published doxygen output (#1349).
+	+ Update CMock so that test runner generation works with Ruby 4 (#1351),
+	  and escape the Windows include path in the CBMC makefile help text
+	  (#1353). We thank @Old-Ding for their contributions.
 
 Changes between FreeRTOS-plus-TCP V4.4.1 and V4.4.0 released April 28, 2026:
 	+ Fix heap OOB read in prvProcessICMPEchoReply() (#1335).
