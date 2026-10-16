@@ -211,6 +211,25 @@
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigDNSQuery_BACKWARD_COMPATIBLE
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * Enables the APIs that are backward compatible with old-style DNS Query
+ * Hooks
+ */
+
+#ifndef ipconfigDNSQuery_BACKWARD_COMPATIBLE
+    #define ipconfigDNSQuery_BACKWARD_COMPATIBLE    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigDNSQuery_BACKWARD_COMPATIBLE != ipconfigDISABLE ) && ( ipconfigDNSQuery_BACKWARD_COMPATIBLE != ipconfigENABLE ) )
+    #error Invalid ipconfigDNSQuery_BACKWARD_COMPATIBLE configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigUSE_IPv4
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
