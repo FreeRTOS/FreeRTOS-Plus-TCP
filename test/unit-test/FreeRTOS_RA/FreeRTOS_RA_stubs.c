@@ -4,7 +4,6 @@
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "list.h"
@@ -57,6 +56,7 @@ BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
                                        size_t uxPrefixLength,
                                        BaseType_t xDoRandom )
 {
+    return pdFAIL;
 }
 
 /**

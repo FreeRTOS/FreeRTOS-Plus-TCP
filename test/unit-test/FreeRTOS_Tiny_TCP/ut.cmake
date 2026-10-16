@@ -33,7 +33,6 @@ add_compile_options(-Wno-pedantic -ggdb3)
 # list the files you would like to test here
 set(real_source_files "")
 list(APPEND real_source_files
-            ${project_name}/FreeRTOS_Tiny_TCP_stubs.c
             ${MODULE_ROOT_DIR}/source/FreeRTOS_Tiny_TCP.c
 	)
 # list the directories the module under test includes
