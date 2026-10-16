@@ -410,6 +410,7 @@ static ETH_HandleTypeDef xEthHandle;
 static EthernetPhy_t xPhyObject;
 
 static TaskHandle_t xEMACTaskHandle = NULL;
+/* Serializes TX submission/reclamation and runtime HAL state transitions. */
 static SemaphoreHandle_t xTxMutex = NULL, xTxDescSem = NULL;
 
 static BaseType_t xSwitchRequired = pdFALSE;
@@ -542,15 +543,23 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
 
         case eMacEthStart:
 
+            if( xSemaphoreTake( xTxMutex, portMAX_DELAY ) == pdFALSE )
+            {
+                FreeRTOS_debug_printf( ( "prvNetworkInterfaceInitialise: eMacEthStart mutex failed\n" ) );
+                break;
+            }
+
             if( pxEthHandle->gState != HAL_ETH_STATE_STARTED )
             {
                 if( HAL_ETH_Start_IT( pxEthHandle ) != HAL_OK )
                 {
+                    ( void ) xSemaphoreGive( xTxMutex );
                     FreeRTOS_debug_printf( ( "prvNetworkInterfaceInitialise: eMacEthStart failed\n" ) );
                     break;
                 }
             }
 
+            ( void ) xSemaphoreGive( xTxMutex );
             xMacInitStatus = eMacInitComplete;
         /* fallthrough */
 
@@ -670,6 +679,20 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
             break;
         }
 
+        /* The link and HAL state may have changed while waiting for the
+         * descriptor semaphore or the TX mutex.  This is the authoritative
+         * state check because runtime HAL state transitions also take the
+         * TX mutex. */
+        if( ( prvGetPhyLinkStatus( pxInterface ) == pdFALSE ) ||
+            ( xMacInitStatus != eMacInitComplete ) ||
+            ( pxEthHandle->gState != HAL_ETH_STATE_STARTED ) )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Interface Not Started\n" ) );
+            ( void ) xSemaphoreGive( xTxDescSem );
+            ( void ) xSemaphoreGive( xTxMutex );
+            break;
+        }
+
         #ifdef niEMAC_CACHEABLE
             if( niEMAC_CACHE_MAINTENANCE != 0 )
             {
@@ -681,7 +704,9 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
             }
         #endif
 
-        if( HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig ) == HAL_OK )
+        const HAL_StatusTypeDef xHALStatus = HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig );
+
+        if( xHALStatus == HAL_OK )
         {
             /* Released later in deferred task by calling HAL_ETH_ReleaseTxPacket */
             xReleaseAfterSend = pdFALSE;
@@ -690,9 +715,9 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         else
         {
             ( void ) xSemaphoreGive( xTxDescSem );
-            configASSERT( pxEthHandle->gState == HAL_ETH_STATE_STARTED );
-            /* Should be impossible if semaphores are correctly implemented */
-            configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_BUSY ) == 0 );
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: HAL_ETH_Transmit_IT failed: status=%ld, error=0x%08lx\n",
+                                     ( long ) xHALStatus,
+                                     ( unsigned long ) pxEthHandle->ErrorCode ) );
         }
 
         ( void ) xSemaphoreGive( xTxMutex );
@@ -849,10 +874,21 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 
                 if( pxEthHandle->gState == HAL_ETH_STATE_ERROR )
                 {
-                    /* Recover from critical error */
-                    ( void ) HAL_ETH_Init( pxEthHandle );
-                    ( void ) HAL_ETH_Start_IT( pxEthHandle );
-                    xResult = prvNetworkInterfaceInput( pxEthHandle, pxInterface );
+                    if( xSemaphoreTake( xTxMutex, portMAX_DELAY ) != pdFALSE )
+                    {
+                        /* Recheck after taking the mutex because another task
+                         * may have changed the HAL state while this task was
+                         * blocked. */
+                        if( pxEthHandle->gState == HAL_ETH_STATE_ERROR )
+                        {
+                            /* Recover from critical error. */
+                            ( void ) HAL_ETH_Init( pxEthHandle );
+                            ( void ) HAL_ETH_Start_IT( pxEthHandle );
+                        }
+
+                        ( void ) xSemaphoreGive( xTxMutex );
+                        xResult = prvNetworkInterfaceInput( pxEthHandle, pxInterface );
+                    }
                 }
             }
 
@@ -864,24 +900,40 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
         {
             if( prvGetPhyLinkStatus( pxInterface ) != pdFALSE )
             {
-                if( pxEthHandle->gState == HAL_ETH_STATE_ERROR )
+                if( xSemaphoreTake( xTxMutex, portMAX_DELAY ) != pdFALSE )
                 {
-                    /* Recover from critical error */
-                    ( void ) HAL_ETH_Init( pxEthHandle );
-                }
-
-                if( pxEthHandle->gState == HAL_ETH_STATE_READY )
-                {
-                    /* Link was down or critical error occurred */
-                    if( prvMacUpdateConfig( pxEthHandle, pxPhyObject ) != pdFALSE )
+                    if( pxEthHandle->gState == HAL_ETH_STATE_ERROR )
                     {
-                        ( void ) HAL_ETH_Start_IT( pxEthHandle );
+                        /* Recover from critical error. */
+                        ( void ) HAL_ETH_Init( pxEthHandle );
                     }
+
+                    if( pxEthHandle->gState == HAL_ETH_STATE_READY )
+                    {
+                        /* Link was down or critical error occurred. */
+                        if( prvMacUpdateConfig( pxEthHandle, pxPhyObject ) != pdFALSE )
+                        {
+                            ( void ) HAL_ETH_Start_IT( pxEthHandle );
+                        }
+                    }
+
+                    ( void ) xSemaphoreGive( xTxMutex );
                 }
             }
             else
             {
-                ( void ) HAL_ETH_Stop_IT( pxEthHandle );
+                if( xSemaphoreTake( xTxMutex, portMAX_DELAY ) != pdFALSE )
+                {
+                    if( pxEthHandle->gState == HAL_ETH_STATE_STARTED )
+                    {
+                        ( void ) HAL_ETH_Stop_IT( pxEthHandle );
+                    }
+
+                    ( void ) xSemaphoreGive( xTxMutex );
+                }
+
+                /* prvReleaseTxPacket() takes xTxMutex, so call it only after
+                 * releasing the mutex above. */
                 prvReleaseTxPacket( pxEthHandle );
                 #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_NETWORK_DOWN_EVENT ) )
                     FreeRTOS_NetworkDown( pxInterface );
