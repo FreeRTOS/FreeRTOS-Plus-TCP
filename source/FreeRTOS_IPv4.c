@@ -320,6 +320,157 @@ BaseType_t xIsIPv4Loopback( uint32_t ulAddress )
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Apply IPv4 admission policy shared by the IP task and driver filter.
+ *
+ * The caller must provide a complete IPv4 header and an assigned IPv4 endpoint.
+ * Length, checksum and transport validation remain the caller's responsibility.
+ *
+ * @param[in] pxIPPacket Packet containing the Ethernet and IPv4 headers.
+ * @param[in] pxEndPoint Endpoint selected for this packet.
+ * @param[in] xAllowHostLoopback pdTRUE for the IP task's internal loopback path;
+ *                             pdFALSE for network driver filtering.
+ * @return Whether the packet should be processed or dropped.
+ */
+eFrameProcessingResult_t eConsiderIPv4PacketForProcessing( const IPPacket_t * const pxIPPacket,
+                                                           const NetworkEndPoint_t * const pxEndPoint,
+                                                           BaseType_t xAllowHostLoopback )
+{
+    eFrameProcessingResult_t eReturn = eProcessBuffer;
+    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+    uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+    uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
+
+    /* Ensure that the incoming packet is not fragmented because the stack
+     * doesn't not support IP fragmentation. All but the last fragment coming in will have their
+     * "more fragments" flag set and the last fragment will have a non-zero offset.
+     * We need to drop the packet in either of those cases. */
+    if( ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U ) || ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U ) )
+    {
+        /* Can not handle, fragmented packet. */
+        eReturn = eReleaseBuffer;
+    }
+
+    /* Test if the length of the IP-header is between 20 and 60 bytes,
+     * and if the IP-version is 4. */
+    else if( ( pxIPHeader->ucVersionHeaderLength < ipIPV4_VERSION_HEADER_LENGTH_MIN ) ||
+             ( pxIPHeader->ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX ) )
+    {
+        /* Can not handle, unknown or invalid header version. */
+        eReturn = eReleaseBuffer;
+    }
+    else if( xBadIPv4Loopback( pxIPHeader ) == pdTRUE )
+    {
+        eReturn = eReleaseBuffer;
+    }
+    else if( ( xAllowHostLoopback != pdFALSE ) &&
+             ( ( xIsIPv4Loopback( ulDestinationIPAddress ) == pdTRUE ) ||
+               ( xIsIPv4Loopback( ulSourceIPAddress ) == pdTRUE ) ) )
+    {
+        /* Preserve the IP task's internal loopback exception. A driver
+         * still applies the Ethernet and endpoint checks below. */
+    }
+    else if( memcmp( xBroadcastMACAddress.ucBytes,
+                     pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes,
+                     sizeof( MACAddress_t ) ) == 0 )
+    {
+        /* Ethernet source is a broadcast address. Drop the packet. */
+        eReturn = eReleaseBuffer;
+    }
+    else if( xIsIPv4Multicast( ulSourceIPAddress ) == pdTRUE )
+    {
+        /* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
+        eReturn = eReleaseBuffer;
+    }
+
+    /* Use ipv4_settings for filtering only after the endpoint is up,
+     * so that DHCP packets that are exchanged for DHCP (example, DHCP unicast offers)
+     * are not dropped/filtered. */
+    else if( FreeRTOS_IsEndPointUp( pxEndPoint ) != pdFALSE )
+    {
+        if(
+            /* Not destined for the assigned endpoint IPv4 address? */
+            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulIPAddress ) &&
+            /* Also not an IPv4 broadcast address ? */
+            ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) &&
+            ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) &&
+            /* And not an IPv4 multicast address ? */
+            ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) )
+        {
+            /* Packet is not for this node, release it */
+            eReturn = eReleaseBuffer;
+        }
+        /* Is the source address correct? */
+        else if( ( ulSourceIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ||
+                 ( ulSourceIPAddress == FREERTOS_INADDR_BROADCAST ) )
+        {
+            /* The source address cannot be broadcast address. Replying to this
+             * packet may cause network storms. Drop the packet. */
+            eReturn = eReleaseBuffer;
+        }
+        else if( ( memcmp( xBroadcastMACAddress.ucBytes,
+                           pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                           sizeof( MACAddress_t ) ) == 0 ) &&
+                 ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) && ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) )
+        {
+            /* Ethernet address is a broadcast address, but the IP address is not a
+             * broadcast address. */
+            eReturn = eReleaseBuffer;
+        }
+        else
+        {
+            /* Packet is not fragmented, destination is this device, source IP and MAC
+             * addresses are correct. */
+        }
+    }
+    else
+    {
+        /* Endpoint is down */
+
+        /* Check if the destination MAC address is a broadcast MAC address. */
+        if( memcmp( xBroadcastMACAddress.ucBytes,
+                    pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                    sizeof( MACAddress_t ) ) == 0 )
+        {
+            if( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST )
+            {
+                /* Ethernet address is a broadcast address, but the IP address is not a
+                 * broadcast address. */
+                eReturn = eReleaseBuffer;
+            }
+            else
+            {
+                /* Accept valid broadcast packet. */
+            }
+        }
+
+        /* RFC 2131: https://datatracker.ietf.org/doc/html/rfc2131#autoid-8
+         * The TCP/IP software SHOULD accept and
+         * forward to the IP layer any IP packets delivered to the client's
+         * hardware address before the IP address is configured; DHCP servers
+         * and BOOTP relay agents may not be able to deliver DHCP messages to
+         * clients that cannot accept hardware unicast datagrams before the
+         * TCP/IP software is configured. */
+        else if( ( memcmp( pxEndPoint->xMACAddress.ucBytes,
+                           pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                           sizeof( MACAddress_t ) ) != 0 ) )
+        {
+            /* The endpoint is not up, and the destination MAC address of the
+             * packet is not matching the endpoint's MAC address nor broadcast
+             * MAC address. Drop the packet. */
+            eReturn = eReleaseBuffer;
+        }
+        else
+        {
+            /* Endpoint is down, but the hardware address matches. Accept the
+             * packet as per RFC 2131 */
+        }
+    }
+
+    return eReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Check whether this IPv4 packet is to be allowed or to be dropped.
  *
  * @param[in] pxIPPacket The IP packet under consideration.
@@ -334,150 +485,15 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
 {
     eFrameProcessingResult_t eReturn = eProcessBuffer;
 
-    #if ( ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
+    #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 )
         const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
-    #else
-
-        /* or else, the parameter won't be used and the function will be optimised
-         * away */
+    #elif ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS != 0 )
         ( void ) pxIPPacket;
     #endif
 
     #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
     {
-        /* In systems with a very small amount of RAM, it might be advantageous
-         * to have incoming messages checked earlier, by the network card driver.
-         * This method may decrease the usage of scarce network buffers. */
-        uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
-        uint32_t ulSourceIPAddress = pxIPHeader->ulSourceIPAddress;
-        /* Get a reference to the endpoint that the packet was assigned to during pxEasyFit() */
-        const NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
-
-        /* Ensure that the incoming packet is not fragmented because the stack
-         * doesn't not support IP fragmentation. All but the last fragment coming in will have their
-         * "more fragments" flag set and the last fragment will have a non-zero offset.
-         * We need to drop the packet in either of those cases. */
-        if( ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U ) || ( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_FLAGS_MORE_FRAGMENTS ) != 0U ) )
-        {
-            /* Can not handle, fragmented packet. */
-            eReturn = eReleaseBuffer;
-        }
-
-        /* Test if the length of the IP-header is between 20 and 60 bytes,
-         * and if the IP-version is 4. */
-        else if( ( pxIPHeader->ucVersionHeaderLength < ipIPV4_VERSION_HEADER_LENGTH_MIN ) ||
-                 ( pxIPHeader->ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX ) )
-        {
-            /* Can not handle, unknown or invalid header version. */
-            eReturn = eReleaseBuffer;
-        }
-        else if( ( xIsIPv4Loopback( ulDestinationIPAddress ) == pdTRUE ) ||
-                 ( xIsIPv4Loopback( ulSourceIPAddress ) == pdTRUE ) )
-        {
-            /* source OR destination is a loopback address. Make sure they BOTH are. */
-            if( xBadIPv4Loopback( &( pxIPPacket->xIPHeader ) ) == pdTRUE )
-            {
-                /* The local loopback addresses must never appear outside a host. See RFC 1122
-                 * section 3.2.1.3. */
-                eReturn = eReleaseBuffer;
-            }
-        }
-        else if( memcmp( xBroadcastMACAddress.ucBytes,
-                         pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes,
-                         sizeof( MACAddress_t ) ) == 0 )
-        {
-            /* Ethernet source is a broadcast address. Drop the packet. */
-            eReturn = eReleaseBuffer;
-        }
-        else if( xIsIPv4Multicast( ulSourceIPAddress ) == pdTRUE )
-        {
-            /* Source is a multicast IP address. Drop the packet in conformity with RFC 1112 section 7.2. */
-            eReturn = eReleaseBuffer;
-        }
-
-        /* Use ipv4_settings for filtering only after the endpoint is up,
-         * so that DHCP packets that are exchanged for DHCP (example, DHCP unicast offers)
-         * are not dropped/filtered. */
-        else if( FreeRTOS_IsEndPointUp( pxEndPoint ) != pdFALSE )
-        {
-            if(
-                /* Not destined for the assigned endpoint IPv4 address? */
-                ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulIPAddress ) &&
-                /* Also not an IPv4 broadcast address ? */
-                ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) &&
-                ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) &&
-                /* And not an IPv4 multicast address ? */
-                ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) )
-            {
-                /* Packet is not for this node, release it */
-                eReturn = eReleaseBuffer;
-            }
-            /* Is the source address correct? */
-            else if( ( ulSourceIPAddress == pxEndPoint->ipv4_settings.ulBroadcastAddress ) ||
-                     ( ulSourceIPAddress == FREERTOS_INADDR_BROADCAST ) )
-            {
-                /* The source address cannot be broadcast address. Replying to this
-                 * packet may cause network storms. Drop the packet. */
-                eReturn = eReleaseBuffer;
-            }
-            else if( ( memcmp( xBroadcastMACAddress.ucBytes,
-                               pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                               sizeof( MACAddress_t ) ) == 0 ) &&
-                     ( ulDestinationIPAddress != pxEndPoint->ipv4_settings.ulBroadcastAddress ) && ( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST ) )
-            {
-                /* Ethernet address is a broadcast address, but the IP address is not a
-                 * broadcast address. */
-                eReturn = eReleaseBuffer;
-            }
-            else
-            {
-                /* Packet is not fragmented, destination is this device, source IP and MAC
-                 * addresses are correct. */
-            }
-        }
-        else
-        {
-            /* Endpoint is down */
-
-            /* Check if the destination MAC address is a broadcast MAC address. */
-            if( memcmp( xBroadcastMACAddress.ucBytes,
-                        pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                        sizeof( MACAddress_t ) ) == 0 )
-            {
-                if( ulDestinationIPAddress != FREERTOS_INADDR_BROADCAST )
-                {
-                    /* Ethernet address is a broadcast address, but the IP address is not a
-                     * broadcast address. */
-                    eReturn = eReleaseBuffer;
-                }
-                else
-                {
-                    /* Accept valid broadcast packet. */
-                }
-            }
-
-            /* RFC 2131: https://datatracker.ietf.org/doc/html/rfc2131#autoid-8
-             * The TCP/IP software SHOULD accept and
-             * forward to the IP layer any IP packets delivered to the client's
-             * hardware address before the IP address is configured; DHCP servers
-             * and BOOTP relay agents may not be able to deliver DHCP messages to
-             * clients that cannot accept hardware unicast datagrams before the
-             * TCP/IP software is configured. */
-            else if( ( memcmp( pxEndPoint->xMACAddress.ucBytes,
-                               pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
-                               sizeof( MACAddress_t ) ) != 0 ) )
-            {
-                /* The endpoint is not up, and the destination MAC address of the
-                 * packet is not matching the endpoint's MAC address nor broadcast
-                 * MAC address. Drop the packet. */
-                eReturn = eReleaseBuffer;
-            }
-            else
-            {
-                /* Endpoint is down, but the hardware address matches. Accept the
-                 * packet as per RFC 2131 */
-            }
-        }
+        eReturn = eConsiderIPv4PacketForProcessing( pxIPPacket, pxNetworkBuffer->pxEndPoint, pdTRUE );
     }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
 
