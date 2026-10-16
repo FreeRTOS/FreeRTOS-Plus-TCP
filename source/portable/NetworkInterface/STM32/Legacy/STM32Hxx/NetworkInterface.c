@@ -780,8 +780,9 @@ static BaseType_t prvNetworkInterfaceInput( void )
 
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
         {
-            /* Reserve the maximum length for the next reception. */
-            uxLength = ETH_RX_BUF_SIZE;
+            /* Request the usable Ethernet payload area, excluding the descriptor
+             * metadata stored in front of pucEthernetBuffer. */
+            uxLength = ETH_RX_BUF_SIZE - ipBUFFER_PADDING;
 
             if( data_buffer.buffer != NULL )
             {
