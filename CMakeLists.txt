@@ -55,7 +55,7 @@ set(FREERTOS_PLUS_TCP_COMPILER "" CACHE STRING "FreeRTOS Plus TCP Compiler Selec
 set(FREERTOS_PLUS_TCP_NETWORK_IF "" CACHE STRING "FreeRTOS Plus TCP Network Interface selection")
 set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     A_CUSTOM_NETWORK_IF
-    ATSAM43 ATSAME5x # AT
+    ATSAM4E ATSAME5x # AT
     DRIVER_SAM
     ESP32
     KSZ8851SNL
@@ -71,7 +71,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     POSIX WIN_PCAP  # Native Linux & Windows respectively
     RX
     SH2A
-    STM32 # ST Micro
+    STM32 STM32FXX STM32HXX # ST Micro
     MSP432
     TM4C
     XILINX_ULTRASCALE ZYNQ # AMD/Xilinx
@@ -110,7 +110,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " LPC54018               Target: LPC54018           Tested: TODO\n"
         " M487                   Target: M487               Tested: TODO\n"
         " MPS2_AN385             Target: MPS2_AN385         Tested: TODO\n"
-        " MPS3_AN552             Target: MPS3_AN552"
+        " MPS3_AN552             Target: MPS3_AN552         Tested: TODO\n"
         " MW300_RD               Target: mw300_rd           Tested: TODO\n"
         " NXP1060                Target: NXP1060            Tested: TODO\n"
         " PIC32MZEF_ETH          Target: pic32mzef ethernet Tested: TODO\n"
@@ -118,32 +118,20 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " RX                     Target: RX                 Tested: TODO\n"
         " SH2A                   Target: SH2A               Tested: TODO\n"
         " STM32                  Target: STM32              Tested: TODO\n"
+        " STM32FXX               Target: STM32Fxx legacy    Tested: TODO\n"
+        " STM32HXX               Target: STM32Hxx legacy    Tested: TODO\n"
         " MSP432                 Target: MSP432             Tested: TODO\n"
         " TM4C                   Target: TM4C               Tested: TODO\n"
         " WIN_PCAP               Target: Windows            Tested: TODO\n"
         " XILINX_ULTRASCALE      Target: Xilinx Ultrascale  Tested: TODO\n"
         " ZYNQ                   Target: Xilinx Zynq")
-elseif((FREERTOS_PORT STREQUAL "A_CUSTOM_PORT") AND (NOT TARGET freertos_kernel_port) )
-    message(FATAL_ERROR " FREERTOS_PLUS_TCP_NETWORK_IF is set to A_CUSTOM_NETWORK_IF.\n"
-    " Please specify the custom network interface target with all necessary files.\n"
-    " For example, assuming a directory of:\n"
-    "  FreeRTOSCustomNetworkInterface/\n"
-    "    CMakeLists.txt\n"
-    "    NetworkInterface.c\n\n"
-    " Where FreeRTOSCustomNetworkInterface/CMakeLists.txt is a modified version of:\n"
-    "   add_library(freertos_plus_tcp_network_if STATIC)\n\n"
-    "   target_sources(freertos_plus_tcp_network_if\n"
-    "     PRIVATE\n"
-    "       NetworkInterface.c)\n\n"
-    "   target_include_directories(freertos_plus_tcp_network_if\n"
-    "     PUBLIC\n"
-    "      .)\n\n"
-    "   target_link_libraries(freertos_plus_tcp_network_if\n"
-    "     PUBLIC\n"
-    "       freertos_plus_tcp_port\n"
-    "       freertos_plus_tcp_network_if_common\n"
-    "     PRIVATE\n"
-    "       freertos_kernel)")
+elseif((FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "A_CUSTOM_NETWORK_IF") AND
+       (NOT TARGET freertos_plus_tcp_network_if))
+    message(FATAL_ERROR
+        "FREERTOS_PLUS_TCP_NETWORK_IF is set to A_CUSTOM_NETWORK_IF, but the "
+        "freertos_plus_tcp_network_if target does not exist. Define it before "
+        "making FreeRTOS-Plus-TCP available, for example:\n"
+        "  add_library(freertos_plus_tcp_network_if STATIC NetworkInterface.c)")
 endif()
 
 # There is also the need to add a target - typically an interface library that describes the
