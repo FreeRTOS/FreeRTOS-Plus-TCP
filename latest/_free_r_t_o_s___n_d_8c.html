@@ -31,7 +31,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.1</span>
+   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.2</span>
    </div>
    <div id="projectbrief">FreeRTOS TCP/IP library</div>
   </td>
@@ -109,6 +109,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___n_d_8c.html',''); init
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &lt;stdio.h&gt;</code><br />
+<code>#include &lt;string.h&gt;</code><br />
 <code>#include &quot;FreeRTOS.h&quot;</code><br />
 <code>#include &quot;task.h&quot;</code><br />
 <code>#include &quot;FreeRTOS_IP.h&quot;</code><br />
@@ -123,14 +124,42 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___n_d_8c.html',''); init
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:a7d6c6a1e7c484bc10ca2e1b8d5ad8814"><td class="memItemLeft" align="right" valign="top"><a id="a7d6c6a1e7c484bc10ca2e1b8d5ad8814" name="a7d6c6a1e7c484bc10ca2e1b8d5ad8814"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ndICMPv6_FLAG_ROUTER</b>&#160;&#160;&#160;0x80000000U</td></tr>
+<tr class="memdesc:a7d6c6a1e7c484bc10ca2e1b8d5ad8814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of Neighbour Advertisement packets - ROUTER. <br /></td></tr>
+<tr class="separator:a7d6c6a1e7c484bc10ca2e1b8d5ad8814"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad17cb7fc17316079fcd13b6d49291062"><td class="memItemLeft" align="right" valign="top"><a id="ad17cb7fc17316079fcd13b6d49291062" name="ad17cb7fc17316079fcd13b6d49291062"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>ndICMPv6_FLAG_SOLICITED</b>&#160;&#160;&#160;0x40000000U</td></tr>
 <tr class="memdesc:ad17cb7fc17316079fcd13b6d49291062"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of Neighbour Advertisement packets - SOLICIT. <br /></td></tr>
 <tr class="separator:ad17cb7fc17316079fcd13b6d49291062"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7093818bef360f0220c7160d60a2a24e"><td class="memItemLeft" align="right" valign="top"><a id="a7093818bef360f0220c7160d60a2a24e" name="a7093818bef360f0220c7160d60a2a24e"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>ndICMPv6_FLAG_UPDATE</b>&#160;&#160;&#160;0x20000000U</td></tr>
-<tr class="memdesc:a7093818bef360f0220c7160d60a2a24e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of Neighbour Advertisement packets - UPDATE. <br /></td></tr>
-<tr class="separator:a7093818bef360f0220c7160d60a2a24e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b864c0c7c9fb8be15028a3f626b07a7"><td class="memItemLeft" align="right" valign="top"><a id="a6b864c0c7c9fb8be15028a3f626b07a7" name="a6b864c0c7c9fb8be15028a3f626b07a7"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ndICMPv6_FLAG_OVERRIDE</b>&#160;&#160;&#160;0x20000000U</td></tr>
+<tr class="memdesc:a6b864c0c7c9fb8be15028a3f626b07a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of Neighbour Advertisement packets - OVERRIDE. <br /></td></tr>
+<tr class="separator:a6b864c0c7c9fb8be15028a3f626b07a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7dc4f3c62e3f98a75be8ea1d22fa9c43"><td class="memItemLeft" align="right" valign="top"><a id="a7dc4f3c62e3f98a75be8ea1d22fa9c43" name="a7dc4f3c62e3f98a75be8ea1d22fa9c43"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ndDELAY_FIRST_PROBE_TIME_SECONDS</b>&#160;&#160;&#160;( 5U )</td></tr>
+<tr class="memdesc:a7dc4f3c62e3f98a75be8ea1d22fa9c43"><td class="mdescLeft">&#160;</td><td class="mdescRight">DELAY state duration, in <a class="el" href="_free_r_t_o_s___n_d_8c.html#a690e13619aae09f4a0319f7496c55397" title="Age the NDP cache and handle state transitions/probes; every countdown here is in &#39;ipND_TIMER_PERIOD_...">vNDAgeCache()</a> periods, not seconds. <br /></td></tr>
+<tr class="separator:a7dc4f3c62e3f98a75be8ea1d22fa9c43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5505fccd900b94537c88062a67c1ba40"><td class="memItemLeft" align="right" valign="top"><a id="a5505fccd900b94537c88062a67c1ba40" name="a5505fccd900b94537c88062a67c1ba40"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ndINCOMPLETE_TIMEOUT</b>&#160;&#160;&#160;( 3U )</td></tr>
+<tr class="memdesc:a5505fccd900b94537c88062a67c1ba40"><td class="mdescLeft">&#160;</td><td class="mdescRight">INCOMPLETE retry interval, in <a class="el" href="_free_r_t_o_s___n_d_8c.html#a690e13619aae09f4a0319f7496c55397" title="Age the NDP cache and handle state transitions/probes; every countdown here is in &#39;ipND_TIMER_PERIOD_...">vNDAgeCache()</a> periods. <br /></td></tr>
+<tr class="separator:a5505fccd900b94537c88062a67c1ba40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea875b4bf0f51f35496547467361dc6d"><td class="memItemLeft" align="right" valign="top"><a id="aea875b4bf0f51f35496547467361dc6d" name="aea875b4bf0f51f35496547467361dc6d"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ipconfigMAX_ND_RE_LOOKUP_ATTEMPTS</b>&#160;&#160;&#160;( 3U )</td></tr>
+<tr class="memdesc:aea875b4bf0f51f35496547467361dc6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of ND re-lookup attempts before giving up. <br /></td></tr>
+<tr class="separator:aea875b4bf0f51f35496547467361dc6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1578fc87b2861147b309b394096c8145"><td class="memItemLeft" align="right" valign="top"><a id="a1578fc87b2861147b309b394096c8145" name="a1578fc87b2861147b309b394096c8145"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ndpFLAG_IS_ROUTER</b>&#160;&#160;&#160;( 0x01U )</td></tr>
+<tr class="memdesc:a1578fc87b2861147b309b394096c8145"><td class="mdescLeft">&#160;</td><td class="mdescRight">ucFlags bit indicating the neighbour is a router. <br /></td></tr>
+<tr class="separator:a1578fc87b2861147b309b394096c8145"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3833013a4999878fcfaa07942313cf6"><td class="memItemLeft" align="right" valign="top"><a id="ad3833013a4999878fcfaa07942313cf6" name="ad3833013a4999878fcfaa07942313cf6"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ndHOP_LIMIT</b>&#160;&#160;&#160;( 255U )</td></tr>
+<tr class="memdesc:ad3833013a4999878fcfaa07942313cf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The hop limit an ND packet is sent and must be received with. <br /></td></tr>
+<tr class="separator:ad3833013a4999878fcfaa07942313cf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a90c1291e59983a7f3be94bc5ef87a8"><td class="memItemLeft" align="right" valign="top"><a id="a9a90c1291e59983a7f3be94bc5ef87a8" name="a9a90c1291e59983a7f3be94bc5ef87a8"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>ipconfigMAX_ND_AGE</b>&#160;&#160;&#160;( 150U )</td></tr>
+<tr class="memdesc:a9a90c1291e59983a7f3be94bc5ef87a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default lifetime (in age ticks) assigned to a fresh ND cache entry. <br /></td></tr>
+<tr class="separator:a9a90c1291e59983a7f3be94bc5ef87a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30a69421e255cecf44a800cb823783ea"><td class="memItemLeft" align="right" valign="top"><a id="a30a69421e255cecf44a800cb823783ea" name="a30a69421e255cecf44a800cb823783ea"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>ndDONT_BLOCK</b>&#160;&#160;&#160;( ( TickType_t ) 0 )</td></tr>
 <tr class="memdesc:a30a69421e255cecf44a800cb823783ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">A block time of 0 simply means "don't block". <br /></td></tr>
@@ -155,16 +184,62 @@ Functions</h2></td></tr>
 <tr class="memitem:a6297d8254ece5d6cfed45407695c13db"><td class="memItemLeft" align="right" valign="top">static NetworkEndPoint_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a6297d8254ece5d6cfed45407695c13db">pxFindLocalEndpoint</a> (void)</td></tr>
 <tr class="memdesc:a6297d8254ece5d6cfed45407695c13db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the first end-point of type IPv6.  <br /></td></tr>
 <tr class="separator:a6297d8254ece5d6cfed45407695c13db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1176b455b4717c105e3b994aff6b6faf"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a1176b455b4717c105e3b994aff6b6faf">pcNDStateName</a> (eNDState_t eState)</td></tr>
+<tr class="memdesc:a1176b455b4717c105e3b994aff6b6faf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a human-readable name for an ND cache entry state.  <br /></td></tr>
+<tr class="separator:a1176b455b4717c105e3b994aff6b6faf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a255545b012cc2cbf1beb1f5f57d20675"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a255545b012cc2cbf1beb1f5f57d20675">pcNDActionName</a> (eNaAction_t eState)</td></tr>
+<tr class="memdesc:a255545b012cc2cbf1beb1f5f57d20675"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a human-readable name for a Neighbour Advertisement action.  <br /></td></tr>
+<tr class="separator:a255545b012cc2cbf1beb1f5f57d20675"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07ff9bca4694a865e146e295a6b5bf45"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a07ff9bca4694a865e146e295a6b5bf45">prvIsValidNa</a> (const NaPacket_t *pxNa)</td></tr>
+<tr class="memdesc:a07ff9bca4694a865e146e295a6b5bf45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply the RFC 4861 section 7.1.2 validity checks to a received NA.  <br /></td></tr>
+<tr class="separator:a07ff9bca4694a865e146e295a6b5bf45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afeb45dcc1136557869f32dcf4dec39f5"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#afeb45dcc1136557869f32dcf4dec39f5">prvIsOwnIPAddress</a> (const IPv6_Address_t *pxIPAddress)</td></tr>
+<tr class="memdesc:afeb45dcc1136557869f32dcf4dec39f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">See if an IPv6 address is one of the addresses of this device.  <br /></td></tr>
+<tr class="separator:afeb45dcc1136557869f32dcf4dec39f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d02b39cb5ad1bba16cacab91c74c33b"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a5d02b39cb5ad1bba16cacab91c74c33b">prvIsAddressOnLink</a> (const IPv6_Address_t *pxIPAddress)</td></tr>
+<tr class="memdesc:a5d02b39cb5ad1bba16cacab91c74c33b"><td class="mdescLeft">&#160;</td><td class="mdescRight">See if an IPv6 address sits on a network this device is attached to.  <br /></td></tr>
+<tr class="separator:a5d02b39cb5ad1bba16cacab91c74c33b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeed6241003442e8a9848549342a54f3d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#aeed6241003442e8a9848549342a54f3d">prvNDCacheRecordSolicitation</a> (const IPv6_Address_t *pxIPAddress, NetworkEndPoint_t *pxEndPoint)</td></tr>
+<tr class="memdesc:aeed6241003442e8a9848549342a54f3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remember that a Neighbour Solicitation was sent for an address.  <br /></td></tr>
+<tr class="separator:aeed6241003442e8a9848549342a54f3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a20e46a19c546ea2470a4e52e38db5a52"><td class="memItemLeft" align="right" valign="top">static NDCacheRow_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a20e46a19c546ea2470a4e52e38db5a52">prvGetFreeNDPCacheEntry</a> (void)</td></tr>
+<tr class="memdesc:a20e46a19c546ea2470a4e52e38db5a52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find a free slot in the NDP cache, or evacuate an old one.  <br /></td></tr>
+<tr class="separator:a20e46a19c546ea2470a4e52e38db5a52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1955c212c997571e4acf5d270689b532"><td class="memItemLeft" align="right" valign="top"><a id="a1955c212c997571e4acf5d270689b532" name="a1955c212c997571e4acf5d270689b532"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>vNDPCacheUpdate</b> (IPv6_Address_t *pxTargetIP, MACAddress_t *pxTargetMAC, eNDState_t eState, BaseType_t xRouter, NetworkEndPoint_t *pxEndPoint)</td></tr>
+<tr class="memdesc:a1955c212c997571e4acf5d270689b532"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update an existing NDP cache entry with a new MAC address and state. <br /></td></tr>
+<tr class="separator:a1955c212c997571e4acf5d270689b532"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73cdf20126d56ad6eff4a3f842189354"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a73cdf20126d56ad6eff4a3f842189354">vNDPCacheInsert</a> (IPv6_Address_t *pxTargetIP, MACAddress_t *pxTargetMAC, eNDState_t eState, NetworkEndPoint_t *pxEndPoint)</td></tr>
+<tr class="memdesc:a73cdf20126d56ad6eff4a3f842189354"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert a brand-new entry into the NDP cache.  <br /></td></tr>
+<tr class="separator:a73cdf20126d56ad6eff4a3f842189354"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82d04662a9cc2390632e04581c3e8638"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a82d04662a9cc2390632e04581c3e8638">vNDPCacheSetState</a> (IPv6_Address_t *pxTargetIP, eNDState_t eState)</td></tr>
+<tr class="memdesc:a82d04662a9cc2390632e04581c3e8638"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update only the state of an entry, keeping its MAC-address.  <br /></td></tr>
+<tr class="separator:a82d04662a9cc2390632e04581c3e8638"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ef5967785e7d1f3af299b831826d72c"><td class="memItemLeft" align="right" valign="top">NDCacheRow_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a6ef5967785e7d1f3af299b831826d72c">pxNDPCacheLookup</a> (const IPv6_Address_t *pxIPAddress)</td></tr>
+<tr class="memdesc:a6ef5967785e7d1f3af299b831826d72c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Search the NDP cache for an IP address.  <br /></td></tr>
+<tr class="separator:a6ef5967785e7d1f3af299b831826d72c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b7b3a4b0c364bf982244476199991f9"><td class="memItemLeft" align="right" valign="top">static eNaAction_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a6b7b3a4b0c364bf982244476199991f9">prvProcessNA</a> (const NetworkBufferDescriptor_t *pxDescriptor, NetworkEndPoint_t *pxEndPoint)</td></tr>
+<tr class="memdesc:a6b7b3a4b0c364bf982244476199991f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main function to process incoming Neighbor Advertisement.  <br /></td></tr>
+<tr class="separator:a6b7b3a4b0c364bf982244476199991f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af64aefe6d910d153532148f6593e3fa5"><td class="memItemLeft" align="right" valign="top">static eNaAction_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#af64aefe6d910d153532148f6593e3fa5">prvDetermineAction</a> (const NaPacket_t *pxNa, const NDCacheRow_t *pxEntry)</td></tr>
+<tr class="memdesc:af64aefe6d910d153532148f6593e3fa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logic core: Determines what to do with the cache based on RFC 4861. It is called from <a class="el" href="_free_r_t_o_s___n_d_8c.html#a6b7b3a4b0c364bf982244476199991f9" title="Main function to process incoming Neighbor Advertisement.">prvProcessNA()</a>.  <br /></td></tr>
+<tr class="separator:af64aefe6d910d153532148f6593e3fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada16da39fabddf269d42da139af02e48"><td class="memItemLeft" align="right" valign="top">eResolutionLookupResult_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#ada16da39fabddf269d42da139af02e48">eNDGetCacheEntry</a> (IPv6_Address_t *pxIPAddress, MACAddress_t *const pxMACAddress, <a class="el" href="structstruct.html">struct</a> xNetworkEndPoint **ppxEndPoint)</td></tr>
 <tr class="memdesc:ada16da39fabddf269d42da139af02e48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the MAC-address of an IPv6 address. It will first determine if is a multicast address, if not, it will check the ND cache.  <br /></td></tr>
 <tr class="separator:ada16da39fabddf269d42da139af02e48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a76f0c03919c7d846af63888edc90eff9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a76f0c03919c7d846af63888edc90eff9">vNDRefreshCacheEntry</a> (const MACAddress_t *pxMACAddress, const IPv6_Address_t *pxIPAddress, NetworkEndPoint_t *pxEndPoint)</td></tr>
-<tr class="memdesc:a76f0c03919c7d846af63888edc90eff9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a combination of IP-address, MAC-address and an end-point in a free location in the ND cache.  <br /></td></tr>
-<tr class="separator:a76f0c03919c7d846af63888edc90eff9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a690e13619aae09f4a0319f7496c55397"><td class="memItemLeft" align="right" valign="top"><a id="a690e13619aae09f4a0319f7496c55397" name="a690e13619aae09f4a0319f7496c55397"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>vNDAgeCache</b> (void)</td></tr>
-<tr class="memdesc:a690e13619aae09f4a0319f7496c55397"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reduce the age counter in each entry within the ND cache. An entry is no longer considered valid and is deleted if its age reaches zero. Just before getting to zero, 3 times a neighbour solicitation will be sent. <br /></td></tr>
+<tr class="memdesc:a690e13619aae09f4a0319f7496c55397"><td class="mdescLeft">&#160;</td><td class="mdescRight">Age the NDP cache and handle state transitions/probes; every countdown here is in 'ipND_TIMER_PERIOD_MS' units, not seconds. <br /></td></tr>
 <tr class="separator:a690e13619aae09f4a0319f7496c55397"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0293a6814cbd5689d5f9dfb29db6ee2a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a0293a6814cbd5689d5f9dfb29db6ee2a">vNDCheckWaitingPacket</a> (const IPv6_Address_t *pxTargetIP)</td></tr>
+<tr class="memdesc:a0293a6814cbd5689d5f9dfb29db6ee2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process a packet parked in pxNDWaitingNetworkBuffer once the target address has been resolved, sending it if it matches or releasing it.  <br /></td></tr>
+<tr class="separator:a0293a6814cbd5689d5f9dfb29db6ee2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8190cb150c46e027237c61a51d0ae430"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a8190cb150c46e027237c61a51d0ae430">vNDRefreshCacheEntryAge</a> (const MACAddress_t *pxMACAddress, const IPv6_Address_t *pxIPAddress)</td></tr>
+<tr class="memdesc:a8190cb150c46e027237c61a51d0ae430"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provide a hint to the NDP cache that the neighbor is reachable. Called by TCP or UDP when forward progress is confirmed.  <br /></td></tr>
+<tr class="separator:a8190cb150c46e027237c61a51d0ae430"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76f0c03919c7d846af63888edc90eff9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a76f0c03919c7d846af63888edc90eff9">vNDRefreshCacheEntry</a> (const MACAddress_t *pxMACAddress, const IPv6_Address_t *pxIPAddress, NetworkEndPoint_t *pxEndPoint)</td></tr>
+<tr class="memdesc:a76f0c03919c7d846af63888edc90eff9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert or refresh a fully-trusted ND cache binding as REACHABLE.  <br /></td></tr>
+<tr class="separator:a76f0c03919c7d846af63888edc90eff9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac49d985b1abab10a7829abe9a11e73bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#ac49d985b1abab10a7829abe9a11e73bf">FreeRTOS_ClearND</a> (const <a class="el" href="structstruct.html">struct</a> xNetworkEndPoint *pxEndPoint)</td></tr>
 <tr class="memdesc:ac49d985b1abab10a7829abe9a11e73bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">A call to this function will clear the ND cache.  <br /></td></tr>
 <tr class="separator:ac49d985b1abab10a7829abe9a11e73bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,10 +252,6 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>vNDAgeCache</b> (void
 <tr class="memitem:a627c34fe71a9c809369dae7e2b3b04db"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a627c34fe71a9c809369dae7e2b3b04db">FreeRTOS_SendPingRequestIPv6</a> (const IPv6_Address_t *pxIPAddress, size_t uxNumberOfBytesToSend, TickType_t uxBlockTimeTicks)</td></tr>
 <tr class="memdesc:a627c34fe71a9c809369dae7e2b3b04db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a PING request using an ICMPv6 format.  <br /></td></tr>
 <tr class="separator:a627c34fe71a9c809369dae7e2b3b04db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc2a6ecc454c9e097a7469f073400f5d"><td class="memItemLeft" align="right" valign="top"><a id="afc2a6ecc454c9e097a7469f073400f5d" name="afc2a6ecc454c9e097a7469f073400f5d"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>prvCheckWaitingBuffer</b> (const IPv6_Address_t *pxIPv6Address)</td></tr>
-<tr class="memdesc:afc2a6ecc454c9e097a7469f073400f5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">When a neighbour advertisement has been received, check if 'pxNDWaitingNetworkBuffer' was waiting for this new address look-up. If so, feed it to the IP-task as a new incoming packet. <br /></td></tr>
-<tr class="separator:afc2a6ecc454c9e097a7469f073400f5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a22a9131182e83781ae248fb18c70fcd9"><td class="memItemLeft" align="right" valign="top">eFrameProcessingResult_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___n_d_8c.html#a22a9131182e83781ae248fb18c70fcd9">prvProcessICMPMessage_IPv6</a> (NetworkBufferDescriptor_t *const pxNetworkBuffer)</td></tr>
 <tr class="memdesc:a22a9131182e83781ae248fb18c70fcd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process an ICMPv6 packet and send replies when applicable.  <br /></td></tr>
 <tr class="separator:a22a9131182e83781ae248fb18c70fcd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -315,7 +386,8 @@ static NDCacheRow_t&#160;</td><td class="memItemRight" valign="bottom"><b>xNDCac
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An enum: either eResolutionCacheHit or eResolutionCacheMiss. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An enum: either eResolutionCacheHit or eResolutionCacheMiss.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This runs for a packet about to be sent, so it makes the transition RFC 4861 section 7.3.3 ties to sending. </dd></dl>
 
 </div>
 </div>
@@ -345,6 +417,452 @@ static NDCacheRow_t&#160;</td><td class="memItemRight" valign="bottom"><b>xNDCac
 
 <p>Find the first end-point of type IPv6. </p>
 <dl class="section return"><dt>Returns</dt><dd>The first IPv6 end-point found. </dd></dl>
+
+</div>
+</div>
+<a id="a1176b455b4717c105e3b994aff6b6faf" name="a1176b455b4717c105e3b994aff6b6faf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1176b455b4717c105e3b994aff6b6faf">&#9670;&#160;</a></span>pcNDStateName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char * pcNDStateName </td>
+          <td>(</td>
+          <td class="paramtype">eNDState_t&#160;</td>
+          <td class="paramname"><em>eState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return a human-readable name for an ND cache entry state. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">eState</td><td>The ND state to describe.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pointer to a constant string describing the state. </dd></dl>
+
+</div>
+</div>
+<a id="a255545b012cc2cbf1beb1f5f57d20675" name="a255545b012cc2cbf1beb1f5f57d20675"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a255545b012cc2cbf1beb1f5f57d20675">&#9670;&#160;</a></span>pcNDActionName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char * pcNDActionName </td>
+          <td>(</td>
+          <td class="paramtype">eNaAction_t&#160;</td>
+          <td class="paramname"><em>eState</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return a human-readable name for a Neighbour Advertisement action. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">eState</td><td>The action to describe.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pointer to a constant string describing the action. </dd></dl>
+
+</div>
+</div>
+<a id="a07ff9bca4694a865e146e295a6b5bf45" name="a07ff9bca4694a865e146e295a6b5bf45"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07ff9bca4694a865e146e295a6b5bf45">&#9670;&#160;</a></span>prvIsValidNa()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static BaseType_t prvIsValidNa </td>
+          <td>(</td>
+          <td class="paramtype">const NaPacket_t *&#160;</td>
+          <td class="paramname"><em>pxNa</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Apply the RFC 4861 section 7.1.2 validity checks to a received NA. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxNa</td><td>The fields that were extracted from the packet.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pdTRUE when the advertisement may be processed further. </dd></dl>
+
+</div>
+</div>
+<a id="afeb45dcc1136557869f32dcf4dec39f5" name="afeb45dcc1136557869f32dcf4dec39f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afeb45dcc1136557869f32dcf4dec39f5">&#9670;&#160;</a></span>prvIsOwnIPAddress()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static BaseType_t prvIsOwnIPAddress </td>
+          <td>(</td>
+          <td class="paramtype">const IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxIPAddress</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>See if an IPv6 address is one of the addresses of this device. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxIPAddress</td><td>The address to look for.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pdTRUE when an end-point owns this exact address. </dd></dl>
+
+</div>
+</div>
+<a id="a5d02b39cb5ad1bba16cacab91c74c33b" name="a5d02b39cb5ad1bba16cacab91c74c33b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d02b39cb5ad1bba16cacab91c74c33b">&#9670;&#160;</a></span>prvIsAddressOnLink()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static BaseType_t prvIsAddressOnLink </td>
+          <td>(</td>
+          <td class="paramtype">const IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxIPAddress</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>See if an IPv6 address sits on a network this device is attached to. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxIPAddress</td><td>The address to test.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pdTRUE when the address falls inside the prefix of an end-point.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Prefixes are compared directly, and a zero-length one skipped, because both <a class="el" href="_free_r_t_o_s___routing_8c.html#ad2abcc1c769f6ea4f327d56e25ce8f37" title="Find an end-point that handles a given IPv6-address.">FreeRTOS_FindEndPointOnNetMask_IPv6()</a> and a zero prefix match all. </dd></dl>
+
+</div>
+</div>
+<a id="aeed6241003442e8a9848549342a54f3d" name="aeed6241003442e8a9848549342a54f3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeed6241003442e8a9848549342a54f3d">&#9670;&#160;</a></span>prvNDCacheRecordSolicitation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void prvNDCacheRecordSolicitation </td>
+          <td>(</td>
+          <td class="paramtype">const IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxIPAddress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">NetworkEndPoint_t *&#160;</td>
+          <td class="paramname"><em>pxEndPoint</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Remember that a Neighbour Solicitation was sent for an address. </p>
+<p>Record a sent Neighbour Solicitation as an INCOMPLETE entry, the only state <a class="el" href="_free_r_t_o_s___n_d_8c.html#af64aefe6d910d153532148f6593e3fa5" title="Logic core: Determines what to do with the cache based on RFC 4861. It is called from prvProcessNA().">prvDetermineAction()</a> will learn an address into.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxIPAddress</td><td>The address that was solicited. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxEndPoint</td><td>The end-point the solicitation was sent from. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a20e46a19c546ea2470a4e52e38db5a52" name="a20e46a19c546ea2470a4e52e38db5a52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20e46a19c546ea2470a4e52e38db5a52">&#9670;&#160;</a></span>prvGetFreeNDPCacheEntry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static NDCacheRow_t * prvGetFreeNDPCacheEntry </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Find a free slot in the NDP cache, or evacuate an old one. </p>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to an available NDCacheRow_t, or NULL if none can be freed. </dd></dl>
+
+</div>
+</div>
+<a id="a73cdf20126d56ad6eff4a3f842189354" name="a73cdf20126d56ad6eff4a3f842189354"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73cdf20126d56ad6eff4a3f842189354">&#9670;&#160;</a></span>vNDPCacheInsert()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void vNDPCacheInsert </td>
+          <td>(</td>
+          <td class="paramtype">IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxTargetIP</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MACAddress_t *&#160;</td>
+          <td class="paramname"><em>pxTargetMAC</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">eNDState_t&#160;</td>
+          <td class="paramname"><em>eState</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">NetworkEndPoint_t *&#160;</td>
+          <td class="paramname"><em>pxEndPoint</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Insert a brand-new entry into the NDP cache. </p>
+<p>Insert a brand-new entry into the NDP cache; only self-originated bindings come this way, so no router flag is taken. </p>
+
+</div>
+</div>
+<a id="a82d04662a9cc2390632e04581c3e8638" name="a82d04662a9cc2390632e04581c3e8638"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82d04662a9cc2390632e04581c3e8638">&#9670;&#160;</a></span>vNDPCacheSetState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void vNDPCacheSetState </td>
+          <td>(</td>
+          <td class="paramtype">IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxTargetIP</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">eNDState_t&#160;</td>
+          <td class="paramname"><em>eState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Update only the state of an entry, keeping its MAC-address. </p>
+<p>Update only the state of an entry, leaving its MAC-address untouched. </p>
+
+</div>
+</div>
+<a id="a6ef5967785e7d1f3af299b831826d72c" name="a6ef5967785e7d1f3af299b831826d72c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ef5967785e7d1f3af299b831826d72c">&#9670;&#160;</a></span>pxNDPCacheLookup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">NDCacheRow_t * pxNDPCacheLookup </td>
+          <td>(</td>
+          <td class="paramtype">const IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxIPAddress</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Search the NDP cache for an IP address. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxIPAddress</td><td>The IPv6 address to look up.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to the cache row if found and valid; NULL otherwise.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Side-effect free, so safe on the receive path; <a class="el" href="_free_r_t_o_s___n_d_8c.html#a74b412decde4b6f0a0e077e52484c6fe" title="Lookup an MAC address in the ND cache from the IP address.">prvNDCacheLookup()</a> makes the transition that RFC 4861 ties to sending. </dd></dl>
+
+</div>
+</div>
+<a id="a6b7b3a4b0c364bf982244476199991f9" name="a6b7b3a4b0c364bf982244476199991f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b7b3a4b0c364bf982244476199991f9">&#9670;&#160;</a></span>prvProcessNA()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static eNaAction_t prvProcessNA </td>
+          <td>(</td>
+          <td class="paramtype">const NetworkBufferDescriptor_t *&#160;</td>
+          <td class="paramname"><em>pxDescriptor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">NetworkEndPoint_t *&#160;</td>
+          <td class="paramname"><em>pxEndPoint</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Main function to process incoming Neighbor Advertisement. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxDescriptor</td><td>The buffer holding the advertisement. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxEndPoint</td><td>The end-point the advertisement arrived on.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The action that was carried out on the cache.</dd></dl>
+<dl class="section pre"><dt>Precondition</dt><dd>ETH + IPv6 header + usPayloadLength is at most xDataLength, which xCheckIPv6SizeFields() and the checksum path enforce before this call. </dd></dl>
+
+</div>
+</div>
+<a id="af64aefe6d910d153532148f6593e3fa5" name="af64aefe6d910d153532148f6593e3fa5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af64aefe6d910d153532148f6593e3fa5">&#9670;&#160;</a></span>prvDetermineAction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static eNaAction_t prvDetermineAction </td>
+          <td>(</td>
+          <td class="paramtype">const NaPacket_t *&#160;</td>
+          <td class="paramname"><em>pxNa</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const NDCacheRow_t *&#160;</td>
+          <td class="paramname"><em>pxEntry</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Logic core: Determines what to do with the cache based on RFC 4861. It is called from <a class="el" href="_free_r_t_o_s___n_d_8c.html#a6b7b3a4b0c364bf982244476199991f9" title="Main function to process incoming Neighbor Advertisement.">prvProcessNA()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxNa</td><td>The fields that were extracted from the advertisement. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxEntry</td><td>The cache entry for the advertised target, or NULL when the target is not in the cache.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The action that <a class="el" href="_free_r_t_o_s___n_d_8c.html#a6b7b3a4b0c364bf982244476199991f9" title="Main function to process incoming Neighbor Advertisement.">prvProcessNA()</a> should carry out. </dd></dl>
 
 </div>
 </div>
@@ -393,6 +911,70 @@ static NDCacheRow_t&#160;</td><td class="memItemRight" valign="bottom"><b>xNDCac
 
 </div>
 </div>
+<a id="a0293a6814cbd5689d5f9dfb29db6ee2a" name="a0293a6814cbd5689d5f9dfb29db6ee2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0293a6814cbd5689d5f9dfb29db6ee2a">&#9670;&#160;</a></span>vNDCheckWaitingPacket()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void vNDCheckWaitingPacket </td>
+          <td>(</td>
+          <td class="paramtype">const IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxTargetIP</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Process a packet parked in pxNDWaitingNetworkBuffer once the target address has been resolved, sending it if it matches or releasing it. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxTargetIP</td><td>The IPv6 address that has just been resolved. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a8190cb150c46e027237c61a51d0ae430" name="a8190cb150c46e027237c61a51d0ae430"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8190cb150c46e027237c61a51d0ae430">&#9670;&#160;</a></span>vNDRefreshCacheEntryAge()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void vNDRefreshCacheEntryAge </td>
+          <td>(</td>
+          <td class="paramtype">const MACAddress_t *&#160;</td>
+          <td class="paramname"><em>pxMACAddress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const IPv6_Address_t *&#160;</td>
+          <td class="paramname"><em>pxIPAddress</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Provide a hint to the NDP cache that the neighbor is reachable. Called by TCP or UDP when forward progress is confirmed. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxMACAddress</td><td>The Ethernet source address of the packet that arrived. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxIPAddress</td><td>The IPv6 source address of that packet.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Only accepted from the bound MAC-address, since a spoofed IPv6 source could otherwise keep a poisoned entry alive for ever. </dd></dl>
+
+</div>
+</div>
 <a id="a76f0c03919c7d846af63888edc90eff9" name="a76f0c03919c7d846af63888edc90eff9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a76f0c03919c7d846af63888edc90eff9">&#9670;&#160;</a></span>vNDRefreshCacheEntry()</h2>
 
@@ -425,15 +1007,8 @@ static NDCacheRow_t&#160;</td><td class="memItemRight" valign="bottom"><b>xNDCac
       </table>
 </div><div class="memdoc">
 
-<p>Store a combination of IP-address, MAC-address and an end-point in a free location in the ND cache. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">pxMACAddress</td><td>The MAC-address </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">pxIPAddress</td><td>The IP-address </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">pxEndPoint</td><td>The end-point through which the IP-address can be reached. </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Insert or refresh a fully-trusted ND cache binding as REACHABLE. </p>
+<p>This is used for self-originated bindings that are not derived from received network traffic (e.g. the loopback interface mapping the endpoint's own MAC to its own loopback IPv6 address). Because the binding is trusted, it may create a new entry - unlike <a class="el" href="_free_r_t_o_s___n_d_8c.html#a8190cb150c46e027237c61a51d0ae430" title="Provide a hint to the NDP cache that the neighbor is reachable. Called by TCP or UDP when forward pro...">vNDRefreshCacheEntryAge()</a>, which never inserts. Do NOT call this from the receive path for peer neighbours; that path must go through <a class="el" href="_free_r_t_o_s___n_d_8c.html#a6b7b3a4b0c364bf982244476199991f9" title="Main function to process incoming Neighbor Advertisement.">prvProcessNA()</a>/prvDetermineAction(). </p>
 
 </div>
 </div>

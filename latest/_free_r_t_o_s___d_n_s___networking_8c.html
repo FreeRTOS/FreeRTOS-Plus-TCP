@@ -31,7 +31,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.1</span>
+   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.2</span>
    </div>
    <div id="projectbrief">FreeRTOS TCP/IP library</div>
   </td>
@@ -116,12 +116,12 @@ Functions</h2></td></tr>
 <tr class="memitem:aa2e0265014529ef9a417612308bf2b5d"><td class="memItemLeft" align="right" valign="top">Socket_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___networking_8c.html#aa2e0265014529ef9a417612308bf2b5d">DNS_CreateSocket</a> (TickType_t uxReadTimeOut_ticks)</td></tr>
 <tr class="memdesc:aa2e0265014529ef9a417612308bf2b5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a socket and bind it to the standard DNS port number.  <br /></td></tr>
 <tr class="separator:aa2e0265014529ef9a417612308bf2b5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89cfa1f2a25312a01483f36e50265eb0"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___networking_8c.html#a89cfa1f2a25312a01483f36e50265eb0">DNS_SendRequest</a> (Socket_t xDNSSocket, const <a class="el" href="structstruct.html">struct</a> freertos_sockaddr *xAddress, const <a class="el" href="structstruct.html">struct</a> xDNSBuffer *pxDNSBuf)</td></tr>
-<tr class="memdesc:a89cfa1f2a25312a01483f36e50265eb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">perform a DNS network request  <br /></td></tr>
-<tr class="separator:a89cfa1f2a25312a01483f36e50265eb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16c7cb7023cfa29b6aa5cfac6406ad78"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___networking_8c.html#a16c7cb7023cfa29b6aa5cfac6406ad78">DNS_ReadReply</a> (ConstSocket_t xDNSSocket, <a class="el" href="structstruct.html">struct</a> freertos_sockaddr *xAddress, <a class="el" href="structstruct.html">struct</a> xDNSBuffer *pxReceiveBuffer)</td></tr>
-<tr class="memdesc:a16c7cb7023cfa29b6aa5cfac6406ad78"><td class="mdescLeft">&#160;</td><td class="mdescRight">perform a DNS network read  <br /></td></tr>
-<tr class="separator:a16c7cb7023cfa29b6aa5cfac6406ad78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05918d1d5623cd14cad53f00b2f6d65e"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___networking_8c.html#a05918d1d5623cd14cad53f00b2f6d65e">DNS_SendRequest</a> (Socket_t xDNSSocket, const <a class="el" href="structstruct.html">struct</a> freertos_sockaddr *pxAddress, const <a class="el" href="structstruct.html">struct</a> xDNSBuffer *pxDNSBuf)</td></tr>
+<tr class="memdesc:a05918d1d5623cd14cad53f00b2f6d65e"><td class="mdescLeft">&#160;</td><td class="mdescRight">perform a DNS network request  <br /></td></tr>
+<tr class="separator:a05918d1d5623cd14cad53f00b2f6d65e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abecad73970bfb0f4c986d6732e2809a9"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___networking_8c.html#abecad73970bfb0f4c986d6732e2809a9">DNS_ReadReply</a> (ConstSocket_t xDNSSocket, <a class="el" href="structstruct.html">struct</a> freertos_sockaddr *pxAddress, <a class="el" href="structstruct.html">struct</a> xDNSBuffer *pxReceiveBuffer, const IPv46_Address_t *pxTargetAddress)</td></tr>
+<tr class="memdesc:abecad73970bfb0f4c986d6732e2809a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read from the socket.  <br /></td></tr>
+<tr class="separator:abecad73970bfb0f4c986d6732e2809a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ade7d8a2ebf3b318b01c68ceb0f6ec225"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___networking_8c.html#ade7d8a2ebf3b318b01c68ceb0f6ec225">DNS_CloseSocket</a> (Socket_t xDNSSocket)</td></tr>
 <tr class="memdesc:ade7d8a2ebf3b318b01c68ceb0f6ec225"><td class="mdescLeft">&#160;</td><td class="mdescRight">perform a DNS network close  <br /></td></tr>
 <tr class="separator:ade7d8a2ebf3b318b01c68ceb0f6ec225"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -188,8 +188,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a89cfa1f2a25312a01483f36e50265eb0" name="a89cfa1f2a25312a01483f36e50265eb0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a89cfa1f2a25312a01483f36e50265eb0">&#9670;&#160;</a></span>DNS_SendRequest()</h2>
+<a id="a05918d1d5623cd14cad53f00b2f6d65e" name="a05918d1d5623cd14cad53f00b2f6d65e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05918d1d5623cd14cad53f00b2f6d65e">&#9670;&#160;</a></span>DNS_SendRequest()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -204,7 +204,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="structstruct.html">struct</a> freertos_sockaddr *&#160;</td>
-          <td class="paramname"><em>xAddress</em>, </td>
+          <td class="paramname"><em>pxAddress</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -224,7 +224,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">xDNSSocket</td><td>Created socket </td></tr>
-    <tr><td class="paramname">xAddress</td><td>address structure (ip, port etc) </td></tr>
+    <tr><td class="paramname">pxAddress</td><td>to store data of the sender (ip, port etc) </td></tr>
     <tr><td class="paramname">pxDNSBuf</td><td>buffer to send </td></tr>
   </table>
   </dd>
@@ -233,8 +233,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a16c7cb7023cfa29b6aa5cfac6406ad78" name="a16c7cb7023cfa29b6aa5cfac6406ad78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a16c7cb7023cfa29b6aa5cfac6406ad78">&#9670;&#160;</a></span>DNS_ReadReply()</h2>
+<a id="abecad73970bfb0f4c986d6732e2809a9" name="abecad73970bfb0f4c986d6732e2809a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abecad73970bfb0f4c986d6732e2809a9">&#9670;&#160;</a></span>DNS_ReadReply()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -249,13 +249,19 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structstruct.html">struct</a> freertos_sockaddr *&#160;</td>
-          <td class="paramname"><em>xAddress</em>, </td>
+          <td class="paramname"><em>pxAddress</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structstruct.html">struct</a> xDNSBuffer *&#160;</td>
-          <td class="paramname"><em>pxReceiveBuffer</em>&#160;</td>
+          <td class="paramname"><em>pxReceiveBuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const IPv46_Address_t *&#160;</td>
+          <td class="paramname"><em>pxTargetAddress</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -265,15 +271,17 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>perform a DNS network read </p>
+<p>Read from the socket. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">xDNSSocket</td><td>socket </td></tr>
-    <tr><td class="paramname">xAddress</td><td>address to read from </td></tr>
-    <tr><td class="paramname">pxReceiveBuffer</td><td>buffer to fill with received data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xDNSSocket</td><td>the socket that must be bound. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pxAddress</td><td>place to store the "from address". </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pxReceiveBuffer</td><td>Place to store the received reply. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxTargetAddress</td><td>The IP-address of the DNS used when sending. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>The result: number of bytes, zero, or negative when error. </dd></dl>
 
 </div>
 </div>

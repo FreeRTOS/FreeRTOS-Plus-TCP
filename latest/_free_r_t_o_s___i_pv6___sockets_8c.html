@@ -31,7 +31,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.1</span>
+   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.2</span>
    </div>
    <div id="projectbrief">FreeRTOS TCP/IP library</div>
   </td>
@@ -510,7 +510,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pvSource</td><td>The binary address, 16 bytes long.. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">pcDestination</td><td>The human-readable ( hexadecimal ) notation of the address. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">uxSize</td><td>The size of pvDestination. A value of 40 is recommended.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxSize</td><td>The size of pcDestination. MUST be at least ipSIZE_OF_IPv6_ADDR_STRLEN (40) to hold the longest possible IPv6 text form (39 characters) plus its NUL terminator. If uxSize is smaller, the function may return NULL for inputs that produce maximum-length output.</td></tr>
   </table>
   </dd>
 </dl>

@@ -31,7 +31,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.1</span>
+   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.2</span>
    </div>
    <div id="projectbrief">FreeRTOS TCP/IP library</div>
   </td>
@@ -114,9 +114,9 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___d_n_s___callback_8c.ht
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6c34cf6a385cac4d9422794516b774de"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___callback_8c.html#a6c34cf6a385cac4d9422794516b774de">xDNSDoCallback</a> (ParseSet_t *pxSet, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo *pxAddress)</td></tr>
-<tr class="memdesc:a6c34cf6a385cac4d9422794516b774de"><td class="mdescLeft">&#160;</td><td class="mdescRight">A DNS reply was received, see if there is any matching entry and call the handler.  <br /></td></tr>
-<tr class="separator:a6c34cf6a385cac4d9422794516b774de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ab1d8579b15ae6ac754f199f6483969"><td class="memItemLeft" align="right" valign="top">FOnDNSEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___callback_8c.html#a5ab1d8579b15ae6ac754f199f6483969">xDNSDoCallback</a> (ParseSet_t *pxSet, void **ppvSearchID)</td></tr>
+<tr class="memdesc:a5ab1d8579b15ae6ac754f199f6483969"><td class="mdescLeft">&#160;</td><td class="mdescRight">A DNS reply was received, see if there is any matching entry and call the handler.  <br /></td></tr>
+<tr class="separator:a5ab1d8579b15ae6ac754f199f6483969"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad994091b83d16f6d92feff34771ca1fe"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___callback_8c.html#ad994091b83d16f6d92feff34771ca1fe">xDNSSetCallBack</a> (const char *pcHostName, void *pvSearchID, FOnDNSEvent pCallbackFunction, TickType_t uxTimeout, TickType_t uxIdentifier, BaseType_t xIsIPv6)</td></tr>
 <tr class="memdesc:ad994091b83d16f6d92feff34771ca1fe"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a585a2b637e9683132af556a2b3147ad0" title="Get the IP-address corresponding to the given hostname.">FreeRTOS_gethostbyname_a()</a> was called along with callback parameters. Store them in a list for later reference.  <br /></td></tr>
 <tr class="separator:ad994091b83d16f6d92feff34771ca1fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -137,14 +137,14 @@ static List_t&#160;</td><td class="memItemRight" valign="bottom"><b>xCallbackLis
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>File that handles the DNS Callback option. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a6c34cf6a385cac4d9422794516b774de" name="a6c34cf6a385cac4d9422794516b774de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6c34cf6a385cac4d9422794516b774de">&#9670;&#160;</a></span>xDNSDoCallback()</h2>
+<a id="a5ab1d8579b15ae6ac754f199f6483969" name="a5ab1d8579b15ae6ac754f199f6483969"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ab1d8579b15ae6ac754f199f6483969">&#9670;&#160;</a></span>xDNSDoCallback()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BaseType_t xDNSDoCallback </td>
+          <td class="memname">FOnDNSEvent xDNSDoCallback </td>
           <td>(</td>
           <td class="paramtype">ParseSet_t *&#160;</td>
           <td class="paramname"><em>pxSet</em>, </td>
@@ -152,8 +152,8 @@ static List_t&#160;</td><td class="memItemRight" valign="bottom"><b>xCallbackLis
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structstruct.html">struct</a> freertos_addrinfo *&#160;</td>
-          <td class="paramname"><em>pxAddress</em>&#160;</td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>ppvSearchID</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -167,11 +167,11 @@ static List_t&#160;</td><td class="memItemRight" valign="bottom"><b>xCallbackLis
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">pxSet</td><td>a set of variables that are shared among the helper functions. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">pxAddress</td><td>Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ppvSearchID</td><td>The search ID of the matching request. Only written when a matching request was found. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Returns pdTRUE if uxIdentifier was recognized. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns not NULL if a matching callback function was found. </dd></dl>
 
 </div>
 </div>

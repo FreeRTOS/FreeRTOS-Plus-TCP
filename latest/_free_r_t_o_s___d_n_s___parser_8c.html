@@ -31,7 +31,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.1</span>
+   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.2</span>
    </div>
    <div id="projectbrief">FreeRTOS TCP/IP library</div>
   </td>
@@ -98,6 +98,7 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___d_n_s___parser_8c.html
 
 <div class="header">
   <div class="summary">
+<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">FreeRTOS_DNS_Parser.c File Reference</div></div>
 </div><!--header-->
@@ -115,6 +116,13 @@ $(document).ready(function(){initNavTree('_free_r_t_o_s___d_n_s___parser_8c.html
 <code>#include &quot;NetworkBufferManagement.h&quot;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
 </div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:aa43e0fdae550a19ef77b8a33faf71e6d"><td class="memItemLeft" align="right" valign="top"><a id="aa43e0fdae550a19ef77b8a33faf71e6d" name="aa43e0fdae550a19ef77b8a33faf71e6d"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>dnsMAX_COMPRESSION_HOPS</b>&#160;&#160;&#160;( 8U )</td></tr>
+<tr class="memdesc:aa43e0fdae550a19ef77b8a33faf71e6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointers followed while decoding one name, bounded because a pointer may target another. Overridable only to keep the CBMC proof tractable. <br /></td></tr>
+<tr class="separator:aa43e0fdae550a19ef77b8a33faf71e6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aaad49b6c58394f7da6a34c090b36c152"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___parser_8c.html#aaad49b6c58394f7da6a34c090b36c152">DNS_ReadNameField</a> (ParseSet_t *pxSet, size_t uxDestLen)</td></tr>
@@ -123,9 +131,15 @@ Functions</h2></td></tr>
 <tr class="memitem:ab6e1d67b310ba4287a774feaab588ae6"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___parser_8c.html#ab6e1d67b310ba4287a774feaab588ae6">DNS_SkipNameField</a> (const uint8_t *pucByte, size_t uxLength)</td></tr>
 <tr class="memdesc:ab6e1d67b310ba4287a774feaab588ae6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple routine that jumps over the NAME field of a resource record.  <br /></td></tr>
 <tr class="separator:ab6e1d67b310ba4287a774feaab588ae6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4772916fb220403d0041d9cc90aedeb7"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___parser_8c.html#a4772916fb220403d0041d9cc90aedeb7">DNS_ParseDNSReply</a> (uint8_t *pucUDPPayloadBuffer, size_t uxBufferLength, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, BaseType_t xExpected, uint16_t usPort)</td></tr>
-<tr class="memdesc:a4772916fb220403d0041d9cc90aedeb7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process a response packet from a DNS server, or an LLMNR reply.  <br /></td></tr>
-<tr class="separator:a4772916fb220403d0041d9cc90aedeb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1635f43adb69ba67b48050cca4dfbc5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___parser_8c.html#ae1635f43adb69ba67b48050cca4dfbc5">DNS_ParseDNSReply</a> (uint8_t *pucUDPPayloadBuffer, size_t uxBufferLength, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, BaseType_t xExpected, uint16_t usPort, const char *pcRequestedName)</td></tr>
+<tr class="memdesc:ae1635f43adb69ba67b48050cca4dfbc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process a response packet from a DNS server, or an LLMNR reply.  <br /></td></tr>
+<tr class="separator:ae1635f43adb69ba67b48050cca4dfbc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e708113a5d9841bf7b657a4fe4b7c20"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___parser_8c.html#a7e708113a5d9841bf7b657a4fe4b7c20">DNS_DecodeName</a> (const uint8_t *pucMessage, size_t uxMessageLength, const uint8_t *pucName, size_t uxNameBytesRemaining, char *pcNameOut, size_t uxDestLen)</td></tr>
+<tr class="memdesc:a7e708113a5d9841bf7b657a4fe4b7c20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode the DNS name at <code>pucName</code> into <code>pcNameOut</code>, reading only from the message and never from <code>pcNameOut</code>. Does not advance the cursor.  <br /></td></tr>
+<tr class="separator:a7e708113a5d9841bf7b657a4fe4b7c20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a122e88f630c17472e76d70e199595153"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___parser_8c.html#a122e88f630c17472e76d70e199595153">prvReadCurrentName</a> (const ParseSet_t *pxSet, char *pcNameOut, size_t uxDestLen)</td></tr>
+<tr class="memdesc:a122e88f630c17472e76d70e199595153"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode the name at the current parse position into <code>pcNameOut</code>.  <br /></td></tr>
+<tr class="separator:a122e88f630c17472e76d70e199595153"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a304b39e800a157af0f7528a67c49275c"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s___parser_8c.html#a304b39e800a157af0f7528a67c49275c">parseDNSAnswer</a> (ParseSet_t *pxSet, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, size_t *uxBytesRead)</td></tr>
 <tr class="memdesc:a304b39e800a157af0f7528a67c49275c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process DNS answer field in a DNS response packet from a DNS server.  <br /></td></tr>
 <tr class="separator:a304b39e800a157af0f7528a67c49275c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -215,8 +229,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a4772916fb220403d0041d9cc90aedeb7" name="a4772916fb220403d0041d9cc90aedeb7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4772916fb220403d0041d9cc90aedeb7">&#9670;&#160;</a></span>DNS_ParseDNSReply()</h2>
+<a id="ae1635f43adb69ba67b48050cca4dfbc5" name="ae1635f43adb69ba67b48050cca4dfbc5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1635f43adb69ba67b48050cca4dfbc5">&#9670;&#160;</a></span>DNS_ParseDNSReply()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -249,7 +263,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">uint16_t&#160;</td>
-          <td class="paramname"><em>usPort</em>&#160;</td>
+          <td class="paramname"><em>usPort</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>pcRequestedName</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -266,11 +286,131 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">uxBufferLength</td><td>Length of the UDP payload buffer. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ppxAddressInfo</td><td>A pointer to a pointer where the results will be stored. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xExpected</td><td>indicates whether the identifier in the reply was expected, and thus if the DNS cache may be updated with the reply. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">usPort</td><td>The server port number in order to identify the protocol.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">usPort</td><td>The server port number in order to identify the protocol. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pcRequestedName</td><td>The name this device asked for, or NULL when the caller does not know it. Only a response about that name is accepted.</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The IP address in the DNS response if present and if xExpected is set to pdTRUE. An error code (dnsPARSE_ERROR) if there was an error in the DNS response. 0 if xExpected set to pdFALSE. </dd></dl>
+
+</div>
+</div>
+<a id="a7e708113a5d9841bf7b657a4fe4b7c20" name="a7e708113a5d9841bf7b657a4fe4b7c20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e708113a5d9841bf7b657a4fe4b7c20">&#9670;&#160;</a></span>DNS_DecodeName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BaseType_t DNS_DecodeName </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>pucMessage</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxMessageLength</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>pucName</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxNameBytesRemaining</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>pcNameOut</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxDestLen</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Decode the DNS name at <code>pucName</code> into <code>pcNameOut</code>, reading only from the message and never from <code>pcNameOut</code>. Does not advance the cursor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pucMessage</td><td>The first byte of the DNS message, against which any compression pointer is resolved. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxMessageLength</td><td>The total length of the DNS message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pucName</td><td>The first byte of the name to decode. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxNameBytesRemaining</td><td>The number of bytes available at <code>pucName</code>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pcNameOut</td><td>Destination buffer for the decoded name. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxDestLen</td><td>Size of <code>pcNameOut</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pdTRUE if a complete name was decoded, pdFALSE when the message is malformed, the name does not fit, or the pointer limit is reached. </dd></dl>
+
+</div>
+</div>
+<a id="a122e88f630c17472e76d70e199595153" name="a122e88f630c17472e76d70e199595153"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a122e88f630c17472e76d70e199595153">&#9670;&#160;</a></span>prvReadCurrentName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static BaseType_t prvReadCurrentName </td>
+          <td>(</td>
+          <td class="paramtype">const ParseSet_t *&#160;</td>
+          <td class="paramname"><em>pxSet</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>pcNameOut</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>uxDestLen</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Decode the name at the current parse position into <code>pcNameOut</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pxSet</td><td>The active parse set. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pcNameOut</td><td>Destination buffer for the decoded name. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">uxDestLen</td><td>Size of <code>pcNameOut</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pdTRUE if a complete name was decoded, pdFALSE otherwise. </dd></dl>
 
 </div>
 </div>

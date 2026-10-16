@@ -31,7 +31,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.1</span>
+   <div id="projectname">FreeRTOS-Plus-TCP<span id="projectnumber">&#160;V4.4.2</span>
    </div>
    <div id="projectbrief">FreeRTOS TCP/IP library</div>
   </td>
@@ -183,18 +183,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>vDNSInitialise</b> (v
 <tr class="memitem:ac912dabeefa1427f8ea2dae4ac390d9b"><td class="memItemLeft" align="right" valign="top">static NetworkEndPoint_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#ac912dabeefa1427f8ea2dae4ac390d9b">prvFillSockAddress</a> (<a class="el" href="structstruct.html">struct</a> freertos_sockaddr *pxAddress, const char *pcHostName)</td></tr>
 <tr class="memdesc:ac912dabeefa1427f8ea2dae4ac390d9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">fill pxAddress from pucUDPPayloadBuffer  <br /></td></tr>
 <tr class="separator:ac912dabeefa1427f8ea2dae4ac390d9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61c4c2d5f3778e0994daed50802515eb"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a61c4c2d5f3778e0994daed50802515eb">prvDNSReply</a> (const <a class="el" href="structstruct.html">struct</a> xDNSBuffer *pxReceiveBuffer, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, TickType_t uxIdentifier, uint16_t usPort)</td></tr>
-<tr class="memdesc:a61c4c2d5f3778e0994daed50802515eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">return ip address from the dns reply message  <br /></td></tr>
-<tr class="separator:a61c4c2d5f3778e0994daed50802515eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7af1412f1f654ba596a2525cca5da75d"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a7af1412f1f654ba596a2525cca5da75d">prvDNSReply</a> (const <a class="el" href="structstruct.html">struct</a> xDNSBuffer *pxReceiveBuffer, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, TickType_t uxIdentifier, uint16_t usPort, const char *pcHostName)</td></tr>
+<tr class="memdesc:a7af1412f1f654ba596a2525cca5da75d"><td class="mdescLeft">&#160;</td><td class="mdescRight">return ip address from the dns reply message  <br /></td></tr>
+<tr class="separator:a7af1412f1f654ba596a2525cca5da75d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab33866cbc083796274436528d88b5e3b"><td class="memItemLeft" align="right" valign="top">static BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#ab33866cbc083796274436528d88b5e3b">prvSendBuffer</a> (const char *pcHostName, TickType_t uxIdentifier, Socket_t xDNSSocket, BaseType_t xFamily, const <a class="el" href="structstruct.html">struct</a> freertos_sockaddr *pxAddress)</td></tr>
 <tr class="memdesc:ab33866cbc083796274436528d88b5e3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">prepare the buffer before sending  <br /></td></tr>
 <tr class="separator:ab33866cbc083796274436528d88b5e3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47a7649d02e497d1f35519a7ea533ec3"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a47a7649d02e497d1f35519a7ea533ec3">prvGetHostByNameOp</a> (const char *pcHostName, TickType_t uxIdentifier, Socket_t xDNSSocket, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, BaseType_t xFamily, TickType_t uxReadTimeOut_ticks)</td></tr>
-<tr class="memdesc:a47a7649d02e497d1f35519a7ea533ec3"><td class="mdescLeft">&#160;</td><td class="mdescRight">main dns operation description function  <br /></td></tr>
-<tr class="separator:a47a7649d02e497d1f35519a7ea533ec3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a44442f1111fa24e375378dceaa91fa22"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#a44442f1111fa24e375378dceaa91fa22">prvGetHostByNameOp_WithRetry</a> (const char *pcHostName, TickType_t uxIdentifier, Socket_t xDNSSocket, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, BaseType_t xFamily, TickType_t uxReadTimeOut_ticks)</td></tr>
-<tr class="memdesc:a44442f1111fa24e375378dceaa91fa22"><td class="mdescLeft">&#160;</td><td class="mdescRight">helper function to prvGetHostByNameOP with multiple retries equal to ipconfigDNS_REQUEST_ATTEMPTS  <br /></td></tr>
-<tr class="separator:a44442f1111fa24e375378dceaa91fa22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbf234a10fd32891e94ac35f0dfd36c5"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#adbf234a10fd32891e94ac35f0dfd36c5">prvGetHostByNameOp</a> (const char *pcHostName, TickType_t uxIdentifier, Socket_t xDNSSocket, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, BaseType_t xFamily, TickType_t uxReadTimeOut_ticks, IPv46_Address_t *pxTargetAddress)</td></tr>
+<tr class="memdesc:adbf234a10fd32891e94ac35f0dfd36c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">main dns operation description function  <br /></td></tr>
+<tr class="separator:adbf234a10fd32891e94ac35f0dfd36c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9e24ad1bd3dbcb3f10d0db49a966ce1"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#aa9e24ad1bd3dbcb3f10d0db49a966ce1">prvGetHostByNameOp_WithRetry</a> (const char *pcHostName, TickType_t uxIdentifier, Socket_t xDNSSocket, <a class="el" href="structstruct.html">struct</a> freertos_addrinfo **ppxAddressInfo, BaseType_t xFamily, TickType_t uxReadTimeOut_ticks, IPv46_Address_t *pxTargetAddress)</td></tr>
+<tr class="memdesc:aa9e24ad1bd3dbcb3f10d0db49a966ce1"><td class="mdescLeft">&#160;</td><td class="mdescRight">helper function to prvGetHostByNameOP with multiple retries equal to ipconfigDNS_REQUEST_ATTEMPTS  <br /></td></tr>
+<tr class="separator:aa9e24ad1bd3dbcb3f10d0db49a966ce1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae14d004f61b6789e80bdbd9bf971de84"><td class="memItemLeft" align="right" valign="top">BaseType_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_free_r_t_o_s___d_n_s_8c.html#ae14d004f61b6789e80bdbd9bf971de84">xDNSHandlePacket</a> (const NetworkBufferDescriptor_t *pxNetworkBuffer)</td></tr>
 <tr class="memdesc:ae14d004f61b6789e80bdbd9bf971de84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform some preliminary checks and then parse the DNS packet.  <br /></td></tr>
 <tr class="separator:ae14d004f61b6789e80bdbd9bf971de84"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -905,8 +905,8 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
 
 </div>
 </div>
-<a id="a61c4c2d5f3778e0994daed50802515eb" name="a61c4c2d5f3778e0994daed50802515eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a61c4c2d5f3778e0994daed50802515eb">&#9670;&#160;</a></span>prvDNSReply()</h2>
+<a id="a7af1412f1f654ba596a2525cca5da75d" name="a7af1412f1f654ba596a2525cca5da75d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7af1412f1f654ba596a2525cca5da75d">&#9670;&#160;</a></span>prvDNSReply()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -936,7 +936,13 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">uint16_t&#160;</td>
-          <td class="paramname"><em>usPort</em>&#160;</td>
+          <td class="paramname"><em>usPort</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>pcHostName</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -958,6 +964,7 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
     <tr><td class="paramdir">[in,out]</td><td class="paramname">ppxAddressInfo</td><td>A pointer to a pointer where the find results will be stored. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">uxIdentifier</td><td>matches sent and received packets </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">usPort</td><td>Port from which DNS reply was read </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pcHostName</td><td>the name that was asked for </td></tr>
   </table>
   </dd>
 </dl>
@@ -1032,8 +1039,8 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
 
 </div>
 </div>
-<a id="a47a7649d02e497d1f35519a7ea533ec3" name="a47a7649d02e497d1f35519a7ea533ec3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47a7649d02e497d1f35519a7ea533ec3">&#9670;&#160;</a></span>prvGetHostByNameOp()</h2>
+<a id="adbf234a10fd32891e94ac35f0dfd36c5" name="adbf234a10fd32891e94ac35f0dfd36c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbf234a10fd32891e94ac35f0dfd36c5">&#9670;&#160;</a></span>prvGetHostByNameOp()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1075,7 +1082,13 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">TickType_t&#160;</td>
-          <td class="paramname"><em>uxReadTimeOut_ticks</em>&#160;</td>
+          <td class="paramname"><em>uxReadTimeOut_ticks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">IPv46_Address_t *&#160;</td>
+          <td class="paramname"><em>pxTargetAddress</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1099,6 +1112,7 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
     <tr><td class="paramdir">[in,out]</td><td class="paramname">ppxAddressInfo</td><td>A pointer to a pointer where the find results will be stored. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xFamily</td><td>Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">uxReadTimeOut_ticks</td><td>The timeout in ticks for waiting. In case the user has supplied a call-back function, this value should be zero. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pxTargetAddress</td><td>The IP-address of the DNS server that answered the request. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1106,8 +1120,8 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
 
 </div>
 </div>
-<a id="a44442f1111fa24e375378dceaa91fa22" name="a44442f1111fa24e375378dceaa91fa22"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44442f1111fa24e375378dceaa91fa22">&#9670;&#160;</a></span>prvGetHostByNameOp_WithRetry()</h2>
+<a id="aa9e24ad1bd3dbcb3f10d0db49a966ce1" name="aa9e24ad1bd3dbcb3f10d0db49a966ce1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9e24ad1bd3dbcb3f10d0db49a966ce1">&#9670;&#160;</a></span>prvGetHostByNameOp_WithRetry()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1149,7 +1163,13 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">TickType_t&#160;</td>
-          <td class="paramname"><em>uxReadTimeOut_ticks</em>&#160;</td>
+          <td class="paramname"><em>uxReadTimeOut_ticks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">IPv46_Address_t *&#160;</td>
+          <td class="paramname"><em>pxTargetAddress</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1173,6 +1193,7 @@ IPPreference_t&#160;</td><td class="memItemRight" valign="bottom"><b>xDNS_IP_Pre
     <tr><td class="paramdir">[in,out]</td><td class="paramname">ppxAddressInfo</td><td>A pointer to a pointer where the find results will be stored. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xFamily</td><td>Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">uxReadTimeOut_ticks</td><td>The timeout in ticks for waiting. In case the user has supplied a call-back function, this value should be zero. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pxTargetAddress</td><td>The IP-address of the DNS server that answered the request. </td></tr>
   </table>
   </dd>
 </dl>
