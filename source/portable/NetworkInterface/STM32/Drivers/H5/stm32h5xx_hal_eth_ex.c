@@ -306,16 +306,16 @@
                     /* Set Bits[63:32] of 128-bit IP addr */
                     WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip6Addr[ 1 ] );
                     /* update Bits[95:64] of 128-bit IP addr */
-                    WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip6Addr[ 2 ] );
+                    WRITE_REG( heth->Instance->MACL3A2R1R, pL3FilterConfig->Ip6Addr[ 2 ] );
                     /* update Bits[127:96] of 128-bit IP addr */
-                    WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip6Addr[ 3 ] );
+                    WRITE_REG( heth->Instance->MACL3A3R1R, pL3FilterConfig->Ip6Addr[ 3 ] );
                 }
                 else /* IPv4 protocol is selected */
                 {
                     /* Set the IPv4 source address match */
                     WRITE_REG( heth->Instance->MACL3A0R1R, pL3FilterConfig->Ip4SrcAddr );
                     /* Set the IPv4 destination address match */
-                    WRITE_REG( heth->Instance->MACL3A0R1R, pL3FilterConfig->Ip4DestAddr );
+                    WRITE_REG( heth->Instance->MACL3A1R1R, pL3FilterConfig->Ip4DestAddr );
                 }
             }
 
@@ -461,7 +461,7 @@
  * @retval HAL status
  */
         HAL_StatusTypeDef HAL_ETHEx_SetRxVLANConfig( ETH_HandleTypeDef * heth,
-                                                     ETH_RxVLANConfigTypeDef * pVlanConfig )
+                                                     const ETH_RxVLANConfigTypeDef * pVlanConfig )
         {
             if( pVlanConfig == NULL )
             {
