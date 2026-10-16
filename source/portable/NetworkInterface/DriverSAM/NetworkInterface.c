@@ -189,7 +189,7 @@ static uint32_t prvEMACRxPoll( void );
 
 static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                 NetworkBufferDescriptor_t * const pxBuffer,
+                                                 NetworkBufferDescriptor_t * const pxDescriptor,
                                                  BaseType_t bReleaseAfterSend );
 static BaseType_t prvSAM_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
@@ -764,6 +764,15 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     }
 
     #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+        #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+        {
+            /* Receive IGMP queries by allowing the MAC address that corresponds to 224.0.0.1 */
+            MACAddress_t xIGMP_MacAddress;
+            vSetMultiCastIPv4MacAddress( igmpIGMP_IP_ADDR, &xIGMP_MacAddress );
+            prvAddAllowedMACAddress( pxInterface, xIGMP_MacAddress.ucBytes );
+        }
+        #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
         #if ( ipconfigUSE_LLMNR == ipconfigENABLE )
             prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddress.ucBytes );
         #endif /* ipconfigUSE_LLMNR */
@@ -924,10 +933,10 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
     configASSERT( pxInterface != NULL ); /* Not used, but the stack should not be sending us NULL parameters. */
 
     ucHashBit = prvGenerateCRC16( pucMacAddress );
-    FreeRTOS_debug_printf( "prvAddAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+    FreeRTOS_debug_printf( ( "prvAddAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
                            pxInterface,
                            pucMacAddress[ 0 ], pucMacAddress[ 1 ], pucMacAddress[ 2 ], pucMacAddress[ 3 ], pucMacAddress[ 4 ], pucMacAddress[ 5 ],
-                           ucHashBit );
+                           ucHashBit ) );
 
     /* Calculate what the specific match registers would look like for this MAC address so that
      * we can check if this MAC address is already present in one of the specific match registers. */
@@ -953,7 +962,7 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
                     prvSpecificMatchCounters[ uxIndex ]++;
                 }
 
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", uxIndex, prvSpecificMatchCounters[ uxIndex ] ); */
+                /* FreeRTOS_debug_printf( ( "prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", uxIndex, prvSpecificMatchCounters[ uxIndex ] ) ); */
                 break;
             }
             else
@@ -1000,7 +1009,7 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
                 /* In all cases above, simply add the MAC address to the empty specific match register. */
                 gmac_set_address( GMAC, uxEmptyIndex, pucMacAddress );
                 prvSpecificMatchCounters[ uxEmptyIndex ] = 1U;
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: ADD at %u, new counter %u", uxEmptyIndex, prvSpecificMatchCounters[ uxEmptyIndex ] ); */
+                /* FreeRTOS_debug_printf( ( "prvAddAllowedMACAddress: ADD at %u, new counter %u", uxEmptyIndex, prvSpecificMatchCounters[ uxEmptyIndex ] ) ); */
                 break;
             }
         }
@@ -1057,10 +1066,10 @@ static void prvRemoveAllowedMACAddress( struct xNetworkInterface * pxInterface,
     configASSERT( pxInterface != NULL ); /* Not used, but the stack should not be sending us NULL parameters. */
 
     ucHashBit = prvGenerateCRC16( pucMacAddress );
-    FreeRTOS_debug_printf( "prvRemoveAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+    FreeRTOS_debug_printf( ( "prvRemoveAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
                            pxInterface,
                            pucMacAddress[ 0 ], pucMacAddress[ 1 ], pucMacAddress[ 2 ], pucMacAddress[ 3 ], pucMacAddress[ 4 ], pucMacAddress[ 5 ],
-                           ucHashBit );
+                           ucHashBit ) );
 
     /* Calculate what the specific match registers would look like for this MAC address so that
      * we can check if this MAC address is already present in one of the specific match registers. */
@@ -1083,14 +1092,14 @@ static void prvRemoveAllowedMACAddress( struct xNetworkInterface * pxInterface,
 
             if( prvSpecificMatchCounters[ uxIndex ] == 0 )
             {
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, INDEX DISABLED", uxIndex ); */
+                /* FreeRTOS_debug_printf( ( "prvAddAllowedMACAddress: EXACT MATCH at %u, INDEX DISABLED", uxIndex ) ); */
                 /* This specific match register counter is now zero. Disable it by writing it in reverse order. */
                 GMAC->GMAC_SA[ uxIndex ].GMAC_SAT = 0U; /* This is not needed, just clears out the top register.*/
                 GMAC->GMAC_SA[ uxIndex ].GMAC_SAB = 0U; /* Writing the bottom register disables this specific match register. */
             }
             else
             {
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", uxIndex, prvSpecificMatchCounters[ uxIndex ] ); */
+                /* FreeRTOS_debug_printf( ( "prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", uxIndex, prvSpecificMatchCounters[ uxIndex ] ) ); */
             }
 
             break;
