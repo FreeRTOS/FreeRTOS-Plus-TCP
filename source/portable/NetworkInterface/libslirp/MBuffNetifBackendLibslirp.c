@@ -574,13 +574,22 @@ static inline int lNativePollEventsToSlirpEvents( int lPosixPollFlags )
     return lSlirpPollFlags;
 }
 
+/* Descriptor type accepted by the add-poll callback. libslirp 4.9.0 switched
+ * the callback from an int to a slirp_os_socket. */
+#if SLIRP_CHECK_VERSION( 4U, 9U, 0U )
+    typedef slirp_os_socket SlirpPollFd_t;
+#else
+    typedef int             SlirpPollFd_t;
+#endif
+
 /**
- * @brief SlirpAddPollCb implementation passed to libslirp during initialization.
- * @param [in] fd File descriptor to add to the polling list.
+ * @brief SlirpAddPollCb / SlirpAddPollSocketCb implementation passed to libslirp
+ * during initialization.
+ * @param [in] lFd File descriptor to add to the polling list.
  * @param [in] lSlirpFlags Flags to be placed in the relevant events field.
  * @param [in] pvOpaque Opaque pointer to the relevant SlirpBackendContext_t.
  */
-static int lSlirpAddPollCallback( int lFd,
+static int lSlirpAddPollCallback( SlirpPollFd_t lFd,
                                   int lSlirpFlags,
                                   void * pvOpaque )
 {
@@ -706,7 +715,11 @@ static THREAD_RETURN THREAD_FUNC_DEF vReceiveThread( void * pvParameters )
         vLockSlirpContext( pxCtx );
         {
             pxCtx->nfds = 0;
-            slirp_pollfds_fill( pxCtx->pxSlirp, &ulPollerTimeoutMs, lSlirpAddPollCallback, pxCtx );
+            #if SLIRP_CHECK_VERSION( 4U, 9U, 0U )
+                slirp_pollfds_fill_socket( pxCtx->pxSlirp, &ulPollerTimeoutMs, lSlirpAddPollCallback, pxCtx );
+            #else
+                slirp_pollfds_fill( pxCtx->pxSlirp, &ulPollerTimeoutMs, lSlirpAddPollCallback, pxCtx );
+            #endif
         }
         vUnlockSlirpContext( pxCtx );
 
