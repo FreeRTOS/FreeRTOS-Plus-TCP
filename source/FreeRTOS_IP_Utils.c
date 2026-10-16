@@ -1029,10 +1029,6 @@ void vPreCheckConfigs( void )
         #endif /* if ( ipconfigSUPPRESS_BUFFER_PADDING_CHECK == 0 ) */
 
         /* LCOV_EXCL_BR_START */
-        uxSize = ipconfigNETWORK_MTU;
-        /* Check if MTU is big enough. */
-        configASSERT( uxSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
-
         uxSize = sizeof( EthernetHeader_t );
         /* Check structure packing is correct. */
         configASSERT( uxSize == ipEXPECTED_EthernetHeader_t_SIZE );
@@ -1051,6 +1047,10 @@ void vPreCheckConfigs( void )
 
         #if ipconfigUSE_TCP == 1
         {
+            uxSize = ipconfigNETWORK_MTU;
+            /* Check if MTU is big enough for the configured TCP MSS. */
+            configASSERT( uxSize >= ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + ipconfigTCP_MSS ) );
+
             uxSize = sizeof( TCPHeader_t );
             configASSERT( uxSize == ( ipEXPECTED_TCPHeader_t_SIZE + ipSIZE_TCP_OPTIONS ) );
         }
