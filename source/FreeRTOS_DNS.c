@@ -655,7 +655,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                             else
                         #endif
                         {
-                            FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %xip\n", pcHostName, ( unsigned ) ulIPAddress ) );
+                            FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %xip\n", pcHostName, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
                         }
                     }
                 }
@@ -900,6 +900,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                             case xPreferenceIPv4:
                                 pxAddress->sin_address.ulIP_IPv4 = ipMDNS_IP_ADDRESS;     /* Is in network byte order. */
                                 /* sin_family is default set to FREERTOS_AF_INET */
+                                pxAddress->sin_family = FREERTOS_AF_INET4;
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1064,16 +1065,18 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
  *                will be stored.
  * @param [in] uxIdentifier matches sent and received packets
  * @param [in] usPort Port from which DNS reply was read
+ * @param [in] pcHostName the name that was asked for
  * @returns ip address or zero on error
  *
  */
     static uint32_t prvDNSReply( const struct xDNSBuffer * pxReceiveBuffer,
                                  struct freertos_addrinfo ** ppxAddressInfo,
                                  TickType_t uxIdentifier,
-                                 uint16_t usPort )
+                                 uint16_t usPort,
+                                 const char * pcHostName )
     {
         uint32_t ulIPAddress = 0U;
-        BaseType_t xExpected;
+        BaseType_t xExpected = pdFALSE;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -1112,7 +1115,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                              pxReceiveBuffer->uxPayloadLength,
                                              ppxAddressInfo,
                                              xExpected,
-                                             usPort );
+                                             usPort,
+                                             pcHostName );
         }
 
         return ulIPAddress;
@@ -1233,6 +1237,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
  * @param[in] xFamily Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
  *                                 a call-back function, this value should be zero.
+ * @param[out] pxTargetAddress The IP-address of the DNS server that answered the request.
  * @returns ip address or zero on error
  */
     static uint32_t prvGetHostByNameOp( const char * pcHostName,
@@ -1240,7 +1245,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                         Socket_t xDNSSocket,
                                         struct freertos_addrinfo ** ppxAddressInfo,
                                         BaseType_t xFamily,
-                                        TickType_t uxReadTimeOut_ticks )
+                                        TickType_t uxReadTimeOut_ticks,
+                                        IPv46_Address_t * pxTargetAddress )
     {
         uint32_t ulIPAddress = 0;
         struct freertos_sockaddr xAddress;
@@ -1252,8 +1258,26 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
 
         /* Make sure all fields of the 'sockaddr' are cleared. */
         ( void ) memset( ( void * ) &xAddress, 0, sizeof( xAddress ) );
+        ( void ) memset( ( void * ) &xRecvAddress, 0, sizeof( xRecvAddress ) );
 
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
+
+        /* 'xFamily' is the record type being asked for, not the address family
+         * of the server, so it must not be overwritten here. */
+        ( void ) memset( pxTargetAddress, 0, sizeof( *pxTargetAddress ) );
+
+        if( xAddress.sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+        {
+            pxTargetAddress->xIs_IPv6 = pdTRUE;
+            ( void ) memcpy( pxTargetAddress->xIPAddress.xIP_IPv6.ucBytes,
+                             xAddress.sin_address.xIP_IPv6.ucBytes,
+                             ipSIZE_OF_IPv6_ADDRESS );
+        }
+        else
+        {
+            pxTargetAddress->xIs_IPv6 = pdFALSE;
+            pxTargetAddress->xIPAddress.ulIP_IPv4 = xAddress.sin_address.ulIP_IPv4;
+        }
 
         if( pxEndPoint != NULL )
         {
@@ -1294,7 +1318,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                 /* receive a dns reply message */
                 xBytes = DNS_ReadReply( xDNSSocket,
                                         &xRecvAddress,
-                                        &xReceiveBuffer );
+                                        &xReceiveBuffer,
+                                        pxTargetAddress );
 
                 if( ( uxReadTimeOut_ticks > 0U ) &&
                     ( ( xBytes == -pdFREERTOS_ERRNO_EWOULDBLOCK ) ||
@@ -1331,7 +1356,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                         /* MISRA Ref 4.14.2 [The validity of values received from external sources]. */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-414. */
                         /* coverity[misra_c_2012_directive_4_14_violation] */
-                        ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
+                        ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port, pcHostName );
                     }
 
                     /* Finished with the buffer.  The zero copy interface
@@ -1362,6 +1387,7 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
  * @param[in] xFamily Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied
  *                                 a call-back function, this value should be zero.
+ * @param[out] pxTargetAddress The IP-address of the DNS server that answered the request.
  * @returns ip address or zero on error
  *
  */
@@ -1370,7 +1396,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                                   Socket_t xDNSSocket,
                                                   struct freertos_addrinfo ** ppxAddressInfo,
                                                   BaseType_t xFamily,
-                                                  TickType_t uxReadTimeOut_ticks )
+                                                  TickType_t uxReadTimeOut_ticks,
+                                                  IPv46_Address_t * pxTargetAddress )
     {
         uint32_t ulIPAddress = 0;
         BaseType_t xAttempt;
@@ -1382,7 +1409,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                               xDNSSocket,
                                               ppxAddressInfo,
                                               xFamily,
-                                              uxReadTimeOut_ticks );
+                                              uxReadTimeOut_ticks,
+                                              pxTargetAddress );
 
             if( ulIPAddress != 0U )
             { /* ip found, no need to retry */
@@ -1416,7 +1444,11 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
         Socket_t xDNSSocket;
         uint32_t ulIPAddress = 0U;
 
+        /* The IP-address of the DNS server will be stored in
+         * 'xTargetAddress'. */
+        IPv46_Address_t xTargetAddress;
 
+        ( void ) memset( &( xTargetAddress ), 0, sizeof( xTargetAddress ) );
         xDNSSocket = DNS_CreateSocket( uxReadTimeOut_ticks );
 
         if( xDNSSocket != NULL )
@@ -1429,7 +1461,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                                   xDNSSocket,
                                                   ppxAddressInfo,
                                                   xFamily,
-                                                  uxReadTimeOut_ticks );
+                                                  uxReadTimeOut_ticks,
+                                                  &xTargetAddress );
             }
             else
             {
@@ -1438,7 +1471,8 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                                                             xDNSSocket,
                                                             ppxAddressInfo,
                                                             xFamily,
-                                                            uxReadTimeOut_ticks );
+                                                            uxReadTimeOut_ticks,
+                                                            &xTargetAddress );
             }
 
             /* Finished with the socket. */
@@ -1590,12 +1624,14 @@ const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB
                 struct freertos_addrinfo * pxAddressInfo = NULL;
                 pucPayLoadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPPacketSize ] );
 
-                /* The parameter pdFALSE indicates that the reply was not expected. */
+                /* NULL: the IP task does not know which look-up a reply
+                 * belongs to, so xDNSDoCallback() binds it by name instead. */
                 ( void ) DNS_ParseDNSReply( pucPayLoadBuffer,
                                             uxPayloadSize,
                                             &( pxAddressInfo ),
                                             pdFALSE,
-                                            FreeRTOS_ntohs( pxNetworkBuffer->usPort ) );
+                                            FreeRTOS_ntohs( pxNetworkBuffer->usPort ),
+                                            NULL );
 
                 if( pxAddressInfo != NULL )
                 {

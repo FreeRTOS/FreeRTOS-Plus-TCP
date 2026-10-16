@@ -50,8 +50,10 @@
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
-                               struct freertos_addrinfo * pxAddress );
+/* Internal function.
+ * It will check all pending DNS requests to see if any is finished. */
+    FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,
+                                void ** ppvSearchID );
 
     BaseType_t xDNSSetCallBack( const char * pcHostName,
                                 void * pvSearchID,

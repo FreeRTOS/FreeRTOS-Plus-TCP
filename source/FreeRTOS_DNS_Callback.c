@@ -49,14 +49,13 @@
  *        call the handler.
  *
  * @param[in,out] pxSet a set of variables that are shared among the helper functions.
- * @param[in] pxAddress Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.
- *
- * @return Returns pdTRUE if uxIdentifier was recognized.
+ * @param[out] ppvSearchID The search ID of the matching request. Only written
+ *             when a matching request was found.
+ * @return Returns not NULL if a matching callback function was found.
  */
-    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
-                               struct freertos_addrinfo * pxAddress )
+    FOnDNSEvent xDNSDoCallback( ParseSet_t * pxSet,
+                                void ** ppvSearchID )
     {
-        BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
         const ListItem_t * pxEnd = listGET_END_MARKER( &xCallbackList );
         TickType_t uxIdentifier = ( TickType_t ) pxSet->pxDNSMessageHeader->usIdentifier;
@@ -87,7 +86,10 @@
                     else
                 #endif /* if ( ipconfigUSE_MDNS == 1 ) */
                 {
-                    xMatching = ( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier ) ? pdTRUE : pdFALSE;
+                    /* The identifier alone is not enough: every name in a
+                     * reply is supplied by whoever sent it. */
+                    xMatching = ( ( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier ) &&
+                                  ( strcasecmp( pxCallback->pcName, pxSet->pcName ) == 0 ) ) ? pdTRUE : pdFALSE;
                 }
 
                 if( xMatching == pdTRUE )
@@ -103,7 +105,6 @@
                         vIPSetDNSTimerEnableState( pdFALSE );
                     }
 
-                    xResult = pdTRUE;
                     break;
                 }
             }
@@ -112,10 +113,12 @@
 
         if( pCallbackFunction != NULL )
         {
-            pCallbackFunction( pxSet->pcName, pvSearchID, pxAddress );
+            /* Called once per address record, and the entry is removed on the
+            * first match, so writing unconditionally would clear it again. */
+            *( ppvSearchID ) = pvSearchID;
         }
 
-        return xResult;
+        return pCallbackFunction;
     }
 
 /**

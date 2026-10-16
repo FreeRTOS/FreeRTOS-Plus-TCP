@@ -2659,6 +2659,32 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigDNS_CHECK_REPLY_SOURCE_IP
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When enabled, a received DNS reply is accepted only if its source IP address
+ * matches the DNS server that was queried. Queries sent to a multicast group,
+ * which is how mDNS and LLMNR work, are exempt.
+ *
+ * Disabled by default because it rejects replies from a transparent DNS proxy
+ * that answers from an address other than the configured server.
+ *
+ * Only replies read from the DNS socket are covered, so enabling this does not
+ * harden the asynchronous FreeRTOS_gethostbyname_a() / getaddrinfo_a() path.
+ */
+
+#ifndef ipconfigDNS_CHECK_REPLY_SOURCE_IP
+    #define ipconfigDNS_CHECK_REPLY_SOURCE_IP    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigDNS_CHECK_REPLY_SOURCE_IP != ipconfigDISABLE ) && ( ipconfigDNS_CHECK_REPLY_SOURCE_IP != ipconfigENABLE ) )
+    #error Invalid ipconfigDNS_CHECK_REPLY_SOURCE_IP configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigUSE_LLMNR
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_LLMNR

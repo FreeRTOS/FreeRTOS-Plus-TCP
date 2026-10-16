@@ -105,10 +105,12 @@ void tearDown( void )
  */
 void test_xDNSDoCallback_success_not_equal_identifier( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
     DNSMessage_t xDNSMessageHeader;
+
+    /* A search ID reported by an earlier, matching call. */
+    void * pvSearchID = ( void * ) 456;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
     pxSet.pxDNSMessageHeader->usIdentifier = 123;
@@ -125,8 +127,46 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
-    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
+    TEST_ASSERT_NULL( ret );
+    TEST_ASSERT_EQUAL_PTR( ( void * ) 456, pvSearchID );
+}
+
+/**
+ * @brief A reply carrying the identifier of an outstanding request but a
+ *        different name is not handed to that request's call-back.
+ */
+void test_xDNSDoCallback_equal_identifier_not_equal_name( void )
+{
+    FOnDNSEvent ret;
+    ParseSet_t pxSet;
+    void * pvSearchID = NULL;
+    DNSMessage_t xDNSMessageHeader;
+
+    pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
+    pxSet.pxDNSMessageHeader->usIdentifier = 123;
+    pxSet.usPortNumber = dnsDNS_PORT;
+    strcpy( pxSet.pcName, "unhappy.com" );
+
+    dnsCallback->pCallbackFunction = dns_callback;
+    dnsCallback->pvSearchID = ( void * ) 456;
+    strcpy( dnsCallback->pcName, "happy.com" );
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+    vTaskSuspendAll_Expect();
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( dnsCallback );
+    listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
+
+    TEST_ASSERT_NULL( ret );
+    TEST_ASSERT_NULL( pvSearchID );
+    TEST_ASSERT_EQUAL( 0, callback_called );
 }
 
 /**
@@ -134,9 +174,9 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
  */
 void test_xDNSDoCallback_success_equal_identifier( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
+    void * pvSearchID = NULL;
     DNSMessage_t xDNSMessageHeader;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
@@ -145,6 +185,9 @@ void test_xDNSDoCallback_success_equal_identifier( void )
     strcpy( pxSet.pcName, pc_name );
 
     dnsCallback->pCallbackFunction = dns_callback;
+    dnsCallback->pvSearchID = ( void * ) 456;
+
+    strcpy( dnsCallback->pcName, pc_name );
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
 
@@ -159,9 +202,9 @@ void test_xDNSDoCallback_success_equal_identifier( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
-    TEST_ASSERT_EQUAL( 1, callback_called );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
+    TEST_ASSERT_EQUAL_PTR( dns_callback, ret );
+    TEST_ASSERT_EQUAL_PTR( ( void * ) 456, pvSearchID );
 }
 
 /**
@@ -169,9 +212,9 @@ void test_xDNSDoCallback_success_equal_identifier( void )
  */
 void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
+    void * pvSearchID = NULL;
     DNSMessage_t xDNSMessageHeader;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
@@ -179,6 +222,7 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
     char pc_name[] = "test";
     strcpy( pxSet.pcName, pc_name );
     dnsCallback->pCallbackFunction = dns_callback;
+    strcpy( dnsCallback->pcName, pc_name );
 
     /* Expectations */
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
@@ -195,11 +239,10 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
 
     /* Validations */
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
-    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL_PTR( dns_callback, ret );
 }
 
 /**
@@ -207,9 +250,9 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
  */
 void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
+    void * pvSearchID = NULL;
     DNSMessage_t xDNSMessageHeader;
     char pc_name[] = "test";
     uint8_t dnsCallbackMemory[ sizeof( DNSCallback_t ) + ipconfigDNS_CACHE_NAME_LENGTH ];
@@ -235,11 +278,10 @@ void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
 
     /* Validations */
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
-    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL_PTR( dns_callback, ret );
 }
 
 /**
@@ -248,9 +290,9 @@ void test_xDNSDoCallback_success_equal_port_number_equal_name( void )
  */
 void test_xDNSDoCallback_fail_equal_port_number_not_equal_name( void )
 {
-    BaseType_t ret;
+    FOnDNSEvent ret;
     ParseSet_t pxSet;
-    struct freertos_addrinfo pxAddress;
+    void * pvSearchID = NULL;
     DNSMessage_t xDNSMessageHeader;
 
     pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
@@ -271,10 +313,10 @@ void test_xDNSDoCallback_fail_equal_port_number_not_equal_name( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
-    ret = xDNSDoCallback( &pxSet, &pxAddress );
+    ret = xDNSDoCallback( &pxSet, &pvSearchID );
 
     /* Validations */
-    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    TEST_ASSERT_NULL( ret );
     TEST_ASSERT_EQUAL( 0, callback_called );
 }
 

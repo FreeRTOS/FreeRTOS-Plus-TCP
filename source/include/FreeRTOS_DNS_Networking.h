@@ -39,22 +39,27 @@
  */
     Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
 
-/**
- * @brief Bind the socket to a port number.
- * @param[in] xSocket: the socket that must be bound.
- * @param[in] usPort: the port number to bind to.
- * @return The created socket - or NULL if the socket could not be created or could not be bound.
+/*
+ * Bind the socket to a port number.
  */
     BaseType_t DNS_BindSocket( Socket_t xSocket,
                                uint16_t usPort );
 
+/*
+ * Send the DNS request with a known IP-address.
+ */
     BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
-                                const struct freertos_sockaddr * xAddress,
+                                const struct freertos_sockaddr * pxAddress,
                                 const struct xDNSBuffer * pxDNSBuf );
 
+/*
+ * Receive a DNS reply.
+ * The from address must have the same IP address as in pxTargetAddress.
+ */
     BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
-                              struct freertos_sockaddr * xAddress,
-                              struct xDNSBuffer * pxReceiveBuffer );
+                              struct freertos_sockaddr * pxAddress,
+                              struct xDNSBuffer * pxReceiveBuffer,
+                              const IPv46_Address_t * pxTargetAddress );
 
     void DNS_CloseSocket( Socket_t xDNSSocket );
 

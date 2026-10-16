@@ -65,7 +65,8 @@
     #endif /* ( ipconfigUSE_NBNS == 1 ) */
 
 /* Host types. */
-    #define dnsTYPE_A_HOST            0x01U /**< DNS type A host. */
+    #define dnsTYPE_A_HOST            0x01U   /**< DNS type A host. */
+    #define dnsTYPE_CNAME_HOST        0x0005U /**< DNS type CNAME, the canonical name of an alias. */
     #define dnsTYPE_AAAA_HOST         0x001CU
     #define dnsTYPE_ANY_HOST          0x00FFU
 
