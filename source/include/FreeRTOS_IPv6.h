@@ -114,7 +114,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress );
 
 /* Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
- * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
+ * the special multicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
  * the last 3 bytes of the IPv6 address. */
 BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                  const IPv6_Address_t * pxRight,

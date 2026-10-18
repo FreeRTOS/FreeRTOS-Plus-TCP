@@ -209,6 +209,8 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
 
             pxNetworkBuffer->pxEndPoint = pxEndPoint;
 
+            pxIPHeader_IPv6->ucHopLimit = pxNetworkBuffer->ucMaximumHops;
+
             #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
 
                 /* Is it possible that the packet is not actually a UDP packet
@@ -217,7 +219,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                 {
                     pxIPHeader_IPv6->ucVersionTrafficClass = 0x60;
                     pxIPHeader_IPv6->ucNextHeader = ipPROTOCOL_ICMP_IPv6;
-                    pxIPHeader_IPv6->ucHopLimit = 128;
                 }
                 else
             #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
@@ -229,7 +230,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                 pxIPHeader_IPv6->ucVersionTrafficClass = 0x60;
                 pxIPHeader_IPv6->ucTrafficClassFlow = 0;
                 pxIPHeader_IPv6->usFlowLabel = 0;
-                pxIPHeader_IPv6->ucHopLimit = 255;
                 pxUDPHeader->usLength = ( uint16_t ) ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) );
 
                 pxIPHeader_IPv6->ucNextHeader = ipPROTOCOL_UDP;
@@ -418,6 +418,40 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
         if( pxSocket != NULL )
         {
+            #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+                /* If this incoming packet is a multicast, we may have a socket for the port, but we still need
+                 * to ensure the socket is subscribed to that particular multicast group. Note: Since this stack
+                 * does not support port reusing, we don't have to worry about two UDP sockets bound to the exact same
+                 * local port, but subscribed to different multicast groups. If this was allowed, this check
+                 * would have to be moved to the pxUDPSocketLookup() function itself. */
+                if( xIsIPv6AllowedMulticast( &( pxUDPPacket_IPv6->xIPHeader.xDestinationAddress ) ) )
+                {
+                    /* Destination is a good multicast address, but is the socket subscribed to this group? */
+                    if( ( memcmp( pxSocket->u.xUDP.xMulticastAddress.xIP_IPv6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) &&
+                        ( ( pxSocket->u.xUDP.pxMulticastNetIf == NULL ) || ( pxSocket->u.xUDP.pxMulticastNetIf == pxNetworkBuffer->pxInterface ) ) )
+                    {
+                        /* Multicast group and network interface match. Allow further parsing by doing nothing here. */
+                    }
+                    else
+                    {
+                        /* This socket is not subscribed to this multicast group or the interface on which the socket
+                         * is subscribed doesn't match. Nullify the result from pxUDPSocketLookup().
+                         * Setting the socket to NULL is not strictly necessary. Leave here for clarity and insurance. */
+                        pxSocket = NULL;
+                        /* return pdFAIL so the buffer can be released */
+                        xReturn = pdFAIL;
+                        /* Do not continue parsing */
+                        break;
+                    }
+                }
+                else
+                {
+                    /* The incoming packet is not a multicast and we already know it
+                     * matches this socket's port number, so just proceed */
+                }
+            #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
             if( xCheckRequiresNDResolution( pxNetworkBuffer ) == pdTRUE )
             {
                 /* Mark this packet as waiting for ND resolution. */
