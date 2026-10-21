@@ -358,6 +358,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Routing/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_ConfigV4Only/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_ConfigCompatibleWithSingle/ut.cmake )
+include( ${UNIT_TEST_DIR}/phyHandling/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.

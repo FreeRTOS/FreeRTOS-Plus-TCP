@@ -173,13 +173,13 @@ static BaseType_t xHas_19_PHYCR( uint32_t ulPhyID )
 
     switch( ulPhyID )
     {
-        case PHY_ID_LAN8742A:
         case PHY_ID_DP83848I:
         case PHY_ID_DP83822HF:
         case PHY_ID_TM4C129X:
             xResult = pdTRUE;
             break;
 
+        case PHY_ID_LAN8742A:  /* Register 0x19 is TDR Control/Status, not PHYCR. */
         case PHY_ID_MV88E6071: /* Marvell 88E6071 */
         default:
             /* Most PHY's do not have a 19_PHYCR */
