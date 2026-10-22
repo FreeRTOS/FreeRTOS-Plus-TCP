@@ -1101,17 +1101,22 @@
                         heth->RxDescList.RxDataLength = 0;
                     }
 
-                    /* Get the Frame Length of the received packet: substruct 4 bytes of the CRC */
-                    bufflength = READ_BIT( dmarxdesc->DESC3, ETH_DMARXNDESCWBF_PL ) - heth->RxDescList.RxDataLength;
-
                     /* Check if last descriptor */
                     if( READ_BIT( dmarxdesc->DESC3, ETH_DMARXNDESCWBF_LD ) != ( uint32_t ) RESET )
                     {
+                        /* PL is valid on the last descriptor and contains the total frame length. */
+                        bufflength = READ_BIT( dmarxdesc->DESC3, ETH_DMARXNDESCWBF_PL ) - heth->RxDescList.RxDataLength;
+
                         /* Save Last descriptor index */
                         heth->RxDescList.pRxLastRxDesc = dmarxdesc->DESC3;
 
                         /* Packet ready */
                         rxdataready = 1;
+                    }
+                    else
+                    {
+                        /* PL is not a per-segment length on intermediate descriptors. */
+                        bufflength = heth->Init.RxBuffLen;
                     }
 
                     /* Link data */
