@@ -730,6 +730,10 @@ STATIC_ASSERT( ipconfigMAX_IP_TASK_SLEEP_TIME <= portMAX_DELAY );
  * also checking the target IP address. Also when disabled, xPortHasUDPSocket()
  * won't be included. That means that the IP-task can access the
  * 'xBoundUDPSocketsList' without locking.
+ *
+ * When enabled, a network driver can call eConsiderPacketForProcessing()
+ * after assigning the packet's matching endpoint to perform the common IP
+ * address and header sanity checks.
  */
 
 #ifndef ipconfigETHERNET_DRIVER_FILTERS_PACKETS
