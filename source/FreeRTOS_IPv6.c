@@ -291,8 +291,6 @@ BaseType_t xIsIPv6Loopback( const IPv6_Address_t * pxAddress )
     return xReturn;
 }
 
-#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-
 /**
  * @brief Check if the packet is an illegal loopback packet.
  *
@@ -305,28 +303,26 @@ BaseType_t xIsIPv6Loopback( const IPv6_Address_t * pxAddress )
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 /* coverity[single_use] */
-    BaseType_t xBadIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
+BaseType_t xBadIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
+{
+    BaseType_t xReturn = pdFALSE;
+    const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPv6Header->xSourceAddress ) );
+
+    /* Allow loopback packets from this node itself only. */
+    if( pxEndPoint != NULL )
     {
-        BaseType_t xReturn = pdFALSE;
-        const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPv6Header->xSourceAddress ) );
+        BaseType_t x1 = ( xIsIPv6Loopback( &( pxIPv6Header->xDestinationAddress ) ) != 0 ) ? pdTRUE : pdFALSE;
+        BaseType_t x2 = ( xIsIPv6Loopback( &( pxIPv6Header->xSourceAddress ) ) != 0 ) ? pdTRUE : pdFALSE;
 
-        /* Allow loopback packets from this node itself only. */
-        if( pxEndPoint != NULL )
+        if( x1 != x2 )
         {
-            BaseType_t x1 = ( xIsIPv6Loopback( &( pxIPv6Header->xDestinationAddress ) ) != 0 ) ? pdTRUE : pdFALSE;
-            BaseType_t x2 = ( xIsIPv6Loopback( &( pxIPv6Header->xSourceAddress ) ) != 0 ) ? pdTRUE : pdFALSE;
-
-            if( x1 != x2 )
-            {
-                /* Either source or the destination address is a loopback address. */
-                xReturn = pdTRUE;
-            }
+            /* Either source or the destination address is a loopback address. */
+            xReturn = pdTRUE;
         }
-
-        return xReturn;
     }
 
-#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
+    return xReturn;
+}
 
 
 /*-----------------------------------------------------------*/
@@ -465,6 +461,77 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
 
 
 /**
+ * @brief Apply IPv6 admission policy shared by the IP task and driver filter.
+ *
+ * The caller must provide a complete IPv6 header. Length, checksum and transport
+ * validation remain the caller's responsibility.
+ *
+ * @param[in] pxIPv6Header IPv6 header to consider.
+ * @param[in] pxEndPoint Endpoint selected for this packet, or NULL.
+ * @param[in] xAllowHostLoopback pdTRUE to preserve the IP task's local loopback
+ *                             handling; pdFALSE for network driver filtering.
+ * @return Whether the packet should be processed or dropped.
+ */
+eFrameProcessingResult_t eConsiderIPv6PacketForProcessing( const IPHeader_IPv6_t * const pxIPv6Header,
+                                                           const NetworkEndPoint_t * const pxEndPoint,
+                                                           BaseType_t xAllowHostLoopback )
+{
+    eFrameProcessingResult_t eReturn;
+    const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
+    const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
+    BaseType_t xHasUnspecifiedAddress = pdFALSE;
+    uint16_t ucVersionTrafficClass = pxIPv6Header->ucVersionTrafficClass;
+
+    /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
+     * either in source or destination address. */
+    if( ( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
+        ( memcmp( pxSourceIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+    {
+        xHasUnspecifiedAddress = pdTRUE;
+    }
+
+    /* Test if the IP-version is 6. */
+    if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
+    {
+        /* Can not handle, unknown or invalid header version. */
+        eReturn = eReleaseBuffer;
+    }
+    else if( ( xAllowHostLoopback == pdFALSE ) &&
+             ( ( xIsIPv6Loopback( pxSourceIPAddress ) == pdTRUE ) ||
+               ( xIsIPv6Loopback( pxDestinationIPAddress ) == pdTRUE ) ) )
+    {
+        /* Loopback addresses must not arrive from a physical interface. */
+        eReturn = eReleaseBuffer;
+    }
+    /* Is the packet for this IP address? */
+    else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+             ( pxEndPoint != NULL ) &&
+             ( memcmp( pxDestinationIPAddress->ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+    {
+        eReturn = eProcessBuffer;
+    }
+    /* Is it the legal multicast address? */
+    else if( ( ( xHasUnspecifiedAddress == pdFALSE ) &&
+               ( ( xAllowHostLoopback == pdFALSE ) ||
+                 ( xBadIPv6Loopback( pxIPv6Header ) == pdFALSE ) ) ) &&
+             ( ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) != pdFALSE ) ||
+               /* Or (during DHCP negotiation) we have no IP-address yet? */
+               ( FreeRTOS_IsNetworkUp() == 0 ) ) )
+    {
+        eReturn = eProcessBuffer;
+    }
+    else
+    {
+        /* Packet is not for this node, or the network is still not up,
+         * release it */
+        eReturn = eReleaseBuffer;
+    }
+
+    return eReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Check whether this IPv6 packet is to be allowed or to be dropped.
  *
  * @param[in] pxIPv6Header The IP packet under consideration.
@@ -481,51 +548,13 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 
     #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
     {
-        /* In systems with a very small amount of RAM, it might be advantageous
-         * to have incoming messages checked earlier, by the network card driver.
-         * This method may decrease the usage of sparse network buffers. */
-        const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
-        const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
-        BaseType_t xHasUnspecifiedAddress = pdFALSE;
-        uint16_t ucVersionTrafficClass = pxIPv6Header->ucVersionTrafficClass;
+        eReturn = eConsiderIPv6PacketForProcessing( pxIPv6Header,
+                                                  ( pxNetworkBuffer != NULL ) ? pxNetworkBuffer->pxEndPoint : NULL,
+                                                  pdTRUE );
 
-        /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
-         * either in source or destination address. */
-        if( ( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
-            ( memcmp( pxSourceIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        if( eReturn != eProcessBuffer )
         {
-            xHasUnspecifiedAddress = pdTRUE;
-        }
-
-        /* Test if the IP-version is 6. */
-        if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
-        {
-            /* Can not handle, unknown or invalid header version. */
-            eReturn = eReleaseBuffer;
-            FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop packet, invalid header version: %u\n", ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) );
-        }
-        /* Is the packet for this IP address? */
-        else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
-                 ( pxNetworkBuffer->pxEndPoint != NULL ) &&
-                 ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
-        {
-            eReturn = eProcessBuffer;
-        }
-        /* Is it the legal multicast address? */
-        else if( ( ( xHasUnspecifiedAddress == pdFALSE ) &&
-                   ( xBadIPv6Loopback( pxIPv6Header ) == pdFALSE ) ) &&
-                 ( ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) != pdFALSE ) ||
-                   /* Or (during DHCP negotiation) we have no IP-address yet? */
-                   ( FreeRTOS_IsNetworkUp() == 0 ) ) )
-        {
-            eReturn = eProcessBuffer;
-        }
-        else
-        {
-            /* Packet is not for this node, or the network is still not up,
-             * release it */
-            eReturn = eReleaseBuffer;
-            FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop %pip (from %pip)\n", pxDestinationIPAddress->ucBytes, pxIPv6Header->xSourceAddress.ucBytes ) );
+            FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop %pip (from %pip)\n", pxIPv6Header->xDestinationAddress.ucBytes, pxIPv6Header->xSourceAddress.ucBytes ) );
         }
     }
     #else /* if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 ) */
