@@ -1857,6 +1857,63 @@ void test_prvTCPSocketCopy_BindError( void )
 }
 
 /**
+ * @brief A child which fails to bind is freed again before this function
+ *        returns.  It must not be counted, nor left reachable from the parent:
+ *        an unbound child has no local port, so 'prvTCPSetSocketCount()' could
+ *        not find the parent in order to clear the reference again.
+ */
+void test_prvTCPSocketCopy_BindError_DoesNotLinkChild( void )
+{
+    BaseType_t Result = pdFALSE;
+
+    FreeRTOS_Socket_t MockReturnSocket;
+
+    pxSocket = &xSocket;
+
+    pxSocket->usLocalPort = 22;
+    pxSocket->u.xTCP.pxPeerSocket = NULL;
+    pxSocket->u.xTCP.usChildCount = 0;
+
+    FreeRTOS_GetLocalAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
+    FreeRTOS_GetLocalAddress_IgnoreArg_pxAddress();
+    vSocketBind_ExpectAnyArgsAndReturn( 1 );
+    vSocketClose_ExpectAnyArgsAndReturn( NULL );
+
+    Result = prvTCPSocketCopy( &MockReturnSocket, pxSocket );
+
+    TEST_ASSERT_EQUAL( pdFALSE, Result );
+    TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( 0, pxSocket->u.xTCP.usChildCount );
+}
+
+/**
+ * @brief Once the bind has succeeded the child is counted and stored in the
+ *        listening parent, so that 'FreeRTOS_accept()' can find it.
+ */
+void test_prvTCPSocketCopy_BindSuccess_LinksChild( void )
+{
+    BaseType_t Result = pdFALSE;
+
+    FreeRTOS_Socket_t MockReturnSocket;
+
+    pxSocket = &xSocket;
+
+    pxSocket->usLocalPort = 22;
+    pxSocket->u.xTCP.pxPeerSocket = NULL;
+    pxSocket->u.xTCP.usChildCount = 0;
+
+    FreeRTOS_GetLocalAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
+    FreeRTOS_GetLocalAddress_IgnoreArg_pxAddress();
+    vSocketBind_ExpectAnyArgsAndReturn( 0 );
+
+    Result = prvTCPSocketCopy( &MockReturnSocket, pxSocket );
+
+    TEST_ASSERT_EQUAL( pdTRUE, Result );
+    TEST_ASSERT_EQUAL( &MockReturnSocket, pxSocket->u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( 1, pxSocket->u.xTCP.usChildCount );
+}
+
+/**
  * @brief Test for FreeRTOS_GetTCPStateName function.
  */
 void test_FreeRTOS_GetTCPStateName( void )

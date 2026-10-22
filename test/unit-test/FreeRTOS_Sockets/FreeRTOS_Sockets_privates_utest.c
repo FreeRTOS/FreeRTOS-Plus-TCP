@@ -1480,6 +1480,108 @@ void test_prvTCPSetSocketCount_NotListeningSock_HappyPath( void )
 }
 
 /**
+ * @brief A child socket is being freed and the listening parent still refers to
+ *        it.  That reference must be dropped, or 'FreeRTOS_accept()' and
+ *        'FreeRTOS_select()' would dereference freed memory.
+ */
+void test_prvTCPSetSocketCount_NotListeningSock_ClearsPeerSocket( void )
+{
+    FreeRTOS_Socket_t xSocketToDelete, xParentSocket;
+    ListItem_t xIterator;
+    uint16_t usLocalPort = 0x1234;
+
+    memset( &xSocketToDelete, 0, sizeof( xSocketToDelete ) );
+    memset( &xParentSocket, 0, sizeof( xParentSocket ) );
+
+    xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+    xSocketToDelete.u.xTCP.eTCPState = eCLOSED;
+    xSocketToDelete.usLocalPort = usLocalPort;
+
+    xParentSocket.u.xTCP.eTCPState = eTCP_LISTEN;
+    xParentSocket.usLocalPort = usLocalPort;
+    xParentSocket.u.xTCP.usChildCount = 1;
+    xParentSocket.u.xTCP.pxPeerSocket = &xSocketToDelete;
+
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundTCPSocketsList ), ( ListItem_t * ) &( xIterator ) );
+
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xParentSocket );
+
+    prvTCPSetSocketCount( &xSocketToDelete );
+
+    TEST_ASSERT_EQUAL( NULL, xParentSocket.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( 0, xParentSocket.u.xTCP.usChildCount );
+}
+
+/**
+ * @brief A child socket is being freed, but the listening parent refers to a
+ *        different child which is still waiting to be accepted.  That reference
+ *        must survive: clearing it would lose a live connection.
+ */
+void test_prvTCPSetSocketCount_NotListeningSock_KeepsOtherPeerSocket( void )
+{
+    FreeRTOS_Socket_t xSocketToDelete, xParentSocket, xPendingChild;
+    ListItem_t xIterator;
+    uint16_t usLocalPort = 0x1234;
+
+    memset( &xSocketToDelete, 0, sizeof( xSocketToDelete ) );
+    memset( &xParentSocket, 0, sizeof( xParentSocket ) );
+    memset( &xPendingChild, 0, sizeof( xPendingChild ) );
+
+    xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+    xSocketToDelete.u.xTCP.eTCPState = eCLOSED;
+    xSocketToDelete.usLocalPort = usLocalPort;
+
+    xParentSocket.u.xTCP.eTCPState = eTCP_LISTEN;
+    xParentSocket.usLocalPort = usLocalPort;
+    xParentSocket.u.xTCP.usChildCount = 2;
+    xParentSocket.u.xTCP.pxPeerSocket = &xPendingChild;
+
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundTCPSocketsList ), ( ListItem_t * ) &( xIterator ) );
+
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xParentSocket );
+
+    prvTCPSetSocketCount( &xSocketToDelete );
+
+    TEST_ASSERT_EQUAL( &xPendingChild, xParentSocket.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( 1, xParentSocket.u.xTCP.usChildCount );
+}
+
+/**
+ * @brief The reference must be dropped even when the parent's child count has
+ *        already reached zero, so the clean-up does not depend on the counter
+ *        and the parent's own book-keeping staying in step.
+ */
+void test_prvTCPSetSocketCount_NotListeningSock_ClearsPeerSocketZeroChildCount( void )
+{
+    FreeRTOS_Socket_t xSocketToDelete, xParentSocket;
+    ListItem_t xIterator;
+    uint16_t usLocalPort = 0x1234;
+
+    memset( &xSocketToDelete, 0, sizeof( xSocketToDelete ) );
+    memset( &xParentSocket, 0, sizeof( xParentSocket ) );
+
+    xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+    xSocketToDelete.u.xTCP.eTCPState = eCLOSED;
+    xSocketToDelete.usLocalPort = usLocalPort;
+
+    xParentSocket.u.xTCP.eTCPState = eTCP_LISTEN;
+    xParentSocket.usLocalPort = usLocalPort;
+    xParentSocket.u.xTCP.usChildCount = 0;
+    xParentSocket.u.xTCP.pxPeerSocket = &xSocketToDelete;
+
+    listGET_HEAD_ENTRY_ExpectAndReturn( ( List_t * ) &( xBoundTCPSocketsList ), ( ListItem_t * ) &( xIterator ) );
+
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xParentSocket );
+
+    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+
+    prvTCPSetSocketCount( &xSocketToDelete );
+
+    TEST_ASSERT_EQUAL( NULL, xParentSocket.u.xTCP.pxPeerSocket );
+    TEST_ASSERT_EQUAL( 0, xParentSocket.u.xTCP.usChildCount );
+}
+
+/**
  * @brief Invalid protocol.
  */
 void test_prvSockopt_so_buffer_InvalidProtocol( void )

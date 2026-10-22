@@ -1012,37 +1012,12 @@
         }
         #else
         {
-            /* A reference to the new socket may be stored and the socket is marked
-             * as 'passable'. */
-
             /* When bPassAccept is true, this socket may be returned in a call to
              * accept(). */
             pxNewSocket->u.xTCP.bits.bPassAccept = ipTRUE_BOOL;
-
-            if( pxSocket->u.xTCP.pxPeerSocket == NULL )
-            {
-                pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
-            }
         }
         #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
-        pxSocket->u.xTCP.usChildCount++;
-
-        if( pxSocket->u.xTCP.pxPeerSocket == NULL )
-        {
-            pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
-        }
-
-        FreeRTOS_debug_printf( ( "Gain: Socket %u now has %u / %u child%s me: %p parent: %p peer: %p\n",
-                                 pxSocket->usLocalPort,
-                                 pxSocket->u.xTCP.usChildCount,
-                                 pxSocket->u.xTCP.usBacklog,
-                                 ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren",
-                                 ( void * ) pxNewSocket,
-                                 ( void * ) pxSocket,
-                                 pxSocket ? ( void * ) pxSocket->u.xTCP.pxPeerSocket : NULL ) );
-
-        /* Now bind the child socket to the same port as the listening socket. */
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
@@ -1051,6 +1026,24 @@
         }
         else
         {
+            pxSocket->u.xTCP.usChildCount++;
+
+            /* Store a reference to the child in the listening socket, so that
+             * accept() can find it. */
+            if( pxSocket->u.xTCP.pxPeerSocket == NULL )
+            {
+                pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
+            }
+
+            FreeRTOS_debug_printf( ( "Gain: Socket %u now has %u / %u child%s me: %p parent: %p peer: %p\n",
+                                     pxSocket->usLocalPort,
+                                     pxSocket->u.xTCP.usChildCount,
+                                     pxSocket->u.xTCP.usBacklog,
+                                     ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren",
+                                     ( void * ) pxNewSocket,
+                                     ( void * ) pxSocket,
+                                     pxSocket ? ( void * ) pxSocket->u.xTCP.pxPeerSocket : NULL ) );
+
             xResult = pdTRUE;
         }
 
