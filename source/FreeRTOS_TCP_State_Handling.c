@@ -1018,14 +1018,6 @@
         }
         #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
-        /* Now bind the child socket to the same port as the listening socket.
-         *
-         * The child is only counted and made reachable from the parent once the
-         * bind has succeeded.  'prvTCPSetSocketCount()' undoes both of those on
-         * every path which frees the child, and it locates the parent by the
-         * child's local port - which a child that failed to bind does not have.
-         * Linking an unbound child would therefore leave the parent holding a
-         * reference that no teardown path can clear. */
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
         {
             FreeRTOS_debug_printf( ( "TCP: Listen: new socket bind error\n" ) );
