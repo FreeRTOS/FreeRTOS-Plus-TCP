@@ -71,10 +71,29 @@ FetchContent_Declare( freertos_plus_tcp
 set( FREERTOS_PLUS_TCP_NETWORK_IF "POSIX" CACHE STRING "" FORCE)
 # Or: select a cross-compile PORT
 if (CMAKE_CROSSCOMPILING)
-  # Eg. STM32Hxx version of port
-  set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32HXX" CACHE STRING "" FORCE)
+  # Eg. STM32H7 version of port
+  set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32" CACHE STRING "" FORCE)
+  set(FREERTOS_PLUS_TCP_STM32_IF_DRIVER "H7" CACHE STRING "" FORCE)
 endif()
 
+FetchContent_MakeAvailable(freertos_plus_tcp)
+```
+
+- To provide a project-specific network interface, create the
+  `freertos_plus_tcp_network_if` target before making FreeRTOS-Plus-TCP
+  available. FreeRTOS-Plus-TCP attaches its internal dependencies to this
+  target; the application only needs to attach platform-specific dependencies.
+
+```cmake
+add_library(freertos_plus_tcp_network_if STATIC
+  path/to/NetworkInterface.c
+)
+target_link_libraries(freertos_plus_tcp_network_if
+  PRIVATE
+    board_support
+)
+
+set(FREERTOS_PLUS_TCP_NETWORK_IF "A_CUSTOM_NETWORK_IF" CACHE STRING "" FORCE)
 FetchContent_MakeAvailable(freertos_plus_tcp)
 ```
 

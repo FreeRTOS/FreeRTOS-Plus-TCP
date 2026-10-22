@@ -28,9 +28,10 @@ target_link_libraries( freertos_plus_tcp_network_if_common
 )
 
 #------------------------------------------------------------------------------
+# add_subdirectory(board_family) - This is only an example.
+
 add_subdirectory(ATSAM4E)
 add_subdirectory(ATSAME5x)
-#add_subdirectory(board_family) - This is only an example.
 add_subdirectory(DriverSAM)
 add_subdirectory(esp32)
 add_subdirectory(ksz8851snl)
@@ -50,8 +51,17 @@ add_subdirectory(pic32mzef)
 add_subdirectory(RX)
 add_subdirectory(SH2A)
 add_subdirectory(STM32)
-add_subdirectory(ThirdParty/MSP432)
+add_subdirectory(ThirdParty)
 add_subdirectory(TM4C)
 add_subdirectory(WinPCap)
 add_subdirectory(xilinx_ultrascale)
 add_subdirectory(Zynq)
+
+target_link_libraries( freertos_plus_tcp_network_if
+  PUBLIC
+    freertos_plus_tcp_port
+    freertos_plus_tcp_network_if_common
+  PRIVATE
+    freertos_kernel
+    freertos_plus_tcp
+)
