@@ -54,6 +54,189 @@ extern const struct xIPv6_Address FreeRTOS_in6addr_any;
 /* =============================== Test Cases =============================== */
 
 /**
+ * @brief Reject a chained extension header whose length field is missing.
+ */
+void test_prvAllowIPPacketIPv6_TruncatedExtensionHeaderChain( void )
+{
+    uint8_t ucPacket[ sizeof( IPPacket_IPv6_t ) + 8U + 1U ] = { 0 };
+    NetworkBufferDescriptor_t xBuffer = *prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxPacket = ( IPPacket_IPv6_t * ) ucPacket;
+    eFrameProcessingResult_t eResult;
+
+    ( void ) memcpy( ucPacket, xBuffer.pucEthernetBuffer, sizeof( IPPacket_IPv6_t ) );
+    xBuffer.pucEthernetBuffer = ucPacket;
+    xBuffer.xDataLength = sizeof( ucPacket );
+    pxPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 9U );
+    pxPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    ucPacket[ sizeof( IPPacket_IPv6_t ) ] = ipIPv6_EXT_HEADER_DESTINATION_OPTIONS;
+    ucPacket[ sizeof( IPPacket_IPv6_t ) + 8U ] = ipPROTOCOL_UDP;
+
+    eResult = prvAllowIPPacketIPv6( &pxPacket->xIPHeader, &xBuffer, 0U );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief Check empty, one-byte, and exactly two-byte extension header prefixes.
+ */
+void test_prvAllowIPPacketIPv6_TruncatedFirstExtensionHeader( void )
+{
+    size_t uxLength;
+
+    for( uxLength = 0U; uxLength <= sizeof( IPExtHeader_IPv6_t ); uxLength++ )
+    {
+        NetworkBufferDescriptor_t xBuffer = *prvInitializeNetworkDescriptor();
+        size_t uxPacketLength = sizeof( IPPacket_IPv6_t ) + uxLength;
+        uint8_t * pucPacket = malloc( uxPacketLength );
+        IPPacket_IPv6_t * pxPacket;
+        eFrameProcessingResult_t eResult;
+
+        TEST_ASSERT_NOT_NULL( pucPacket );
+        ( void ) memset( pucPacket, 0, uxPacketLength );
+        ( void ) memcpy( pucPacket, xBuffer.pucEthernetBuffer, sizeof( IPPacket_IPv6_t ) );
+        xBuffer.pucEthernetBuffer = pucPacket;
+        xBuffer.xDataLength = uxPacketLength;
+        pxPacket = ( IPPacket_IPv6_t * ) pucPacket;
+        pxPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ( uint16_t ) uxLength );
+        pxPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+
+        if( uxLength > 0U )
+        {
+            pucPacket[ sizeof( IPPacket_IPv6_t ) ] = ipPROTOCOL_UDP;
+        }
+
+        eResult = prvAllowIPPacketIPv6( &pxPacket->xIPHeader, &xBuffer, 0U );
+        free( pucPacket );
+
+        TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    }
+}
+
+/**
+ * @brief A complete extension header still requires a following protocol header.
+ */
+void test_prvAllowIPPacketIPv6_ExtensionHeaderAtPacketEnd( void )
+{
+    uint8_t ucPacket[ sizeof( IPPacket_IPv6_t ) + 8U ] = { 0 };
+    NetworkBufferDescriptor_t xBuffer = *prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxPacket = ( IPPacket_IPv6_t * ) ucPacket;
+    eFrameProcessingResult_t eResult;
+
+    ( void ) memcpy( ucPacket, xBuffer.pucEthernetBuffer, sizeof( IPPacket_IPv6_t ) );
+    xBuffer.pucEthernetBuffer = ucPacket;
+    xBuffer.xDataLength = sizeof( ucPacket );
+    pxPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 8U );
+    pxPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    ucPacket[ sizeof( IPPacket_IPv6_t ) ] = ipPROTOCOL_UDP;
+
+    eResult = prvAllowIPPacketIPv6( &pxPacket->xIPHeader, &xBuffer, 0U );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief Accept complete extension chains followed by an exact UDP header.
+ */
+void test_prvAllowIPPacketIPv6_ExactExtensionAndProtocolLengths( void )
+{
+    size_t uxHeaderCount;
+
+    for( uxHeaderCount = 1U; uxHeaderCount <= 2U; uxHeaderCount++ )
+    {
+        NetworkBufferDescriptor_t xBuffer = *prvInitializeNetworkDescriptor();
+        size_t uxPayloadLength = ( uxHeaderCount * 8U ) + ipSIZE_OF_UDP_HEADER;
+        size_t uxPacketLength = sizeof( IPPacket_IPv6_t ) + uxPayloadLength;
+        uint8_t * pucPacket = malloc( uxPacketLength );
+        IPPacket_IPv6_t * pxPacket;
+        eFrameProcessingResult_t eResult;
+
+        TEST_ASSERT_NOT_NULL( pucPacket );
+        ( void ) memset( pucPacket, 0, uxPacketLength );
+        ( void ) memcpy( pucPacket, xBuffer.pucEthernetBuffer, sizeof( IPPacket_IPv6_t ) );
+        xBuffer.pucEthernetBuffer = pucPacket;
+        xBuffer.xDataLength = uxPacketLength;
+        pxPacket = ( IPPacket_IPv6_t * ) pucPacket;
+        pxPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ( uint16_t ) uxPayloadLength );
+        pxPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+        pucPacket[ sizeof( IPPacket_IPv6_t ) ] = ipPROTOCOL_UDP;
+
+        if( uxHeaderCount == 2U )
+        {
+            pucPacket[ sizeof( IPPacket_IPv6_t ) ] = ipIPv6_EXT_HEADER_DESTINATION_OPTIONS;
+            pucPacket[ sizeof( IPPacket_IPv6_t ) + 8U ] = ipPROTOCOL_UDP;
+        }
+
+        eResult = prvAllowIPPacketIPv6( &pxPacket->xIPHeader, &xBuffer, 0U );
+        free( pucPacket );
+
+        TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+    }
+}
+
+/**
+ * @brief Accept a complete 16-byte extension and reject its truncated payload.
+ */
+void test_prvAllowIPPacketIPv6_NonMinimumExtensionLength( void )
+{
+    uint8_t ucPacket[ sizeof( IPPacket_IPv6_t ) + 16U + ipSIZE_OF_UDP_HEADER ] = { 0 };
+    NetworkBufferDescriptor_t xBuffer = *prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxPacket = ( IPPacket_IPv6_t * ) ucPacket;
+    eFrameProcessingResult_t eResult;
+
+    ( void ) memcpy( ucPacket, xBuffer.pucEthernetBuffer, sizeof( IPPacket_IPv6_t ) );
+    xBuffer.pucEthernetBuffer = ucPacket;
+    xBuffer.xDataLength = sizeof( ucPacket );
+    pxPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    ucPacket[ sizeof( IPPacket_IPv6_t ) ] = ipPROTOCOL_UDP;
+    ucPacket[ sizeof( IPPacket_IPv6_t ) + 1U ] = 1U;
+
+    pxPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 16U + ipSIZE_OF_UDP_HEADER );
+    eResult = prvAllowIPPacketIPv6( &pxPacket->xIPHeader, &xBuffer, 0U );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+
+    /* The physical frame still contains bytes outside the declared payload. */
+    pxPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 15U );
+    eResult = prvAllowIPPacketIPv6( &pxPacket->xIPHeader, &xBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief Trailing frame bytes cannot complete headers outside the IPv6 payload.
+ */
+void test_prvAllowIPPacketIPv6_ExtensionPayloadBoundary( void )
+{
+    uint8_t ucPacket[ sizeof( IPPacket_IPv6_t ) + 16U + ipSIZE_OF_UDP_HEADER + 8U ] = { 0 };
+    NetworkBufferDescriptor_t xBuffer = *prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxPacket = ( IPPacket_IPv6_t * ) ucPacket;
+    const size_t uxCompletePayloadLength = 16U + ipSIZE_OF_UDP_HEADER;
+    size_t uxPayloadLength;
+
+    ( void ) memcpy( ucPacket, xBuffer.pucEthernetBuffer, sizeof( IPPacket_IPv6_t ) );
+    xBuffer.pucEthernetBuffer = ucPacket;
+    xBuffer.xDataLength = sizeof( ucPacket );
+    pxPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    ucPacket[ sizeof( IPPacket_IPv6_t ) ] = ipIPv6_EXT_HEADER_DESTINATION_OPTIONS;
+    ucPacket[ sizeof( IPPacket_IPv6_t ) + 8U ] = ipPROTOCOL_UDP;
+
+    for( uxPayloadLength = 0U; uxPayloadLength <= uxCompletePayloadLength; uxPayloadLength++ )
+    {
+        eFrameProcessingResult_t eResult;
+
+        pxPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ( uint16_t ) uxPayloadLength );
+        eResult = prvAllowIPPacketIPv6( &pxPacket->xIPHeader, &xBuffer, 0U );
+
+        if( uxPayloadLength < uxCompletePayloadLength )
+        {
+            TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+        }
+        else
+        {
+            TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+        }
+    }
+}
+
+/**
  * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_happy_path
  * Prepare a packet with valid length. Check if prvAllowIPPacketIPv6 determines to process it.
  */
