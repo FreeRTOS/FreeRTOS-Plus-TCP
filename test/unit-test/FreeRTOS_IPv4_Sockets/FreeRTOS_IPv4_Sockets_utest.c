@@ -75,6 +75,7 @@ void test_FreeRTOS_inet_pton4( void )
     char * pucInvalidString6 = "\0";
     char * pucInvalidString7 = "1234.68.1.1";
     char * pucInvalidString8 = "123.68.0a.1";
+    const char * pcInvalidString9 = "192.68.1.00";
     uint32_t ulInValidResponse = 0x00;
 
     BaseType_t xResult;
@@ -145,6 +146,105 @@ void test_FreeRTOS_inet_pton4( void )
     xResult = FreeRTOS_inet_pton4( pucInvalidString8, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 8." );
+
+    ulIPAddress = 0xABABABABU;
+    xResult = FreeRTOS_inet_pton4( pcInvalidString9, &ulIPAddress );
+    TEST_ASSERT_EQUAL( pdFAIL, xResult );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 9." );
+}
+
+/**
+ * @brief Every IPv4 octet must contain at least one decimal digit.
+ */
+void test_FreeRTOS_inet_pton4_EmptyOctets( void )
+{
+    const char * pcAddresses[] =
+    {
+        ".168.0.1",
+        "192..0.1",
+        "192.168..1",
+        "192.168.0.",
+        "...",
+        "192",
+        "192.168",
+        "192.168.0"
+    };
+    size_t uxIndex;
+
+    for( uxIndex = 0U; uxIndex < sizeof( pcAddresses ) / sizeof( pcAddresses[ 0 ] ); uxIndex++ )
+    {
+        uint32_t ulIPAddress = 0xABABABABU;
+
+        TEST_ASSERT_EQUAL_MESSAGE( pdFAIL,
+                                   FreeRTOS_inet_pton4( pcAddresses[ uxIndex ], &ulIPAddress ),
+                                   pcAddresses[ uxIndex ] );
+        TEST_ASSERT_EQUAL_UINT32( 0U, ulIPAddress );
+    }
+}
+
+/**
+ * @brief Reject out-of-range octets before decimal arithmetic can wrap.
+ */
+void test_FreeRTOS_inet_pton4_OutOfRangeOctets( void )
+{
+    const char * pcAddresses[] =
+    {
+        "256.1.2.3",
+        "1.256.2.3",
+        "1.2.256.3",
+        "1.2.3.256",
+        "4294967295.1.2.3", /* UINT32_MAX. */
+        "4294967296.1.2.3", /* UINT32_MAX + 1 would wrap to 0. */
+        "1.4294967296.2.3",
+        "1.2.4294967296.3",
+        "1.2.3.4294967296",
+        "4294967297.1.2.3", /* Wraps to 1. */
+        "4294967551.1.2.3", /* Wraps to 255. */
+        "4294967552.1.2.3", /* Wraps to 256, still out of range. */
+        "18446744073709551616.1.2.3",
+        "9999999999999999999999999999999999999999.1.2.3"
+    };
+    size_t uxIndex;
+
+    for( uxIndex = 0U; uxIndex < sizeof( pcAddresses ) / sizeof( pcAddresses[ 0 ] ); uxIndex++ )
+    {
+        uint32_t ulIPAddress = 0xABABABABU;
+
+        TEST_ASSERT_EQUAL_MESSAGE( pdFAIL,
+                                   FreeRTOS_inet_pton4( pcAddresses[ uxIndex ], &ulIPAddress ),
+                                   pcAddresses[ uxIndex ] );
+        TEST_ASSERT_EQUAL_UINT32( 0U, ulIPAddress );
+    }
+}
+
+/**
+ * @brief Accept boundary values and return the address in network byte order.
+ */
+void test_FreeRTOS_inet_pton4_BoundaryOctets( void )
+{
+    const struct
+    {
+        const char * pcAddress;
+        uint8_t ucExpected[ 4 ];
+    }
+    xCases[] =
+    {
+        { "255.255.255.255", { 255U, 255U, 255U, 255U } },
+        { "0.255.0.255",     { 0U,   255U, 0U,   255U } },
+        { "255.0.255.0",     { 255U, 0U,   255U, 0U   } },
+        { "1.2.3.4",         { 1U,   2U,   3U,   4U   } }
+    };
+    size_t uxIndex;
+
+    for( uxIndex = 0U; uxIndex < sizeof( xCases ) / sizeof( xCases[ 0 ] ); uxIndex++ )
+    {
+        uint32_t ulIPAddress = 0xABABABABU;
+
+        TEST_ASSERT_EQUAL_MESSAGE( pdPASS,
+                                   FreeRTOS_inet_pton4( xCases[ uxIndex ].pcAddress, &ulIPAddress ),
+                                   xCases[ uxIndex ].pcAddress );
+        TEST_ASSERT_EQUAL_MEMORY( xCases[ uxIndex ].ucExpected, &ulIPAddress, sizeof( ulIPAddress ) );
+    }
 }
 
 /**
