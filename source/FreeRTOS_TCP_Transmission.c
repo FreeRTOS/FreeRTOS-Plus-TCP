@@ -1004,10 +1004,24 @@
 
                 pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_ACK;
 
-                if( lDataLen != 0L )
+                #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
                 {
-                    pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                    /* Set PSH only on the segment that empties the send queue. Peers like
+                     * Linux send an ACK at once for every segment that carries PSH. */
+                    if( ( lDataLen != 0L ) &&
+                        ( uxStreamBufferDistance( pxSocket->u.xTCP.txStream, ( size_t ) lStreamPos, pxSocket->u.xTCP.txStream->uxHead ) == ( size_t ) lDataLen ) )
+                    {
+                        pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                    }
                 }
+                #else
+                {
+                    if( lDataLen != 0L )
+                    {
+                        pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                    }
+                }
+                #endif /* if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE ) */
 
                 uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
                 lDataLen += ( int32_t ) uxIntermediateResult;
