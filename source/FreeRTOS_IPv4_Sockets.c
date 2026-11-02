@@ -82,6 +82,8 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     /* Translate "192.168.2.100" to a 32-bit number, network-endian. */
     for( uxOctetNumber = 0U; uxOctetNumber < socketMAX_IP_ADDRESS_OCTETS; uxOctetNumber++ )
     {
+        const char * pcOctetStart = pcIPAddress;
+
         ulValue = 0U;
 
         if( pcIPAddress[ 0 ] == '0' )
@@ -111,20 +113,22 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
 
             /* Move to next character in the string. */
             pcIPAddress++;
+
+            /* Reject an invalid octet before another multiplication can wrap. */
+            if( ulValue > 0xffU )
+            {
+                xResult = pdFAIL;
+                break;
+            }
         }
 
         /* Check characters were read. */
-        if( pcIPAddress == pcSource )
+        if( pcIPAddress == pcOctetStart )
         {
             xResult = pdFAIL;
         }
 
-        /* Check the value fits in an 8-bit number. */
-        if( ulValue > 0xffU )
-        {
-            xResult = pdFAIL;
-        }
-        else
+        if( xResult == pdPASS )
         {
             ucOctet[ uxOctetNumber ] = ( uint8_t ) ulValue;
 
