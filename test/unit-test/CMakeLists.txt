@@ -343,6 +343,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IPv4/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
@@ -412,6 +413,7 @@ add_custom_target( coverage
     FreeRTOS_TCP_IP_utest
     FreeRTOS_TCP_IP_DiffConfig_utest
     FreeRTOS_TCP_Reception_utest
+    FreeRTOS_TCP_Reception_DiffConfig_utest
     FreeRTOS_TCP_State_Handling_utest
     FreeRTOS_TCP_State_Handling_IPv4_utest
     FreeRTOS_TCP_State_Handling_IPv6_utest

@@ -312,6 +312,13 @@
                         pxSocket->u.xTCP.usMSS = ( uint16_t ) uxNewMSS;
                     }
 
+                    #if ( ipconfigTCP_TX_MSS > ipconfigTCP_MSS )
+                    {
+                        /* Send segments up to the MSS the peer advertises, which may be larger than ipconfigTCP_MSS. */
+                        pxTCPWindow->usMSS = ( uint16_t ) FreeRTOS_min_uint32( ( uint32_t ) uxNewMSS, ( uint32_t ) ipconfigTCP_TX_MSS );
+                    }
+                    #endif
+
                     lIndex = ( int32_t ) tcpTCP_OPT_MSS_LEN;
                 }
             }
