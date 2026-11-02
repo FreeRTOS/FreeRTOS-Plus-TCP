@@ -86,118 +86,127 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
  * @param[in] pvEthernetBuffer The Ethernet packet received.
  * @param[in] uxBufferLength The total number of bytes received.
  *
- * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
- *         should be dropped.
+ * @return pdPASS when the packet length fields are valid,
+ *         pdFAIL when the packet should be dropped.
  */
     static BaseType_t xCheckIPv6SizeFields( const void * const pvEthernetBuffer,
                                             size_t uxBufferLength )
     {
         BaseType_t xResult = pdFAIL;
+        BaseType_t xExtHeadersValid = pdTRUE;
         uint16_t usPayloadLength;
         uint8_t ucNextHeader;
         size_t uxMinimumLength;
-        size_t uxExtHeaderLength = 0;
-        const IPExtHeader_IPv6_t * pxExtHeader = NULL;
+        size_t uxProtocolBytesRemaining;
+        size_t uxExtHeaderLength = 0U;
+        const size_t uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
         const uint8_t * const pucEthernetBuffer = ( const uint8_t * ) pvEthernetBuffer;
-
-        /* Map the buffer onto a IPv6-Packet struct to easily access the
-         * fields of the IPv6 packet. */
         const IPPacket_IPv6_t * const pxIPv6Packet = ( const IPPacket_IPv6_t * ) pucEthernetBuffer;
 
         DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
         do
         {
-            /* Check for minimum packet size: Ethernet header and an IPv6-header, 54 bytes */
-            if( uxBufferLength < sizeof( IPHeader_IPv6_t ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
-                break;
-            }
-
-            /* Check if the IPv6-header is transferred. */
-            if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) )
+            /* Check for the complete Ethernet and IPv6 headers. */
+            if( uxBufferLength < uxPayloadOffset )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
                 break;
             }
 
-            /* Check if the complete IPv6-header plus protocol data have been transferred: */
+            /* Check that the complete declared IPv6 payload was received. */
             usPayloadLength = FreeRTOS_ntohs( pxIPv6Packet->xIPHeader.usPayloadLength );
 
-            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
+            if( ( size_t ) usPayloadLength > ( uxBufferLength - uxPayloadOffset ) )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
                 break;
             }
 
-            /* Identify the next protocol. */
             ucNextHeader = pxIPv6Packet->xIPHeader.ucNextHeader;
 
-            while( xIsExtHeader( ucNextHeader ) )
+            while( xIsExtHeader( ucNextHeader ) != pdFALSE )
             {
-                pxExtHeader = ( const IPExtHeader_IPv6_t * ) ( &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength ] ) );
-                /* The definition of length in extension header - Length of this header in 8-octet units, not including the first 8 octets. */
-                uxExtHeaderLength += ( size_t ) ( ( 8 * pxExtHeader->ucHeaderExtLength ) + 8 );
+                const size_t uxRemaining = ( size_t ) usPayloadLength - uxExtHeaderLength;
+                size_t uxHeaderOffset;
+                size_t uxHeaderLength;
 
-                ucNextHeader = pxExtHeader->ucNextHeader;
-
-                if( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength >= uxBufferLength )
+                /* Both Next Header and Hdr Ext Len must be available. */
+                if( uxRemaining < sizeof( IPExtHeader_IPv6_t ) )
                 {
+                    xExtHeadersValid = pdFALSE;
                     break;
                 }
+
+                uxHeaderOffset = uxPayloadOffset + uxExtHeaderLength;
+
+                /* Length in 8-octet units, excluding the first 8 octets. */
+                uxHeaderLength = 8U *
+                                 ( ( size_t ) pucEthernetBuffer[ uxHeaderOffset + 1U ] + 1U );
+
+                /* The complete extension must fit within the IPv6 payload. */
+                if( uxHeaderLength > uxRemaining )
+                {
+                    xExtHeadersValid = pdFALSE;
+                    break;
+                }
+
+                ucNextHeader = pucEthernetBuffer[ uxHeaderOffset ];
+                uxExtHeaderLength += uxHeaderLength;
             }
 
-            if( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength >= uxBufferLength )
+            /* Reject invalid extensions or packets without a following header. */
+            if( ( xExtHeadersValid != pdTRUE ) ||
+                ( uxExtHeaderLength >= ( size_t ) usPayloadLength ) )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 7 );
                 break;
             }
 
-            /* Switch on the Layer 3/4 protocol. */
+            /* Check the minimum length required by the next protocol. */
+            uxProtocolBytesRemaining = ( size_t ) usPayloadLength - uxExtHeaderLength;
+
             if( ucNextHeader == ( uint8_t ) ipPROTOCOL_UDP )
             {
-                /* Expect at least a complete UDP header. */
-                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength + ipSIZE_OF_UDP_HEADER;
+                uxMinimumLength = ipSIZE_OF_UDP_HEADER;
             }
             else if( ucNextHeader == ( uint8_t ) ipPROTOCOL_TCP )
             {
-                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength + ipSIZE_OF_TCP_HEADER;
+                uxMinimumLength = ipSIZE_OF_TCP_HEADER;
             }
             else if( ucNextHeader == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
             {
                 uint8_t ucTypeOfMessage;
 
-                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength;
-
-                ucTypeOfMessage = pucEthernetBuffer[ uxMinimumLength ];
+                /* At least one payload byte is available at this point. */
+                ucTypeOfMessage = pucEthernetBuffer[ uxPayloadOffset + uxExtHeaderLength ];
 
                 if( ( ucTypeOfMessage == ipICMP_PING_REQUEST_IPv6 ) ||
                     ( ucTypeOfMessage == ipICMP_PING_REPLY_IPv6 ) )
                 {
-                    uxMinimumLength += sizeof( ICMPEcho_IPv6_t );
+                    uxMinimumLength = sizeof( ICMPEcho_IPv6_t );
                 }
                 else if( ucTypeOfMessage == ipICMP_ROUTER_SOLICITATION_IPv6 )
                 {
-                    uxMinimumLength += sizeof( ICMPRouterSolicitation_IPv6_t );
+                    uxMinimumLength = sizeof( ICMPRouterSolicitation_IPv6_t );
                 }
                 else if( ucTypeOfMessage == ipICMP_ROUTER_ADVERTISEMENT_IPv6 )
                 {
-                    uxMinimumLength += sizeof( ICMPRouterAdvertisement_IPv6_t );
+                    uxMinimumLength = sizeof( ICMPRouterAdvertisement_IPv6_t );
                 }
                 else
                 {
-                    uxMinimumLength += ipSIZE_OF_ICMPv6_HEADER;
+                    uxMinimumLength = ipSIZE_OF_ICMPv6_HEADER;
                 }
             }
             else
             {
-                /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
+                /* Unsupported protocol. */
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 5 );
                 break;
             }
 
-            if( uxBufferLength < uxMinimumLength )
+            if( uxProtocolBytesRemaining < uxMinimumLength )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
                 break;
@@ -208,13 +217,11 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
 
         if( xResult != pdPASS )
         {
-            /* NOP if ipconfigHAS_PRINTF != 1 */
             FreeRTOS_printf( ( "xCheckIPv6SizeFields: location %ld\n", xLocation ) );
         }
 
         return xResult;
     }
-
 
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 /*-----------------------------------------------------------*/
