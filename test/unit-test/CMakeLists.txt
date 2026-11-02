@@ -310,6 +310,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_BitConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Tiny_TCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DNS_ConfigNoCallback/ut.cmake )
@@ -422,6 +423,7 @@ add_custom_target( coverage
     FreeRTOS_TCP_Utils_utest
     FreeRTOS_TCP_Utils_IPv6_utest
     FreeRTOS_TCP_WIN_utest
+    FreeRTOS_TCP_WIN_DiffConfig_utest
     FreeRTOS_Tiny_TCP_utest
     FreeRTOS_UDP_IP_utest
     FreeRTOS_UDP_IPv4_utest

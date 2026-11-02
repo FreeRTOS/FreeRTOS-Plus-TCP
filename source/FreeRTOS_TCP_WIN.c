@@ -1887,6 +1887,37 @@
     #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
+    #if ( ipconfigUSE_TCP_WIN == 1 ) && ( ipconfigTCP_TX_MSS > ipconfigTCP_MSS ) && ( ipconfigTCP_TX_MSS_FALLBACK == ipconfigENABLE )
+
+/* A jumbo segment that is sent this often without an ACK means the path drops jumbo frames (RFC 4821). */
+        #define winJUMBO_TRANSMIT_COUNT    ( 3U )
+
+        BaseType_t xTCPWindowTxDropJumbo( TCPWindow_t * pxWindow )
+        {
+            const TCPSegment_t * pxSegment = xTCPWindowPeekHead( &( pxWindow->xWaitQueue ) );
+            BaseType_t xReturn = pdFALSE;
+
+            if( ( pxSegment != NULL ) &&
+                ( pxSegment->lDataLength > ( int32_t ) ipconfigTCP_MSS ) &&
+                ( pxSegment->u.bits.ucTransmitCount >= winJUMBO_TRANSMIT_COUNT ) )
+            {
+                while( listCURRENT_LIST_LENGTH( &( pxWindow->xTxSegments ) ) > 0U )
+                {
+                    vTCPWindowFree( ( TCPSegment_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxWindow->xTxSegments ) ) );
+                }
+
+                pxWindow->pxHeadSegment = NULL;
+                pxWindow->ulNextTxSequenceNumber = pxWindow->tx.ulCurrentSequenceNumber;
+                pxWindow->tx.ulHighestSequenceNumber = pxWindow->tx.ulCurrentSequenceNumber;
+                pxWindow->usMSS = ( uint16_t ) ipconfigTCP_MSS;
+                xReturn = pdTRUE;
+            }
+
+            return xReturn;
+        }
+    #endif /* ( ipconfigUSE_TCP_WIN == 1 ) && ( ipconfigTCP_TX_MSS > ipconfigTCP_MSS ) && ( ipconfigTCP_TX_MSS_FALLBACK == ipconfigENABLE ) */
+/*-----------------------------------------------------------*/
+
     #if ( ipconfigUSE_TCP_WIN == 1 )
 
 /**

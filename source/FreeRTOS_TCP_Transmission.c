@@ -852,6 +852,17 @@
              * Because some TCP-stacks (like uIP) use it for flow-control. */
             if( pxSocket->u.xTCP.usMSS > 1U )
             {
+                #if ( ipconfigUSE_TCP_WIN == 1 ) && ( ipconfigTCP_TX_MSS > ipconfigTCP_MSS ) && ( ipconfigTCP_TX_MSS_FALLBACK == ipconfigENABLE )
+                    if( xTCPWindowTxDropJumbo( pxTCPWindow ) != pdFALSE )
+                    {
+                        FreeRTOS_printf( ( "TCP to %xip:%u: jumbo segments lost, sending ipconfigTCP_MSS segments\n",
+                                           ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
+                                           pxSocket->u.xTCP.usRemotePort ) );
+                        pxSocket->u.xTCP.txStream->uxMid = pxSocket->u.xTCP.txStream->uxTail;
+                        prvTCPAddTxData( pxSocket );
+                    }
+                #endif
+
                 lDataLen = ( int32_t ) ulTCPWindowTxGet( pxTCPWindow, pxSocket->u.xTCP.ulWindowSize, &lStreamPos );
             }
 

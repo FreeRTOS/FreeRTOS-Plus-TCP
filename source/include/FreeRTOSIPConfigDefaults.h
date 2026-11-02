@@ -1519,6 +1519,32 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigTCP_TX_MSS_FALLBACK
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When enabled, a connection that sends segments larger than ipconfigTCP_MSS
+ * falls back to ipconfigTCP_MSS segments when one of those segments is sent
+ * three times without an ACK. The connection then sends all unacknowledged data
+ * again in ipconfigTCP_MSS segments, and keeps that size until it closes. This
+ * keeps a connection alive across a path that drops jumbo frames without an
+ * ICMP message (RFC 4821).
+ *
+ * It has an effect only when ipconfigTCP_TX_MSS is larger than ipconfigTCP_MSS
+ * and ipconfigUSE_TCP_WIN is enabled.
+ */
+
+#ifndef ipconfigTCP_TX_MSS_FALLBACK
+    #define ipconfigTCP_TX_MSS_FALLBACK    ipconfigENABLE
+#endif
+
+#if ( ( ipconfigTCP_TX_MSS_FALLBACK != ipconfigDISABLE ) && ( ipconfigTCP_TX_MSS_FALLBACK != ipconfigENABLE ) )
+    #error Invalid ipconfigTCP_TX_MSS_FALLBACK configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigTCP_RX_BUFFER_LENGTH
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_RX_BUFFER_LENGTH
