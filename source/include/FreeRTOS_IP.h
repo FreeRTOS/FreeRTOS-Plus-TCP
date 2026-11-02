@@ -402,6 +402,10 @@ void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH
                                                    struct xNetworkEndPoint * pxEndPoint );
     #endif
 #endif
+#if ( ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK == ipconfigENABLE )
+    /* This function shall be defined by the application. */
+    void vApplicationIPTaskQueueEmptyHook( void );
+#endif
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                     uint16_t usIdentifier );

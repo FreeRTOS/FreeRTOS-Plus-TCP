@@ -268,6 +268,15 @@ static void prvProcessIPEventsAndTimers( void )
     /* Calculate the acceptable maximum sleep time. */
     xNextIPSleep = xCalculateSleepTime();
 
+    #if ( ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK == ipconfigENABLE )
+    {
+        if( uxQueueMessagesWaiting( xNetworkEventQueue ) == 0U )
+        {
+            vApplicationIPTaskQueueEmptyHook();
+        }
+    }
+    #endif
+
     /* Wait until there is something to do. If the following call exits
      * due to a time out rather than a message being received, set a
      * 'NoEvent' value. */

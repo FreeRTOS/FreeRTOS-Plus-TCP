@@ -44,6 +44,7 @@
 #include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_Routing.h"
@@ -76,6 +77,7 @@ void setUp( void )
     pxNetworkEndPoints = NULL;
     pxNetworkInterfaces = NULL;
     xNetworkDownEventPending = pdFALSE;
+    uxQueueEmptyHookCalls = 0;
 }
 
 /*! called after each test case */
@@ -253,4 +255,38 @@ void test_eConsiderFrameForProcessing_MDNS_IPv4_MACMatch_But_Disabled( void )
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvProcessIPEventsAndTimers_QueueEmptyHook
+ * To validate if prvProcessIPEventsAndTimers() calls the queue empty hook
+ * before it waits on an empty event queue.
+ */
+void test_prvProcessIPEventsAndTimers_QueueEmptyHook( void )
+{
+    vCheckNetworkTimers_Expect();
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+    uxQueueMessagesWaiting_ExpectAndReturn( xNetworkEventQueue, 0 );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdFALSE );
+
+    prvProcessIPEventsAndTimers();
+
+    TEST_ASSERT_EQUAL( 1, uxQueueEmptyHookCalls );
+}
+
+/**
+ * @brief test_prvProcessIPEventsAndTimers_QueueEmptyHook_EventWaiting
+ * To validate if prvProcessIPEventsAndTimers() does not call the queue empty
+ * hook while an event is waiting.
+ */
+void test_prvProcessIPEventsAndTimers_QueueEmptyHook_EventWaiting( void )
+{
+    vCheckNetworkTimers_Expect();
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+    uxQueueMessagesWaiting_ExpectAndReturn( xNetworkEventQueue, 1 );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdFALSE );
+
+    prvProcessIPEventsAndTimers();
+
+    TEST_ASSERT_EQUAL( 0, uxQueueEmptyHookCalls );
 }

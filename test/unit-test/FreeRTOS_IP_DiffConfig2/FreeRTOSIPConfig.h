@@ -110,6 +110,8 @@
  */
 #define ipconfigUSE_NETWORK_EVENT_HOOK             1
 
+#define ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK       1
+
 /* Sockets have a send block time attribute.  If FreeRTOS_sendto() is called but
  * a network buffer cannot be obtained then the calling task is held in the Blocked
  * state (so other tasks can continue to executed) until either a network buffer
