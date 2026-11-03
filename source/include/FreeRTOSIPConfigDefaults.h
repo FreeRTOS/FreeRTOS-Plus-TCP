@@ -1262,6 +1262,35 @@ STATIC_ASSERT( ipconfigIP_TASK_STACK_SIZE_WORDS <= SIZE_MAX );
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * Enables a hook that the IP task calls when its event queue is empty, just
+ * before it blocks to wait for the next event. A network interface can use it
+ * to start the transmission of all the frames the IP task has queued since it
+ * last waited, for example in one DMA burst. Peers then receive the segments
+ * back to back, which lets them merge the segments and acknowledge them less
+ * often.
+ *
+ * The hook runs in the IP task and must not block.
+ *
+ * Function prototype:
+ *
+ * void vApplicationIPTaskQueueEmptyHook( void )
+ */
+
+#ifndef ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK
+    #define ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK != ipconfigDISABLE ) && ( ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK != ipconfigENABLE ) )
+    #error Invalid ipconfigUSE_IP_TASK_QUEUE_EMPTY_HOOK configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 /*===========================================================================*/
 /*                             TCP/IP TASK CONFIG                            */
 /*===========================================================================*/

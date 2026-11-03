@@ -73,3 +73,10 @@ void vPortFree( void * ptr )
 {
     free( ptr );
 }
+
+UBaseType_t uxQueueEmptyHookCalls = 0;
+
+void vApplicationIPTaskQueueEmptyHook( void )
+{
+    uxQueueEmptyHookCalls++;
+}
