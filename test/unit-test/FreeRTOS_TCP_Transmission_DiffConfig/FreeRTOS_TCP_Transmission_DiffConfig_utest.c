@@ -62,7 +62,9 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
+/* The Annexed_TCP copy removes conditional definitions. Use the production
+ * defaults so assertions see the same option values as the code under test. */
+#include "../../../source/include/FreeRTOSIPConfigDefaults.h"
 
 #include "FreeRTOS_TCP_Transmission_DiffConfig_stubs.c"
 #include "FreeRTOS_TCP_Transmission.h"
@@ -89,7 +91,9 @@ static uint8_t ucPrepareSendFlags( size_t uxQueuedBytes )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
     int32_t lBytesSent;
+    int32_t lStreamPosition = 100;
 
+    memset( &xStreamBuffer, 0, sizeof( xStreamBuffer ) );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
@@ -101,13 +105,21 @@ static uint8_t ucPrepareSendFlags( size_t uxQueuedBytes )
     xSocket.u.xTCP.usMSS = 1000;
     xSocket.u.xTCP.bits.bSendKeepAlive = pdTRUE;
     xSocket.u.xTCP.ucKeepRepCount = 1;
+    xStreamBuffer.uxHead = ( size_t ) lStreamPosition + uxQueuedBytes;
+    xStreamBuffer.LENGTH = 2048;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 500 );
+    ulTCPWindowTxGet_ReturnThruPtr_plPosition( &lStreamPosition );
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( pxNetworkBuffer );
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
-    uxStreamBufferDistance_IgnoreAndReturn( uxQueuedBytes );
-    uxStreamBufferGet_IgnoreAndReturn( 20 );
+    uxStreamBufferDistance_ExpectAndReturn( &xStreamBuffer, 0, ( size_t ) lStreamPosition, 100 );
+    uxStreamBufferGet_ExpectAndReturn( &xStreamBuffer, 100,
+                                      &ucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ],
+                                      500, pdTRUE, 500 );
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        uxStreamBufferDistance_ExpectAndReturn( &xStreamBuffer, ( size_t ) lStreamPosition, xStreamBuffer.uxHead, uxQueuedBytes );
+    #endif
 
     lBytesSent = prvTCPPrepareSend( &xSocket, &pxNetworkBuffer, 0 );
     TEST_ASSERT_EQUAL( 540, lBytesSent );
@@ -131,36 +143,34 @@ void test_prvTCPPrepareSend_PSH_LastSegment( void )
 
 /**
  * @brief test_prvTCPPrepareSend_PSH_MoreQueued
- * To validate if prvTCPPrepareSend() leaves PSH off a segment when more data
- * is queued after it.
+ * More queued data suppresses PSH only when the option is enabled.
  */
 void test_prvTCPPrepareSend_PSH_MoreQueued( void )
 {
     uint8_t ucFlags = ucPrepareSendFlags( 1000 );
 
-    TEST_ASSERT_EQUAL( 0, ucFlags & tcpTCP_FLAG_PSH );
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        TEST_ASSERT_EQUAL( 0, ucFlags & tcpTCP_FLAG_PSH );
+    #else
+        TEST_ASSERT_EQUAL( tcpTCP_FLAG_PSH, ucFlags & tcpTCP_FLAG_PSH );
+    #endif
 }
 
 /* Prepares a connected socket whose header template holds xTemplateMAC, last
  * heard from at tick 100, and sets the expectations that prvTCPReturnPacket()
  * has for any segment. */
-static TCPPacket_t * pxPrepareReturnPacket( void )
+static void vPrepareReturnPacket( BaseType_t xWithSocket )
 {
     TCPPacket_t * pxTCPPacket = ( TCPPacket_t * ) ucEthernetBuffer;
 
-    memset( &xSocket, 0, sizeof( xSocket ) );
-    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
-    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
-    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
-
     xEndPoint.pxNetworkInterface = &xInterface;
     xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     xInterface.pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     xSocket.pxEndPoint = &xEndPoint;
-    xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
+    xSocket.u.xTCP.rxStream = &xStreamBuffer;
     xSocket.u.xTCP.uxRxStreamSize = 1500;
     xSocket.u.xTCP.usMSS = 1000;
     xSocket.u.xTCP.xLastActTime = 100;
@@ -170,12 +180,38 @@ static TCPPacket_t * pxPrepareReturnPacket( void )
     ( ( TCPPacket_t * ) xSocket.u.xTCP.xPacket.u.ucLastPacket )->xEthernetHeader.xSourceAddress = xTemplateMAC;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
-    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    if( xWithSocket != pdFALSE )
+    {
+        uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
+        FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
+    }
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+}
 
+static TCPPacket_t * pxPrepareReturnPacket( void )
+{
+    TCPPacket_t * pxTCPPacket = ( TCPPacket_t * ) ucEthernetBuffer;
+
+    memset( &xStreamBuffer, 0, sizeof( xStreamBuffer ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+
+    vPrepareReturnPacket( pdTRUE );
     return pxTCPPacket;
+}
+
+static void vExpectCacheHit( void )
+{
+    /* CMock retains this address until the production call consumes it. */
+    static struct xNetworkEndPoint * pxEndPoint = &xEndPoint;
+
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
+    eARPGetCacheEntry_ReturnThruPtr_pxMACAddress( ( MACAddress_t * ) &xCacheMAC );
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 }
 
 /* ============================== Test Cases ============================== */
@@ -189,12 +225,20 @@ void test_prvTCPReturnPacket_SkipARP_ActivePeer( void )
 {
     TCPPacket_t * pxTCPPacket = pxPrepareReturnPacket();
 
-    xTaskGetTickCount_IgnoreAndReturn( 100 + pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) - 1 );
+    #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+        xTaskGetTickCount_ExpectAndReturn( 100 + pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) - 1 );
+    #else
+        vExpectCacheHit();
+    #endif
 
     prvTCPReturnPacket( &xSocket, &xNetworkBuffer, 40, pdFALSE );
 
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
-    TEST_ASSERT_EQUAL_UINT8_ARRAY( xTemplateMAC.ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+    #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+        TEST_ASSERT_EQUAL_UINT8_ARRAY( xTemplateMAC.ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+    #else
+        TEST_ASSERT_EQUAL_UINT8_ARRAY( xCacheMAC.ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+    #endif
 }
 
 /**
@@ -207,7 +251,9 @@ void test_prvTCPReturnPacket_SkipARP_QuietPeer( void )
     TCPPacket_t * pxTCPPacket = pxPrepareReturnPacket();
     struct xNetworkEndPoint * pxEndPoint = &xEndPoint;
 
-    xTaskGetTickCount_IgnoreAndReturn( 100 + pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) );
+    #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+        xTaskGetTickCount_ExpectAndReturn( 100 + pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) );
+    #endif
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_pxMACAddress( ( MACAddress_t * ) &xCacheMAC );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
@@ -216,7 +262,139 @@ void test_prvTCPReturnPacket_SkipARP_QuietPeer( void )
 
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL_UINT8_ARRAY( xCacheMAC.ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EQUAL_UINT8_ARRAY( xCacheMAC.ucBytes,
-                                   ( ( TCPPacket_t * ) xSocket.u.xTCP.xPacket.u.ucLastPacket )->xEthernetHeader.xSourceAddress.ucBytes,
-                                   ipMAC_ADDRESS_LENGTH_BYTES );
+    #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+        TEST_ASSERT_EQUAL_UINT8_ARRAY( xCacheMAC.ucBytes,
+                                       ( ( TCPPacket_t * ) xSocket.u.xTCP.xPacket.u.ucLastPacket )->xEthernetHeader.xSourceAddress.ucBytes,
+                                       ipMAC_ADDRESS_LENGTH_BYTES );
+    #else
+        /* With the optimization disabled, a separate outgoing buffer must not
+         * update the socket template (the pre-PR behavior). */
+        TEST_ASSERT_EQUAL_UINT8_ARRAY( xTemplateMAC.ucBytes,
+                                       ( ( TCPPacket_t * ) xSocket.u.xTCP.xPacket.u.ucLastPacket )->xEthernetHeader.xSourceAddress.ucBytes,
+                                       ipMAC_ADDRESS_LENGTH_BYTES );
+    #endif
+}
+
+/* Pass the very same packet through both production functions. A different
+ * MAC in the cache makes taking the wrong ARP branch observable. */
+static void vCheckPreparedSegment( size_t uxQueuedBytes,
+                                   BaseType_t xQuietPeer )
+{
+    TCPPacket_t * pxTCPPacket = ( TCPPacket_t * ) ucEthernetBuffer;
+    const MACAddress_t * pxExpectedMAC = &xCacheMAC;
+    uint8_t ucExpectedPSH = tcpTCP_FLAG_PSH;
+
+    ( void ) ucPrepareSendFlags( uxQueuedBytes );
+    vPrepareReturnPacket( pdTRUE );
+
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        if( uxQueuedBytes > 500U )
+        {
+            ucExpectedPSH = 0;
+        }
+    #endif
+
+    #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+        if( xQuietPeer == pdFALSE )
+        {
+            xTaskGetTickCount_ExpectAndReturn( 100 );
+            pxExpectedMAC = &xTemplateMAC;
+        }
+        else
+        {
+            xTaskGetTickCount_ExpectAndReturn( 100 + pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) );
+            vExpectCacheHit();
+        }
+    #else
+        ( void ) xQuietPeer;
+        vExpectCacheHit();
+    #endif
+
+    prvTCPReturnPacket( &xSocket, &xNetworkBuffer, 540, pdFALSE );
+
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
+    TEST_ASSERT_EQUAL( 540 + ipSIZE_OF_ETH_HEADER, xNetworkBuffer.xDataLength );
+    TEST_ASSERT_EQUAL( ucExpectedPSH, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_PSH );
+    TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
+    TEST_ASSERT_EQUAL_UINT8_ARRAY( pxExpectedMAC->ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+}
+
+void test_prvTCPPrepareAndReturn_ActivePeer( void )
+{
+    vCheckPreparedSegment( 1000, pdFALSE );
+    vCheckPreparedSegment( 500, pdFALSE );
+}
+
+void test_prvTCPPrepareAndReturn_QuietPeer( void )
+{
+    vCheckPreparedSegment( 1000, pdTRUE );
+    vCheckPreparedSegment( 500, pdTRUE );
+}
+
+void test_prvTCPPrepareSend_NoPayloadClearsPSH( void )
+{
+    NetworkBufferDescriptor_t * pxBuffer = &xNetworkBuffer;
+    TCPPacket_t * pxTCPPacket = ( TCPPacket_t * ) ucEthernetBuffer;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.bits.bWinChange = pdTRUE;
+    pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_PSH;
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    TEST_ASSERT_EQUAL( 40, prvTCPPrepareSend( &xSocket, &pxBuffer, 0 ) );
+    TEST_ASSERT_EQUAL( 0, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_PSH );
+    TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
+}
+
+void test_prvTCPReturnPacket_SkipARP_NoSocket( void )
+{
+    TCPPacket_t * pxTCPPacket = ( TCPPacket_t * ) ucEthernetBuffer;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    vPrepareReturnPacket( pdFALSE );
+    vExpectCacheHit();
+
+    /* No tick expectation: the NULL socket path must always look up ARP. */
+    prvTCPReturnPacket( NULL, &xNetworkBuffer, 40, pdFALSE );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
+    TEST_ASSERT_EQUAL_UINT8_ARRAY( xCacheMAC.ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+}
+
+void test_prvTCPReturnPacket_SkipARP_QuietPeerCacheMiss( void )
+{
+    TCPPacket_t * pxTCPPacket = pxPrepareReturnPacket();
+
+    #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+        xTaskGetTickCount_ExpectAndReturn( 101 + pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) );
+    #endif
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eResolutionCacheMiss );
+
+    prvTCPReturnPacket( &xSocket, &xNetworkBuffer, 40, pdFALSE );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
+    TEST_ASSERT_EQUAL_UINT8_ARRAY( xTemplateMAC.ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+}
+
+void test_prvTCPReturnPacket_SkipARP_TickWrap( void )
+{
+    TCPPacket_t * pxTCPPacket = pxPrepareReturnPacket();
+    const MACAddress_t * pxExpectedMAC = &xCacheMAC;
+
+    xSocket.u.xTCP.xLastActTime = portMAX_DELAY - 10U;
+    #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+        /* Across wrap, elapsed time is 16 ticks, within the 1000 ms window. */
+        xTaskGetTickCount_ExpectAndReturn( 5 );
+        pxExpectedMAC = &xTemplateMAC;
+    #else
+        vExpectCacheHit();
+    #endif
+
+    prvTCPReturnPacket( &xSocket, &xNetworkBuffer, 40, pdFALSE );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
+    TEST_ASSERT_EQUAL_UINT8_ARRAY( pxExpectedMAC->ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
 }

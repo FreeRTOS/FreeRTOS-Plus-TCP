@@ -333,8 +333,7 @@
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 
-#define ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY    ipconfigENABLE
-
-#define ipconfigTCP_SKIP_ARP_LOOKUP_MS    1000U
+/* Each CMake variant supplies these independently. The Defaults variant leaves
+ * both undefined so the production defaults are exercised as well. */
 
 #endif /* FREERTOS_IP_CONFIG_H */
