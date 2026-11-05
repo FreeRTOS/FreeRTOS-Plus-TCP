@@ -335,4 +335,6 @@
 
 #define ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY    ipconfigENABLE
 
+#define ipconfigTCP_SKIP_ARP_LOOKUP_MS    1000U
+
 #endif /* FREERTOS_IP_CONFIG_H */

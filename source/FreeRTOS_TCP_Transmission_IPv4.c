@@ -233,12 +233,38 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             pvCopySource = &pxEthernetHeader->xSourceAddress;
             ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
 
-            eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &pxEndPoint );
+            #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+            {
+                /* A socket's header template holds the peer MAC, which is trusted while
+                 * the peer was heard from recently (RFC 1122 2.3.2.1). */
+                if( ( pxSocket != NULL ) && ( ( xTaskGetTickCount() - pxSocket->u.xTCP.xLastActTime ) < pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) ) )
+                {
+                    eResult = eResolutionCacheMiss;
+                }
+                else
+                {
+                    eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &pxEndPoint );
+                }
+            }
+            #else /* if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U ) */
+            {
+                eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &pxEndPoint );
+            }
+            #endif /* if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U ) */
 
             if( eResult == eResolutionCacheHit )
             {
                 pvCopySource = &xMACAddress;
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+                #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
+                {
+                    if( pxSocket != NULL )
+                    {
+                        ( void ) memcpy( ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket )->xEthernetHeader.xSourceAddress.ucBytes, xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+                    }
+                }
+                #endif
             }
             else
             {

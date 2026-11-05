@@ -1509,6 +1509,32 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigTCP_SKIP_ARP_LOOKUP_MS
+ *
+ * Type: uint32_t
+ * Unit: milliseconds
+ *
+ * A connected TCP socket sends its segments to the peer MAC address in its
+ * header template, without searching the ARP cache, while the peer was heard
+ * from within this time. After that, each sent segment searches the ARP cache
+ * again, and a hit replaces the MAC address in the template. RFC 1122 section
+ * 2.3.2.1 allows this, since the peer's replies show that its address still
+ * works.
+ *
+ * Searching the ARP cache for every sent segment can limit TCP throughput on a
+ * slow CPU. Segments that have no socket, such as resets, always search the
+ * cache.
+ *
+ * The default is 0, which searches the ARP cache for every segment.
+ */
+
+#ifndef ipconfigTCP_SKIP_ARP_LOOKUP_MS
+    #define ipconfigTCP_SKIP_ARP_LOOKUP_MS    0U
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigTCP_RX_BUFFER_LENGTH
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_RX_BUFFER_LENGTH
