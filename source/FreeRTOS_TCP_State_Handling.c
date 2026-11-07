@@ -579,7 +579,11 @@
 
             pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber = pxTCPWindow->tx.ulCurrentSequenceNumber;
 
-            if( ( pxSocket->u.xTCP.bits.bFinAccepted != ipFALSE_BOOL ) || ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U ) )
+            /* Also re-check when a FIN was received earlier but refused because Tx data was
+             * still pending: that FIN has been ACK'd, so the peer will not send it again. */
+            if( ( pxSocket->u.xTCP.bits.bFinAccepted != ipFALSE_BOOL ) ||
+                ( pxSocket->u.xTCP.bits.bFinRecv != ipFALSE_BOOL ) ||
+                ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U ) )
             {
                 /* Peer is requesting to stop, see if we're really finished. */
                 xMayClose = pdTRUE;

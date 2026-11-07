@@ -1109,6 +1109,100 @@ void test_prvHandleEstablished_FINAccept( void )
 }
 
 /**
+ * @brief A FIN was received earlier but refused because Tx data was pending.
+ * The peer will not send it again, so a later ACK without FIN must trigger the
+ * check again; with Rx and Tx done, the closing flow starts.
+ */
+void test_prvHandleEstablished_FINRecvRefusedEarlierThenTXDone( void )
+{
+    BaseType_t xSendLength = 0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
+    pxTCPHeader->usWindow = 1000;
+    pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
+    pxSocket->u.xTCP.pxHandleSent = NULL;
+    pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
+    prvTCPAddTxData_ExpectAnyArgs();
+    xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdTRUE );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvHandleEstablished( pxSocket,
+                                        &pxNetworkBuffer,
+                                        0,
+                                        0 );
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+    TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bFinAccepted );
+}
+
+/**
+ * @brief A FIN was received earlier but refused because Tx data was pending.
+ * A later ACK without FIN, while Tx data is still pending, refuses it again.
+ */
+void test_prvHandleEstablished_FINRecvRefusedEarlierTXNotDone( void )
+{
+    BaseType_t xSendLength = 0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
+    pxTCPHeader->usWindow = 1000;
+    pxSocket->u.xTCP.txStream = ( StreamBuffer_t * ) 0x12345678;
+    pxSocket->u.xTCP.pxHandleSent = NULL;
+    pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdTRUE;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 1501;
+    pxTCPWindow->rx.ulFINSequenceNumber = 1500;
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
+    prvTCPAddTxData_ExpectAnyArgs();
+    xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdTRUE );
+    xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdFALSE );
+    prvTCPPrepareSend_ExpectAnyArgsAndReturn( 0 );
+
+    xSendLength = prvHandleEstablished( pxSocket,
+                                        &pxNetworkBuffer,
+                                        0,
+                                        0 );
+    TEST_ASSERT_EQUAL( 0, xSendLength );
+    TEST_ASSERT_EQUAL( pdFALSE, pxSocket->u.xTCP.bits.bFinAccepted );
+    TEST_ASSERT_EQUAL( 1501, pxTCPWindow->rx.ulCurrentSequenceNumber );
+}
+
+/**
  * @brief Get TCP packet with ACK when the state of socket is eCLOSED.
  * To simulate malloc fail case.
  */
