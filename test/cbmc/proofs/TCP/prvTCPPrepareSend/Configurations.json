@@ -51,8 +51,22 @@
   ],
   "DEF":
   [
-    "FREERTOS_TCP_ENABLE_VERIFICATION",
-    "CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL"
+    {
+      "default":
+      [
+        "FREERTOS_TCP_ENABLE_VERIFICATION",
+        "CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL"
+      ]
+    },
+    {
+      "TX_MSS":
+      [
+        "FREERTOS_TCP_ENABLE_VERIFICATION",
+        "CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL",
+        "ipconfigTCP_MSS=536",
+        "ipconfigTCP_TX_MSS=1460"
+      ]
+    }
   ],
   "INC":
   [

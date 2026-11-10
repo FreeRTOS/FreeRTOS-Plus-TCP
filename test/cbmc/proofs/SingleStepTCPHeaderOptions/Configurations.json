@@ -25,9 +25,25 @@
   ],
   "DEF":
   [
-    "ipconfigUSE_TCP=1",
-    "ipconfigUSE_TCP_WIN=1",
-    "ipconfigNETWORK_MTU=586",
-    "OPTION_BUFFER_BOUND={OPTION_BUFFER_BOUND}"
+    {
+      "default":
+      [
+        "ipconfigUSE_TCP=1",
+        "ipconfigUSE_TCP_WIN=1",
+        "ipconfigNETWORK_MTU=586",
+        "OPTION_BUFFER_BOUND={OPTION_BUFFER_BOUND}"
+      ]
+    },
+    {
+      "TX_MSS":
+      [
+        "ipconfigUSE_TCP=1",
+        "ipconfigUSE_TCP_WIN=1",
+        "ipconfigNETWORK_MTU=586",
+        "OPTION_BUFFER_BOUND={OPTION_BUFFER_BOUND}",
+        "ipconfigTCP_MSS=536",
+        "ipconfigTCP_TX_MSS=546"
+      ]
+    }
   ]
 }
