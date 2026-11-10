@@ -1006,12 +1006,18 @@
 
                 #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
                 {
-                    /* Set PSH only on the segment that empties the send queue. Peers like
-                     * Linux send an ACK at once for every segment that carries PSH. */
-                    if( ( lDataLen != 0L ) &&
-                        ( uxStreamBufferDistance( pxSocket->u.xTCP.txStream, ( size_t ) lStreamPos, pxSocket->u.xTCP.txStream->uxHead ) == ( size_t ) lDataLen ) )
+                    /* Peers like Linux send an ACK at once for every segment that carries PSH.
+                     * Like Linux, also push after half the peer's window, for receivers that wait for PSH. */
+                    if( lDataLen != 0L )
                     {
-                        pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                        pxSocket->u.xTCP.ulUnpushedBytes += ( uint32_t ) lDataLen;
+
+                        if( ( uxStreamBufferDistance( pxSocket->u.xTCP.txStream, ( size_t ) lStreamPos, pxSocket->u.xTCP.txStream->uxHead ) == ( size_t ) lDataLen ) ||
+                            ( pxSocket->u.xTCP.ulUnpushedBytes > ( pxSocket->u.xTCP.ulWindowSize / 2U ) ) )
+                        {
+                            pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                            pxSocket->u.xTCP.ulUnpushedBytes = 0U;
+                        }
                     }
                 }
                 #else

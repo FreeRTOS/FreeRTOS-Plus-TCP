@@ -1452,8 +1452,11 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
  * When enabled, the stack sets the PSH flag only on the TCP segment that
- * carries the last byte queued for sending. When disabled, it sets PSH on
- * every segment that carries data.
+ * carries the last byte queued for sending, and on the segment that takes the
+ * data sent since the last PSH over half the peer's window, as Linux does. The
+ * second rule keeps a receiver that waits for PSH delivering data while the
+ * send queue never empties. When disabled, it sets PSH on every segment that
+ * carries data.
  *
  * Peers such as Linux send an ACK at once for every segment that carries PSH.
  * With this enabled, a peer acknowledges a run of segments with one ACK, which
