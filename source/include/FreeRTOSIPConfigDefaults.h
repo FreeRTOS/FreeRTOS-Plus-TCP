@@ -1485,6 +1485,66 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigTCP_TX_MSS
+ *
+ * Type: size_t
+ * Unit: bytes
+ * Minimum: ipconfigTCP_MSS
+ *
+ * Sets the largest TCP segment the stack sends, when the peer advertises an
+ * MSS at least this large. The stack still advertises ipconfigTCP_MSS.
+ *
+ * A network interface that sends jumbo frames but receives only standard
+ * frames can set ipconfigTCP_MSS to the standard size and ipconfigTCP_TX_MSS
+ * to the jumbo size. ipconfigNETWORK_MTU must then hold a jumbo frame.
+ *
+ * Only connections that the peer opens use the larger size, because the
+ * stack sets the segment size again when it opens a connection itself.
+ *
+ * The default is ipconfigTCP_MSS, which sends no larger segments.
+ */
+
+#ifndef ipconfigTCP_TX_MSS
+    #define ipconfigTCP_TX_MSS    ipconfigTCP_MSS
+#endif
+
+#if ( ipconfigTCP_TX_MSS < ipconfigTCP_MSS )
+    #error ipconfigTCP_TX_MSS must be at least ipconfigTCP_MSS
+#endif
+
+#if ( ipconfigTCP_TX_MSS > ( ipconfigNETWORK_MTU - 40U ) )
+    #error ipconfigTCP_TX_MSS must fit in ipconfigNETWORK_MTU
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigTCP_TX_MSS_FALLBACK
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When enabled, a connection that sends segments larger than ipconfigTCP_MSS
+ * falls back to ipconfigTCP_MSS segments when one of those segments is sent
+ * three times without an ACK. The connection then sends all unacknowledged data
+ * again in ipconfigTCP_MSS segments, and keeps that size until it closes. This
+ * keeps a connection alive across a path that drops jumbo frames without an
+ * ICMP message (RFC 4821).
+ *
+ * It has an effect only when ipconfigTCP_TX_MSS is larger than ipconfigTCP_MSS
+ * and ipconfigUSE_TCP_WIN is enabled.
+ */
+
+#ifndef ipconfigTCP_TX_MSS_FALLBACK
+    #define ipconfigTCP_TX_MSS_FALLBACK    ipconfigENABLE
+#endif
+
+#if ( ( ipconfigTCP_TX_MSS_FALLBACK != ipconfigDISABLE ) && ( ipconfigTCP_TX_MSS_FALLBACK != ipconfigENABLE ) )
+    #error Invalid ipconfigTCP_TX_MSS_FALLBACK configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigTCP_RX_BUFFER_LENGTH
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_RX_BUFFER_LENGTH

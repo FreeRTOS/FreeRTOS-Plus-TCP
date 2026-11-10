@@ -100,6 +100,21 @@ uint32_t ulTCPWindowTxGet( TCPWindow_t * pxWindow,
     return ulReturn;
 }
 
+BaseType_t xTCPWindowTxDropJumbo( TCPWindow_t * pxWindow )
+{
+    __CPROVER_assert( pxWindow != NULL, "pxWindow cannot be NULL" );
+    return nondet_BaseType();
+}
+
+int32_t lTCPWindowTxAdd( TCPWindow_t * pxWindow,
+                         uint32_t ulLength,
+                         int32_t lPosition,
+                         int32_t lMax )
+{
+    __CPROVER_assert( pxWindow != NULL, "pxWindow cannot be NULL" );
+    return nondet_int32();
+}
+
 /* Mock FreeRTOS_Stream_Buffers.h APIs */
 size_t uxStreamBufferDistance( const StreamBuffer_t * const pxBuffer,
                                size_t uxLower,
@@ -117,6 +132,18 @@ size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
 {
     __CPROVER_assert( pxBuffer != NULL, "pxBuffer cannot be NULL" );
     return nondet_sizet();
+}
+
+size_t uxStreamBufferMidSpace( const StreamBuffer_t * const pxBuffer )
+{
+    __CPROVER_assert( pxBuffer != NULL, "pxBuffer cannot be NULL" );
+    return nondet_sizet();
+}
+
+void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
+                           const size_t uxCount )
+{
+    __CPROVER_assert( pxBuffer != NULL, "pxBuffer cannot be NULL" );
 }
 
 void * vSocketClose( FreeRTOS_Socket_t * pxSocket )

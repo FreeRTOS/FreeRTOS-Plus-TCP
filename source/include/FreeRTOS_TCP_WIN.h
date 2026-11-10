@@ -214,6 +214,9 @@ uint32_t ulTCPWindowTxGet( TCPWindow_t * pxWindow,
                            uint32_t ulWindowSize,
                            int32_t * plPosition );
 
+/* After a jumbo segment is lost too often, frees all unacknowledged TX segments for the caller to add again */
+BaseType_t xTCPWindowTxDropJumbo( TCPWindow_t * pxWindow );
+
 /* Receive a normal ACK */
 uint32_t ulTCPWindowTxAck( TCPWindow_t * pxWindow,
                            uint32_t ulSequenceNumber );
