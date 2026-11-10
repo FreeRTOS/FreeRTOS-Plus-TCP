@@ -1491,21 +1491,27 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
  * Unit: milliseconds
  *
  * A connected TCP socket sends its segments to the peer MAC address in its
- * header template, without searching the ARP cache, while the peer was heard
- * from within this time. After that, each sent segment searches the ARP cache
- * again, and a hit replaces the MAC address in the template. RFC 1122 section
- * 2.3.2.1 allows this, since the peer's replies show that its address still
- * works.
+ * header template, without searching the ARP cache, while the socket received
+ * a segment or changed state within this time. After that, each sent segment
+ * searches the ARP cache again, and a hit replaces the MAC address in the
+ * template. RFC 1122 section 2.3.2.1 allows this, since the peer's replies
+ * show that its address still works.
  *
  * Searching the ARP cache for every sent segment can limit TCP throughput on a
  * slow CPU. Segments that have no socket, such as resets, always search the
  * cache.
  *
- * The default is 0, which searches the ARP cache for every segment.
+ * The default is 0, which searches the ARP cache for every segment. A value
+ * above 0 needs ipconfigTCP_HANG_PROTECTION, which keeps the time of the last
+ * activity.
  */
 
 #ifndef ipconfigTCP_SKIP_ARP_LOOKUP_MS
     #define ipconfigTCP_SKIP_ARP_LOOKUP_MS    0U
+#endif
+
+#if ( ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U ) && ( ipconfigTCP_HANG_PROTECTION != ipconfigENABLE ) )
+    #error ipconfigTCP_SKIP_ARP_LOOKUP_MS needs ipconfigTCP_HANG_PROTECTION
 #endif
 
 /*---------------------------------------------------------------------------*/
