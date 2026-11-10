@@ -1004,10 +1004,30 @@
 
                 pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_ACK;
 
-                if( lDataLen != 0L )
+                #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
                 {
-                    pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                    /* Peers like Linux send an ACK at once for every segment that carries PSH.
+                     * Like Linux, also push after half the peer's window, for receivers that wait for PSH. */
+                    if( lDataLen != 0L )
+                    {
+                        pxSocket->u.xTCP.ulUnpushedBytes += ( uint32_t ) lDataLen;
+
+                        if( ( uxStreamBufferDistance( pxSocket->u.xTCP.txStream, ( size_t ) lStreamPos, pxSocket->u.xTCP.txStream->uxHead ) == ( size_t ) lDataLen ) ||
+                            ( pxSocket->u.xTCP.ulUnpushedBytes > ( pxSocket->u.xTCP.ulWindowSize / 2U ) ) )
+                        {
+                            pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                            pxSocket->u.xTCP.ulUnpushedBytes = 0U;
+                        }
+                    }
                 }
+                #else
+                {
+                    if( lDataLen != 0L )
+                    {
+                        pxProtocolHeaders->xTCPHeader.ucTCPFlags |= ( uint8_t ) tcpTCP_FLAG_PSH;
+                    }
+                }
+                #endif /* if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE ) */
 
                 uxIntermediateResult = uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER + uxOptionsLength;
                 lDataLen += ( int32_t ) uxIntermediateResult;

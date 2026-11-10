@@ -582,6 +582,9 @@ BaseType_t xIPIsNetworkTaskReady( void );
             FOnConnected_t pxHandleConnected; /**< Actually type: typedef void (* FOnConnected_t) (Socket_t xSocket, BaseType_t ulConnected ); */
         #endif /* ipconfigUSE_CALLBACKS */
         uint32_t ulWindowSize;                /**< Current Window size advertised by peer */
+        #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+            uint32_t ulUnpushedBytes;         /**< Bytes sent since the last segment that carried PSH */
+        #endif
         size_t uxRxWinSize;                   /**< Fixed value: size of the TCP reception window */
         size_t uxTxWinSize;                   /**< Fixed value: size of the TCP transmit window */
 

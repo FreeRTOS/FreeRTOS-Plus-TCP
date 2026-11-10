@@ -1447,6 +1447,33 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When enabled, the stack sets the PSH flag only on the TCP segment that
+ * carries the last byte queued for sending, and on the segment that takes the
+ * data sent since the last PSH over half the peer's window, as Linux does. The
+ * second rule keeps a receiver that waits for PSH delivering data while the
+ * send queue never empties. When disabled, it sets PSH on every segment that
+ * carries data.
+ *
+ * Peers such as Linux send an ACK at once for every segment that carries PSH.
+ * With this enabled, a peer acknowledges a run of segments with one ACK, which
+ * leaves the IP task more time for sending.
+ */
+
+#ifndef ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY
+    #define ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY != ipconfigDISABLE ) && ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY != ipconfigENABLE ) )
+    #error Invalid ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigTCP_MSS
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_MSS
