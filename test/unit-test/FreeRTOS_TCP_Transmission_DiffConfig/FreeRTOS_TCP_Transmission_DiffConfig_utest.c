@@ -290,21 +290,17 @@ void test_prvTCPReturnPacket_SkipARP_QuietPeer( void )
 /* Pass the very same packet through both production functions. A different
  * MAC in the cache makes taking the wrong ARP branch observable. */
 static void vCheckPreparedSegment( size_t uxQueuedBytes,
-                                   BaseType_t xQuietPeer )
+                                   BaseType_t xQuietPeer,
+                                   uint8_t ucExpectedPSH )
 {
     TCPPacket_t * pxTCPPacket = ( TCPPacket_t * ) ucEthernetBuffer;
     const MACAddress_t * pxExpectedMAC = &xCacheMAC;
-    uint8_t ucExpectedPSH = tcpTCP_FLAG_PSH;
 
-    prvSetUpSocket( 4000 );
     ( void ) ucPrepareSendFlags( uxQueuedBytes );
     vPrepareReturnPacket( pdTRUE );
 
-    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
-        if( uxQueuedBytes > 500U )
-        {
-            ucExpectedPSH = 0;
-        }
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY != ipconfigENABLE )
+        ucExpectedPSH = tcpTCP_FLAG_PSH;
     #endif
 
     #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
@@ -334,14 +330,16 @@ static void vCheckPreparedSegment( size_t uxQueuedBytes,
 
 void test_prvTCPPrepareAndReturn_ActivePeer( void )
 {
-    vCheckPreparedSegment( 1000, pdFALSE );
-    vCheckPreparedSegment( 500, pdFALSE );
+    prvSetUpSocket( 4000 );
+    vCheckPreparedSegment( 1000, pdFALSE, 0 );
+    vCheckPreparedSegment( 500, pdFALSE, tcpTCP_FLAG_PSH );
 }
 
 void test_prvTCPPrepareAndReturn_QuietPeer( void )
 {
-    vCheckPreparedSegment( 1000, pdTRUE );
-    vCheckPreparedSegment( 500, pdTRUE );
+    prvSetUpSocket( 4000 );
+    vCheckPreparedSegment( 1000, pdTRUE, 0 );
+    vCheckPreparedSegment( 500, pdTRUE, tcpTCP_FLAG_PSH );
 }
 
 void test_prvTCPPrepareSend_NoPayloadClearsPSH( void )
@@ -355,12 +353,18 @@ void test_prvTCPPrepareSend_NoPayloadClearsPSH( void )
     xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
     xSocket.u.xTCP.eTCPState = eESTABLISHED;
     xSocket.u.xTCP.bits.bWinChange = pdTRUE;
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        xSocket.u.xTCP.ulUnpushedBytes = 500U;
+    #endif
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_PSH;
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     TEST_ASSERT_EQUAL( 40, prvTCPPrepareSend( &xSocket, &pxBuffer, 0 ) );
     TEST_ASSERT_EQUAL( 0, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_PSH );
     TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK, pxTCPPacket->xTCPHeader.ucTCPFlags & tcpTCP_FLAG_ACK );
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        TEST_ASSERT_EQUAL_UINT32( 500U, xSocket.u.xTCP.ulUnpushedBytes );
+    #endif
 }
 
 void test_prvTCPReturnPacket_SkipARP_NoSocket( void )
@@ -427,9 +431,78 @@ void test_prvTCPPrepareSend_PSH_HalfWindow( void )
     for( uxIndex = 0; uxIndex < sizeof( ucExpected ); uxIndex++ )
     {
         #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
-        TEST_ASSERT_EQUAL( ucExpected[ uxIndex ], ucPrepareSendFlags( 1000 ) & tcpTCP_FLAG_PSH );
+            TEST_ASSERT_EQUAL( ucExpected[ uxIndex ], ucPrepareSendFlags( 1000 ) & tcpTCP_FLAG_PSH );
+            TEST_ASSERT_EQUAL_UINT32( ( ( uxIndex + 1U ) % 3U ) * 500U, xSocket.u.xTCP.ulUnpushedBytes );
         #else
             TEST_ASSERT_EQUAL( tcpTCP_FLAG_PSH, ucPrepareSendFlags( 1000 ) & tcpTCP_FLAG_PSH );
+        #endif
+    }
+}
+
+/* Equality must not push: the upstream rule is strictly greater than half the
+ * window, including integer division for an odd advertised window. */
+void test_prvTCPPrepareSend_PSH_HalfWindowBoundary( void )
+{
+    uint32_t ulWindowSize;
+    size_t uxIndex;
+    uint8_t ucFlags;
+
+    for( ulWindowSize = 2000U; ulWindowSize <= 2001U; ulWindowSize++ )
+    {
+        prvSetUpSocket( ulWindowSize );
+
+        for( uxIndex = 0; uxIndex < 3U; uxIndex++ )
+        {
+            ucFlags = ucPrepareSendFlags( 1000 );
+            #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+                TEST_ASSERT_EQUAL( ( uxIndex == 2U ) ? tcpTCP_FLAG_PSH : 0, ucFlags & tcpTCP_FLAG_PSH );
+                TEST_ASSERT_EQUAL_UINT32( ( ( uxIndex + 1U ) % 3U ) * 500U, xSocket.u.xTCP.ulUnpushedBytes );
+            #else
+                TEST_ASSERT_EQUAL( tcpTCP_FLAG_PSH, ucFlags & tcpTCP_FLAG_PSH );
+            #endif
+        }
+    }
+}
+
+void test_prvTCPPrepareSend_PSH_LastSegmentResetsCount( void )
+{
+    uint8_t ucFlags;
+
+    prvSetUpSocket( 4000 );
+    ( void ) ucPrepareSendFlags( 1000 );
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        TEST_ASSERT_EQUAL_UINT32( 500U, xSocket.u.xTCP.ulUnpushedBytes );
+    #endif
+
+    ucFlags = ucPrepareSendFlags( 500 );
+    TEST_ASSERT_EQUAL( tcpTCP_FLAG_PSH, ucFlags & tcpTCP_FLAG_PSH );
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        TEST_ASSERT_EQUAL_UINT32( 0U, xSocket.u.xTCP.ulUnpushedBytes );
+    #endif
+
+    ucFlags = ucPrepareSendFlags( 1000 );
+    #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        TEST_ASSERT_EQUAL( 0, ucFlags & tcpTCP_FLAG_PSH );
+        TEST_ASSERT_EQUAL_UINT32( 500U, xSocket.u.xTCP.ulUnpushedBytes );
+    #else
+        TEST_ASSERT_EQUAL( tcpTCP_FLAG_PSH, ucFlags & tcpTCP_FLAG_PSH );
+    #endif
+}
+
+/* Reuse the upstream six-segment sequence through both production functions,
+ * alternating recent activity and ARP expiry without resetting the socket. */
+void test_prvTCPPrepareAndReturn_PSH_HalfWindow( void )
+{
+    const uint8_t ucExpected[] = { 0, 0, tcpTCP_FLAG_PSH, 0, 0, tcpTCP_FLAG_PSH };
+    size_t uxIndex;
+
+    prvSetUpSocket( 2200 );
+
+    for( uxIndex = 0; uxIndex < sizeof( ucExpected ); uxIndex++ )
+    {
+        vCheckPreparedSegment( 1000, ( uxIndex % 2U ) ? pdTRUE : pdFALSE, ucExpected[ uxIndex ] );
+        #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+            TEST_ASSERT_EQUAL_UINT32( ( ( uxIndex + 1U ) % 3U ) * 500U, xSocket.u.xTCP.ulUnpushedBytes );
         #endif
     }
 }

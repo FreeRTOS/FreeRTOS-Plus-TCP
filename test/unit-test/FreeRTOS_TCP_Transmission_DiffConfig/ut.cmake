@@ -141,3 +141,11 @@ add_tcp_transmission_config_test( FreeRTOS_TCP_Transmission_DiffConfig_PSHOnly 1
 add_tcp_transmission_config_test( FreeRTOS_TCP_Transmission_DiffConfig_ARPOnly 0 1000U )
 add_tcp_transmission_config_test( FreeRTOS_TCP_Transmission_DiffConfig_Disabled 0 0U )
 add_tcp_transmission_config_test( FreeRTOS_TCP_Transmission_DiffConfig_Defaults defaults defaults )
+
+# Compile the real IPv4 source with hang protection disabled. Invalid ARP
+# settings must fail with the intended diagnostic, for either PSH setting.
+add_test( NAME FreeRTOS_TCP_Transmission_ConfigDependency
+    COMMAND ${CMAKE_COMMAND}
+        -DC_COMPILER=${CMAKE_C_COMPILER}
+        -DMODULE_ROOT_DIR=${MODULE_ROOT_DIR}
+        -P ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission_DiffConfig/check_config_dependency.cmake )

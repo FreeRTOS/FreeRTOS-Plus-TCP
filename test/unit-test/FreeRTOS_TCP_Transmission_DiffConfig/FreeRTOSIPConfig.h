@@ -327,7 +327,9 @@
 #define ipconfigBUFFER_PADDING                   ( 14 )
 #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS        ( 34 )
 
-#define ipconfigTCP_HANG_PROTECTION              ( 1 )
+#ifndef ipconfigTCP_HANG_PROTECTION
+    #define ipconfigTCP_HANG_PROTECTION          ( 1 )
+#endif
 
 #define portINLINE
 
