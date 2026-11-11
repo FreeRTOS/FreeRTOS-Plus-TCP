@@ -1447,6 +1447,33 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When enabled, the stack sets the PSH flag only on the TCP segment that
+ * carries the last byte queued for sending, and on the segment that takes the
+ * data sent since the last PSH over half the peer's window, as Linux does. The
+ * second rule keeps a receiver that waits for PSH delivering data while the
+ * send queue never empties. When disabled, it sets PSH on every segment that
+ * carries data.
+ *
+ * Peers such as Linux send an ACK at once for every segment that carries PSH.
+ * With this enabled, a peer acknowledges a run of segments with one ACK, which
+ * leaves the IP task more time for sending.
+ */
+
+#ifndef ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY
+    #define ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY != ipconfigDISABLE ) && ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY != ipconfigENABLE ) )
+    #error Invalid ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigTCP_MSS
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_MSS
@@ -1480,6 +1507,38 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
 
 #if ( ipconfigTCP_MSS > SIZE_MAX )
     #error ipconfigTCP_MSS overflows a size_t
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigTCP_SKIP_ARP_LOOKUP_MS
+ *
+ * Type: uint32_t
+ * Unit: milliseconds
+ *
+ * A connected TCP socket sends its segments to the peer MAC address in its
+ * header template, without searching the ARP cache, while the socket received
+ * a segment or changed state within this time. After that, each sent segment
+ * searches the ARP cache again, and a hit replaces the MAC address in the
+ * template. RFC 1122 section 2.3.2.1 allows this, since the peer's replies
+ * show that its address still works.
+ *
+ * Searching the ARP cache for every sent segment can limit TCP throughput on a
+ * slow CPU. Segments that have no socket, such as resets, always search the
+ * cache.
+ *
+ * The default is 0, which searches the ARP cache for every segment. A value
+ * above 0 needs ipconfigTCP_HANG_PROTECTION, which keeps the time of the last
+ * activity.
+ */
+
+#ifndef ipconfigTCP_SKIP_ARP_LOOKUP_MS
+    #define ipconfigTCP_SKIP_ARP_LOOKUP_MS    0U
+#endif
+
+#if ( ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U ) && ( ipconfigTCP_HANG_PROTECTION != ipconfigENABLE ) )
+    #error ipconfigTCP_SKIP_ARP_LOOKUP_MS needs ipconfigTCP_HANG_PROTECTION
 #endif
 
 /*---------------------------------------------------------------------------*/
