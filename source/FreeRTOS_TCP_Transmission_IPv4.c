@@ -236,7 +236,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             #if ( ipconfigTCP_SKIP_ARP_LOOKUP_MS > 0U )
             {
                 /* A socket's header template holds the peer MAC, which is trusted while
-                 * the peer was heard from recently (RFC 1122 2.3.2.1). */
+                 * the socket was active recently (RFC 1122 2.3.2.1). */
                 if( ( pxSocket != NULL ) && ( ( xTaskGetTickCount() - pxSocket->u.xTCP.xLastActTime ) < pdMS_TO_TICKS( ipconfigTCP_SKIP_ARP_LOOKUP_MS ) ) )
                 {
                     eResult = eResolutionCacheMiss;
