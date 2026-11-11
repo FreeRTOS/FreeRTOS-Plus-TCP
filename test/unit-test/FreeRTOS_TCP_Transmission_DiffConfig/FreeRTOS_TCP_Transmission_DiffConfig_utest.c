@@ -84,20 +84,11 @@ static const MACAddress_t xCacheMAC = { { 0x21, 0x43, 0x65, 0x87, 0xA9, 0xCB } }
 
 /* ============================ Test Helpers ============================ */
 
-/* Prepares an established socket with 500 bytes ready in its TX window, and
- * returns the TCP flags of the segment that prvTCPPrepareSend() builds. The
- * argument is the number of bytes queued from the segment start. */
-static uint8_t ucPrepareSendFlags( size_t uxQueuedBytes )
+/* Prepares an established socket whose peer advertises the given window. */
+static void prvSetUpSocket( uint32_t ulPeerWindowSize )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
-    int32_t lBytesSent;
-    int32_t lStreamPosition = 100;
-
     memset( &xStreamBuffer, 0, sizeof( xStreamBuffer ) );
     memset( &xSocket, 0, sizeof( xSocket ) );
-    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
-    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
-    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
     xBufferAllocFixedSize = pdFALSE;
 
     xSocket.u.xTCP.txStream = &xStreamBuffer;
@@ -105,8 +96,23 @@ static uint8_t ucPrepareSendFlags( size_t uxQueuedBytes )
     xSocket.u.xTCP.usMSS = 1000;
     xSocket.u.xTCP.bits.bSendKeepAlive = pdTRUE;
     xSocket.u.xTCP.ucKeepRepCount = 1;
-    xStreamBuffer.uxHead = ( size_t ) lStreamPosition + uxQueuedBytes;
     xStreamBuffer.LENGTH = 2048;
+    xSocket.u.xTCP.ulWindowSize = ulPeerWindowSize;
+}
+
+/* Returns the TCP flags of the next segment that prvTCPPrepareSend() builds,
+ * with 500 bytes ready in the TX window. The argument is the number of bytes
+ * queued from the segment start. */
+static uint8_t ucPrepareSendFlags( size_t uxQueuedBytes )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    int32_t lBytesSent;
+    int32_t lStreamPosition = 100;
+
+    memset( ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    xStreamBuffer.uxHead = ( size_t ) lStreamPosition + uxQueuedBytes;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     ulTCPWindowTxGet_ExpectAnyArgsAndReturn( 500 );
@@ -136,7 +142,10 @@ static uint8_t ucPrepareSendFlags( size_t uxQueuedBytes )
  */
 void test_prvTCPPrepareSend_PSH_LastSegment( void )
 {
-    uint8_t ucFlags = ucPrepareSendFlags( 500 );
+    uint8_t ucFlags;
+
+    prvSetUpSocket( 4000 );
+    ucFlags = ucPrepareSendFlags( 500 );
 
     TEST_ASSERT_EQUAL( tcpTCP_FLAG_PSH, ucFlags & tcpTCP_FLAG_PSH );
 }
@@ -147,7 +156,10 @@ void test_prvTCPPrepareSend_PSH_LastSegment( void )
  */
 void test_prvTCPPrepareSend_PSH_MoreQueued( void )
 {
-    uint8_t ucFlags = ucPrepareSendFlags( 1000 );
+    uint8_t ucFlags;
+
+    prvSetUpSocket( 4000 );
+    ucFlags = ucPrepareSendFlags( 1000 );
 
     #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
         TEST_ASSERT_EQUAL( 0, ucFlags & tcpTCP_FLAG_PSH );
@@ -284,6 +296,7 @@ static void vCheckPreparedSegment( size_t uxQueuedBytes,
     const MACAddress_t * pxExpectedMAC = &xCacheMAC;
     uint8_t ucExpectedPSH = tcpTCP_FLAG_PSH;
 
+    prvSetUpSocket( 4000 );
     ( void ) ucPrepareSendFlags( uxQueuedBytes );
     vPrepareReturnPacket( pdTRUE );
 
@@ -397,4 +410,26 @@ void test_prvTCPReturnPacket_SkipARP_TickWrap( void )
     prvTCPReturnPacket( &xSocket, &xNetworkBuffer, 40, pdFALSE );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL_UINT8_ARRAY( pxExpectedMAC->ucBytes, pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+}
+
+/**
+ * @brief test_prvTCPPrepareSend_PSH_HalfWindow
+ * To validate if prvTCPPrepareSend() sets PSH on a segment once more than half
+ * of the peer's window has been sent without PSH, while more data stays queued.
+ */
+void test_prvTCPPrepareSend_PSH_HalfWindow( void )
+{
+    const uint8_t ucExpected[] = { 0, 0, tcpTCP_FLAG_PSH, 0, 0, tcpTCP_FLAG_PSH };
+    size_t uxIndex;
+
+    prvSetUpSocket( 2200 );
+
+    for( uxIndex = 0; uxIndex < sizeof( ucExpected ); uxIndex++ )
+    {
+        #if ( ipconfigTCP_PSH_ON_LAST_SEGMENT_ONLY == ipconfigENABLE )
+        TEST_ASSERT_EQUAL( ucExpected[ uxIndex ], ucPrepareSendFlags( 1000 ) & tcpTCP_FLAG_PSH );
+        #else
+            TEST_ASSERT_EQUAL( tcpTCP_FLAG_PSH, ucPrepareSendFlags( 1000 ) & tcpTCP_FLAG_PSH );
+        #endif
+    }
 }
