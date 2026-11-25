@@ -756,9 +756,21 @@
          * this connection. */
         ulSum = ulSequenceNumber + ulReceiveLength - pxTCPWindow->rx.ulHighestSequenceNumber;
 
-        if( ( ( int32_t ) ulSum ) > 0 )
+        /* Only a segment that carries data, or a FIN, may advance the highest
+         * sequence number, and only when it lies within the receive window.
+         * A zero-length ACK must not move it: prvStoreRxData() only validates the
+         * sequence number of segments that carry payload. */
+        if( ( ulReceiveLength > 0U ) || ( ( ucTCPFlags & tcpTCP_FLAG_FIN ) != 0U ) )
         {
-            pxTCPWindow->rx.ulHighestSequenceNumber = ulSequenceNumber + ulReceiveLength;
+            if( ( ( int32_t ) ulSum ) > 0 )
+            {
+                int32_t lDistanceToCur = ( int32_t ) ( ulSequenceNumber - pxTCPWindow->rx.ulCurrentSequenceNumber );
+
+                if( lDistanceToCur <= ( int32_t ) pxTCPWindow->xSize.ulRxWindowLength )
+                {
+                    pxTCPWindow->rx.ulHighestSequenceNumber = ulSequenceNumber + ulReceiveLength;
+                }
+            }
         }
 
         /* Storing data may result in a fatal error if malloc() fails. */
