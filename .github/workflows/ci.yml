@@ -133,7 +133,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check formatting
-        uses: FreeRTOS/CI-CD-Github-Actions/formatting@main
+        uses: FreeRTOS/CI-CD-Github-Actions/formatting@3badb2448c26ccda569907beb161c5a727ee7b6d
         with:
           path: ./
           exclude-dirs: source/portable/NetworkInterface/STM32, test/integration-test/ndp
