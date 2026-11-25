@@ -1187,6 +1187,206 @@ void test_prvTCPHandleState_Closed( void )
     TEST_ASSERT_EQUAL( 0, xSendLength );
 }
 
+/* ---- Validation of the receive high-water mark (rx.ulHighestSequenceNumber) ---- */
+
+/**
+ * @brief Run prvTCPHandleState() for one received segment and leave the result
+ *        in the global socket.  The socket is in eCLOSED, so only the update of
+ *        the high-water mark is exercised.
+ *
+ * @param[in] ucFlags The TCP flags of the received segment.
+ * @param[in] ulSeq The sequence number of the received segment.
+ * @param[in] ulPayloadLength The number of payload bytes in the segment.
+ * @param[in] ulCurrent The next expected sequence number ( rx.ulCurrentSequenceNumber ).
+ * @param[in] ulHighest The initial high-water mark ( rx.ulHighestSequenceNumber ).
+ * @param[in] ulWindowLength The receive window length.
+ */
+static void prvRunHighWaterCase( uint8_t ucFlags,
+                                 uint32_t ulSeq,
+                                 uint32_t ulPayloadLength,
+                                 uint32_t ulCurrent,
+                                 uint32_t ulHighest,
+                                 uint32_t ulWindowLength )
+{
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    pxTCPHeader->ucTCPFlags = ucFlags;
+    pxSocket->u.xTCP.eTCPState = eCLOSED;
+    pxSocket->u.xTCP.txStream = NULL;
+    pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdFALSE;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( ulSeq );
+    pxTCPWindow->rx.ulCurrentSequenceNumber = ulCurrent;
+    pxTCPWindow->rx.ulHighestSequenceNumber = ulHighest;
+    pxTCPWindow->xSize.ulRxWindowLength = ulWindowLength;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    prvCheckRxData_ExpectAnyArgsAndReturn( ( BaseType_t ) ulPayloadLength );
+    prvStoreRxData_ExpectAnyArgsAndReturn( 0 );
+    prvSetOptions_ExpectAnyArgsAndReturn( 0 );
+
+    ( void ) prvTCPHandleState( pxSocket, &pxNetworkBuffer );
+}
+
+/**
+ * @brief A zero-length ACK whose sequence number is far ahead of the receive
+ *        window must not move the high-water mark.
+ */
+void test_prvTCPHandleState_HighWater_PureAckFarAheadIgnored( void )
+{
+    const uint32_t ulCurrent = 1001U;
+    const uint32_t ulFarAhead[] = { 0x00000000U, 0x40000000U, 0x7FFFFFFFU, 0x80000000U, 0xC0000000U };
+    size_t uxIndex;
+
+    for( uxIndex = 0U; uxIndex < ( sizeof( ulFarAhead ) / sizeof( ulFarAhead[ 0 ] ) ); uxIndex++ )
+    {
+        prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulFarAhead[ uxIndex ], 0U, ulCurrent, ulCurrent, 14600U );
+
+        TEST_ASSERT_EQUAL_UINT32( ulCurrent, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+    }
+}
+
+/**
+ * @brief A zero-length ACK never moves the high-water mark, even when its
+ *        sequence number lies inside the receive window.
+ */
+void test_prvTCPHandleState_HighWater_PureAckInWindowIgnored( void )
+{
+    const uint32_t ulCurrent = 1001U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent + 100U, 0U, ulCurrent, ulCurrent, 14600U );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief A segment with payload whose sequence number is far ahead of the
+ *        receive window must not move the high-water mark.
+ */
+void test_prvTCPHandleState_HighWater_DataFarAheadIgnored( void )
+{
+    const uint32_t ulCurrent = 1001U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent + 0x40000000U, 1000U, ulCurrent, ulCurrent, 14600U );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief In-order data moves the high-water mark to the end of the segment.
+ */
+void test_prvTCPHandleState_HighWater_DataInOrderAdvances( void )
+{
+    const uint32_t ulCurrent = 1001U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent, 1000U, ulCurrent, ulCurrent, 14600U );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent + 1000U, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief Data that starts exactly at the right edge of the receive window is
+ *        still accepted and moves the high-water mark.
+ */
+void test_prvTCPHandleState_HighWater_DataAtWindowEdgeAdvances( void )
+{
+    const uint32_t ulCurrent = 1001U;
+    const uint32_t ulWindow = 14600U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent + ulWindow, 1000U, ulCurrent, ulCurrent, ulWindow );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent + ulWindow + 1000U, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief Data that starts one byte beyond the right edge of the receive window
+ *        must not move the high-water mark.
+ */
+void test_prvTCPHandleState_HighWater_DataJustBeyondWindowIgnored( void )
+{
+    const uint32_t ulCurrent = 1001U;
+    const uint32_t ulWindow = 14600U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent + ulWindow + 1U, 1000U, ulCurrent, ulCurrent, ulWindow );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief A retransmitted segment that starts before the next expected sequence
+ *        number but ends after it still moves the high-water mark.
+ */
+void test_prvTCPHandleState_HighWater_DataStartingBeforeCurrentAdvances( void )
+{
+    const uint32_t ulCurrent = 1001U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent - 1U, 1000U, ulCurrent, ulCurrent, 14600U );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent - 1U + 1000U, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief Data that ends at or before the current high-water mark ( for example a
+ *        retransmission of data that was already seen ) never moves it backwards.
+ */
+void test_prvTCPHandleState_HighWater_DataBehindHighWaterIgnored( void )
+{
+    const uint32_t ulCurrent = 1001U;
+    const uint32_t ulHighest = ulCurrent + 5000U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent, 1000U, ulCurrent, ulHighest, 14600U );
+
+    TEST_ASSERT_EQUAL_UINT32( ulHighest, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief An in-order FIN without payload moves the high-water mark.
+ */
+void test_prvTCPHandleState_HighWater_FinInOrderAdvances( void )
+{
+    const uint32_t ulCurrent = 1001U;
+
+    prvRunHighWaterCase( ( uint8_t ) ( tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK ), ulCurrent, 0U, ulCurrent, ulCurrent - 1U, 14600U );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief A FIN whose sequence number is far ahead of the receive window must
+ *        not move the high-water mark.
+ */
+void test_prvTCPHandleState_HighWater_FinFarAheadIgnored( void )
+{
+    const uint32_t ulCurrent = 1001U;
+
+    prvRunHighWaterCase( ( uint8_t ) ( tcpTCP_FLAG_FIN | tcpTCP_FLAG_ACK ), ulCurrent + 0x40000000U, 0U, ulCurrent, ulCurrent, 14600U );
+
+    TEST_ASSERT_EQUAL_UINT32( ulCurrent, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
+/**
+ * @brief The checks work when the sequence numbers wrap around 2^32.
+ */
+void test_prvTCPHandleState_HighWater_SequenceWrapAround( void )
+{
+    const uint32_t ulCurrent = 0xFFFFFF00U;
+
+    prvRunHighWaterCase( tcpTCP_FLAG_ACK, ulCurrent, 1000U, ulCurrent, ulCurrent, 14600U );
+
+    /* 0xFFFFFF00 + 1000 wraps to 0x000002E8. */
+    TEST_ASSERT_EQUAL_UINT32( 0x000002E8U, pxSocket->u.xTCP.xTCPWindow.rx.ulHighestSequenceNumber );
+}
+
 /**
  * @brief Get TCP packet with ACK when the state of socket is eTCP_LISTEN.
  */
